@@ -3,11 +3,12 @@ import { Outlet } from 'react-router-dom'
 import { Header } from '@/components/common/Header'
 import { Footer } from '@/components/common/Footer'
 import { Sidebar } from '@/components/common/Sidebar'
+import { BottomNav } from '@/components/common/BottomNav'
 import { OfflineBanner } from '@/components/common/OfflineBanner'
 
 export const AppLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
       {/* Offline Alert Bar */}
       <OfflineBanner />
 
@@ -22,7 +23,7 @@ export const AppLayout: React.FC = () => {
         {/* Main Content Area */}
         <main
           id="main-content"
-          className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-full focus:outline-none"
+          className="flex-1 p-3 sm:p-6 lg:p-8 overflow-y-auto max-w-full focus:outline-none pb-24 lg:pb-8"
           tabIndex={-1}
         >
           <Outlet />
@@ -31,6 +32,10 @@ export const AppLayout: React.FC = () => {
 
       {/* App Footer */}
       <Footer />
+
+      {/* Mobile-first Bottom Navigation */}
+      <BottomNav />
     </div>
   )
 }
+
