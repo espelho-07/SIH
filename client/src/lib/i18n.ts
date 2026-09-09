@@ -1,0 +1,118 @@
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
+
+const resources = {
+  en: {
+    translation: {
+      appName: 'SANJEEVANI-CONNECT',
+      tagline: 'Integrated Public Healthcare Access & Resource Intelligence',
+      nav: {
+        home: 'Home',
+        findCare: 'Find Healthcare',
+        treatmentMatcher: 'Treatment Matcher',
+        queue: 'Live Queue',
+        blood: 'Blood Bank',
+        medicines: 'Medicines',
+        referrals: 'Referrals',
+        records: 'My Health Records',
+        login: 'Login',
+        logout: 'Logout',
+      },
+      patientHome: {
+        greeting: 'Namaste! How can we help you today?',
+        voiceHeroPrompt: 'Tap microphone and speak your symptoms in your language',
+        listening: 'Listening... please speak clearly',
+        voiceAction: 'Speak Symptoms',
+        searchPlaceholder: 'Search hospitals, doctors, treatments (e.g. Dialysis, Ortho)...',
+        findFacilities: 'Find Nearest Hospitals',
+        checkBeds: 'Check ICU & Oxygen Beds',
+        bloodBank: 'Check Blood Availability',
+        checkMedicines: 'Check Medicine Stock',
+        myPrescriptions: 'My Prescriptions & Reports',
+        emergencyTitle: 'Medical Emergency? Call 108',
+        emergencySubtitle: 'Free Government Emergency Ambulance Service 24x7',
+        activeTokenTitle: 'Your Active OPD Token',
+        servingNow: 'Now Serving',
+        estimatedWait: 'Estimated Wait',
+        inLine: 'in line',
+      },
+      common: {
+        loading: 'Loading...',
+        offlineNotice: 'Working Offline — Changes are saved locally and will sync once connected',
+        syncNow: 'Sync Now',
+        retry: 'Try Again',
+        errorTitle: 'Something went wrong',
+        noData: 'No information available',
+        updatedAt: 'Updated',
+        staleWarning: 'Stale Data — Please call facility to confirm before travelling',
+        ayushmanEmpaneled: 'Ayushman Bharat (PM-JAY)',
+        emergency24x7: '24x7 Emergency Trauma',
+        available: 'Available',
+        limited: 'Limited',
+        unavailable: 'Unavailable',
+      },
+    },
+  },
+  hi: {
+    translation: {
+      appName: 'संजीवनी-कनेक्ट',
+      tagline: 'एकीकृत सार्वजनिक स्वास्थ्य सेवा एवं संसाधन सूचना प्रणाली',
+      nav: {
+        home: 'मुख्य पृष्ठ',
+        findCare: 'अस्पताल खोजें',
+        treatmentMatcher: 'इलाज खोजक',
+        queue: 'लाइव कतार',
+        blood: 'ब्लड बैंक',
+        medicines: 'दवाइयां',
+        referrals: 'रेफरल ट्रैकिंग',
+        records: 'स्वास्थ्य पर्चे एवं रिपोर्ट',
+        login: 'लॉग इन',
+        logout: 'लॉग आउट',
+      },
+      patientHome: {
+        greeting: 'नमस्ते! आज हम आपकी क्या सहायता कर सकते हैं?',
+        voiceHeroPrompt: 'माइक दबाएं और अपनी भाषा में अपनी तकलीफ बोलकर बताएं',
+        listening: 'सुन रहे हैं... कृपया स्पष्ट बोलें',
+        voiceAction: 'बोलकर बताएं',
+        searchPlaceholder: 'अस्पताल, डॉक्टर या बीमारी खोजें (उदा. डायलिसिस, हड्डी रोग)...',
+        findFacilities: 'निकटतम सरकारी अस्पताल',
+        checkBeds: 'आईसीयू और ऑक्सीजन बेड स्थिति',
+        bloodBank: 'रक्त (ब्लड) उपलब्धता जांचें',
+        checkMedicines: 'आवश्यक दवाइयां खोजें',
+        myPrescriptions: 'मेरे पुराने पर्चे एवं जांच रिपोर्ट',
+        emergencyTitle: 'आपातकालीन सहायता? 108 डायल करें',
+        emergencySubtitle: 'मुफ्त 24x7 सरकारी एम्बुलेंस सेवा',
+        activeTokenTitle: 'आपका सक्रिय ओपीडी टोकन',
+        servingNow: 'वर्तमान टोकन',
+        estimatedWait: 'अनुमानित समय',
+        inLine: 'कतार में',
+      },
+      common: {
+        loading: 'लोड हो रहा है...',
+        offlineNotice: 'ऑफ़लाइन मोड — आपके बदलाव सुरक्षित हैं और इंटरनेट आने पर सिंक होंगे',
+        syncNow: 'अभी सिंक करें',
+        retry: 'पुनः प्रयास करें',
+        errorTitle: 'कुछ गड़बड़ हुई',
+        noData: 'कोई जानकारी उपलब्ध नहीं है',
+        updatedAt: 'अपडेट',
+        staleWarning: 'पुरानी जानकारी — कृपया जाने से पहले अस्पताल में फोन करके पुष्टि करें',
+        ayushmanEmpaneled: 'आयुष्मान भारत (PM-JAY) सम्बद्ध',
+        emergency24x7: '24x7 आपातकालीन ट्रॉमा सेवा',
+        available: 'उपलब्ध',
+        limited: 'सीमित',
+        unavailable: 'अनुपलब्ध',
+      },
+    },
+  },
+}
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: localStorage.getItem('sanjeevani_lang') || 'en',
+  fallbackLng: 'en',
+  interpolation: {
+    escapeValue: false, // React already escapes values
+  },
+})
+
+export default i18n
