@@ -1,5 +1,5 @@
 import React from 'react'
-import { Globe } from 'lucide-react'
+import { Globe, ChevronDown } from 'lucide-react'
 import { useUiStore } from '@/stores/uiStore'
 
 export const LanguageSelector: React.FC = () => {
@@ -13,12 +13,12 @@ export const LanguageSelector: React.FC = () => {
 
   return (
     <div className="relative inline-flex items-center">
-      <Globe className="w-4 h-4 text-slate-500 absolute left-2.5 pointer-events-none" aria-hidden="true" />
+      <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" aria-hidden="true" />
       <select
         value={currentLanguage}
         onChange={(e) => setLanguage(e.target.value)}
-        className="text-xs font-semibold pl-8 pr-6 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:border-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-600 appearance-none cursor-pointer"
-        aria-label="Select platform language"
+        className="text-xs font-medium pl-8 pr-7 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5147] appearance-none cursor-pointer transition-colors shadow-2xs"
+        aria-label="Select language"
       >
         {languages.map((lang) => (
           <option key={lang.code} value={lang.code}>
@@ -26,6 +26,8 @@ export const LanguageSelector: React.FC = () => {
           </option>
         ))}
       </select>
+      <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none" aria-hidden="true" />
     </div>
   )
 }
+

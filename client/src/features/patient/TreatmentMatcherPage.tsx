@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import {
   Sparkles,
   Search,
@@ -14,14 +13,12 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { FacilityAvailabilityBadge } from '@/components/healthcare/FacilityAvailabilityBadge'
 import { ResourceFreshnessBadge } from '@/components/healthcare/ResourceFreshnessBadge'
 import type { TreatmentMatchResult } from '@/types/facility'
 
 export const TreatmentMatcherPage: React.FC = () => {
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const [query, setQuery] = useState('Kidney Dialysis')
   const [isSearching, setIsSearching] = useState(false)
@@ -31,11 +28,11 @@ export const TreatmentMatcherPage: React.FC = () => {
     {
       matchScore: 98,
       capabilityMatched: true,
-      recommendedReason: 'नेफ्रोलॉजिस्ट (किडनी विशेषज्ञ) ऑन-ड्यूटी + 3 डायलिसिस मशीनें चालू + 4 आईसीयू बेड उपलब्ध',
+      recommendedReason: 'Nephrologist on active duty + 3 Dialysis units functional + 4 ICU beds available',
       estimatedTravelTimeMins: 18,
       facility: {
         id: 'FAC-001',
-        name: 'Pandeypur District Hospital (जिला अस्पताल)',
+        name: 'Pandeypur District Hospital',
         tier: 'DISTRICT_HOSPITAL',
         district: 'Varanasi',
         state: 'Uttar Pradesh',
@@ -48,8 +45,8 @@ export const TreatmentMatcherPage: React.FC = () => {
         oxygenBeds: { total: 60, available: 18, occupied: 40, reserved: 2 },
         generalBeds: { total: 200, available: 42, occupied: 155, reserved: 3 },
         specialistsOnDuty: [
-          { name: 'Dr. Anita Desai', specialty: 'Nephrologist (किडनी विशेषज्ञ)', isAvailableNow: true },
-          { name: 'Dr. R. K. Sharma', specialty: 'Intensive Care (आईसीयू)', isAvailableNow: true },
+          { name: 'Dr. Anita Desai', specialty: 'Nephrology', isAvailableNow: true },
+          { name: 'Dr. R. K. Sharma', specialty: 'Intensive Care', isAvailableNow: true },
         ],
         bloodUnitsAvailable: 34,
         lastUpdatedIso: new Date().toISOString(),
@@ -59,11 +56,11 @@ export const TreatmentMatcherPage: React.FC = () => {
     {
       matchScore: 82,
       capabilityMatched: true,
-      recommendedReason: 'डायलिसिस यूनिट चालू है, लेकिन डॉक्टर ऑन-कॉल उपलब्ध हैं',
+      recommendedReason: 'Dialysis unit operational, but Specialist on-call rather than on-site',
       estimatedTravelTimeMins: 28,
       facility: {
         id: 'FAC-002',
-        name: 'Shivpur Community Health Centre (सामुदायिक स्वास्थ्य केंद्र)',
+        name: 'Shivpur Community Health Centre (CHC)',
         tier: 'CHC',
         district: 'Varanasi',
         state: 'Uttar Pradesh',
@@ -76,7 +73,7 @@ export const TreatmentMatcherPage: React.FC = () => {
         oxygenBeds: { total: 25, available: 8, occupied: 16, reserved: 1 },
         generalBeds: { total: 50, available: 14, occupied: 36, reserved: 0 },
         specialistsOnDuty: [
-          { name: 'Dr. Meena Singh', specialty: 'General Physician', isAvailableNow: true },
+          { name: 'Dr. Meena Singh', specialty: 'General Medicine', isAvailableNow: true },
         ],
         bloodUnitsAvailable: 12,
         lastUpdatedIso: new Date().toISOString(),
@@ -92,69 +89,69 @@ export const TreatmentMatcherPage: React.FC = () => {
     setIsSearching(true)
     setTimeout(() => {
       setIsSearching(false)
-    }, 400)
+    }, 350)
   }
 
   const handleVoiceToggle = () => {
     if (!isRecording) {
       setIsRecording(true)
       setTimeout(() => {
-        setQuery('Normal Delivery Maternity Hospital')
+        setQuery('Normal Delivery Maternity Care')
         setIsRecording(false)
-      }, 2000)
+      }, 1800)
     } else {
       setIsRecording(false)
     }
   }
 
   const commonProcedures = [
-    { label: 'डायलिसिस (Dialysis)', q: 'Kidney Dialysis' },
-    { label: 'प्रसव / डिलीवरी (Maternity)', q: 'Normal & Cesarean Delivery' },
-    { label: 'हड्डी रोग व फ्रैक्चर (Fracture)', q: 'Bone Fracture Ortho' },
-    { label: 'शिशु रोग व आईसीयू (Pediatric)', q: 'Pediatric ICU' },
-    { label: 'मोतियाबिंद आंख ऑपरेशन (Cataract)', q: 'Cataract Eye Surgery' },
-    { label: 'ह्रदय रोग / सीने में दर्द (Cardiac)', q: 'Heart Emergency' },
+    { label: 'Kidney Dialysis', q: 'Kidney Dialysis' },
+    { label: 'Normal & Cesarean Delivery', q: 'Maternity Delivery' },
+    { label: 'Trauma & Fracture Casting', q: 'Bone Fracture Ortho' },
+    { label: 'Pediatric ICU & Ventilator', q: 'Pediatric ICU' },
+    { label: 'Cataract Eye Surgery', q: 'Cataract Eye Surgery' },
+    { label: 'Cardiac & Chest Pain', q: 'Cardiac Care' },
   ]
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header Info */}
-      <div className="space-y-1">
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+      {/* Navigation Header */}
+      <div className="space-y-1.5">
         <Link
           to="/patient/home"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:text-teal-800 touch-target mb-1"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F5147] hover:text-[#0A3F37] transition-colors mb-1"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>मुख्य पृष्ठ (Home)</span>
+          <span>Back to Home</span>
         </Link>
-        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-teal-700">
-          <Sparkles className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-          <span>सत्यापित अस्पताल मिलान (Verified Care Matching)</span>
+        <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#0F5147]">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Clinical Capability Matching Engine</span>
         </div>
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">
-          {t('treatment.pageTitle')}
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          What treatment do you need?
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600">
-          {t('treatment.pageSubtitle')}
+        <p className="text-xs sm:text-sm text-slate-500">
+          Search any medical condition, surgery, or specialty. We match verified facilities with confirmed specialists on duty and operational bed capacity.
         </p>
       </div>
 
-      {/* Search Input Form */}
-      <Card className="p-4 sm:p-5 bg-white shadow-xs border-teal-200">
+      {/* Search Input Container */}
+      <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
         <form onSubmit={handleSearch} className="space-y-3">
-          <label htmlFor="treatment-input" className="block text-xs sm:text-sm font-bold text-slate-800">
-            {t('treatment.inputLabel')}
+          <label htmlFor="treatment-input" className="block text-xs font-bold uppercase tracking-wide text-slate-700">
+            Search procedure, surgery, or specialty
           </label>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
-              <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" aria-hidden="true" />
+              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-3.5 pointer-events-none" aria-hidden="true" />
               <input
                 id="treatment-input"
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('treatment.inputPlaceholder')}
-                className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 font-medium"
+                placeholder="e.g. Kidney Dialysis, Pediatric ICU, Orthopaedic Fracture..."
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5147] transition-colors"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -162,35 +159,35 @@ export const TreatmentMatcherPage: React.FC = () => {
                 type="button"
                 variant={isRecording ? 'destructive' : 'outline'}
                 onClick={handleVoiceToggle}
-                className="min-h-[44px] px-3 font-bold text-xs"
-                leftIcon={isRecording ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4 text-teal-700" />}
+                className="min-h-[44px] px-3.5 font-semibold text-xs"
+                leftIcon={isRecording ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4 text-[#0F5147]" />}
               >
-                {isRecording ? 'सुन रहे हैं...' : 'बोलें'}
+                {isRecording ? 'Listening...' : 'Speak'}
               </Button>
               <Button
                 type="submit"
                 variant="primary"
                 size="md"
                 isLoading={isSearching}
-                className="font-bold min-h-[44px] flex-1 sm:flex-initial"
+                className="font-bold min-h-[44px] flex-1 sm:flex-initial px-5"
               >
-                अस्पताल खोजें
+                Find Best Matches
               </Button>
             </div>
           </div>
 
-          {/* Quick chips */}
-          <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
-            <span className="font-bold text-slate-700">{t('treatment.quickChipsLabel')}</span>
+          {/* Quick Procedure Filter Pills */}
+          <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-slate-400 font-medium mr-1">Popular:</span>
             {commonProcedures.map((proc, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setQuery(proc.q)}
-                className={`px-3 py-1 rounded-full border text-xs font-medium transition-colors cursor-pointer touch-target ${
+                className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer ${
                   query === proc.q
-                    ? 'bg-teal-700 text-white border-teal-700 font-bold'
-                    : 'bg-slate-50 hover:bg-teal-50 text-slate-700 border-slate-200'
+                    ? 'bg-[#0F5147] text-white border-[#0F5147] font-semibold'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                 }`}
               >
                 {proc.label}
@@ -198,53 +195,58 @@ export const TreatmentMatcherPage: React.FC = () => {
             ))}
           </div>
         </form>
-      </Card>
+      </div>
 
-      {/* Reassurance Banner */}
-      <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-start gap-2.5">
-        <ShieldCheck className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
-        <div>
-          <strong className="font-bold block">100% पारदर्शी एवं जांचे-परखे परिणाम:</strong>
-          <span>अस्पतालों की रैंकिंग सिर्फ दूरी से नहीं, बल्कि विशेषज्ञ डॉक्टर की वास्तविक मौजूदगी और चालू बेड की जांच के आधार पर की जाती है।</span>
+      {/* Recommendation Transparency Banner */}
+      <div className="p-4 bg-[#F2F9F8] border border-[#D1E5E2] rounded-2xl text-xs text-slate-800 flex items-start gap-3 shadow-2xs">
+        <ShieldCheck className="w-5 h-5 text-[#0F5147] shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <strong className="font-bold text-slate-900 block">Verified Clinical Capability Matching</strong>
+          <p className="text-slate-600 leading-relaxed">
+            Recommendations are ranked by verified clinical equipment status, attending specialist duty shifts, and real-time bed capacity — not distance alone. Facilities empaneled under PM-JAY Ayushman Bharat provide 100% cashless care.
+          </p>
         </div>
       </div>
 
-      {/* Ranked Results Listing */}
+      {/* Best Matches Results Listing */}
       <div className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-sm font-bold text-slate-900">
-            सिफारिश किए गए अस्पताल ({results.length} मिले)
+            Best Matched Facilities ({results.length} found)
           </h2>
-          <span className="text-xs text-slate-500">सुविधा मिलान स्कोर के आधार पर</span>
+          <span className="text-xs text-slate-500 font-medium">Ranked by Clinical Readiness Score</span>
         </div>
 
         {results.map((res, index) => {
           const { facility, matchScore, recommendedReason, estimatedTravelTimeMins } = res
           return (
-            <Card key={facility.id} className="p-4 sm:p-5 border-slate-200/90 hover:border-teal-400 transition-all space-y-3.5">
-              {/* Top Bar: Match Score + Tier + Freshness */}
-              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 pb-3 border-b border-slate-100">
-                <div>
+            <div
+              key={facility.id}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs transition-all space-y-4"
+            >
+              {/* Card Header: Score, Facility, Distance */}
+              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3 pb-3 border-b border-slate-100">
+                <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                      {matchScore}% {t('treatment.matchScore')}
+                      {matchScore}% Readiness Match
                     </span>
-                    <Badge variant="default" className="text-[10px]">
+                    <Badge variant="default" className="text-[10px] font-medium">
                       {facility.tier.replace('_', ' ')}
                     </Badge>
                     {facility.isAyushmanEmpaneled && (
-                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        {t('treatment.ayushmanCard')}
+                      <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        PM-JAY 100% Cashless
                       </span>
                     )}
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-1.5">
+                  <h3 className="text-lg font-bold text-slate-900 mt-1">
                     {index + 1}. {facility.name}
                   </h3>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    {facility.address} &bull; <strong className="text-slate-800">{facility.distanceKm} km</strong> (~{estimatedTravelTimeMins} मिनट सड़क मार्ग से)
+                  <p className="text-xs text-slate-500">
+                    {facility.address} &bull; <strong className="text-slate-800">{facility.distanceKm} km</strong> (~{estimatedTravelTimeMins} min travel time)
                   </p>
                 </div>
 
@@ -257,32 +259,32 @@ export const TreatmentMatcherPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* "Why choose this hospital?" Checklist */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2 text-xs">
-                <strong className="block font-bold text-slate-900">
-                  {t('treatment.whyHospital')} (यह अस्पताल क्यों चुनें?)
+              {/* "Why this facility?" Structured Checklist */}
+              <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-100 space-y-2.5 text-xs">
+                <strong className="block font-bold text-slate-900 uppercase tracking-wide text-[11px]">
+                  Why this facility?
                 </strong>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-slate-700">
                   <div className="flex items-center gap-2 text-emerald-900 font-medium">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{t('treatment.specialistReady')}</span>
+                    <span>Verified specialist physician on active duty</span>
                   </div>
                   <div className="flex items-center gap-2 text-emerald-900 font-medium">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{facility.icuBeds.available} आईसीयू व {facility.oxygenBeds.available} ऑक्सीजन बेड खाली हैं</span>
+                    <span>{facility.icuBeds.available} ICU and {facility.oxygenBeds.available} oxygen beds ready</span>
                   </div>
                   <div className="flex items-center gap-2 text-emerald-900 font-medium">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>आयुष्मान कार्ड 100% स्वीकार्य</span>
+                    <span>100% Cashless under Ayushman Bharat</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-700 font-medium">
-                    <Clock className="w-4 h-4 text-teal-700 shrink-0" />
-                    <span>लगभग {estimatedTravelTimeMins} मिनट की दूरी</span>
+                    <Clock className="w-4 h-4 text-[#0F5147] shrink-0" />
+                    <span>Estimated {estimatedTravelTimeMins} min road transit</span>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-slate-600 pt-1 border-t border-slate-200/60 mt-2">
-                  <strong>टिप्पणी:</strong> {recommendedReason}
+                <p className="text-[11px] text-slate-600 pt-2 border-t border-slate-200/60 mt-1">
+                  <strong>Clinical Rationale:</strong> {recommendedReason}
                 </p>
               </div>
 
@@ -291,11 +293,11 @@ export const TreatmentMatcherPage: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => alert(`${facility.name} के आपातकालीन रिसेप्शन नंबर पर कॉल मिलाया जा रहा है...`)}
+                  onClick={() => alert(`Connecting to ${facility.name} reception desk...`)}
                   leftIcon={<PhoneCall className="w-3.5 h-3.5" />}
                   className="text-xs font-semibold"
                 >
-                  {t('treatment.callDeskBtn')}
+                  Contact Desk
                 </Button>
                 <Button
                   variant="primary"
@@ -304,14 +306,13 @@ export const TreatmentMatcherPage: React.FC = () => {
                   rightIcon={<ChevronRight className="w-4 h-4" />}
                   className="text-xs font-bold"
                 >
-                  {t('treatment.bookTokenBtn')}
+                  Get OPD Token
                 </Button>
               </div>
-            </Card>
+            </div>
           )
         })}
       </div>
     </div>
   )
 }
-

@@ -36,52 +36,52 @@ export const Sidebar: React.FC = () => {
 
   const currentRole: UserRole = user?.role || 'ROLE_PATIENT'
 
-  // Navigation Items per Role
+  // Refined, English-first Navigation Items per Role
   const roleNavItems: Record<UserRole, NavItem[]> = {
     ROLE_PATIENT: [
-      { label: 'Patient Home', to: '/patient/home', icon: Home },
-      { label: 'Treatment Matcher', to: '/patient/treatment-matcher', icon: Sparkles, badge: 'AI' },
-      { label: 'Live Queue & Token', to: '/patient/queue', icon: Clock },
-      { label: 'Find Healthcare', to: '/patient/facilities', icon: Search },
+      { label: 'Home', to: '/patient/home', icon: Home },
+      { label: 'Find Care', to: '/patient/facilities', icon: Search },
+      { label: 'Treatment Matcher', to: '/patient/treatment-matcher', icon: Sparkles },
+      { label: 'Live Queue', to: '/patient/queue', icon: Clock },
       { label: 'Referral Trail', to: '/patient/referrals', icon: Share2 },
-      { label: 'Health Records (FHIR)', to: '/patient/records', icon: FileText },
+      { label: 'Health Records', to: '/patient/records', icon: FileText },
     ],
     ROLE_ASHA: [
-      { label: 'ASHA Dashboard', to: '/asha/dashboard', icon: Home },
-      { label: 'Field Vitals Intake', to: '/asha/vitals', icon: HeartPulse },
-      { label: 'Household Register', to: '/asha/households', icon: Users },
-      { label: 'High-Risk Watchlist', to: '/asha/high-risk', icon: ShieldAlert, badge: 'Urgent' },
-      { label: 'Offline Sync Queue', to: '/asha/sync', icon: RefreshCw },
+      { label: 'Overview', to: '/asha/dashboard', icon: Home },
+      { label: 'Field Intake', to: '/asha/vitals', icon: HeartPulse },
+      { label: 'Households', to: '/asha/households', icon: Users },
+      { label: 'Priority Watch', to: '/asha/high-risk', icon: ShieldAlert, badge: 'Urgent' },
+      { label: 'Sync Queue', to: '/asha/sync', icon: RefreshCw },
     ],
     ROLE_ANM: [
-      { label: 'ANM Dashboard', to: '/asha/dashboard', icon: Home },
-      { label: 'Field Vitals Intake', to: '/asha/vitals', icon: HeartPulse },
-      { label: 'Immunization Register', to: '/asha/households', icon: Users },
-      { label: 'High-Risk Mothers', to: '/asha/high-risk', icon: ShieldAlert },
-      { label: 'Offline Sync Queue', to: '/asha/sync', icon: RefreshCw },
+      { label: 'Overview', to: '/asha/dashboard', icon: Home },
+      { label: 'Field Intake', to: '/asha/vitals', icon: HeartPulse },
+      { label: 'Immunization', to: '/asha/households', icon: Users },
+      { label: 'High-Risk Care', to: '/asha/high-risk', icon: ShieldAlert },
+      { label: 'Sync Queue', to: '/asha/sync', icon: RefreshCw },
     ],
     ROLE_DOCTOR: [
-      { label: 'OPD Desk Queue', to: '/doctor/desk', icon: Stethoscope },
-      { label: 'Consultation Studio', to: '/doctor/consultation', icon: HeartPulse },
+      { label: 'OPD Desk', to: '/doctor/desk', icon: Stethoscope },
+      { label: 'Consultation', to: '/doctor/consultation', icon: HeartPulse },
       { label: 'Initiate Referral', to: '/doctor/referral/new', icon: Share2 },
-      { label: 'Patient Records', to: '/doctor/patients', icon: FileText },
+      { label: 'Patient Directory', to: '/doctor/patients', icon: FileText },
     ],
     ROLE_SPECIALIST: [
-      { label: 'Specialist Desk', to: '/doctor/desk', icon: Stethoscope },
-      { label: 'Teleconsultation Calls', to: '/doctor/teleconsult', icon: HeartPulse },
+      { label: 'Specialist Console', to: '/doctor/desk', icon: Stethoscope },
+      { label: 'Teleconsultation', to: '/doctor/teleconsult', icon: HeartPulse },
       { label: 'Inbound Referrals', to: '/doctor/inbound', icon: Share2 },
     ],
     ROLE_FACILITY_STAFF: [
-      { label: 'Bed Census Telemetry', to: '/facility/beds', icon: BedDouble },
-      { label: 'Queue Token Dispenser', to: '/facility/tokens', icon: Clock },
+      { label: 'Bed Census', to: '/facility/beds', icon: BedDouble },
+      { label: 'Queue Dispenser', to: '/facility/tokens', icon: Clock },
       { label: 'Pharmacy Stocks', to: '/facility/pharmacy', icon: FileText },
       { label: 'Blood Bank Hub', to: '/facility/blood-bank', icon: HeartPulse },
     ],
     ROLE_DISTRICT_ADMIN: [
       { label: 'Command Center', to: '/admin/command', icon: BarChart3 },
-      { label: 'Outbreak Heatmap', to: '/admin/surveillance', icon: ShieldAlert },
-      { label: 'Referral Bottlenecks', to: '/admin/referral-flow', icon: Share2 },
-      { label: 'Resource Intelligence', to: '/admin/inventory', icon: BedDouble },
+      { label: 'Surveillance Map', to: '/admin/surveillance', icon: ShieldAlert },
+      { label: 'Referral Dynamics', to: '/admin/referral-flow', icon: Share2 },
+      { label: 'Resource Network', to: '/admin/inventory', icon: BedDouble },
     ],
     ROLE_SUPER_ADMIN: [
       { label: 'Command Center', to: '/admin/command', icon: BarChart3 },
@@ -97,36 +97,36 @@ export const Sidebar: React.FC = () => {
       {isSidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden transition-opacity"
           aria-hidden="true"
         />
       )}
 
-      {/* Persistent Desktop Sidebar / Drawer on Mobile */}
+      {/* Modern Compact Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col justify-between pt-16 lg:pt-0',
+          'fixed inset-y-0 left-0 z-40 w-60 bg-white border-r border-slate-200/80 flex flex-col justify-between pt-16 lg:pt-0',
           'transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:h-[calc(100vh-4rem)]',
-          isSidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'
+          isSidebarOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full'
         )}
-        aria-label="Sidebar navigation"
+        aria-label="Application navigation"
       >
         <div className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
-          {/* User Role Card */}
-          <div className="p-3 mb-3 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-700 block">
-              Active Console
+          {/* Active User Card: Understated */}
+          <div className="px-3 py-2.5 mb-3 bg-slate-50/80 rounded-xl border border-slate-100">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
+              Active Session
             </span>
-            <p className="text-sm font-bold text-slate-900 truncate">
-              {user?.fullName || 'Guest Citizen'}
+            <p className="text-xs font-bold text-slate-900 truncate mt-0.5">
+              {user?.fullName || 'Citizen User'}
             </p>
-            <p className="text-xs text-slate-500 truncate">
+            <p className="text-[11px] text-slate-500 truncate">
               {user?.facilityName || 'Public Portal'}
             </p>
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1" aria-label="Role specific links">
+          <nav className="space-y-0.5" aria-label="Role specific links">
             {activeItems.map((item) => {
               const Icon = item.icon
               return (
@@ -136,19 +136,25 @@ export const Sidebar: React.FC = () => {
                   onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors',
+                      'flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all group',
                       isActive
-                        ? 'bg-cyan-50 text-cyan-800 border-l-4 border-cyan-600'
-                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-[#F2F9F8] text-[#0F5147] font-semibold'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     )
                   }
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5 text-slate-500" aria-hidden="true" />
+                  <div className="flex items-center gap-2.5">
+                    <Icon
+                      className={cn(
+                        'w-4 h-4 transition-colors',
+                        'text-slate-400 group-hover:text-slate-600'
+                      )}
+                      aria-hidden="true"
+                    />
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800">
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-red-50 text-red-700 border border-red-200">
                       {item.badge}
                     </span>
                   )}
@@ -159,14 +165,14 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Footer info in sidebar */}
-        <div className="p-3 border-t border-slate-200">
+        <div className="p-3 border-t border-slate-100">
           <button
             type="button"
             onClick={logout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
           >
-            <LogOut className="w-4 h-4 text-slate-400" aria-hidden="true" />
-            <span>Reset Session / Sign Out</span>
+            <LogOut className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+            <span>Sign out</span>
           </button>
         </div>
       </aside>

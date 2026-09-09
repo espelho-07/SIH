@@ -26,22 +26,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-cyan-600 focus-visible:ring-offset-2'
+      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-[#0F5147] focus-visible:ring-offset-2 select-none'
 
     const variants = {
-      primary: 'bg-cyan-600 text-white hover:bg-cyan-700 active:bg-cyan-800 shadow-sm',
-      accent: 'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-sm',
-      secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300',
-      outline: 'border border-slate-300 text-slate-800 hover:bg-slate-50 active:bg-slate-100',
-      ghost: 'text-slate-700 hover:bg-slate-100 active:bg-slate-200',
-      destructive: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm',
+      primary: 'bg-[#0F5147] text-white hover:bg-[#0A3F37] active:scale-[0.98] shadow-2xs',
+      accent: 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98] shadow-2xs',
+      secondary: 'bg-slate-100 text-slate-800 hover:bg-slate-200 active:scale-[0.98]',
+      outline: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] shadow-2xs',
+      ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98]',
+      destructive: 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.98] shadow-2xs',
     }
 
     const sizes = {
-      sm: 'text-sm px-3 py-1.5 h-9',
-      md: 'text-base px-4 py-2 min-h-[44px]',
-      lg: 'text-lg px-6 py-3 min-h-[48px]', // WCAG touch target
-      icon: 'h-11 w-11 p-2 touch-target',
+      sm: 'text-xs px-3 py-1.5 h-8 gap-1.5',
+      md: 'text-xs font-semibold px-4 py-2 min-h-[40px] gap-2',
+      lg: 'text-sm font-semibold px-5 py-3 min-h-[48px] gap-2.5', // WCAG touch target
+      icon: 'h-10 w-10 p-2 touch-target',
     }
 
     return (

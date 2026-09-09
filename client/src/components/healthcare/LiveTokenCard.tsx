@@ -17,11 +17,11 @@ export const LiveTokenCard: React.FC<LiveTokenCardProps> = ({ token, className }
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100 mb-3">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-cyan-700">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">
             {token.facilityName}
           </span>
           <CardTitle className="text-xl text-slate-900 mt-0.5">
-            Token: <span className="font-mono text-cyan-700">{token.tokenNumber}</span>
+            Token: <span className="font-mono text-primary">{token.tokenNumber}</span>
           </CardTitle>
         </div>
         <Badge variant={token.priority === 'EMERGENCY' ? 'destructive' : 'default'}>
@@ -38,10 +38,10 @@ export const LiveTokenCard: React.FC<LiveTokenCardProps> = ({ token, className }
         )}
 
         {/* Live Queue Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-cyan-50/50 rounded-xl border border-cyan-100">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-[#F2F9F8] rounded-xl border border-[#D0EAE6]">
           <div>
             <span className="text-xs text-slate-500 font-medium block">Now Serving</span>
-            <span className="text-xl font-bold font-mono text-cyan-800">
+            <span className="text-xl font-bold font-mono text-primary">
               {token.currentServingToken}
             </span>
           </div>
@@ -56,7 +56,7 @@ export const LiveTokenCard: React.FC<LiveTokenCardProps> = ({ token, className }
 
           <div className="col-span-2 sm:col-span-1">
             <span className="text-xs text-slate-500 font-medium block flex items-center">
-              <Clock className="w-3.5 h-3.5 mr-1 text-cyan-600" aria-hidden="true" />
+              <Clock className="w-3.5 h-3.5 mr-1 text-primary" aria-hidden="true" />
               Est. Wait
             </span>
             <span className="text-xl font-bold text-slate-900">
@@ -80,7 +80,7 @@ export const LiveTokenCard: React.FC<LiveTokenCardProps> = ({ token, className }
 
         {/* Guidance micro-copy */}
         <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200">
-          <Bell className="w-4 h-4 text-cyan-600 shrink-0" aria-hidden="true" />
+          <Bell className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
           <span>You will receive an audio chime and SMS alert when your token is called.</span>
         </div>
       </CardContent>
