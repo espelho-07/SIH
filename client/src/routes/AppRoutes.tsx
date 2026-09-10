@@ -15,6 +15,8 @@ import { AppointmentDetailPage } from '@/features/patient/AppointmentDetailPage'
 import { PatientReferralsPage } from '@/features/patient/PatientReferralsPage'
 import { ReferralDetailPage } from '@/features/patient/ReferralDetailPage'
 import { MyCarePage } from '@/features/patient/MyCarePage'
+import { DiagnosticsCenterPage } from '@/features/patient/DiagnosticsCenterPage'
+import { PrescriptionsMedicinesPage } from '@/features/patient/PrescriptionsMedicinesPage'
 import { AshaDashboardPage } from '@/features/asha/AshaDashboardPage'
 import { DoctorDeskPage } from '@/features/doctor/DoctorDeskPage'
 import { FacilityBedsPage } from '@/features/facility/FacilityBedsPage'
@@ -38,7 +40,10 @@ export const AppRoutes: React.FC = () => {
         <Route path="/patient/appointments/:id" element={<AppointmentDetailPage />} />
         <Route path="/patient/queue" element={<LiveQueuePage />} />
         <Route path="/patient/blood" element={<FindCarePage />} />
-        <Route path="/patient/medicines" element={<FindCarePage />} />
+        <Route path="/patient/diagnostics" element={<DiagnosticsCenterPage />} />
+        <Route path="/patient/diagnostics/:id" element={<DiagnosticsCenterPage />} />
+        <Route path="/patient/medicines" element={<PrescriptionsMedicinesPage />} />
+        <Route path="/patient/prescriptions" element={<PrescriptionsMedicinesPage />} />
         <Route path="/patient/referrals" element={<PatientReferralsPage />} />
         <Route path="/patient/referrals/:id" element={<ReferralDetailPage />} />
         <Route path="/patient/my-care" element={<MyCarePage />} />

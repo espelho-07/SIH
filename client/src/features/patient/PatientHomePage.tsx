@@ -17,6 +17,7 @@ import {
   Sparkles,
   Share2,
   FileText,
+  Activity,
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
@@ -432,7 +433,7 @@ export const PatientHomePage: React.FC = () => {
           <span className="text-xs text-slate-400">Direct Public Health Access</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
           <Link
             to="/patient/my-care"
             className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors flex items-center gap-2.5 text-slate-800"
@@ -478,15 +479,28 @@ export const PatientHomePage: React.FC = () => {
           </Link>
 
           <Link
-            to="/patient/find-care?filter=emergency"
-            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
+            to="/patient/diagnostics"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-teal-300 hover:bg-teal-50/40 transition-colors flex items-center gap-2.5 text-slate-800"
           >
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
-              <Building2 className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-teal-50 text-[#0F5147] flex items-center justify-center shrink-0 border border-teal-200">
+              <Activity className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold block leading-tight">ICU & Beds</span>
-              <span className="text-[10px] text-slate-500">Live census</span>
+              <span className="text-xs font-bold block leading-tight">Diagnostics</span>
+              <span className="text-[10px] text-slate-500">Labs & Tests</span>
+            </div>
+          </Link>
+
+          <Link
+            to="/patient/medicines"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors flex items-center gap-2.5 text-slate-800"
+          >
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-200">
+              <Pill className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block leading-tight">Medicines</span>
+              <span className="text-[10px] text-slate-500">Jan Aushadhi</span>
             </div>
           </Link>
 
@@ -504,6 +518,19 @@ export const PatientHomePage: React.FC = () => {
           </Link>
 
           <Link
+            to="/patient/find-care?filter=emergency"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
+          >
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block leading-tight">ICU & Beds</span>
+              <span className="text-[10px] text-slate-500">Live census</span>
+            </div>
+          </Link>
+
+          <Link
             to="/patient/find-care?filter=blood"
             className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
           >
@@ -513,32 +540,6 @@ export const PatientHomePage: React.FC = () => {
             <div>
               <span className="text-xs font-bold block leading-tight">Blood Bank</span>
               <span className="text-[10px] text-slate-500">Unit stock</span>
-            </div>
-          </Link>
-
-          <Link
-            to="/patient/find-care?filter=medicines"
-            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
-          >
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
-              <Pill className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-xs font-bold block leading-tight">Medicines</span>
-              <span className="text-[10px] text-slate-500">Jan Aushadhi</span>
-            </div>
-          </Link>
-
-          <Link
-            to="/patient/find-care?filter=ayushman"
-            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800 col-span-2 sm:col-span-1"
-          >
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-xs font-bold block leading-tight">Ayushman</span>
-              <span className="text-[10px] text-slate-500">PM-JAY Cashless</span>
             </div>
           </Link>
         </div>

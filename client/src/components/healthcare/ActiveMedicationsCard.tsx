@@ -1,9 +1,11 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import {
   Pill,
   Clock,
   CheckCircle2,
   AlertCircle,
+  ArrowRight,
 } from 'lucide-react'
 import type { PrescriptionItem } from '@/types/record'
 
@@ -38,10 +40,20 @@ export const ActiveMedicationsCard: React.FC<ActiveMedicationsCardProps> = ({
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-          <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
-          {activeOnly.length} Active Medicines
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" aria-hidden="true" />
+            {activeOnly.length} Active Medicines
+          </span>
+
+          <Link
+            to="/patient/medicines"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-200 transition-colors"
+          >
+            <span>Jan Aushadhi Stock</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
 
       {/* Medication List */}

@@ -14,6 +14,7 @@ import {
   AlertCircle,
   FileCheck2,
   Download,
+  ArrowRight,
 } from 'lucide-react'
 import type { CareTimelineEvent } from '@/types/record'
 
@@ -322,6 +323,17 @@ export const CareEventDetailDrawer: React.FC<CareEventDetailDrawerProps> = ({
                   ))}
                 </div>
 
+                <div className="pt-2 flex justify-end">
+                  <Link
+                    to="/patient/diagnostics"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-900 bg-teal-100 hover:bg-teal-200 dark:bg-teal-900 dark:text-teal-100 transition-colors"
+                  >
+                    <Activity className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Open Diagnostics Center</span>
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                  </Link>
+                </div>
+
                 {/* Clinical Safety Disclosure */}
                 <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
@@ -381,6 +393,25 @@ export const CareEventDetailDrawer: React.FC<CareEventDetailDrawerProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+
+                <div className="pt-2 flex flex-wrap justify-end gap-2">
+                  <Link
+                    to="/patient/medicines"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-indigo-900 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-100 transition-colors"
+                  >
+                    <Pill className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Jan Aushadhi Stock</span>
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                  </Link>
+
+                  <Link
+                    to="/patient/prescriptions"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 transition-colors"
+                  >
+                    <span>All Prescriptions</span>
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                  </Link>
                 </div>
               </div>
             )}
