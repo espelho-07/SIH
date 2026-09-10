@@ -58,7 +58,7 @@ export const NotificationPreferencesPage: React.FC = () => {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center justify-between">
         <Link
@@ -438,6 +438,6 @@ export const NotificationPreferencesPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

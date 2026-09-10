@@ -476,14 +476,25 @@ export const facilityService = {
    * Retrieve detailed information for a single facility
    */
   async getFacilityById(id: string): Promise<FacilityDetail | null> {
+    const ALIAS_MAP: Record<string, string> = {
+      'fac-001': 'fac-varanasi-dh',
+      'fac-002': 'fac-bhu-ssh',
+      'fac-003': 'fac-varanasi-chc-shivpur',
+      'fac-shivpur-chc': 'fac-varanasi-chc-shivpur',
+      'fac-pandeypur-dh': 'fac-varanasi-dh',
+      'fac-jan-aushadhi-pandeypur': 'fac-varanasi-dh',
+      'fac-bhu-amrit': 'fac-bhu-ssh',
+    }
+    const resolvedId = ALIAS_MAP[id] || id
+
     try {
-      const serverFacility = await apiGet<FacilityDetail>(`/facilities/${id}`)
+      const serverFacility = await apiGet<FacilityDetail>(`/facilities/${resolvedId}`)
       if (serverFacility) return serverFacility
     } catch {
       // Fallback
     }
 
-    const found = MOCK_FACILITIES.find((f) => f.id === id)
+    const found = MOCK_FACILITIES.find((f) => f.id === resolvedId || f.id === id)
     return found || null
   },
 

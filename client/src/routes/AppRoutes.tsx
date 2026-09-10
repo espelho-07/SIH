@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, Link } from 'react-router-dom'
 import { AppLayout } from '@/layouts/AppLayout'
 import { RoleGuard } from '@/layouts/RoleGuard'
 
@@ -99,12 +99,30 @@ export const AppRoutes: React.FC = () => {
         <Route
           path="*"
           element={
-            <div className="p-12 text-center">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Page Not Found</h2>
-              <p className="text-sm text-slate-500 mb-4">
-                The healthcare portal page you requested does not exist.
-              </p>
-              <Navigate to="/patient/home" replace />
+            <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center mx-auto text-2xl font-bold">
+                404
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Page Not Found</h2>
+                <p className="text-sm text-slate-600">
+                  The healthcare service or page you requested could not be located.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <Link
+                  to="/patient/home"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl transition-all shadow-2xs touch-target"
+                >
+                  Return to Patient Home
+                </Link>
+                <Link
+                  to="/patient/find-care"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all touch-target"
+                >
+                  Find Healthcare Facilities
+                </Link>
+              </div>
             </div>
           }
         />

@@ -13,7 +13,6 @@ import {
   Printer,
   ArrowLeft,
   AlertCircle,
-  MapPin,
   Check,
   Share2,
   RotateCcw,
@@ -23,6 +22,7 @@ import { appointmentService } from '@/services/appointmentService'
 import { referralService } from '@/services/referralService'
 import { followUpService } from '@/services/followUpService'
 import { GovernmentHealthcareBadge } from '@/components/healthcare/GovernmentHealthcareBadge'
+import { useAuthStore } from '@/stores/authStore'
 import type { FacilityDetail, DoctorProfile } from '@/types/facility'
 import type { AvailableDate, TimeSlot, AppointmentDetail } from '@/types/appointment'
 import type { ReferralClinicalSummary } from '@/types/referral'
@@ -30,8 +30,9 @@ import type { FollowUpCareItem } from '@/types/followUp'
 
 export const AppointmentBookingPage: React.FC = () => {
   const [searchParams] = useSearchParams()
+  const currentUser = useAuthStore((state) => state.user)
 
-  const queryFacilityId = searchParams.get('facilityId') || 'fac-001'
+  const queryFacilityId = searchParams.get('facilityId') || 'fac-varanasi-dh'
   const queryDeptId = searchParams.get('departmentId')
   const queryDoctorId = searchParams.get('doctorId')
   const queryTreatment = searchParams.get('treatment')
@@ -56,11 +57,11 @@ export const AppointmentBookingPage: React.FC = () => {
   const [isLoadingSlots, setIsLoadingSlots] = useState<boolean>(false)
 
   // Patient Info State
-  const [patientName, setPatientName] = useState('Rameshwar Prasad')
-  const [patientPhone, setPatientPhone] = useState('+91 98765 43210')
+  const [patientName, setPatientName] = useState(currentUser?.fullName || 'Rajesh Sharma')
+  const [patientPhone, setPatientPhone] = useState(currentUser?.phoneNumber || '+91 98765 43210')
   const [patientAge, setPatientAge] = useState(48)
   const [patientGender, setPatientGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE')
-  const [abhaId, setAbhaId] = useState('91-4829-1049-5521')
+  const [abhaId, setAbhaId] = useState(currentUser?.abhaNumber || '14-8842-1920-5531')
   const [chiefComplaint, setChiefComplaint] = useState(
     queryTreatment ? `Seeking consultation regarding ${queryTreatment}` : ''
   )
@@ -211,6 +212,8 @@ export const AppointmentBookingPage: React.FC = () => {
 
   const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
+
     if (!selectedFacility || !selectedDoctor || !selectedDate || !selectedSlot) {
       setErrorMessage('Please select a valid date and available time slot.')
       return
@@ -272,7 +275,7 @@ export const AppointmentBookingPage: React.FC = () => {
   // SUCCESS CONFIRMATION VIEW
   if (bookedAppointment) {
     return (
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Top Success Badge Banner */}
         <div className="p-6 sm:p-8 bg-white rounded-2xl border border-emerald-200 shadow-sm text-center space-y-4">
           <div className="w-16 h-16 rounded-full bg-emerald-100 text-[#0F5147] flex items-center justify-center mx-auto shadow-2xs">
@@ -283,75 +286,57 @@ export const AppointmentBookingPage: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-block">
               Government OPD Appointment Confirmed
             </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Booking Successfully Reserved
-            </h1>
-            <p className="text-sm text-slate-600 max-w-md mx-auto">
-              Your appointment is recorded in the National Health Mission hospital registry.
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Appointment Successfully Booked
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+              Your consultation has been reserved in the hospital's electronic registry. Free OPD consultation guaranteed.
             </p>
           </div>
 
-          {/* Reference ID Pill */}
-          <div className="p-4 bg-[#F2F9F8] rounded-xl border border-[#D0EAE6] inline-block max-w-md w-full">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Appointment Reference Number
-            </span>
-            <span className="text-2xl sm:text-3xl font-mono font-extrabold text-[#0F5147] tracking-wider block mt-0.5">
+          {/* Reference & QR Box */}
+          <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl inline-block text-left w-full sm:w-auto">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Appointment Reference ID</div>
+            <div className="text-lg sm:text-xl font-mono font-black text-[#0F5147]">
               {bookedAppointment.referenceNumber}
-            </span>
-            <span className="text-xs text-slate-500 block mt-1">
-              Please present this ID or SMS at the hospital OPD kiosk.
-            </span>
+            </div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Please show this ID or SMS at the hospital OPD kiosk</div>
           </div>
         </div>
 
-        {/* Appointment Dossier Details Card */}
-        <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-5">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider text-[11px] pb-3 border-b border-slate-100 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#0F5147]" />
-            Appointment Summary
-          </h2>
+        {/* Essential Booking Summary Card */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#0F5147]" />
+              <span>Consultation Summary</span>
+            </h3>
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+              {bookedAppointment.status}
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1">
-              <span className="text-slate-400 font-medium block">Hospital / Facility</span>
+              <span className="text-slate-500 font-medium">Healthcare Facility</span>
               <p className="font-bold text-slate-900 text-sm">{bookedAppointment.facilityName}</p>
-              <p className="text-slate-500 text-[11px] flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-[#0F5147] shrink-0" />
-                {bookedAppointment.facilityAddress}
-              </p>
+              <p className="text-slate-500 text-[11px]">{bookedAppointment.facilityAddress}</p>
             </div>
-
             <div className="space-y-1">
-              <span className="text-slate-400 font-medium block">Doctor & Department</span>
+              <span className="text-slate-500 font-medium">Consultant Physician</span>
               <p className="font-bold text-slate-900 text-sm">{bookedAppointment.doctorName}</p>
-              <p className="text-slate-600">{bookedAppointment.departmentName} • Room {bookedAppointment.roomNumber}</p>
+              <p className="text-slate-500 text-[11px]">{bookedAppointment.doctorSpecialty}</p>
             </div>
-
-            <div className="space-y-1">
-              <span className="text-slate-400 font-medium block">Scheduled Date & Time</span>
-              <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#0F5147]" />
+            <div className="space-y-1 border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0">
+              <span className="text-slate-500 font-medium">Scheduled Date & Time</span>
+              <p className="font-bold text-[#0F5147] text-sm flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" />
                 {bookedAppointment.date}
               </p>
-              <p className="text-emerald-700 font-semibold flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
+              <p className="text-slate-600 font-semibold flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
                 {bookedAppointment.timeSlot}
               </p>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-slate-400 font-medium block">Patient Information</span>
-              <p className="font-bold text-slate-900 text-sm">{bookedAppointment.patientName} ({bookedAppointment.patientAge}y, {bookedAppointment.patientGender})</p>
-              <p className="text-slate-500 font-mono text-[11px]">ABHA: {bookedAppointment.abhaId || 'Not linked'}</p>
-            </div>
-          </div>
-
-          {/* Consultation Fee Assurance */}
-          <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-emerald-950 font-medium">
-              <ShieldCheck className="w-4 h-4 text-emerald-700" />
-              <span>OPD Registration & Doctor Consultation Fee</span>
             </div>
             <span className="font-mono font-bold text-emerald-900 text-sm">₹0 (Free / Cashless)</span>
           </div>
@@ -417,13 +402,13 @@ export const AppointmentBookingPage: React.FC = () => {
             </Link>
           </div>
         </div>
-      </main>
+      </div>
     )
   }
 
   // BOOKING FORM VIEW
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Breadcrumbs Navigation */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500">
         <Link to="/patient/home" className="hover:text-slate-900 transition-colors">
@@ -883,6 +868,6 @@ export const AppointmentBookingPage: React.FC = () => {
           </div>
         </section>
       </form>
-    </main>
+    </div>
   )
 }

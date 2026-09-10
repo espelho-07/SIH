@@ -166,7 +166,7 @@ export const FollowUpsPage: React.FC = () => {
   const specialties = ['ALL', 'General Medicine', 'Cardiology', 'Orthopedics', 'Ophthalmology']
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* Toast Notification Banner */}
       {feedbackNotice && (
         <div
@@ -386,6 +386,6 @@ export const FollowUpsPage: React.FC = () => {
         onReschedule={handleReschedule}
         onCancel={handleCancel}
       />
-    </main>
+    </div>
   )
 }

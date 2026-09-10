@@ -135,15 +135,15 @@ export const AppointmentDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <main className="max-w-4xl mx-auto px-4 py-12 text-center text-slate-500 text-xs">
+      <div className="max-w-4xl mx-auto px-4 py-12 text-center text-slate-500 text-xs">
         Loading appointment dossier...
-      </main>
+      </div>
     )
   }
 
   if (!appointment) {
     return (
-      <main className="max-w-4xl mx-auto px-4 py-12 text-center space-y-4">
+      <div className="max-w-4xl mx-auto px-4 py-12 text-center space-y-4">
         <h2 className="text-xl font-bold text-slate-900">Appointment Not Found</h2>
         <p className="text-xs text-slate-500">
           The appointment reference you requested does not exist or has expired.
@@ -155,7 +155,7 @@ export const AppointmentDetailPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to My Appointments</span>
         </Link>
-      </main>
+      </div>
     )
   }
 
@@ -164,7 +164,7 @@ export const AppointmentDetailPage: React.FC = () => {
   const isCancelled = appointment.status === 'CANCELLED'
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Breadcrumbs Navigation */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500">
         <Link to="/patient/home" className="hover:text-slate-900 transition-colors">
@@ -703,6 +703,6 @@ export const AppointmentDetailPage: React.FC = () => {
           </div>
         </div>
       )}
-    </main>
+    </div>
   )
 }

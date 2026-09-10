@@ -64,6 +64,11 @@ export const LiveQueuePage: React.FC = () => {
       const queues = await queueService.getActiveQueues()
       setActiveQueues(queues)
 
+      // If current token was just completed, preserve it so patient sees completed consultation card
+      if (currentToken?.state === 'COMPLETED' && (!selectedTokenId || selectedTokenId === currentToken.id)) {
+        return
+      }
+
       const matched =
         queues.find((q) => q.id === selectedTokenId || q.tokenNumber === selectedTokenId) ||
         (requestedTokenId ? queues.find((q) => q.id === requestedTokenId || q.tokenNumber === requestedTokenId) : null) ||
@@ -80,7 +85,7 @@ export const LiveQueuePage: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [selectedTokenId, requestedTokenId])
+  }, [selectedTokenId, requestedTokenId, currentToken?.state, currentToken?.id])
 
   // Initial load
   useEffect(() => {
@@ -242,23 +247,28 @@ export const LiveQueuePage: React.FC = () => {
     if (!currentToken) return
     const updated = await queueService.setQueueState(currentToken.id, state, options)
     setCurrentToken(updated)
-    refreshQueueData()
     if (state === 'COMPLETED') {
+      const active = await queueService.getActiveQueues()
+      setActiveQueues(active)
       const history = await queueService.getQueueHistory()
       setHistoryItems(history)
+      setActionNotice(`Consultation completed! Token #${updated.tokenNumber} marked complete. Care plan updated.`)
+      setTimeout(() => setActionNotice(null), 5000)
+    } else {
+      refreshQueueData()
     }
   }
 
   if (isLoading) {
     return (
-      <main className="max-w-2xl mx-auto px-4 py-12 text-center text-xs text-slate-500">
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center text-xs text-slate-500">
         Loading queue information...
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
       {/* 1. TOP NAVIGATION BAR & AUDIO NARRATION */}
       <div className="flex items-center justify-between pb-1">
         <Link
@@ -1045,6 +1055,6 @@ export const LiveQueuePage: React.FC = () => {
           </div>
         </div>
       )}
-    </main>
+    </div>
   )
 }

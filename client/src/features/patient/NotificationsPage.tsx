@@ -149,7 +149,7 @@ export const NotificationsPage: React.FC = () => {
   const grouped = groupNotificationsByPeriod(notifications)
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* 1. Page Header & Live Summary */}
       <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
         <div className="space-y-1">
@@ -451,6 +451,6 @@ export const NotificationsPage: React.FC = () => {
           </div>
         )}
       </section>
-    </main>
+    </div>
   )
 }

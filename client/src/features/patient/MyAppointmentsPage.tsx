@@ -140,7 +140,7 @@ export const MyAppointmentsPage: React.FC = () => {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
@@ -612,6 +612,6 @@ export const MyAppointmentsPage: React.FC = () => {
           </div>
         </div>
       )}
-    </main>
+    </div>
   )
 }

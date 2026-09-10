@@ -59,17 +59,17 @@ export const FacilityDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <div className="h-6 bg-slate-200 rounded w-1/4 animate-pulse" />
         <div className="h-40 bg-white rounded-2xl border border-slate-200 animate-pulse" />
         <div className="h-64 bg-white rounded-2xl border border-slate-200 animate-pulse" />
-      </main>
+      </div>
     )
   }
 
   if (!facility) {
     return (
-      <main className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
+      <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
         <Building2 className="w-12 h-12 text-slate-400 mx-auto" />
         <h1 className="text-xl font-bold text-slate-900">Healthcare Facility Not Found</h1>
         <p className="text-xs text-slate-500">
@@ -82,12 +82,12 @@ export const FacilityDetailPage: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Facility Directory</span>
         </Link>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Top Back Navigation Bar */}
       <div className="flex items-center justify-between">
         <button
@@ -454,6 +454,6 @@ export const FacilityDetailPage: React.FC = () => {
           )}
         </div>
       </section>
-    </main>
+    </div>
   )
 }
