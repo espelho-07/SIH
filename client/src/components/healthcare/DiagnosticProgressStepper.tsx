@@ -76,7 +76,7 @@ export const DiagnosticProgressStepper: React.FC<DiagnosticProgressStepperProps>
 
   if (status === 'CANCELLED') {
     return (
-      <div className={`p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-400 text-center ${className}`}>
+      <div className={`p-4 rounded-xl bg-slate-100 text-xs text-slate-600 text-center ${className}`}>
         This diagnostic order was cancelled by the attending clinician.
       </div>
     )
@@ -88,7 +88,7 @@ export const DiagnosticProgressStepper: React.FC<DiagnosticProgressStepperProps>
       <div className="hidden sm:grid grid-cols-5 gap-2 relative">
         {/* Continuous connector line */}
         <div
-          className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 dark:bg-slate-800 -z-0"
+          className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 -z-0"
           aria-hidden="true"
         />
 
@@ -104,8 +104,8 @@ export const DiagnosticProgressStepper: React.FC<DiagnosticProgressStepperProps>
                   isCompleted
                     ? 'bg-emerald-600 border-emerald-600 text-white'
                     : isCurrent
-                      ? 'bg-white dark:bg-slate-900 border-emerald-600 text-emerald-600 ring-4 ring-emerald-100 dark:ring-emerald-950'
-                      : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-400'
+                      ? 'bg-white border-emerald-600 text-emerald-600 ring-4 ring-emerald-100'
+                      : 'bg-white border-slate-300 text-slate-400'
                 }`}
               >
                 <Icon className="w-4 h-4" aria-hidden="true" />
@@ -114,16 +114,16 @@ export const DiagnosticProgressStepper: React.FC<DiagnosticProgressStepperProps>
               <span
                 className={`mt-2 text-xs font-bold ${
                   isCurrent
-                    ? 'text-emerald-800 dark:text-emerald-300'
+                    ? 'text-emerald-800'
                     : isCompleted
-                      ? 'text-slate-800 dark:text-slate-200'
-                      : 'text-slate-400 dark:text-slate-500'
+                      ? 'text-slate-800'
+                      : 'text-slate-400'
                 }`}
               >
                 {step.label}
               </span>
 
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 max-w-[110px] mt-0.5 leading-tight">
+              <span className="text-[11px] text-slate-500 max-w-[110px] mt-0.5 leading-tight">
                 {step.description}
               </span>
             </div>
@@ -145,8 +145,8 @@ export const DiagnosticProgressStepper: React.FC<DiagnosticProgressStepperProps>
                   isCompleted
                     ? 'bg-emerald-600 border-emerald-600 text-white'
                     : isCurrent
-                      ? 'bg-white dark:bg-slate-900 border-emerald-600 text-emerald-600 ring-2 ring-emerald-200'
-                      : 'bg-white dark:bg-slate-900 border-slate-300 text-slate-400'
+                      ? 'bg-white border-emerald-600 text-emerald-600 ring-2 ring-emerald-200'
+                      : 'bg-white border-slate-300 text-slate-400'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" aria-hidden="true" />
@@ -155,9 +155,9 @@ export const DiagnosticProgressStepper: React.FC<DiagnosticProgressStepperProps>
                 <span
                   className={`font-bold block ${
                     isCurrent
-                      ? 'text-emerald-800 dark:text-emerald-300'
+                      ? 'text-emerald-800'
                       : isCompleted
-                        ? 'text-slate-800 dark:text-slate-200'
+                        ? 'text-slate-800'
                         : 'text-slate-400'
                   }`}
                 >

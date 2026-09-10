@@ -45,8 +45,8 @@ export const DiagnosticNextActionBanner: React.FC<DiagnosticNextActionBannerProp
       aria-label="Action Required for Your Diagnostic Order"
       className={`rounded-2xl border p-5 sm:p-6 transition-all duration-200 shadow-xs ${
         isReportReady
-          ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-cyan-500/10 border-emerald-300 dark:border-emerald-700'
-          : 'bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-emerald-500/10 border-amber-300 dark:border-amber-700'
+          ? 'bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-cyan-500/10 border-emerald-300'
+          : 'bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-emerald-500/10 border-amber-300'
       } ${className}`}
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -70,24 +70,24 @@ export const DiagnosticNextActionBanner: React.FC<DiagnosticNextActionBannerProp
               <span
                 className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                   isReportReady
-                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200'
-                    : 'bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-200'
+                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                    : 'bg-amber-100 text-amber-900 border border-amber-300'
                 }`}
               >
                 <Sparkles className="w-3 h-3" aria-hidden="true" />
                 {isReportReady ? 'New Report Available' : 'Diagnostic Action Required'}
               </span>
 
-              <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <span className="font-mono text-xs font-semibold text-slate-500">
                 {activeOrder.orderCode}
               </span>
             </div>
 
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">
               {activeOrder.testName}
             </h3>
 
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
               {activeOrder.nextActionInstruction}
             </p>
           </div>

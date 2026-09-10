@@ -124,7 +124,7 @@ export const DiagnosticsCenterPage: React.FC = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" aria-hidden="true" />
-        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+        <p className="text-sm font-medium text-slate-600">
           Loading diagnostic requisitions & laboratory investigations...
         </p>
       </div>
@@ -137,41 +137,36 @@ export const DiagnosticsCenterPage: React.FC = () => {
       <section
         role="region"
         aria-label="Diagnostic Center Header"
-        className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 text-white p-6 sm:p-8 shadow-xl relative overflow-hidden"
+        className="rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 shadow-xs relative overflow-hidden"
       >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">
-                <Activity className="w-3.5 h-3.5 text-teal-400" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#F2F9F8] text-[#0F5147] border border-[#D0EAE6]">
+                <Activity className="w-3.5 h-3.5 text-[#0F5147]" aria-hidden="true" />
                 ABDM Diagnostic Portal
               </span>
-              <span className="font-mono text-xs font-semibold text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700">
+              <span className="font-mono text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
                 ABHA: 14-8842-1920-5531
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Diagnostic Center & Lab Investigations
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
               Track doctor-prescribed blood tests, digital ECGs, and imaging across Varanasi district public hospitals and community health centres.
             </p>
           </div>
 
           <div className="flex items-center gap-2 self-start md:self-center">
-            <span className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/10 text-white border border-white/15 text-xs font-bold backdrop-blur-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden="true" />
               <span>100% Subsidized (NHM)</span>
             </span>
           </div>
         </div>
-
-        <div
-          className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-teal-500/10 blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
       </section>
 
       {/* 2. Dynamic Next Best Action Banner */}
@@ -187,12 +182,12 @@ export const DiagnosticsCenterPage: React.FC = () => {
               onClick={() => setActiveTab('ALL')}
               className={`inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === 'ALL'
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               <span>All Requisitions</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold ${activeTab === 'ALL' ? 'bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold ${activeTab === 'ALL' ? 'bg-white/20 text-white' : 'bg-slate-100'}`}>
                 {counts.all}
               </span>
             </button>
@@ -203,7 +198,7 @@ export const DiagnosticsCenterPage: React.FC = () => {
               className={`inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === 'ACTION_REQUIRED'
                   ? 'bg-amber-600 text-white shadow-sm'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               <span>Action Needed</span>
@@ -218,7 +213,7 @@ export const DiagnosticsCenterPage: React.FC = () => {
               className={`inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === 'REPORTS_AVAILABLE'
                   ? 'bg-emerald-700 text-white shadow-sm'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               <span>Reports Ready</span>
@@ -233,7 +228,7 @@ export const DiagnosticsCenterPage: React.FC = () => {
               className={`inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === 'PROCESSING'
                   ? 'bg-cyan-700 text-white shadow-sm'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               <span>Processing</span>
@@ -255,13 +250,13 @@ export const DiagnosticsCenterPage: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search test, doctor, facility..."
               aria-label="Search diagnostic tests"
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
                 aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" aria-hidden="true" />
@@ -283,14 +278,14 @@ export const DiagnosticsCenterPage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="p-12 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-3 bg-white dark:bg-slate-900">
-            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+          <div className="p-12 rounded-2xl border border-dashed border-slate-200 text-center space-y-3 bg-white">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
               <Activity className="w-6 h-6" aria-hidden="true" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            <h3 className="text-base font-bold text-slate-900">
               No diagnostic requisitions found
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               No tests match your current tab or search criteria. Reset your filters to view all orders.
             </p>
             <button
@@ -312,9 +307,9 @@ export const DiagnosticsCenterPage: React.FC = () => {
       <section
         role="contentinfo"
         aria-label="Diagnostic Safety Policy"
-        className="p-5 sm:p-6 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 space-y-2.5"
+        className="p-5 sm:p-6 rounded-2xl bg-slate-100 border border-slate-200 text-xs text-slate-600 space-y-2.5"
       >
-        <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+        <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
           <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden="true" />
           <span>Diagnostic Quality Governance & National Health Mission (NHM) Standards</span>
         </div>
@@ -345,10 +340,10 @@ export const DiagnosticsCenterPage: React.FC = () => {
           />
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
-              <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="w-screen max-w-xl bg-white shadow-2xl flex flex-col border-l border-slate-200">
+              <div className="p-5 border-b border-slate-200 flex items-center justify-between">
                 <div>
-                  <h3 id="facility-match-title" className="font-bold text-slate-900 dark:text-white text-base">
+                  <h3 id="facility-match-title" className="font-bold text-slate-900 text-base">
                     Verified Diagnostic Facilities
                   </h3>
                   <p className="text-xs text-slate-500">
@@ -358,7 +353,7 @@ export const DiagnosticsCenterPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsFacilityDrawerOpen(false)}
-                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="p-2 rounded-xl text-slate-500 hover:bg-slate-100"
                 >
                   <X className="w-5 h-5" aria-hidden="true" />
                 </button>
@@ -368,14 +363,14 @@ export const DiagnosticsCenterPage: React.FC = () => {
                 {matchedFacilities.map((fac) => (
                   <div
                     key={fac.facilityId}
-                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-800/40"
+                    className="p-4 rounded-xl border border-slate-200 space-y-3 bg-slate-50/50"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded">
+                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
                           {fac.facilityTier}
                         </span>
-                        <h4 className="font-bold text-slate-900 dark:text-white text-sm mt-1">
+                        <h4 className="font-bold text-slate-900 text-sm mt-1">
                           {fac.facilityName}
                         </h4>
                         <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
@@ -384,19 +379,19 @@ export const DiagnosticsCenterPage: React.FC = () => {
                         </p>
                       </div>
 
-                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                         Operational
                       </span>
                     </div>
 
-                    <div className="text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-200/80 dark:border-slate-700 space-y-1">
-                      <div>Equipment: <strong className="text-slate-800 dark:text-slate-200">{fac.equipmentName}</strong></div>
+                    <div className="text-xs text-slate-600 pt-2 border-t border-slate-200/80 space-y-1">
+                      <div>Equipment: <strong className="text-slate-800">{fac.equipmentName}</strong></div>
                       <div>Sample Hours: {fac.sampleCollectionHours}</div>
                       <div>Turnaround: ~{fac.turnaroundTimeHours} hours</div>
                     </div>
 
                     <div className="pt-2 flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
+                      <span className="text-xs font-extrabold text-emerald-700">
                         100% Free under NHM
                       </span>
 
@@ -412,7 +407,7 @@ export const DiagnosticsCenterPage: React.FC = () => {
                           setOrders(updated)
                           setIsFacilityDrawerOpen(false)
                         }}
-                        className="px-4 py-2 min-h-[38px] rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 cursor-pointer"
+                        className="px-4 py-2 min-h-[38px] rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white cursor-pointer"
                       >
                         Confirm Collection Slot
                       </button>
