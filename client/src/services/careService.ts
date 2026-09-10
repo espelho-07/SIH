@@ -13,6 +13,7 @@ import type { ReferralClinicalSummary } from '@/types/referral'
 import { appointmentService } from './appointmentService'
 import { queueService } from './queueService'
 import { referralService } from './referralService'
+import { followUpService } from './followUpService'
 
 const TIMELINE_STORAGE_KEY = 'healthconnect_care_timeline_v1'
 const MEDS_STORAGE_KEY = 'healthconnect_active_medications_v1'
@@ -432,11 +433,12 @@ class CareService {
    * aggregated across appointments, queues, referrals, and clinical events.
    */
   async getMyCareOverview(): Promise<MyCareOverview> {
-    const [appointments, activeTokens, referrals, timelineEvents] = await Promise.all([
+    const [appointments, activeTokens, referrals, timelineEvents, followUps] = await Promise.all([
       appointmentService.getMyAppointments(),
       queueService.getActiveQueues(),
       referralService.getPatientReferrals(),
       this.getCareTimeline('ALL'),
+      followUpService.getFollowUps(),
     ])
 
     const activeAppointments = appointments.filter((a: AppointmentDetail) => a.status === 'CONFIRMED')
@@ -449,6 +451,7 @@ class CareService {
         r.status === 'IN_TRANSIT',
     )
     const activeMeds = (await this.getActiveMedications()).filter((m: PrescriptionItem) => m.isActive)
+    const dueFollowUp = followUps.find((f) => f.status === 'DUE' || f.status === 'MISSED')
 
     // Compute dynamic Next Best Action guidance based on real system state
     let nextAction: NextActionGuidance
@@ -502,6 +505,16 @@ class CareService {
         ctaText: 'View Appointment Slip',
         dueTimeContext: upcomingAptToday.timeSlot,
       }
+    } else if (dueFollowUp) {
+      nextAction = {
+        actionRequired: true,
+        urgency: dueFollowUp.urgency === 'PRIORITY' ? 'HIGH' : 'MEDIUM',
+        title: `Follow-Up Consultation Due: ${dueFollowUp.title}`,
+        description: `Recommended by ${dueFollowUp.doctorName} (${dueFollowUp.facilityName}). ${dueFollowUp.clinicalReason}`,
+        targetRoute: `/patient/follow-ups/${dueFollowUp.id}`,
+        ctaText: 'View Follow-Up & Book Slot',
+        dueTimeContext: dueFollowUp.status === 'MISSED' ? 'Window passed' : `Target ${dueFollowUp.recommendedDateIso}`,
+      }
     } else {
       nextAction = {
         actionRequired: false,
@@ -522,6 +535,9 @@ class CareService {
       activeReferralCount: activeReferrals.length,
       activeMedicationCount: activeMeds.length,
       activeCareEpisodeCount: SEED_EPISODES.filter((e) => e.status === 'ACTIVE').length,
+      activeFollowUpCount: followUps.filter(
+        (f) => f.status === 'DUE' || f.status === 'MISSED' || f.status === 'RECOMMENDED'
+      ).length,
       recentEvents: timelineEvents.slice(0, 5),
     }
   }

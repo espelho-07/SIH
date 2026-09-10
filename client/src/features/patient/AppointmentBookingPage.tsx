@@ -16,14 +16,17 @@ import {
   MapPin,
   Check,
   Share2,
+  RotateCcw,
 } from 'lucide-react'
 import { facilityService } from '@/services/facilityService'
 import { appointmentService } from '@/services/appointmentService'
 import { referralService } from '@/services/referralService'
+import { followUpService } from '@/services/followUpService'
 import { GovernmentHealthcareBadge } from '@/components/healthcare/GovernmentHealthcareBadge'
 import type { FacilityDetail, DoctorProfile } from '@/types/facility'
 import type { AvailableDate, TimeSlot, AppointmentDetail } from '@/types/appointment'
 import type { ReferralClinicalSummary } from '@/types/referral'
+import type { FollowUpCareItem } from '@/types/followUp'
 
 export const AppointmentBookingPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -33,9 +36,11 @@ export const AppointmentBookingPage: React.FC = () => {
   const queryDoctorId = searchParams.get('doctorId')
   const queryTreatment = searchParams.get('treatment')
   const queryReferralId = searchParams.get('referralId')
+  const queryFollowUpId = searchParams.get('followUpId')
 
-  // Referral Integration State
+  // Referral & Follow-Up Integration State
   const [originatingReferral, setOriginatingReferral] = useState<ReferralClinicalSummary | null>(null)
+  const [originatingFollowUp, setOriginatingFollowUp] = useState<FollowUpCareItem | null>(null)
 
   // Facility & Doctor State
   const [facilities, setFacilities] = useState<FacilityDetail[]>([])
@@ -138,6 +143,21 @@ export const AppointmentBookingPage: React.FC = () => {
     }
   }, [queryReferralId])
 
+  // Load originating follow-up if booked from Care Continuity module
+  useEffect(() => {
+    if (queryFollowUpId) {
+      followUpService.getFollowUpById(queryFollowUpId).then((fol) => {
+        if (fol) {
+          setOriginatingFollowUp(fol)
+          setChiefComplaint(`[Clinical Follow-Up #${fol.id}] ${fol.title}: ${fol.clinicalReason}`)
+          if (fol.departmentName) {
+            setSelectedDepartmentName(fol.departmentName)
+          }
+        }
+      })
+    }
+  }, [queryFollowUpId])
+
   // Load slots when date or doctor changes
   useEffect(() => {
     if (!selectedFacility || !selectedDoctor || !selectedDate) return
@@ -229,6 +249,19 @@ export const AppointmentBookingPage: React.FC = () => {
       })
 
       setBookedAppointment(result)
+
+      if (originatingFollowUp) {
+        try {
+          await followUpService.scheduleFollowUpAppointment(originatingFollowUp.id, {
+            appointmentId: result.id,
+            date: selectedDate,
+            timeSlot: `${selectedSlot.startTime} - ${selectedSlot.endTime}`,
+            roomNumber: result.roomNumber || 'Room OPD-102',
+          })
+        } catch (err) {
+          console.error('Error linking follow-up to appointment', err)
+        }
+      }
     } catch {
       setErrorMessage('That slot was just booked by another patient. Please choose another slot.')
     } finally {
@@ -323,6 +356,23 @@ export const AppointmentBookingPage: React.FC = () => {
             <span className="font-mono font-bold text-emerald-900 text-sm">₹0 (Free / Cashless)</span>
           </div>
 
+          {originatingFollowUp && (
+            <div className="p-3.5 bg-teal-50 border border-teal-200 rounded-xl flex items-center justify-between text-xs text-teal-950">
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-[#0F5147]" />
+                <span>
+                  Care Continuity loop scheduled for <strong>Follow-Up #{originatingFollowUp.id}</strong> ({originatingFollowUp.title}).
+                </span>
+              </div>
+              <Link
+                to="/patient/follow-ups"
+                className="font-bold underline text-[#0F5147] hover:text-[#0B3D35]"
+              >
+                View Follow-Ups
+              </Link>
+            </div>
+          )}
+
           {/* Pre-Visit Checklist */}
           <div className="space-y-2.5 pt-2">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
@@ -402,6 +452,23 @@ export const AppointmentBookingPage: React.FC = () => {
           Schedule your consultation directly with certified government medical officers. Avoid prolonged waiting in registration queues.
         </p>
       </div>
+
+      {originatingFollowUp && (
+        <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <RotateCcw className="w-4 h-4 text-[#0F5147] shrink-0" />
+            <span>
+              Booking authorized follow-up consultation for <strong>Follow-Up #{originatingFollowUp.id}</strong> ({originatingFollowUp.title}).
+            </span>
+          </div>
+          <Link
+            to={`/patient/follow-ups/${originatingFollowUp.id}`}
+            className="font-bold underline text-xs shrink-0 text-[#0F5147] hover:text-[#0B3D35]"
+          >
+            View Follow-Up Directives
+          </Link>
+        </div>
+      )}
 
       {originatingReferral && (
         <div className="p-4 rounded-xl bg-[#F2F9F8] border border-[#D0EAE6] text-xs text-[#0F5147] flex flex-col sm:flex-row sm:items-center justify-between gap-3">

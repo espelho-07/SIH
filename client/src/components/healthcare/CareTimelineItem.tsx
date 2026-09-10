@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Building2,
   Paperclip,
+  RotateCcw,
 } from 'lucide-react'
 import type { CareTimelineEvent } from '@/types/record'
 
@@ -63,6 +64,13 @@ export const CareTimelineItem: React.FC<CareTimelineItemProps> = ({
           bgColor: 'bg-blue-50 border-blue-200',
           badgeText: 'Appointment',
           badgeClass: 'bg-blue-100 text-blue-800',
+        }
+      case 'FOLLOW_UP_DUE':
+        return {
+          icon: <RotateCcw className="w-5 h-5 text-[#0F5147]" aria-hidden="true" />,
+          bgColor: 'bg-[#F2F9F8] border-[#D0EAE6]',
+          badgeText: 'Follow-Up Due',
+          badgeClass: 'bg-emerald-100 text-emerald-900',
         }
       default:
         return {

@@ -18,17 +18,20 @@ import {
   FileText,
   Activity,
   ShieldAlert,
+  RotateCcw,
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
 import { appointmentService } from '@/services/appointmentService'
 import { queueService } from '@/services/queueService'
 import { referralService } from '@/services/referralService'
+import { followUpService } from '@/services/followUpService'
 import { getSpeechRecognition } from '@/lib/speechRecognition'
 import type { FacilityTelemetry } from '@/types/facility'
 import type { AppointmentDetail } from '@/types/appointment'
 import type { ActiveToken } from '@/types/queue'
 import type { ReferralClinicalSummary } from '@/types/referral'
+import type { FollowUpCareItem } from '@/types/followUp'
 
 export const PatientHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -42,6 +45,7 @@ export const PatientHomePage: React.FC = () => {
   const [activeQueueToken, setActiveQueueToken] = useState<ActiveToken | null>(null)
   const [activeReferral, setActiveReferral] = useState<ReferralClinicalSummary | null>(null)
   const [activeReferralCount, setActiveReferralCount] = useState(0)
+  const [activeFollowUp, setActiveFollowUp] = useState<FollowUpCareItem | null>(null)
 
   useEffect(() => {
     facilityService
@@ -68,6 +72,13 @@ export const PatientHomePage: React.FC = () => {
       setActiveReferralCount(active.length)
       if (active.length > 0) {
         setActiveReferral(active[0])
+      }
+    })
+
+    followUpService.getFollowUps({ statusCategory: 'NEEDS_ATTENTION' }).then((items) => {
+      const pending = items.find((i) => i.status === 'DUE' || i.status === 'MISSED')
+      if (pending) {
+        setActiveFollowUp(pending)
       }
     })
   }, [])
@@ -335,6 +346,41 @@ export const PatientHomePage: React.FC = () => {
               </Link>
             </div>
           </div>
+        ) : activeFollowUp ? (
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-emerald-300 ring-2 ring-emerald-50 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-[#0F5147] shrink-0 border border-emerald-200">
+                <RotateCcw className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+                    Follow-Up Due ({activeFollowUp.status === 'MISSED' ? 'Window Passed' : 'Target ' + activeFollowUp.recommendedDateIso})
+                  </span>
+                  <span className="font-mono text-xs font-bold text-emerald-900 bg-emerald-100/70 px-2 py-0.5 rounded border border-emerald-200">
+                    {activeFollowUp.id}
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                </div>
+                <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                  {activeFollowUp.title} • {activeFollowUp.doctorName}
+                </h2>
+                <p className="text-xs text-slate-600">
+                  {activeFollowUp.clinicalReason}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <Link
+                to={`/patient/appointments/book?facilityId=${activeFollowUp.facilityId}&doctorId=doc-001&followUpId=${activeFollowUp.id}&treatment=${encodeURIComponent(activeFollowUp.condition)}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
+              >
+                <span>Book Follow-Up Slot</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
         ) : (
           <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
@@ -514,6 +560,19 @@ export const PatientHomePage: React.FC = () => {
             <div>
               <span className="text-xs font-bold block leading-tight">OPD Queue</span>
               <span className="text-[10px] text-slate-500">Virtual token</span>
+            </div>
+          </Link>
+
+          <Link
+            to="/patient/follow-ups"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors flex items-center gap-2.5 text-slate-800"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#F2F9F8] text-[#0F5147] flex items-center justify-center shrink-0 border border-[#D0EAE6]">
+              <RotateCcw className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block leading-tight">Follow-Ups</span>
+              <span className="text-[10px] text-slate-500">Care continuity</span>
             </div>
           </Link>
 

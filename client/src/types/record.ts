@@ -139,5 +139,6 @@ export interface MyCareOverview {
   activeReferralCount: number
   activeMedicationCount: number
   activeCareEpisodeCount: number
+  activeFollowUpCount?: number
   recentEvents: CareTimelineEvent[]
 }

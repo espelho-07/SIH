@@ -18,6 +18,7 @@ import { MyCarePage } from '@/features/patient/MyCarePage'
 import { DiagnosticsCenterPage } from '@/features/patient/DiagnosticsCenterPage'
 import { PrescriptionsMedicinesPage } from '@/features/patient/PrescriptionsMedicinesPage'
 import { EmergencyHelpPage } from '@/features/patient/EmergencyHelpPage'
+import { FollowUpsPage } from '@/features/patient/FollowUpsPage'
 import { AshaDashboardPage } from '@/features/asha/AshaDashboardPage'
 import { DoctorDeskPage } from '@/features/doctor/DoctorDeskPage'
 import { FacilityBedsPage } from '@/features/facility/FacilityBedsPage'
@@ -34,6 +35,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/patient/home" element={<PatientHomePage />} />
         <Route path="/patient/emergency" element={<EmergencyHelpPage />} />
         <Route path="/patient/urgent-help" element={<EmergencyHelpPage />} />
+        <Route path="/patient/follow-ups" element={<FollowUpsPage />} />
+        <Route path="/patient/follow-ups/:id" element={<FollowUpsPage />} />
         <Route path="/patient/find-care" element={<FindCarePage />} />
         <Route path="/patient/facilities" element={<FindCarePage />} />
         <Route path="/patient/facility/:id" element={<FacilityDetailPage />} />

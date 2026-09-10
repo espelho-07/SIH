@@ -18,6 +18,7 @@ import {
   Sparkles,
   Activity,
   Pill,
+  RotateCcw,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useUiStore } from '@/stores/uiStore'
@@ -48,6 +49,7 @@ export const Sidebar: React.FC = () => {
       { label: 'Treatment Matcher', to: '/patient/treatment-matcher', icon: Sparkles },
       { label: 'Appointments', to: '/patient/appointments', icon: Calendar },
       { label: 'Live Queue', to: '/patient/queue', icon: Clock },
+      { label: 'Follow-ups', to: '/patient/follow-ups', icon: RotateCcw, badge: 'Due' },
       { label: 'Referral Trail', to: '/patient/referrals', icon: Share2 },
       { label: 'Diagnostics & Labs', to: '/patient/diagnostics', icon: Activity },
       { label: 'Medicines & Rx', to: '/patient/medicines', icon: Pill },

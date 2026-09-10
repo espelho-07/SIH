@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   CheckCircle2,
   ShieldCheck,
+  RotateCcw,
 } from 'lucide-react'
 import type { MyCareOverview } from '@/types/record'
 
@@ -23,7 +24,7 @@ export const CareOverviewCard: React.FC<CareOverviewCardProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 ${className}`}>
       {/* 1. Upcoming Appointments */}
       <Link
         to="/patient/appointments"
@@ -158,6 +159,39 @@ export const CareOverviewCard: React.FC<CareOverviewCardProps> = ({
           </p>
         </div>
       </button>
+
+      {/* 5. Follow-ups & Continuity */}
+      <Link
+        to="/patient/follow-ups"
+        className="group relative flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#0F5147] hover:shadow-sm transition-all duration-200"
+      >
+        <div className="flex items-start justify-between">
+          <div className="p-2.5 rounded-xl bg-emerald-50 text-[#0F5147]">
+            <RotateCcw className="w-5 h-5" aria-hidden="true" />
+          </div>
+          <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 group-hover:text-[#0F5147] transition-colors">
+            <span>Directives</span>
+            <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </span>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              {overview.activeFollowUpCount ?? 2}
+            </span>
+            <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              Active Due
+            </span>
+          </div>
+          <h3 className="text-sm font-bold text-slate-800 mt-1">
+            Follow-Ups & Continuity
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Hypertension & Cardiac Reviews
+          </p>
+        </div>
+      </Link>
     </div>
   )
 }
