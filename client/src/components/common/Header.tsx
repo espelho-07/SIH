@@ -83,7 +83,7 @@ export const Header: React.FC = () => {
   // Role Switching helper for development and evaluation
   const handleRoleChange = (role: UserRole) => {
     const roleProfiles: Record<UserRole, { name: string; title: string }> = {
-      ROLE_PATIENT: { name: 'Ramesh Kumar', title: 'Citizen / Patient' },
+      ROLE_PATIENT: { name: 'Rajesh Sharma', title: 'Citizen / Patient' },
       ROLE_ASHA: { name: 'Sunita Devi', title: 'ASHA Worker (Ward 4)' },
       ROLE_ANM: { name: 'Pooja Sharma', title: 'Auxiliary Nurse Midwife' },
       ROLE_DOCTOR: { name: 'Dr. Rajesh Verma', title: 'Medical Officer (MBBS)' },

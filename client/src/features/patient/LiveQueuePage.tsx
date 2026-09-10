@@ -15,6 +15,10 @@ import {
   Sparkles,
   Layers,
   History,
+  Pill,
+  Activity,
+  FileText,
+  Calendar,
 } from 'lucide-react'
 import { queueService } from '@/services/queueService'
 import { QueueProgressVisualizer } from '@/components/healthcare/QueueProgressVisualizer'
@@ -406,7 +410,7 @@ export const LiveQueuePage: React.FC = () => {
                     <span className="text-slate-400 font-mono text-[11px] block">{item.date}</span>
                     {item.prescriptionAvailable && (
                       <Link
-                        to="/patient/records"
+                        to="/patient/medicines"
                         className="text-[11px] font-bold text-[#0F5147] hover:underline block"
                       >
                         View Prescription
@@ -598,173 +602,297 @@ export const LiveQueuePage: React.FC = () => {
             </div>
           )}
 
-          {/* H. PRIMARY QUEUE CARD (3-SECOND GLANCE HERO) */}
-          <section
-            aria-label="Your queue status"
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-6"
-          >
-            {/* Header / Hospital & Status */}
-            <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3 pb-5 border-b border-slate-100">
-              <div className="space-y-0.5">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                  {currentToken.facilityName}
+          {/* H. COMPLETED CONSULTATION STATE OR PRIMARY QUEUE CARD */}
+          {currentToken.state === 'COMPLETED' ? (
+            <div className="p-6 sm:p-8 bg-white rounded-2xl border border-emerald-200 shadow-sm text-center space-y-6">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-200">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <div className="space-y-1.5 max-w-lg mx-auto">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-block">
+                  Consultation Concluded
                 </span>
-                <h1 className="text-lg font-bold text-slate-900">
-                  {currentToken.departmentName}
-                </h1>
-                <p className="text-xs text-slate-500">
-                  {currentToken.doctorName} • {currentToken.roomNumber}
+                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  Your Visit is Completed
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600">
+                  Thank you for visiting <strong className="text-slate-900">{currentToken.facilityName}</strong>. Consultation with <strong className="text-slate-900">{currentToken.doctorName}</strong> ({currentToken.departmentName}) has been closed on record.
                 </p>
               </div>
 
-              <div className="flex items-center sm:flex-col sm:items-end gap-1.5 self-start sm:self-auto">
-                <span
-                  className={`text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1.5 ${
-                    currentToken.state === 'CALLED'
-                      ? 'bg-emerald-600 text-white border-emerald-600 animate-pulse'
-                      : currentToken.state === 'APPROACHING'
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                      : currentToken.state === 'MISSED'
-                      ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-[#F2F9F8] text-[#0F5147] border-[#D0EAE6]'
-                  }`}
+              {/* Summary Pill */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 inline-flex flex-wrap items-center justify-center gap-4 text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Token Number</span>
+                  <span className="font-mono font-bold text-slate-900">{currentToken.tokenNumber}</span>
+                </div>
+                <div className="h-6 w-px bg-slate-200" />
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Room</span>
+                  <span className="font-bold text-slate-900">{currentToken.roomNumber}</span>
+                </div>
+                <div className="h-6 w-px bg-slate-200" />
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Status</span>
+                  <span className="font-bold text-emerald-700">Archived in Timeline</span>
+                </div>
+              </div>
+
+              {/* Clinical Continuity Bridges */}
+              <div className="space-y-2.5 max-w-xl mx-auto pt-2">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider text-left">
+                  Next Steps in Your Care Journey:
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                  <Link
+                    to="/patient/medicines"
+                    className="p-4 rounded-xl bg-white hover:bg-[#F2F9F8] border border-slate-200 hover:border-[#D0EAE6] transition-all flex items-start gap-3 group shadow-2xs"
+                  >
+                    <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700 group-hover:bg-[#0F5147] group-hover:text-white transition-colors">
+                      <Pill className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <strong className="text-xs font-bold text-slate-900 block group-hover:text-[#0F5147]">
+                        Prescriptions & Medicines
+                      </strong>
+                      <span className="text-[11px] text-slate-500">
+                        View doctor-prescribed medicines & pharmacy stock
+                      </span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/patient/diagnostics"
+                    className="p-4 rounded-xl bg-white hover:bg-[#F2F9F8] border border-slate-200 hover:border-[#D0EAE6] transition-all flex items-start gap-3 group shadow-2xs"
+                  >
+                    <div className="p-2 rounded-lg bg-cyan-50 text-cyan-700 group-hover:bg-[#0F5147] group-hover:text-white transition-colors">
+                      <Activity className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <strong className="text-xs font-bold text-slate-900 block group-hover:text-[#0F5147]">
+                        Diagnostic Tests & Labs
+                      </strong>
+                      <span className="text-[11px] text-slate-500">
+                        Schedule ordered lab tests & access reports
+                      </span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/patient/my-care"
+                    className="p-4 rounded-xl bg-white hover:bg-[#F2F9F8] border border-slate-200 hover:border-[#D0EAE6] transition-all flex items-start gap-3 group shadow-2xs"
+                  >
+                    <div className="p-2 rounded-lg bg-teal-50 text-teal-700 group-hover:bg-[#0F5147] group-hover:text-white transition-colors">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <strong className="text-xs font-bold text-slate-900 block group-hover:text-[#0F5147]">
+                        Longitudinal Care Records
+                      </strong>
+                      <span className="text-[11px] text-slate-500">
+                        Access official visit summary in your timeline
+                      </span>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/patient/appointments/book"
+                    className="p-4 rounded-xl bg-white hover:bg-[#F2F9F8] border border-slate-200 hover:border-[#D0EAE6] transition-all flex items-start gap-3 group shadow-2xs"
+                  >
+                    <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700 group-hover:bg-[#0F5147] group-hover:text-white transition-colors">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <strong className="text-xs font-bold text-slate-900 block group-hover:text-[#0F5147]">
+                        Book Next Consultation
+                      </strong>
+                      <span className="text-[11px] text-slate-500">
+                        Schedule follow-up appointment or specialist visit
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('HISTORY')}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                  <span>
-                    {currentToken.state === 'CALLED'
-                      ? 'Called Now'
-                      : currentToken.state === 'APPROACHING'
-                      ? 'Approaching'
-                      : currentToken.state === 'MISSED'
-                      ? 'Missed Turn'
-                      : 'Waiting in Queue'}
+                  <History className="w-3.5 h-3.5" />
+                  <span>View in Queue Visit History</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <section
+              aria-label="Your queue status"
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-6"
+            >
+              {/* Header / Hospital & Status */}
+              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3 pb-5 border-b border-slate-100">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                    {currentToken.facilityName}
                   </span>
-                </span>
-                <span className="text-[11px] text-slate-400 font-medium">
-                  {lastUpdatedText}
-                </span>
-              </div>
-            </div>
+                  <h1 className="text-lg font-bold text-slate-900">
+                    {currentToken.departmentName}
+                  </h1>
+                  <p className="text-xs text-slate-500">
+                    {currentToken.doctorName} • {currentToken.roomNumber}
+                  </p>
+                </div>
 
-            {/* 3-SECOND METRIC CARDS (YOUR TOKEN / NOW SERVING / AHEAD / WAIT) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              {/* Metric 1: YOUR TOKEN (Largest & Most Prominent) */}
-              <div className="p-4 bg-[#F2F9F8] rounded-2xl border border-[#D0EAE6] flex flex-col justify-between col-span-2 sm:col-span-1 shadow-2xs">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0F5147] block">
-                  Your Token
-                </span>
-                <span className="text-4xl sm:text-5xl font-mono font-extrabold text-[#0F5147] tracking-tight block my-1">
-                  {currentToken.tokenNumber}
-                </span>
-                <span className="text-[10px] text-[#0F5147]/80 font-medium block">
-                  Priority: {currentToken.priority}
-                </span>
-              </div>
-
-              {/* Metric 2: NOW SERVING */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                  Now Serving
-                </span>
-                <span className="text-2xl sm:text-3xl font-mono font-bold text-slate-900 block my-1">
-                  {currentToken.currentServingToken}
-                </span>
-                <span className="text-[10px] text-slate-500 block truncate">
-                  In {currentToken.roomNumber}
-                </span>
-              </div>
-
-              {/* Metric 3: PEOPLE AHEAD */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                  People Ahead
-                </span>
-                <span className="text-2xl sm:text-3xl font-mono font-bold text-slate-900 block my-1">
-                  {currentToken.positionInQueue}
-                </span>
-                <span className="text-[10px] text-slate-500 block">
-                  {currentToken.positionInQueue === 0 ? 'You are next' : 'Patients in line'}
-                </span>
-              </div>
-
-              {/* Metric 4: ESTIMATED WAIT */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                  Estimated Wait
-                </span>
-                <span className="text-2xl sm:text-3xl font-mono font-bold text-[#0F5147] block my-1">
-                  {currentToken.positionInQueue === 0 ? 'Now' : `~${currentToken.estimatedWaitMinutes}m`}
-                </span>
-                <span className="text-[10px] text-slate-500 block truncate">
-                  {currentToken.estimatedWaitRange}
-                </span>
-              </div>
-            </div>
-
-            {/* I. DISTINCTIVE QUEUE PROGRESS VISUALIZER */}
-            <QueueProgressVisualizer token={currentToken} />
-
-            {/* J. NEXT ACTION GUIDANCE BOX */}
-            <div className="p-4 bg-[#F8FAFC] rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1">
-              <span className="font-bold text-slate-900 uppercase tracking-wider text-[11px] block">
-                What should I do now?
-              </span>
-              <p className="leading-relaxed">{currentToken.nextActionInstruction}</p>
-            </div>
-
-            {/* K. DOCTOR & CLINICAL LOCATION CONTEXT */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="flex items-center gap-2.5">
-                <User className="w-4 h-4 text-[#0F5147] shrink-0" />
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Doctor</span>
-                  <strong className="text-slate-900">{currentToken.doctorName}</strong>
+                <div className="flex items-center sm:flex-col sm:items-end gap-1.5 self-start sm:self-auto">
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1.5 ${
+                      currentToken.state === 'CALLED'
+                        ? 'bg-emerald-600 text-white border-emerald-600 animate-pulse'
+                        : currentToken.state === 'APPROACHING'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : currentToken.state === 'MISSED'
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : 'bg-[#F2F9F8] text-[#0F5147] border-[#D0EAE6]'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    <span>
+                      {currentToken.state === 'CALLED'
+                        ? 'Called Now'
+                        : currentToken.state === 'APPROACHING'
+                        ? 'Approaching'
+                        : currentToken.state === 'MISSED'
+                        ? 'Missed Turn'
+                        : 'Waiting in Queue'}
+                    </span>
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    {lastUpdatedText}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
-                <DoorOpen className="w-4 h-4 text-[#0F5147] shrink-0" />
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Chamber / Counter</span>
-                  <strong className="text-slate-900">{currentToken.roomNumber}</strong>
+              {/* 3-SECOND METRIC CARDS (YOUR TOKEN / NOW SERVING / AHEAD / WAIT) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                {/* Metric 1: YOUR TOKEN (Largest & Most Prominent) */}
+                <div className="p-4 bg-[#F2F9F8] rounded-2xl border border-[#D0EAE6] flex flex-col justify-between col-span-2 sm:col-span-1 shadow-2xs">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0F5147] block">
+                    Your Token
+                  </span>
+                  <span className="text-4xl sm:text-5xl font-mono font-extrabold text-[#0F5147] tracking-tight block my-1">
+                    {currentToken.tokenNumber}
+                  </span>
+                  <span className="text-[10px] text-[#0F5147]/80 font-medium block">
+                    Priority: {currentToken.priority}
+                  </span>
+                </div>
+
+                {/* Metric 2: NOW SERVING */}
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Now Serving
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-mono font-bold text-slate-900 block my-1">
+                    {currentToken.currentServingToken}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block truncate">
+                    In {currentToken.roomNumber}
+                  </span>
+                </div>
+
+                {/* Metric 3: PEOPLE AHEAD */}
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                    People Ahead
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-mono font-bold text-slate-900 block my-1">
+                    {currentToken.positionInQueue}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block">
+                    {currentToken.positionInQueue === 0 ? 'You are next' : 'Patients in line'}
+                  </span>
+                </div>
+
+                {/* Metric 4: ESTIMATED WAIT */}
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Estimated Wait
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-mono font-bold text-[#0F5147] block my-1">
+                    {currentToken.positionInQueue === 0 ? 'Now' : `~${currentToken.estimatedWaitMinutes}m`}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block truncate">
+                    {currentToken.estimatedWaitRange}
+                  </span>
                 </div>
               </div>
-            </div>
 
-            {/* L. QUICK ASSISTANCE & LEAVE QUEUE STRIP */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
-              <div className="flex items-center gap-3">
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                    currentToken.facilityName
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors"
-                >
-                  <Navigation className="w-3.5 h-3.5 text-[#0F5147]" />
-                  <span>Hospital Map</span>
-                </a>
+              {/* I. DISTINCTIVE QUEUE PROGRESS VISUALIZER */}
+              <QueueProgressVisualizer token={currentToken} />
 
-                <a
-                  href="tel:108"
-                  className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors"
-                >
-                  <PhoneCall className="w-3.5 h-3.5 text-red-600" />
-                  <span>Helpdesk / 108</span>
-                </a>
+              {/* J. NEXT ACTION GUIDANCE BOX */}
+              <div className="p-4 bg-[#F8FAFC] rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1">
+                <span className="font-bold text-slate-900 uppercase tracking-wider text-[11px] block">
+                  What should I do now?
+                </span>
+                <p className="leading-relaxed">{currentToken.nextActionInstruction}</p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowLeaveModal(true)}
-                className="inline-flex items-center gap-1 text-slate-500 hover:text-red-700 transition-colors cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Leave Queue</span>
-              </button>
-            </div>
-          </section>
+              {/* K. DOCTOR & CLINICAL LOCATION CONTEXT */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <User className="w-4 h-4 text-[#0F5147] shrink-0" />
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Doctor</span>
+                    <strong className="text-slate-900">{currentToken.doctorName}</strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <DoorOpen className="w-4 h-4 text-[#0F5147] shrink-0" />
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Chamber / Counter</span>
+                    <strong className="text-slate-900">{currentToken.roomNumber}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* L. QUICK ASSISTANCE & LEAVE QUEUE STRIP */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+                <div className="flex items-center gap-3">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                      currentToken.facilityName
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    <Navigation className="w-3.5 h-3.5 text-[#0F5147]" />
+                    <span>Hospital Map</span>
+                  </a>
+
+                  <a
+                    href="tel:108"
+                    className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5 text-red-600" />
+                    <span>Helpdesk / 108</span>
+                  </a>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowLeaveModal(true)}
+                  className="inline-flex items-center gap-1 text-slate-500 hover:text-red-700 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Leave Queue</span>
+                </button>
+              </div>
+            </section>
+          )}
 
           {/* M. EVALUATOR / DEMO CONTROL PILL (Allows testing all 14 scenarios effortlessly) */}
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">

@@ -35,6 +35,11 @@ interface NavItem {
   badge?: string
 }
 
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
 export const Sidebar: React.FC = () => {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
@@ -64,6 +69,42 @@ export const Sidebar: React.FC = () => {
   }, [])
 
   // Refined, English-first Navigation Items per Role
+  const patientSections: NavSection[] = [
+    {
+      title: 'Core Care Access',
+      items: [
+        { label: 'Home', to: '/patient/home', icon: Home },
+        {
+          label: 'Action Center & Alerts',
+          to: '/patient/notifications',
+          icon: Bell,
+          badge: unreadNotifsCount > 0 ? `${unreadNotifsCount}` : undefined,
+        },
+        { label: 'Find Care', to: '/patient/facilities', icon: Search },
+        { label: 'Treatment Matcher', to: '/patient/treatment-matcher', icon: Sparkles },
+        { label: 'Appointments', to: '/patient/appointments', icon: Calendar },
+        { label: 'Live Queue', to: '/patient/queue', icon: Clock },
+      ],
+    },
+    {
+      title: 'Clinical Continuum',
+      items: [
+        { label: 'Follow-ups', to: '/patient/follow-ups', icon: RotateCcw, badge: 'Due' },
+        { label: 'Referral Trail', to: '/patient/referrals', icon: Share2 },
+        { label: 'Diagnostics & Labs', to: '/patient/diagnostics', icon: Activity },
+        { label: 'Medicines & Rx', to: '/patient/medicines', icon: Pill },
+        { label: 'My Care & Records', to: '/patient/my-care', icon: FileText },
+      ],
+    },
+    {
+      title: 'Urgent & Concierge',
+      items: [
+        { label: 'Emergency Help', to: '/patient/emergency', icon: ShieldAlert, badge: '24x7' },
+        { label: 'Healthcare Assistant', to: '/patient/assistant', icon: Bot, badge: 'Voice' },
+      ],
+    },
+  ]
+
   const roleNavItems: Record<UserRole, NavItem[]> = {
     ROLE_PATIENT: [
       { label: 'Home', to: '/patient/home', icon: Home },
@@ -165,41 +206,85 @@ export const Sidebar: React.FC = () => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-0.5" aria-label="Role specific links">
-            {activeItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all group',
-                      isActive
-                        ? 'bg-[#F2F9F8] text-[#0F5147] font-semibold'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    )
-                  }
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon
-                      className={cn(
-                        'w-4 h-4 transition-colors',
-                        'text-slate-400 group-hover:text-slate-600'
-                      )}
-                      aria-hidden="true"
-                    />
-                    <span>{item.label}</span>
+          <nav className="space-y-3" aria-label="Role specific links">
+            {currentRole === 'ROLE_PATIENT' ? (
+              patientSections.map((section, sIdx) => (
+                <div key={sIdx} className="space-y-0.5">
+                  <div className="px-3 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    {section.title}
                   </div>
-                  {item.badge && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-red-50 text-red-700 border border-red-200">
-                      {item.badge}
-                    </span>
-                  )}
-                </NavLink>
-              )
-            })}
+                  {section.items.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setSidebarOpen(false)}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all group',
+                            isActive
+                              ? 'bg-[#F2F9F8] text-[#0F5147] font-semibold'
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          )
+                        }
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Icon
+                            className={cn(
+                              'w-4 h-4 transition-colors',
+                              'text-slate-400 group-hover:text-slate-600'
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-red-50 text-red-700 border border-red-200">
+                            {item.badge}
+                          </span>
+                        )}
+                      </NavLink>
+                    )
+                  })}
+                </div>
+              ))
+            ) : (
+              activeItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all group',
+                        isActive
+                          ? 'bg-[#F2F9F8] text-[#0F5147] font-semibold'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      )
+                    }
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Icon
+                        className={cn(
+                          'w-4 h-4 transition-colors',
+                          'text-slate-400 group-hover:text-slate-600'
+                        )}
+                        aria-hidden="true"
+                      />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-red-50 text-red-700 border border-red-200">
+                        {item.badge}
+                      </span>
+                    )}
+                  </NavLink>
+                )
+              })
+            )}
           </nav>
         </div>
 

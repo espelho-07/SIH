@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Building2,
   Check,
+  Pill,
 } from 'lucide-react'
 import { appointmentService } from '@/services/appointmentService'
 import { queueService } from '@/services/queueService'
@@ -215,7 +216,8 @@ export const AppointmentDetailPage: React.FC = () => {
             </span>
           )}
           {isCompleted && (
-            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               Completed
             </span>
           )}
@@ -224,6 +226,37 @@ export const AppointmentDetailPage: React.FC = () => {
               <XCircle className="w-4 h-4" />
               Cancelled
             </span>
+          )}
+
+          {isConfirmed && appointment.tokenNumber && (
+            <Link
+              to={`/patient/queue?token=${appointment.tokenNumber}`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-2xs"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Track Live OPD Queue</span>
+            </Link>
+          )}
+
+          {isConfirmed && !appointment.tokenNumber && (
+            <button
+              type="button"
+              onClick={handleCheckInToken}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-2xs"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Generate OPD Token</span>
+            </button>
+          )}
+
+          {isCompleted && (
+            <Link
+              to="/patient/medicines"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-2xs"
+            >
+              <Pill className="w-3.5 h-3.5" />
+              <span>View Prescriptions</span>
+            </Link>
           )}
 
           <button
@@ -491,6 +524,35 @@ export const AppointmentDetailPage: React.FC = () => {
               >
                 <XCircle className="w-4 h-4 text-red-600" />
                 <span>Cancel Appointment</span>
+              </button>
+            </div>
+          )}
+
+          {isCompleted && (
+            <div className="space-y-2">
+              <Link
+                to="/patient/medicines"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer touch-target shadow-2xs"
+              >
+                <Pill className="w-4 h-4" />
+                <span>Prescriptions & Medicines</span>
+              </Link>
+              <Link
+                to="/patient/my-care"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer touch-target"
+              >
+                <FileText className="w-4 h-4 text-slate-500" />
+                <span>Longitudinal Care Records</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(`/patient/appointments/book?facilityId=${appointment.facilityId}&doctorId=${appointment.doctorId}`)
+                }
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer touch-target"
+              >
+                <RotateCcw className="w-4 h-4 text-slate-500" />
+                <span>Book Follow-up Slot</span>
               </button>
             </div>
           )}

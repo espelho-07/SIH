@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   Home,
@@ -8,11 +8,31 @@ import {
   Menu,
 } from 'lucide-react'
 import { useUiStore } from '@/stores/uiStore'
+import { notificationService } from '@/services/notificationService'
 import { cn } from '@/lib/utils'
 
 export const BottomNav: React.FC = () => {
   const location = useLocation()
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    let isMounted = true
+    const updateCount = () => {
+      notificationService
+        .getUnreadCount()
+        .then((count) => {
+          if (isMounted) setUnreadCount(count)
+        })
+        .catch(() => {})
+    }
+    updateCount()
+    const unsubscribe = notificationService.subscribe(updateCount)
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
+  }, [])
 
   const navItems = [
     {
@@ -40,6 +60,7 @@ export const BottomNav: React.FC = () => {
       label: 'More',
       action: toggleSidebar,
       icon: Menu,
+      badge: unreadCount > 0 ? unreadCount : undefined,
     },
   ]
 
@@ -58,10 +79,15 @@ export const BottomNav: React.FC = () => {
                 key={index}
                 type="button"
                 onClick={item.action}
-                className="flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-900 active:scale-95 transition-transform touch-target cursor-pointer"
+                className="flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-900 active:scale-95 transition-transform touch-target cursor-pointer relative"
                 aria-label="Open full menu"
               >
-                <Icon className="w-5 h-5 text-slate-400" aria-hidden="true" />
+                <div className="relative">
+                  <Icon className="w-5 h-5 text-slate-400" aria-hidden="true" />
+                  {item.badge && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 border-2 border-white rounded-full" />
+                  )}
+                </div>
                 <span className="text-[10px] font-medium tracking-tight leading-none text-slate-600">
                   {item.label}
                 </span>

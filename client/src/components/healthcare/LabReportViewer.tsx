@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   X,
   Printer,
@@ -9,6 +10,7 @@ import {
   Download,
   FileCheck2,
   Microscope,
+  FileText,
 } from 'lucide-react'
 import type { DiagnosticReport } from '@/types/diagnostic'
 
@@ -23,6 +25,7 @@ export const LabReportViewer: React.FC<LabReportViewerProps> = ({
   isOpen,
   onClose,
 }) => {
+  const navigate = useNavigate()
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -242,15 +245,29 @@ export const LabReportViewer: React.FC<LabReportViewerProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="p-5 border-t border-slate-200 bg-slate-50/90 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-semibold transition-colors min-h-[44px] cursor-pointer"
-            >
-              <Download className="w-4 h-4" aria-hidden="true" />
-              <span>Print Official Lab Slip</span>
-            </button>
+          <div className="p-5 border-t border-slate-200 bg-slate-50/90 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-semibold transition-colors min-h-[44px] cursor-pointer"
+              >
+                <Download className="w-4 h-4" aria-hidden="true" />
+                <span>Print Official Lab Slip</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onClose()
+                  navigate('/patient/my-care')
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-semibold transition-colors min-h-[44px] cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-[#0F5147]" aria-hidden="true" />
+                <span>View in Care Records</span>
+              </button>
+            </div>
 
             <button
               type="button"
