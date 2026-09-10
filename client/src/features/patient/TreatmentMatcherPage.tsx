@@ -1,193 +1,203 @@
-import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import {
-  Sparkles,
   Search,
   CheckCircle2,
   ChevronRight,
   Mic,
   MicOff,
-  PhoneCall,
   ArrowLeft,
-  Clock,
   ShieldCheck,
+  Stethoscope,
+  Building2,
+  Navigation,
 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
+import { GovernmentHealthcareBadge } from '@/components/healthcare/GovernmentHealthcareBadge'
 import { FacilityAvailabilityBadge } from '@/components/healthcare/FacilityAvailabilityBadge'
 import { ResourceFreshnessBadge } from '@/components/healthcare/ResourceFreshnessBadge'
+import { facilityService } from '@/services/facilityService'
+import { getSpeechRecognition } from '@/lib/speechRecognition'
 import type { TreatmentMatchResult } from '@/types/facility'
 
 export const TreatmentMatcherPage: React.FC = () => {
-  const navigate = useNavigate()
   const [query, setQuery] = useState('Kidney Dialysis')
   const [isSearching, setIsSearching] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null)
+  const [results, setResults] = useState<TreatmentMatchResult[]>([])
 
-  const [results] = useState<TreatmentMatchResult[]>([
-    {
-      matchScore: 98,
-      capabilityMatched: true,
-      recommendedReason: 'Nephrologist on active duty + 3 Dialysis units functional + 4 ICU beds available',
-      estimatedTravelTimeMins: 18,
-      facility: {
-        id: 'FAC-001',
-        name: 'Pandeypur District Hospital',
-        tier: 'DISTRICT_HOSPITAL',
-        district: 'Varanasi',
-        state: 'Uttar Pradesh',
-        address: 'Pandeypur Chowk, Varanasi - 221002',
-        distanceKm: 2.8,
-        isAyushmanEmpaneled: true,
-        hasEmergency24x7: true,
-        operationalStatus: 'OPERATIONAL',
-        icuBeds: { total: 20, available: 4, occupied: 14, reserved: 2 },
-        oxygenBeds: { total: 60, available: 18, occupied: 40, reserved: 2 },
-        generalBeds: { total: 200, available: 42, occupied: 155, reserved: 3 },
-        specialistsOnDuty: [
-          { name: 'Dr. Anita Desai', specialty: 'Nephrology', isAvailableNow: true },
-          { name: 'Dr. R. K. Sharma', specialty: 'Intensive Care', isAvailableNow: true },
-        ],
-        bloodUnitsAvailable: 34,
-        lastUpdatedIso: new Date().toISOString(),
-        isStale: false,
-      },
-    },
-    {
-      matchScore: 82,
-      capabilityMatched: true,
-      recommendedReason: 'Dialysis unit operational, but Specialist on-call rather than on-site',
-      estimatedTravelTimeMins: 28,
-      facility: {
-        id: 'FAC-002',
-        name: 'Shivpur Community Health Centre (CHC)',
-        tier: 'CHC',
-        district: 'Varanasi',
-        state: 'Uttar Pradesh',
-        address: 'Near Railway Station, Shivpur - 221003',
-        distanceKm: 5.4,
-        isAyushmanEmpaneled: true,
-        hasEmergency24x7: true,
-        operationalStatus: 'OPERATIONAL',
-        icuBeds: { total: 6, available: 1, occupied: 5, reserved: 0 },
-        oxygenBeds: { total: 25, available: 8, occupied: 16, reserved: 1 },
-        generalBeds: { total: 50, available: 14, occupied: 36, reserved: 0 },
-        specialistsOnDuty: [
-          { name: 'Dr. Meena Singh', specialty: 'General Medicine', isAvailableNow: true },
-        ],
-        bloodUnitsAvailable: 12,
-        lastUpdatedIso: new Date().toISOString(),
-        isStale: false,
-      },
-    },
-  ])
+  const executeSearch = useCallback((searchTerm: string) => {
+    setIsSearching(true)
+    facilityService
+      .matchTreatment(searchTerm)
+      .then((data) => setResults(data))
+      .finally(() => setIsSearching(false))
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    facilityService.matchTreatment('Kidney Dialysis').then((data) => {
+      if (isMounted) {
+        setResults(data)
+      }
+    })
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (!query.trim()) return
-
-    setIsSearching(true)
-    setTimeout(() => {
-      setIsSearching(false)
-    }, 350)
+    executeSearch(query.trim())
   }
 
   const handleVoiceToggle = () => {
-    if (!isRecording) {
-      setIsRecording(true)
-      setTimeout(() => {
-        setQuery('Normal Delivery Maternity Care')
-        setIsRecording(false)
-      }, 1800)
-    } else {
+    if (isRecording) {
       setIsRecording(false)
+      return
+    }
+
+    const SpeechRecognition = getSpeechRecognition()
+
+    if (!SpeechRecognition) {
+      setVoiceNotice('Voice input not supported in this browser. Please type.')
+      setTimeout(() => setVoiceNotice(null), 3000)
+      return
+    }
+
+    try {
+      const recognition = new SpeechRecognition()
+      recognition.lang = 'en-IN'
+      recognition.continuous = false
+
+      recognition.onstart = () => {
+        setIsRecording(true)
+        setVoiceNotice('Listening... describe your condition or treatment')
+      }
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript
+        setIsRecording(false)
+        setQuery(transcript)
+        setVoiceNotice(`Heard: "${transcript}"`)
+        executeSearch(transcript)
+      }
+
+      recognition.onerror = () => {
+        setIsRecording(false)
+        setVoiceNotice('Could not understand voice. Please try again.')
+        setTimeout(() => setVoiceNotice(null), 3000)
+      }
+
+      recognition.onend = () => {
+        setIsRecording(false)
+      }
+
+      recognition.start()
+    } catch {
+      setIsRecording(false)
+      setVoiceNotice('Audio permission denied. Please type.')
+      setTimeout(() => setVoiceNotice(null), 3000)
     }
   }
 
   const commonProcedures = [
     { label: 'Kidney Dialysis', q: 'Kidney Dialysis' },
-    { label: 'Normal & Cesarean Delivery', q: 'Maternity Delivery' },
-    { label: 'Trauma & Fracture Casting', q: 'Bone Fracture Ortho' },
-    { label: 'Pediatric ICU & Ventilator', q: 'Pediatric ICU' },
+    { label: 'Cardiac Angiography', q: 'Cardiac Chest Pain' },
+    { label: 'Normal Delivery / Maternity', q: 'Maternity Childbirth' },
+    { label: 'Pediatric ICU (SNCU)', q: 'Pediatric Child Care' },
+    { label: 'Orthopedic Fracture', q: 'Bone Fracture Ortho' },
     { label: 'Cataract Eye Surgery', q: 'Cataract Eye Surgery' },
-    { label: 'Cardiac & Chest Pain', q: 'Cardiac Care' },
   ]
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Navigation Header */}
       <div className="space-y-1.5">
         <Link
           to="/patient/home"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F5147] hover:text-[#0A3F37] transition-colors mb-1"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F5147] hover:underline mb-1"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
         </Link>
         <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#0F5147]">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Clinical Capability Matching Engine</span>
+          <Stethoscope className="w-4 h-4" />
+          <span>Clinical Capability Matching</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           What treatment do you need?
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500">
-          Search any medical condition, surgery, or specialty. We match verified facilities with confirmed specialists on duty and operational bed capacity.
+        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl">
+          Search any illness, surgical procedure, or medical specialty. We analyze verified equipment telemetry, attending specialist duty rosters, and government bed capacity to recommend the right public hospital.
         </p>
       </div>
 
-      {/* Search Input Container */}
-      <div className="p-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
+      {/* Search & Voice Input Box */}
+      <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
         <form onSubmit={handleSearch} className="space-y-3">
           <label htmlFor="treatment-input" className="block text-xs font-bold uppercase tracking-wide text-slate-700">
-            Search procedure, surgery, or specialty
+            Search condition, surgery, or specialty
           </label>
           <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-3.5 pointer-events-none" aria-hidden="true" />
+              <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3 pointer-events-none" aria-hidden="true" />
               <input
                 id="treatment-input"
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g. Kidney Dialysis, Pediatric ICU, Orthopaedic Fracture..."
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5147] transition-colors"
+                placeholder="e.g. Kidney Dialysis, Cardiac Angiography, Pediatric ICU..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5147]"
               />
             </div>
             <div className="flex items-center gap-2">
-              <Button
+              <button
                 type="button"
-                variant={isRecording ? 'destructive' : 'outline'}
                 onClick={handleVoiceToggle}
-                className="min-h-[44px] px-3.5 font-semibold text-xs"
-                leftIcon={isRecording ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4 text-[#0F5147]" />}
+                className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all touch-target cursor-pointer ${
+                  isRecording
+                    ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+                aria-label="Search by voice"
               >
-                {isRecording ? 'Listening...' : 'Speak'}
-              </Button>
-              <Button
+                {isRecording ? <MicOff className="w-4 h-4 text-red-600" /> : <Mic className="w-4 h-4 text-[#0F5147]" />}
+                <span>{isRecording ? 'Listening...' : 'Voice'}</span>
+              </button>
+
+              <button
                 type="submit"
-                variant="primary"
-                size="md"
-                isLoading={isSearching}
-                className="font-bold min-h-[44px] flex-1 sm:flex-initial px-5"
+                disabled={isSearching}
+                className="px-5 py-2.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target cursor-pointer disabled:opacity-50"
               >
-                Find Best Matches
-              </Button>
+                {isSearching ? 'Matching...' : 'Find Matches'}
+              </button>
             </div>
           </div>
 
-          {/* Quick Procedure Filter Pills */}
-          <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs">
+          {voiceNotice && (
+            <div className="text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+              {voiceNotice}
+            </div>
+          )}
+
+          {/* Quick Filter Pills */}
+          <div className="pt-1 flex flex-wrap items-center gap-1.5 text-xs">
             <span className="text-slate-400 font-medium mr-1">Popular:</span>
             {commonProcedures.map((proc, i) => (
               <button
                 key={i}
                 type="button"
-                onClick={() => setQuery(proc.q)}
-                className={`px-3 py-1 rounded-full border text-xs transition-colors cursor-pointer ${
+                onClick={() => {
+                  setQuery(proc.q)
+                  executeSearch(proc.q)
+                }}
+                className={`px-3 py-1 rounded-full text-xs transition-colors cursor-pointer touch-target ${
                   query === proc.q
-                    ? 'bg-[#0F5147] text-white border-[#0F5147] font-semibold'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    ? 'bg-[#0F5147] text-white font-semibold shadow-2xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}
               >
                 {proc.label}
@@ -197,56 +207,59 @@ export const TreatmentMatcherPage: React.FC = () => {
         </form>
       </div>
 
-      {/* Recommendation Transparency Banner */}
-      <div className="p-4 bg-[#F2F9F8] border border-[#D1E5E2] rounded-2xl text-xs text-slate-800 flex items-start gap-3 shadow-2xs">
+      {/* Trust & Clinical Transparency Box */}
+      <div className="p-4 bg-[#F2F9F8] border border-[#D0EAE6] rounded-2xl text-xs text-slate-800 flex items-start gap-3 shadow-2xs">
         <ShieldCheck className="w-5 h-5 text-[#0F5147] shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <strong className="font-bold text-slate-900 block">Verified Clinical Capability Matching</strong>
           <p className="text-slate-600 leading-relaxed">
-            Recommendations are ranked by verified clinical equipment status, attending specialist duty shifts, and real-time bed capacity — not distance alone. Facilities empaneled under PM-JAY Ayushman Bharat provide 100% cashless care.
+            Recommendations prioritize public healthcare facilities equipped with functional diagnostic equipment, on-duty clinical specialists, and available ICU beds. All public facilities provide 100% cashless care under Ayushman Bharat (PM-JAY).
           </p>
         </div>
       </div>
 
-      {/* Best Matches Results Listing */}
-      <div className="space-y-4">
+      {/* Best Matched Results Listing */}
+      <section className="space-y-4" aria-label="Treatment matching recommendations">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-sm font-bold text-slate-900">
-            Best Matched Facilities ({results.length} found)
+            Recommended Facilities ({results.length} matched)
           </h2>
-          <span className="text-xs text-slate-500 font-medium">Ranked by Clinical Readiness Score</span>
+          <span className="text-xs text-slate-500 font-medium">Ranked by Clinical Readiness & Public Priority</span>
         </div>
 
         {results.map((res, index) => {
-          const { facility, matchScore, recommendedReason, estimatedTravelTimeMins } = res
+          const { facility, matchScore, recommendedReason, estimatedTravelTimeMins, rationaleChecklist } = res
           return (
-            <div
+            <article
               key={facility.id}
-              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs transition-all space-y-4"
+              className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 shadow-xs transition-all space-y-4"
             >
-              {/* Card Header: Score, Facility, Distance */}
+              {/* Card Top: Match Score, Badges, Name */}
               <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3 pb-3 border-b border-slate-100">
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-                      {matchScore}% Readiness Match
+                      {matchScore}% Capability Match
                     </span>
-                    <Badge variant="default" className="text-[10px] font-medium">
-                      {facility.tier.replace('_', ' ')}
-                    </Badge>
+                    <GovernmentHealthcareBadge ownership={facility.ownership} tier={facility.tier} />
                     {facility.isAyushmanEmpaneled && (
                       <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        PM-JAY 100% Cashless
+                        PM-JAY Cashless
                       </span>
                     )}
                   </div>
 
-                  <h3 className="text-lg font-bold text-slate-900 mt-1">
-                    {index + 1}. {facility.name}
+                  <h3 className="text-lg font-bold text-slate-900">
+                    <Link to={`/patient/facility/${facility.id}`} className="hover:text-[#0F5147] transition-colors">
+                      {index + 1}. {facility.name}
+                    </Link>
                   </h3>
-                  <p className="text-xs text-slate-500">
-                    {facility.address} &bull; <strong className="text-slate-800">{facility.distanceKm} km</strong> (~{estimatedTravelTimeMins} min travel time)
+                  <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <Navigation className="w-3.5 h-3.5 text-[#0F5147]" />
+                    <span>{facility.distanceKm} km away (~{estimatedTravelTimeMins} min travel)</span>
+                    <span>•</span>
+                    <span>{facility.address}</span>
                   </p>
                 </div>
 
@@ -259,60 +272,56 @@ export const TreatmentMatcherPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* "Why this facility?" Structured Checklist */}
-              <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-100 space-y-2.5 text-xs">
-                <strong className="block font-bold text-slate-900 uppercase tracking-wide text-[11px]">
+              {/* "Why this facility?" Structured Multi-point Checklist */}
+              <div className="p-4 bg-[#F8FAFC] rounded-xl border border-slate-200/80 space-y-2.5 text-xs">
+                <h4 className="font-bold text-slate-900 uppercase tracking-wide text-[11px] flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#0F5147]" />
                   Why this facility?
-                </strong>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-slate-700">
-                  <div className="flex items-center gap-2 text-emerald-900 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Verified specialist physician on active duty</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-900 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{facility.icuBeds.available} ICU and {facility.oxygenBeds.available} oxygen beds ready</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-900 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>100% Cashless under Ayushman Bharat</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-700 font-medium">
-                    <Clock className="w-4 h-4 text-[#0F5147] shrink-0" />
-                    <span>Estimated {estimatedTravelTimeMins} min road transit</span>
-                  </div>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                  {rationaleChecklist.map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-emerald-900 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
 
-                <p className="text-[11px] text-slate-600 pt-2 border-t border-slate-200/60 mt-1">
-                  <strong>Clinical Rationale:</strong> {recommendedReason}
+                <p className="text-[11px] text-slate-600 pt-2 border-t border-slate-200 mt-1">
+                  <strong>Clinical Assessment:</strong> {recommendedReason}
                 </p>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => alert(`Connecting to ${facility.name} reception desk...`)}
-                  leftIcon={<PhoneCall className="w-3.5 h-3.5" />}
-                  className="text-xs font-semibold"
-                >
-                  Contact Desk
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => navigate('/patient/queue')}
-                  rightIcon={<ChevronRight className="w-4 h-4" />}
-                  className="text-xs font-bold"
-                >
-                  Get OPD Token
-                </Button>
+              {/* Card Footer Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-3 text-xs text-slate-600">
+                  <span>ICU Beds: <strong className="text-slate-900 font-bold">{facility.icuBeds.available}</strong></span>
+                  <span>Oxygen: <strong className="text-slate-900 font-bold">{facility.oxygenBeds.available}</strong></span>
+                  <span>General: <strong className="text-slate-900 font-bold">{facility.generalBeds.available}</strong></span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    to={`/patient/facility/${facility.id}`}
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl transition-colors touch-target"
+                  >
+                    View Details
+                  </Link>
+
+                  <Link
+                    to="/patient/queue"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
+                  >
+                    <span>Get OPD Token</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
-            </div>
+            </article>
           )
         })}
-      </div>
-    </div>
+      </section>
+    </main>
   )
 }

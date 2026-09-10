@@ -76,10 +76,10 @@ export const Header: React.FC = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-base font-bold text-slate-900 tracking-tight leading-none">
-                    SANJEEVANI<span className="text-[#0F5147] font-semibold"> CONNECT</span>
+                    HEALTH<span className="text-[#0F5147] font-semibold">CONNECT</span>
                   </span>
-                  <span className="text-[10px] font-medium text-slate-600 tracking-wider uppercase mt-0.5 hidden xs:block">
-                    Integrated Healthcare
+                  <span className="text-[10px] font-medium text-slate-500 tracking-wider uppercase mt-0.5 hidden xs:block">
+                    Public Healthcare Access
                   </span>
                 </div>
               </Link>
@@ -91,23 +91,26 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsLocationModalOpen(true)}
-                className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors cursor-pointer touch-target"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors cursor-pointer touch-target"
                 aria-label={`Current location: ${currentDistrict}. Tap to change district.`}
               >
                 <MapPin className="w-3.5 h-3.5 text-[#0F5147] shrink-0" aria-hidden="true" />
-                <span className="font-semibold text-slate-900">{currentDistrict}</span>
-                <span className="text-slate-500 font-normal ml-0.5">• Change</span>
+                <span className="font-semibold text-slate-900 max-w-[90px] sm:max-w-none truncate">
+                  {currentDistrict.split(',')[0]}
+                </span>
+                <span className="text-slate-500 font-normal hidden sm:inline">• Change</span>
               </button>
 
               {/* Restrained Emergency 108 Action */}
               <a
                 href="tel:108"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-full text-xs font-semibold active:scale-95 transition-all cursor-pointer touch-target"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-full text-xs font-semibold active:scale-95 transition-all cursor-pointer touch-target"
                 aria-label="Call Emergency Ambulance 108"
               >
                 <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
                 <PhoneCall className="w-3 h-3 text-red-600" aria-hidden="true" />
-                <span>108 Emergency</span>
+                <span className="hidden sm:inline">108 Emergency</span>
+                <span className="sm:hidden font-bold">108</span>
               </a>
 
               {/* Language Selector */}
@@ -196,5 +199,3 @@ export const Header: React.FC = () => {
     </>
   )
 }
-
-

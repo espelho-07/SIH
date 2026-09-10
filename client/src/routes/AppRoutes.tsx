@@ -5,6 +5,8 @@ import { RoleGuard } from '@/layouts/RoleGuard'
 
 // Feature Pages
 import { PatientHomePage } from '@/features/patient/PatientHomePage'
+import { FindCarePage } from '@/features/patient/FindCarePage'
+import { FacilityDetailPage } from '@/features/patient/FacilityDetailPage'
 import { TreatmentMatcherPage } from '@/features/patient/TreatmentMatcherPage'
 import { LiveQueuePage } from '@/features/patient/LiveQueuePage'
 import { AshaDashboardPage } from '@/features/asha/AshaDashboardPage'
@@ -21,11 +23,13 @@ export const AppRoutes: React.FC = () => {
 
         {/* Patient / Citizen Routes (Public / Citizen Access) */}
         <Route path="/patient/home" element={<PatientHomePage />} />
+        <Route path="/patient/find-care" element={<FindCarePage />} />
+        <Route path="/patient/facilities" element={<FindCarePage />} />
+        <Route path="/patient/facility/:id" element={<FacilityDetailPage />} />
         <Route path="/patient/treatment-matcher" element={<TreatmentMatcherPage />} />
         <Route path="/patient/queue" element={<LiveQueuePage />} />
-        <Route path="/patient/facilities" element={<PatientHomePage />} />
-        <Route path="/patient/blood" element={<PatientHomePage />} />
-        <Route path="/patient/medicines" element={<PatientHomePage />} />
+        <Route path="/patient/blood" element={<FindCarePage />} />
+        <Route path="/patient/medicines" element={<FindCarePage />} />
         <Route path="/patient/referrals" element={<PatientHomePage />} />
         <Route path="/patient/records" element={<PatientHomePage />} />
 

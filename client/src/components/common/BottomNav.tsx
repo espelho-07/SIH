@@ -2,9 +2,9 @@ import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   Home,
-  Sparkles,
+  Building2,
+  Stethoscope,
   Clock,
-  PhoneCall,
   Menu,
 } from 'lucide-react'
 import { useUiStore } from '@/stores/uiStore'
@@ -22,21 +22,19 @@ export const BottomNav: React.FC = () => {
     },
     {
       label: 'Find Care',
+      to: '/patient/find-care',
+      icon: Building2,
+    },
+    {
+      label: 'Treatment',
       to: '/patient/treatment-matcher',
-      icon: Sparkles,
+      icon: Stethoscope,
     },
     {
       label: 'Queue',
       to: '/patient/queue',
       icon: Clock,
       pulse: true,
-    },
-    {
-      label: '108 SOS',
-      to: 'tel:108',
-      isExternal: true,
-      icon: PhoneCall,
-      isEmergency: true,
     },
     {
       label: 'More',
@@ -47,30 +45,12 @@ export const BottomNav: React.FC = () => {
 
   return (
     <nav
-      aria-label="Mobile Navigation"
+      aria-label="Patient Mobile Navigation"
       className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 z-40 lg:hidden shadow-[0_-2px_10px_rgba(15,23,42,0.04)] pb-[env(safe-area-inset-bottom,0px)]"
     >
       <div className="grid grid-cols-5 h-16 max-w-md mx-auto">
         {navItems.map((item, index) => {
           const Icon = item.icon
-
-          if (item.isExternal) {
-            return (
-              <a
-                key={index}
-                href={item.to}
-                className="flex flex-col items-center justify-center gap-1 text-red-600 active:scale-95 transition-transform touch-target cursor-pointer relative"
-                aria-label="Call Emergency Ambulance 108"
-              >
-                <div className="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center text-red-600 border border-red-200">
-                  <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-                </div>
-                <span className="text-[10px] font-bold tracking-tight text-red-700 leading-none">
-                  {item.label}
-                </span>
-              </a>
-            )
-          }
 
           if (item.action) {
             return (
@@ -79,7 +59,7 @@ export const BottomNav: React.FC = () => {
                 type="button"
                 onClick={item.action}
                 className="flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-900 active:scale-95 transition-transform touch-target cursor-pointer"
-                aria-label="Open Full Navigation"
+                aria-label="Open full menu"
               >
                 <Icon className="w-5 h-5 text-slate-400" aria-hidden="true" />
                 <span className="text-[10px] font-medium tracking-tight leading-none text-slate-600">
@@ -89,7 +69,9 @@ export const BottomNav: React.FC = () => {
             )
           }
 
-          const isActive = location.pathname === item.to
+          const isActive =
+            location.pathname === item.to ||
+            (item.to === '/patient/find-care' && location.pathname.startsWith('/patient/facility'))
 
           return (
             <NavLink
@@ -133,4 +115,3 @@ export const BottomNav: React.FC = () => {
     </nav>
   )
 }
-

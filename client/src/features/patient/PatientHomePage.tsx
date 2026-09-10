@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Search,
   Mic,
   MicOff,
-  Sparkles,
   Building2,
   Clock,
   ArrowRight,
@@ -12,540 +11,398 @@ import {
   PhoneCall,
   Droplet,
   Pill,
-  FileText,
-  Check,
-  RotateCcw,
+  MapPin,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { FacilityAvailabilityBadge } from '@/components/healthcare/FacilityAvailabilityBadge'
-import { ResourceFreshnessBadge } from '@/components/healthcare/ResourceFreshnessBadge'
-import { useDebounce } from '@/hooks/useDebounce'
-import { useAuthStore } from '@/stores/authStore'
+import { FacilityCard } from '@/components/healthcare/FacilityCard'
+import { facilityService } from '@/services/facilityService'
+import { getSpeechRecognition } from '@/lib/speechRecognition'
 import type { FacilityTelemetry } from '@/types/facility'
-import type { ActiveToken } from '@/types/queue'
-
-// Verified facilities data
-const INITIAL_FACILITIES: FacilityTelemetry[] = [
-  {
-    id: 'FAC-001',
-    name: 'Pandeypur District Hospital',
-    tier: 'DISTRICT_HOSPITAL',
-    district: 'Varanasi',
-    state: 'Uttar Pradesh',
-    address: 'Pandeypur Chowk, Varanasi - 221002',
-    distanceKm: 2.8,
-    isAyushmanEmpaneled: true,
-    hasEmergency24x7: true,
-    operationalStatus: 'OPERATIONAL',
-    icuBeds: { total: 20, available: 4, occupied: 14, reserved: 2 },
-    oxygenBeds: { total: 60, available: 18, occupied: 40, reserved: 2 },
-    generalBeds: { total: 200, available: 42, occupied: 155, reserved: 3 },
-    specialistsOnDuty: [
-      { name: 'Dr. Anita Desai', specialty: 'Cardiology', isAvailableNow: true },
-      { name: 'Dr. R. K. Sharma', specialty: 'Orthopaedics', isAvailableNow: true },
-      { name: 'Dr. S. K. Gupta', specialty: 'General Surgery', isAvailableNow: false },
-    ],
-    bloodUnitsAvailable: 34,
-    lastUpdatedIso: '2026-09-09T22:30:00.000Z',
-    isStale: false,
-  },
-  {
-    id: 'FAC-002',
-    name: 'Shivpur Community Health Centre (CHC)',
-    tier: 'CHC',
-    district: 'Varanasi',
-    state: 'Uttar Pradesh',
-    address: 'Near Railway Station, Shivpur - 221003',
-    distanceKm: 5.4,
-    isAyushmanEmpaneled: true,
-    hasEmergency24x7: true,
-    operationalStatus: 'OPERATIONAL',
-    icuBeds: { total: 6, available: 1, occupied: 5, reserved: 0 },
-    oxygenBeds: { total: 25, available: 8, occupied: 16, reserved: 1 },
-    generalBeds: { total: 50, available: 14, occupied: 36, reserved: 0 },
-    specialistsOnDuty: [
-      { name: 'Dr. Meena Singh', specialty: 'Obstetrics & Gynaecology', isAvailableNow: true },
-      { name: 'Dr. V. K. Tiwari', specialty: 'Pediatrics', isAvailableNow: true },
-    ],
-    bloodUnitsAvailable: 12,
-    lastUpdatedIso: '2026-09-09T22:00:00.000Z',
-    isStale: false,
-  },
-  {
-    id: 'FAC-003',
-    name: 'Harahua Primary Health Centre (PHC)',
-    tier: 'PHC',
-    district: 'Varanasi',
-    state: 'Uttar Pradesh',
-    address: 'Main Road, Harahua Block',
-    distanceKm: 9.1,
-    isAyushmanEmpaneled: false,
-    hasEmergency24x7: false,
-    operationalStatus: 'OVERLOADED',
-    icuBeds: { total: 0, available: 0, occupied: 0, reserved: 0 },
-    oxygenBeds: { total: 8, available: 2, occupied: 6, reserved: 0 },
-    generalBeds: { total: 16, available: 3, occupied: 13, reserved: 0 },
-    specialistsOnDuty: [
-      { name: 'Dr. Arun Patel', specialty: 'General Practice', isAvailableNow: true },
-    ],
-    bloodUnitsAvailable: 0,
-    lastUpdatedIso: '2026-09-09T08:00:00.000Z',
-    isStale: true,
-  },
-]
 
 export const PatientHomePage: React.FC = () => {
   const navigate = useNavigate()
-  const user = useAuthStore((state) => state.user)
 
-  // Search & Speech State
-  const [searchInput, setSearchInput] = useState('')
-  const [isRecording, setIsRecording] = useState(false)
-  const [voiceHeardQuery, setVoiceHeardQuery] = useState<string | null>(null)
-  const debouncedSearch = useDebounce(searchInput, 300)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isListening, setIsListening] = useState(false)
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null)
+  const [nearbyFacilities, setNearbyFacilities] = useState<FacilityTelemetry[]>([])
+  const [isLoadingFacilities, setIsLoadingFacilities] = useState(true)
 
-  // Active consultation task for personalized context
-  const [activeToken] = useState<ActiveToken>({
-    id: 'TKN-001',
-    tokenNumber: 'B-042',
-    facilityId: 'FAC-001',
-    facilityName: 'Pandeypur District Hospital',
-    departmentName: 'General OPD',
-    doctorName: 'Dr. Rajesh Verma (MBBS)',
-    roomNumber: '14',
-    status: 'ISSUED',
-    priority: 'GENERAL',
-    currentServingToken: 'B-031',
-    positionInQueue: 11,
-    estimatedWaitMinutes: 28,
-    delayReason: undefined,
-    issuedAtIso: '2026-09-09T22:45:00.000Z',
-  })
+  useEffect(() => {
+    facilityService
+      .getFacilities({ ownership: 'GOVERNMENT', sortBy: 'RECOMMENDED' })
+      .then((data) => setNearbyFacilities(data.slice(0, 3)))
+      .finally(() => setIsLoadingFacilities(false))
+  }, [])
 
-  // Filter facilities based on search query
-  const filteredFacilities = INITIAL_FACILITIES.filter((f) => {
-    if (!debouncedSearch) return true
-    const q = debouncedSearch.toLowerCase()
-    return (
-      f.name.toLowerCase().includes(q) ||
-      f.district.toLowerCase().includes(q) ||
-      f.specialistsOnDuty.some((s) => s.specialty.toLowerCase().includes(q) || s.name.toLowerCase().includes(q))
-    )
-  })
-
-  // Voice recognition simulation with clean verification feedback
-  const handleVoiceToggle = () => {
-    if (!isRecording) {
-      setIsRecording(true)
-      setVoiceHeardQuery(null)
-      setTimeout(() => {
-        setIsRecording(false)
-        setVoiceHeardQuery('Kidney Dialysis and ICU Beds')
-      }, 1800)
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/patient/find-care?q=${encodeURIComponent(searchQuery.trim())}`)
     } else {
-      setIsRecording(false)
+      navigate('/patient/find-care')
     }
   }
 
-  const confirmVoiceQuery = () => {
-    if (voiceHeardQuery) {
-      setSearchInput(voiceHeardQuery)
-      setVoiceHeardQuery(null)
+  // Voice Search Input
+  const toggleVoice = () => {
+    if (isListening) {
+      setIsListening(false)
+      return
+    }
+
+    const SpeechRecognition = getSpeechRecognition()
+
+    if (!SpeechRecognition) {
+      setVoiceNotice('Voice search not supported in this browser. Please type.')
+      setTimeout(() => setVoiceNotice(null), 3500)
+      return
+    }
+
+    try {
+      const recognition = new SpeechRecognition()
+      recognition.lang = 'en-IN'
+      recognition.continuous = false
+
+      recognition.onstart = () => {
+        setIsListening(true)
+        setVoiceNotice('Listening... speak hospital name, symptoms, or doctor')
+      }
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript
+        setIsListening(false)
+        setSearchQuery(text)
+        navigate(`/patient/find-care?q=${encodeURIComponent(text)}`)
+      }
+
+      recognition.onerror = () => {
+        setIsListening(false)
+        setVoiceNotice('Audio not understood. Please try again.')
+        setTimeout(() => setVoiceNotice(null), 3000)
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+
+      recognition.start()
+    } catch {
+      setIsListening(false)
+      setVoiceNotice('Microphone access required for voice search.')
+      setTimeout(() => setVoiceNotice(null), 3000)
     }
   }
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
-      {/* 1. Hero Experience (Apple / Linear simplicity) */}
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      {/* 1. CONTEXT + WELCOME HERO */}
       <section className="space-y-4 pt-2">
+        {/* Simple Location Bar */}
+        <div className="flex items-center justify-between">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F2F9F8] border border-[#D0EAE6] text-xs text-slate-700">
+            <MapPin className="w-3.5 h-3.5 text-[#0F5147]" aria-hidden="true" />
+            <span>Healthcare in <strong className="font-bold text-slate-900">Varanasi, UP</strong></span>
+          </div>
+
+          <Link
+            to="/patient/queue"
+            className="text-xs font-semibold text-[#0F5147] hover:underline flex items-center gap-1"
+          >
+            <span>Live Token: <strong>B-042</strong></span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Immediate Question & Clarifying Subheading */}
         <div className="space-y-1.5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#0F5147]">
-            {user?.fullName ? `Welcome back, ${user.fullName.split(' ')[0]}` : 'Healthcare Network'} • Varanasi Region
-          </p>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            How can we help you today?
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            How can HealthConnect help you today?
           </h1>
-          <p className="text-sm text-slate-500 max-w-xl">
-            Search doctors, check verified bed readiness, match specialized procedures, or track your live consultation queue.
+          <p className="text-sm sm:text-base text-slate-600 max-w-2xl">
+            Direct access to government hospitals, verified bed telemetry, specialist availability, and OPD token tracking across India&apos;s public health network.
           </p>
         </div>
 
-        {/* Master Search Bar with Integrated Voice Pill */}
-        <div className="relative max-w-3xl">
-          <div className="relative flex items-center">
-            <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" aria-hidden="true" />
+        {/* Central Consumer Search Experience + Voice Action */}
+        <form onSubmit={handleSearchSubmit} className="relative max-w-3xl pt-2">
+          <div className="relative flex items-center bg-white rounded-2xl border border-slate-300 shadow-sm focus-within:border-[#0F5147] focus-within:ring-2 focus-within:ring-[#0F5147]/10 transition-all p-2">
+            <Search className="w-5 h-5 text-slate-400 ml-3 shrink-0" aria-hidden="true" />
             <input
               type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search hospitals, specialists, or treatments (e.g. Dialysis, Orthopaedics)..."
-              className="w-full pl-12 pr-36 py-3.5 bg-white text-slate-900 border border-slate-200/90 rounded-2xl text-sm font-medium placeholder:text-slate-400 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5147] transition-all"
-              aria-label="Search healthcare network"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search hospitals, doctors or treatments (e.g. Cardiology, Dialysis)..."
+              className="w-full px-3 py-2 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent"
+              aria-label="Search hospitals, doctors or treatments"
             />
-            <div className="absolute right-2.5 flex items-center">
-              <button
-                type="button"
-                onClick={handleVoiceToggle}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  isRecording
-                    ? 'bg-red-50 text-red-600 border border-red-200 animate-pulse'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
-                }`}
-                aria-label="Search by voice"
-              >
-                {isRecording ? <MicOff className="w-3.5 h-3.5 text-red-600" /> : <Mic className="w-3.5 h-3.5 text-[#0F5147]" />}
-                <span>{isRecording ? 'Listening...' : 'Speak'}</span>
-              </button>
+
+            {/* Voice Action Button */}
+            <button
+              type="button"
+              onClick={toggleVoice}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all touch-target cursor-pointer shrink-0 ${
+                isListening
+                  ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+              aria-label="Search by voice"
+            >
+              {isListening ? <MicOff className="w-4 h-4 text-red-600" /> : <Mic className="w-4 h-4 text-[#0F5147]" />}
+              <span className="hidden sm:inline">{isListening ? 'Listening...' : 'Voice'}</span>
+            </button>
+
+            {/* Primary Search CTA */}
+            <button
+              type="submit"
+              className="ml-2 px-5 py-2.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs sm:text-sm font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target cursor-pointer"
+            >
+              Search
+            </button>
+          </div>
+
+          {voiceNotice && (
+            <div className="mt-2 text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-lg max-w-md">
+              {voiceNotice}
+            </div>
+          )}
+        </form>
+      </section>
+
+      {/* 2. PERSONAL CONTEXT CARD (If active consultation/token exists) */}
+      <section aria-label="Active healthcare task">
+        <div className="p-4 sm:p-5 bg-white rounded-2xl border border-[#D0EAE6] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-[#F2F9F8] flex items-center justify-center text-[#0F5147] shrink-0 border border-[#D0EAE6]">
+              <Clock className="w-5 h-5" aria-hidden="true" />
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F5147]">
+                  Your Active OPD Consultation
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+              </div>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                Token <span className="font-mono text-[#0F5147]">B-042</span> • Dr. Anand Verma (General Medicine)
+              </h2>
+              <p className="text-xs text-slate-500">
+                Pandit Deendayal Upadhyay District Hospital • Room OPD-102 • ~22 mins wait
+              </p>
             </div>
           </div>
 
-          {/* Voice Intake Confirmation Pill */}
-          {voiceHeardQuery && (
-            <div className="mt-3 p-3.5 bg-[#F2F9F8] border border-[#D1E5E2] rounded-xl text-xs text-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in shadow-2xs">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#0F5147] shrink-0" />
-                <span>
-                  We heard: <strong>&ldquo;{voiceHeardQuery}&rdquo;</strong>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={confirmVoiceQuery}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-[#0F5147] text-white rounded-lg font-semibold hover:bg-[#0A3F37] cursor-pointer"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Search</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleVoiceToggle}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 cursor-pointer"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Retry</span>
-                </button>
-              </div>
-            </div>
-          )}
+          <Link
+            to="/patient/queue"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target shrink-0 self-end sm:self-center"
+          >
+            <span>Track Live Position</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </section>
 
-      {/* 2. Personalized Context: Your Next Healthcare Task */}
-      {activeToken && (
-        <section aria-labelledby="active-task-heading">
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs transition-all hover:border-[#0F5147]/40">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F2F9F8] text-[#0F5147] border border-[#D1E5E2]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F5147] animate-pulse" />
-                    Active OPD Appointment Today
-                  </span>
-                  <span className="text-xs text-slate-500 font-medium">Room {activeToken.roomNumber}</span>
-                </div>
-                <h2 id="active-task-heading" className="text-lg font-bold text-slate-900">
-                  {activeToken.facilityName}
-                </h2>
-                <p className="text-xs text-slate-600">
-                  {activeToken.departmentName} &bull; Attending Physician: <strong className="text-slate-800">{activeToken.doctorName}</strong>
-                </p>
-              </div>
-
-              {/* Status Snapshot & Direct Link */}
-              <div className="flex flex-wrap items-center gap-4 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
-                <div className="flex items-center gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Your Token</span>
-                    <span className="text-xl font-bold font-mono text-[#0F5147]">{activeToken.tokenNumber}</span>
-                  </div>
-                  <div className="border-l border-slate-200 pl-4">
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Now Serving</span>
-                    <span className="text-xl font-bold font-mono text-slate-800">{activeToken.currentServingToken}</span>
-                  </div>
-                  <div className="border-l border-slate-200 pl-4">
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Est. Wait</span>
-                    <span className="text-xl font-bold text-slate-800">~{activeToken.estimatedWaitMinutes}m</span>
-                  </div>
-                </div>
-
-                <Link
-                  to="/patient/queue"
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0F5147] hover:bg-[#0A3F37] text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer touch-target shadow-2xs"
-                >
-                  <span>Open Live Queue</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
+      {/* 3. ASYMMETRIC PRIMARY ACTION PATHWAYS */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Primary Pathway A: Find Healthcare */}
+        <Link
+          to="/patient/find-care"
+          className="group p-5 sm:p-6 bg-white rounded-2xl border border-slate-200 hover:border-[#0F5147]/60 hover:shadow-sm transition-all duration-150 flex flex-col justify-between"
+        >
+          <div className="space-y-3">
+            <div className="w-11 h-11 rounded-xl bg-[#F2F9F8] text-[#0F5147] flex items-center justify-center border border-[#D0EAE6] group-hover:bg-[#0F5147] group-hover:text-white transition-colors">
+              <Building2 className="w-6 h-6" aria-hidden="true" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-[#0F5147] uppercase tracking-wider block">
+                Primary Pathway
+              </span>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-[#0F5147] transition-colors mt-0.5">
+                Find Nearby Healthcare Facilities
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                Browse government district hospitals, CHCs, and PHCs with verified real-time ICU beds, oxygen supply, and on-duty specialists.
+              </p>
             </div>
           </div>
-        </section>
-      )}
 
-      {/* 3. Primary Healthcare Pathways (Curated & Asymmetric — Not repetitive cards!) */}
+          <div className="pt-4 mt-2 flex items-center gap-1 text-xs font-bold text-[#0F5147]">
+            <span>Explore Facilities</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </Link>
+
+        {/* Secondary Pathway B: Treatment Matcher */}
+        <Link
+          to="/patient/treatment-matcher"
+          className="group p-5 sm:p-6 bg-[#F2F9F8]/60 rounded-2xl border border-[#D0EAE6] hover:border-[#0F5147]/60 hover:shadow-sm transition-all duration-150 flex flex-col justify-between"
+        >
+          <div className="space-y-3">
+            <div className="w-11 h-11 rounded-xl bg-white text-[#0F5147] flex items-center justify-center border border-[#D0EAE6] group-hover:bg-[#0F5147] group-hover:text-white transition-colors">
+              <Sparkles className="w-6 h-6" aria-hidden="true" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wider block">
+                Clinical Suitability Match
+              </span>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-[#0F5147] transition-colors mt-0.5">
+                Treatment & Procedure Matcher
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                Describe your condition or required procedure (e.g. Dialysis, Cardiac Angiography) to discover the best public hospital equipped to treat you.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-2 flex items-center gap-1 text-xs font-bold text-[#0F5147]">
+            <span>Match My Treatment</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </Link>
+      </section>
+
+      {/* 4. SECONDARY SERVICES ROW */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Primary Care Pathways
+            Emergency & Essential Services
           </h2>
-          <span className="text-xs text-slate-500 font-medium">Verified Public Network</span>
+          <span className="text-xs text-slate-400">Direct Public Health Access</span>
         </div>
 
-        {/* Asymmetric 2-Block Featured Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Featured 1: Find Healthcare */}
-          <div
-            onClick={() => navigate('/patient/facilities')}
-            className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-[#0F5147]/40 transition-all cursor-pointer group flex flex-col justify-between space-y-4"
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
+          <Link
+            to="/patient/find-care?filter=emergency"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
           >
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 group-hover:bg-[#F2F9F8] group-hover:text-[#0F5147] transition-colors">
-                <Building2 className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 group-hover:text-[#0F5147] transition-colors">
-                Find Nearest Facilities
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Discover verified Government Primary Health Centres, Community Health Centres, and District Hospitals with live ICU & oxygen bed availability.
-              </p>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-1 text-xs font-semibold text-[#0F5147]">
-              <span>Explore facilities directory</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </div>
-          </div>
-
-          {/* Featured 2: Treatment Matcher */}
-          <div
-            onClick={() => navigate('/patient/treatment-matcher')}
-            className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-[#0F5147]/40 transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-          >
-            <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 group-hover:bg-[#F2F9F8] group-hover:text-[#0F5147] transition-colors">
-                <Sparkles className="w-5 h-5 text-[#0F5147]" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 group-hover:text-[#0F5147] transition-colors">
-                Treatment-Based Matcher
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Need a specific procedure like dialysis, maternity delivery, or orthopaedic trauma? Match facilities with verified clinical equipment and active specialists.
-              </p>
-            </div>
-            <div className="flex items-center gap-1 text-xs font-semibold text-[#0F5147]">
-              <span>Match care by condition</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </div>
-          </div>
-        </div>
-
-        {/* Compact Editorial Row for Essential Services */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-          {/* Live Queue */}
-          <button
-            type="button"
-            onClick={() => navigate('/patient/queue')}
-            className="p-3.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 text-left transition-all cursor-pointer flex items-center gap-3 group"
-          >
-            <Clock className="w-4 h-4 text-slate-500 group-hover:text-[#0F5147] shrink-0" />
             <div>
-              <span className="text-xs font-bold text-slate-800 block leading-tight">Live Queue</span>
-              <span className="text-[10px] text-slate-500">Track token status</span>
+              <span className="text-xs font-bold block leading-tight">ICU & Beds</span>
+              <span className="text-[10px] text-slate-500">Live census</span>
             </div>
-          </button>
+          </Link>
 
-          {/* Blood Stock */}
-          <button
-            type="button"
-            onClick={() => navigate('/patient/blood')}
-            className="p-3.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 text-left transition-all cursor-pointer flex items-center gap-3 group"
+          <Link
+            to="/patient/queue"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
           >
-            <Droplet className="w-4 h-4 text-red-600 shrink-0" />
-            <div>
-              <span className="text-xs font-bold text-slate-800 block leading-tight">Blood Bank</span>
-              <span className="text-[10px] text-slate-500">Live ABO/Rh units</span>
+            <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-800 flex items-center justify-center shrink-0">
+              <Clock className="w-4 h-4" />
             </div>
-          </button>
+            <div>
+              <span className="text-xs font-bold block leading-tight">OPD Queue</span>
+              <span className="text-[10px] text-slate-500">Virtual token</span>
+            </div>
+          </Link>
 
-          {/* Dispensary Medicines */}
-          <button
-            type="button"
-            onClick={() => navigate('/patient/medicines')}
-            className="p-3.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 text-left transition-all cursor-pointer flex items-center gap-3 group"
+          <Link
+            to="/patient/find-care?filter=blood"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
           >
-            <Pill className="w-4 h-4 text-slate-500 group-hover:text-[#0F5147] shrink-0" />
-            <div>
-              <span className="text-xs font-bold text-slate-800 block leading-tight">Medicines</span>
-              <span className="text-[10px] text-slate-500">Jan Aushadhi formulary</span>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shrink-0">
+              <Droplet className="w-4 h-4" />
             </div>
-          </button>
+            <div>
+              <span className="text-xs font-bold block leading-tight">Blood Bank</span>
+              <span className="text-[10px] text-slate-500">Unit stock</span>
+            </div>
+          </Link>
 
-          {/* Health Records */}
-          <button
-            type="button"
-            onClick={() => navigate('/patient/records')}
-            className="p-3.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 text-left transition-all cursor-pointer flex items-center gap-3 group"
+          <Link
+            to="/patient/find-care?filter=medicines"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
           >
-            <FileText className="w-4 h-4 text-slate-500 group-hover:text-[#0F5147] shrink-0" />
-            <div>
-              <span className="text-xs font-bold text-slate-800 block leading-tight">Records</span>
-              <span className="text-[10px] text-slate-500">ABHA digital prescriptions</span>
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
+              <Pill className="w-4 h-4" />
             </div>
-          </button>
+            <div>
+              <span className="text-xs font-bold block leading-tight">Medicines</span>
+              <span className="text-[10px] text-slate-500">Jan Aushadhi</span>
+            </div>
+          </Link>
+
+          <Link
+            to="/patient/find-care?filter=ayushman"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800 col-span-2 sm:col-span-1"
+          >
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block leading-tight">Ayushman</span>
+              <span className="text-[10px] text-slate-500">PM-JAY Cashless</span>
+            </div>
+          </Link>
         </div>
       </section>
 
-      {/* 4. Purposeful Emergency Hotline (Clean, Restrained, Differentiated) */}
-      <section aria-labelledby="emergency-banner-heading">
-        <div className="p-4 rounded-2xl bg-red-50/70 border border-red-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <PhoneCall className="w-5 h-5" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 id="emergency-banner-heading" className="text-sm font-bold text-red-950">
-                Medical Emergency & Ambulance Dispatch (108)
-              </h3>
-              <p className="text-xs text-red-800">
-                Toll-free 24/7 centralized emergency trauma response and ambulance dispatch service.
-              </p>
-            </div>
-          </div>
-          <a
-            href="tel:108"
-            className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer text-center shrink-0 shadow-2xs touch-target flex items-center justify-center"
-          >
-            Call 108 Dispatch
-          </a>
-        </div>
-      </section>
-
-      {/* 5. Facility Discovery (Apple / Airbnb cleanliness) */}
+      {/* 5. CURATED NEARBY PUBLIC HOSPITALS */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
-              Verified Public Healthcare Facilities
+            <h2 className="text-lg font-bold text-slate-900">
+              Nearby Public Healthcare Facilities
             </h2>
             <p className="text-xs text-slate-500">
-              Showing {filteredFacilities.length} facilities in {user?.facilityName ? 'your district' : 'Varanasi'} with real-time bed telemetry
+              Verified government institutions with active emergency and outpatient care.
             </p>
           </div>
+
+          <Link
+            to="/patient/find-care"
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#0F5147] hover:underline"
+          >
+            <span>View all ({nearbyFacilities.length > 0 ? '5' : '0'})</span>
+            <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
 
-        <div className="space-y-3">
-          {filteredFacilities.map((facility) => (
-            <div
-              key={facility.id}
-              className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-slate-300 shadow-2xs transition-all space-y-3.5"
-            >
-              {/* Facility Header */}
-              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-bold text-slate-900">{facility.name}</h3>
-                    <Badge variant="default" className="text-[10px] font-medium">
-                      {facility.tier.replace('_', ' ')}
-                    </Badge>
-                    {facility.isAyushmanEmpaneled && (
-                      <Badge variant="success" className="text-[10px] font-semibold bg-emerald-50 text-emerald-800 border-emerald-200">
-                        PM-JAY Cashless
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {facility.address} &bull; <strong className="text-slate-800">{facility.distanceKm} km away</strong> (~12 min by road)
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-start sm:items-end gap-1">
-                  <FacilityAvailabilityBadge status={facility.operationalStatus} />
-                  <ResourceFreshnessBadge
-                    lastUpdatedIso={facility.lastUpdatedIso}
-                    isStale={facility.isStale}
-                  />
-                </div>
+        {isLoadingFacilities ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-5 bg-white rounded-2xl border border-slate-200 animate-pulse space-y-3">
+                <div className="h-5 bg-slate-200 rounded w-1/3" />
+                <div className="h-6 bg-slate-200 rounded w-3/4" />
+                <div className="h-16 bg-slate-100 rounded-xl" />
               </div>
-
-              {/* Compact Resource Telemetry */}
-              <div className="grid grid-cols-3 gap-2 p-3 bg-slate-50/70 rounded-xl text-xs border border-slate-100">
-                <div>
-                  <span className="text-slate-400 block text-[10px] font-medium uppercase">ICU Beds</span>
-                  <span className="text-sm font-bold text-slate-900">
-                    {facility.icuBeds.available} / {facility.icuBeds.total}{' '}
-                    <span className="text-[10px] text-slate-500 font-normal">avail</span>
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] font-medium uppercase">Oxygen Beds</span>
-                  <span className="text-sm font-bold text-slate-900">
-                    {facility.oxygenBeds.available} / {facility.oxygenBeds.total}{' '}
-                    <span className="text-[10px] text-slate-500 font-normal">avail</span>
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] font-medium uppercase">Blood Units</span>
-                  <span className="text-sm font-bold text-slate-900">
-                    {facility.bloodUnitsAvailable} units
-                  </span>
-                </div>
-              </div>
-
-              {/* Duty Specialists */}
-              <div className="text-xs text-slate-600 flex flex-wrap items-center gap-1.5">
-                <span className="font-semibold text-slate-700">Specialists on duty:</span>
-                {facility.specialistsOnDuty.map((doc, idx) => (
-                  <span
-                    key={idx}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] ${
-                      doc.isAvailableNow ? 'bg-[#F2F9F8] text-[#0F5147] font-medium' : 'bg-slate-100 text-slate-500'
-                    }`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        doc.isAvailableNow ? 'bg-[#0F5147]' : 'bg-slate-400'
-                      }`}
-                      aria-hidden="true"
-                    />
-                    {doc.specialty} ({doc.name})
-                  </span>
-                ))}
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate('/patient/facilities')}
-                  className="text-xs font-semibold"
-                >
-                  View Facility Details
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => navigate('/patient/queue')}
-                  className="text-xs font-semibold"
-                >
-                  Get OPD Token
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {nearbyFacilities.map((facility) => (
+              <FacilityCard key={facility.id} facility={facility} />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* 6. Clinical Transparency Note (Subtle AI / Clinical Boundary) */}
-      <footer className="text-center text-xs text-slate-500 pt-6 pb-2 space-y-1">
-        <p className="flex items-center justify-center gap-1">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#0F5147]" />
-          <span>Government verified public healthcare network &bull; Real-time facility telemetry updated periodically</span>
-        </p>
-        <p className="text-[11px] text-slate-500">
-          AI-assisted search and matching &bull; Clinical decisions are made solely by certified attending physicians.
-        </p>
-      </footer>
-    </div>
+      {/* 6. EMERGENCY 108 CITIZEN ASSURANCE FOOTER */}
+      <section className="p-4 sm:p-5 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="space-y-1 text-center sm:text-left">
+          <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">
+            National Health Assurance
+          </span>
+          <h2 className="text-sm sm:text-base font-bold">
+            Need urgent emergency ambulance or hospital admission?
+          </h2>
+          <p className="text-xs text-slate-300">
+            Government emergency dispatch operates 24x7 with zero fees. Dial 108 directly from any mobile.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <a
+            href="tel:108"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-sm touch-target"
+          >
+            <PhoneCall className="w-4 h-4" />
+            <span>Call 108 Now</span>
+          </a>
+        </div>
+      </section>
+    </main>
   )
 }
