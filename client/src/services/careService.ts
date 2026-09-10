@@ -7,6 +7,9 @@ import type {
   PrescriptionItem,
   CareCategory,
 } from '@/types/record'
+import type { AppointmentDetail } from '@/types/appointment'
+import type { ActiveToken } from '@/types/queue'
+import type { ReferralClinicalSummary } from '@/types/referral'
 import { appointmentService } from './appointmentService'
 import { queueService } from './queueService'
 import { referralService } from './referralService'
@@ -401,6 +404,16 @@ class CareService {
     }
   }
 
+  /**
+   * Appends an authentic clinical care timeline event (e.g. after referral completion or consultation).
+   */
+  async addTimelineEvent(event: CareTimelineEvent): Promise<CareTimelineEvent> {
+    const list = this.getTimelineStorage()
+    const updated = [event, ...list]
+    this.setTimelineStorage(updated)
+    return event
+  }
+
   private getMedsStorage(): PrescriptionItem[] {
     try {
       const stored = localStorage.getItem(MEDS_STORAGE_KEY)
@@ -420,30 +433,30 @@ class CareService {
    */
   async getMyCareOverview(): Promise<MyCareOverview> {
     const [appointments, activeTokens, referrals, timelineEvents] = await Promise.all([
-      appointmentService.getAppointments(),
-      queueService.getActiveTokens(),
-      referralService.getReferrals(),
+      appointmentService.getMyAppointments(),
+      queueService.getActiveQueues(),
+      referralService.getPatientReferrals(),
       this.getCareTimeline('ALL'),
     ])
 
-    const activeAppointments = appointments.filter((a) => a.status === 'CONFIRMED')
+    const activeAppointments = appointments.filter((a: AppointmentDetail) => a.status === 'CONFIRMED')
     const activeReferrals = referrals.filter(
-      (r) =>
+      (r: ReferralClinicalSummary) =>
         r.status === 'ACCEPTED_BED_LOCKED' ||
         r.status === 'SUBMITTED' ||
         r.status === 'PENDING_ACCEPTANCE' ||
         r.status === 'FALLBACK_REROUTING' ||
         r.status === 'IN_TRANSIT',
     )
-    const activeMeds = (await this.getActiveMedications()).filter((m) => m.isActive)
+    const activeMeds = (await this.getActiveMedications()).filter((m: PrescriptionItem) => m.isActive)
 
     // Compute dynamic Next Best Action guidance based on real system state
     let nextAction: NextActionGuidance
 
-    const bedLockedReferral = referrals.find((r) => r.status === 'ACCEPTED_BED_LOCKED')
-    const fallbackReferral = referrals.find((r) => r.status === 'FALLBACK_REROUTING')
-    const approachingToken = activeTokens.find((t) => t.state === 'APPROACHING' || t.state === 'CALLED')
-    const upcomingAptToday = activeAppointments.find((a) => {
+    const bedLockedReferral = referrals.find((r: ReferralClinicalSummary) => r.status === 'ACCEPTED_BED_LOCKED')
+    const fallbackReferral = referrals.find((r: ReferralClinicalSummary) => r.status === 'FALLBACK_REROUTING')
+    const approachingToken = activeTokens.find((t: ActiveToken) => t.state === 'APPROACHING' || t.state === 'CALLED')
+    const upcomingAptToday = activeAppointments.find((a: AppointmentDetail) => {
       const todayStr = new Date().toISOString().split('T')[0]
       return a.date === todayStr
     })
