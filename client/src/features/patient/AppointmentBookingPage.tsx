@@ -15,12 +15,15 @@ import {
   AlertCircle,
   MapPin,
   Check,
+  Share2,
 } from 'lucide-react'
 import { facilityService } from '@/services/facilityService'
 import { appointmentService } from '@/services/appointmentService'
+import { referralService } from '@/services/referralService'
 import { GovernmentHealthcareBadge } from '@/components/healthcare/GovernmentHealthcareBadge'
 import type { FacilityDetail, DoctorProfile } from '@/types/facility'
 import type { AvailableDate, TimeSlot, AppointmentDetail } from '@/types/appointment'
+import type { ReferralClinicalSummary } from '@/types/referral'
 
 export const AppointmentBookingPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -29,6 +32,10 @@ export const AppointmentBookingPage: React.FC = () => {
   const queryDeptId = searchParams.get('departmentId')
   const queryDoctorId = searchParams.get('doctorId')
   const queryTreatment = searchParams.get('treatment')
+  const queryReferralId = searchParams.get('referralId')
+
+  // Referral Integration State
+  const [originatingReferral, setOriginatingReferral] = useState<ReferralClinicalSummary | null>(null)
 
   // Facility & Doctor State
   const [facilities, setFacilities] = useState<FacilityDetail[]>([])
@@ -114,6 +121,22 @@ export const AppointmentBookingPage: React.FC = () => {
       }
     })
   }, [])
+
+  // Load originating referral if referred
+  useEffect(() => {
+    if (queryReferralId) {
+      referralService.getReferralById(queryReferralId).then((ref) => {
+        if (ref) {
+          setOriginatingReferral(ref)
+          setPatientName(ref.patientName)
+          setPatientAge(ref.patientAge)
+          setPatientPhone(ref.patientPhone)
+          if (ref.abhaId) setAbhaId(ref.abhaId)
+          setChiefComplaint(`Referral #${ref.referralCode} from ${ref.referringFacilityName}: ${ref.clinicalReason}`)
+        }
+      })
+    }
+  }, [queryReferralId])
 
   // Load slots when date or doctor changes
   useEffect(() => {
@@ -379,6 +402,23 @@ export const AppointmentBookingPage: React.FC = () => {
           Schedule your consultation directly with certified government medical officers. Avoid prolonged waiting in registration queues.
         </p>
       </div>
+
+      {originatingReferral && (
+        <div className="p-4 rounded-xl bg-[#F2F9F8] border border-[#D0EAE6] text-xs text-[#0F5147] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-[#0F5147] shrink-0" />
+            <span>
+              Booking priority OPD slot for <strong>Referral #{originatingReferral.referralCode}</strong> ({originatingReferral.requiredSpecialty}).
+            </span>
+          </div>
+          <Link
+            to={`/patient/referrals/${originatingReferral.id}`}
+            className="font-bold underline text-xs shrink-0 hover:text-[#0B3D35]"
+          >
+            View Referral Details
+          </Link>
+        </div>
+      )}
 
       {errorMessage && (
         <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-start gap-2.5">

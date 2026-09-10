@@ -15,15 +15,18 @@ import {
   MapPin,
   ChevronRight,
   Sparkles,
+  Share2,
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
 import { appointmentService } from '@/services/appointmentService'
 import { queueService } from '@/services/queueService'
+import { referralService } from '@/services/referralService'
 import { getSpeechRecognition } from '@/lib/speechRecognition'
 import type { FacilityTelemetry } from '@/types/facility'
 import type { AppointmentDetail } from '@/types/appointment'
 import type { ActiveToken } from '@/types/queue'
+import type { ReferralClinicalSummary } from '@/types/referral'
 
 export const PatientHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -35,6 +38,8 @@ export const PatientHomePage: React.FC = () => {
   const [isLoadingFacilities, setIsLoadingFacilities] = useState(true)
   const [activeAppointment, setActiveAppointment] = useState<AppointmentDetail | null>(null)
   const [activeQueueToken, setActiveQueueToken] = useState<ActiveToken | null>(null)
+  const [activeReferral, setActiveReferral] = useState<ReferralClinicalSummary | null>(null)
+  const [activeReferralCount, setActiveReferralCount] = useState(0)
 
   useEffect(() => {
     facilityService
@@ -53,6 +58,14 @@ export const PatientHomePage: React.FC = () => {
     queueService.getActiveToken().then((token) => {
       if (token && token.state !== 'COMPLETED' && token.state !== 'CANCELLED') {
         setActiveQueueToken(token)
+      }
+    })
+
+    referralService.getPatientReferrals().then((refs) => {
+      const active = refs.filter((r) => r.status !== 'COMPLETED' && r.status !== 'CANCELLED')
+      setActiveReferralCount(active.length)
+      if (active.length > 0) {
+        setActiveReferral(active[0])
       }
     })
   }, [])
@@ -201,9 +214,47 @@ export const PatientHomePage: React.FC = () => {
         </form>
       </section>
 
-      {/* 2. PERSONAL CONTEXT CARD (Active queue, active appointment, or quick booking prompt) */}
+      {/* 2. PERSONAL CONTEXT CARD (Active referral, active queue, active appointment, or quick booking prompt) */}
       <section aria-label="Active healthcare task">
-        {activeQueueToken ? (
+        {activeReferral &&
+        (activeReferral.urgency === 'URGENT' ||
+          activeReferral.patientActionRequired ||
+          activeReferral.status === 'FALLBACK_REROUTING') ? (
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-amber-300 ring-2 ring-amber-50 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700 shrink-0 border border-amber-200">
+                <Share2 className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
+                    Active Hospital Referral
+                  </span>
+                  <span className="font-mono text-xs font-extrabold text-amber-900 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-200">
+                    {activeReferral.referralCode}
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                </div>
+                <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                  {activeReferral.requiredSpecialty} • {activeReferral.receivingFacilityName || 'Reviewing Facilities'}
+                </h2>
+                <p className="text-xs text-slate-600">
+                  {activeReferral.nextActionInstruction}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <Link
+                to={`/patient/referrals/${activeReferral.id}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
+              >
+                <span>Track Care Continuity</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        ) : activeQueueToken ? (
           <div className="p-4 sm:p-5 bg-white rounded-2xl border border-[#D0EAE6] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-[#F2F9F8] flex items-center justify-center text-[#0F5147] shrink-0 border border-[#D0EAE6]">
@@ -391,6 +442,24 @@ export const PatientHomePage: React.FC = () => {
             <div>
               <span className="text-xs font-bold block leading-tight">Appointments</span>
               <span className="text-[10px] text-slate-500">Book OPD slot</span>
+            </div>
+          </Link>
+
+          <Link
+            to="/patient/referrals"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800 relative"
+          >
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200">
+              <Share2 className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-bold block leading-tight">Referrals</span>
+                {activeReferralCount > 0 && (
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                )}
+              </div>
+              <span className="text-[10px] text-slate-500">Care transfer</span>
             </div>
           </Link>
 

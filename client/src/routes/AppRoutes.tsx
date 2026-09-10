@@ -12,6 +12,8 @@ import { LiveQueuePage } from '@/features/patient/LiveQueuePage'
 import { MyAppointmentsPage } from '@/features/patient/MyAppointmentsPage'
 import { AppointmentBookingPage } from '@/features/patient/AppointmentBookingPage'
 import { AppointmentDetailPage } from '@/features/patient/AppointmentDetailPage'
+import { PatientReferralsPage } from '@/features/patient/PatientReferralsPage'
+import { ReferralDetailPage } from '@/features/patient/ReferralDetailPage'
 import { AshaDashboardPage } from '@/features/asha/AshaDashboardPage'
 import { DoctorDeskPage } from '@/features/doctor/DoctorDeskPage'
 import { FacilityBedsPage } from '@/features/facility/FacilityBedsPage'
@@ -36,7 +38,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/patient/queue" element={<LiveQueuePage />} />
         <Route path="/patient/blood" element={<FindCarePage />} />
         <Route path="/patient/medicines" element={<FindCarePage />} />
-        <Route path="/patient/referrals" element={<PatientHomePage />} />
+        <Route path="/patient/referrals" element={<PatientReferralsPage />} />
+        <Route path="/patient/referrals/:id" element={<ReferralDetailPage />} />
         <Route path="/patient/records" element={<PatientHomePage />} />
 
         {/* ASHA / ANM Frontline Worker Routes (Guarded: ROLE_ASHA, ROLE_ANM) */}
