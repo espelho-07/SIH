@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Sparkles,
   Share2,
+  FileText,
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
@@ -431,7 +432,20 @@ export const PatientHomePage: React.FC = () => {
           <span className="text-xs text-slate-400">Direct Public Health Access</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 sm:gap-3">
+          <Link
+            to="/patient/my-care"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors flex items-center gap-2.5 text-slate-800"
+          >
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-200">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block leading-tight">My Care</span>
+              <span className="text-[10px] text-slate-500">Timeline & EHR</span>
+            </div>
+          </Link>
+
           <Link
             to="/patient/appointments"
             className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"

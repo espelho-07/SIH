@@ -46,7 +46,7 @@ export const Sidebar: React.FC = () => {
       { label: 'Appointments', to: '/patient/appointments', icon: Calendar },
       { label: 'Live Queue', to: '/patient/queue', icon: Clock },
       { label: 'Referral Trail', to: '/patient/referrals', icon: Share2 },
-      { label: 'Health Records', to: '/patient/records', icon: FileText },
+      { label: 'My Care & Records', to: '/patient/my-care', icon: FileText },
     ],
     ROLE_ASHA: [
       { label: 'Overview', to: '/asha/dashboard', icon: Home },

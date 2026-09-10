@@ -14,6 +14,7 @@ import { AppointmentBookingPage } from '@/features/patient/AppointmentBookingPag
 import { AppointmentDetailPage } from '@/features/patient/AppointmentDetailPage'
 import { PatientReferralsPage } from '@/features/patient/PatientReferralsPage'
 import { ReferralDetailPage } from '@/features/patient/ReferralDetailPage'
+import { MyCarePage } from '@/features/patient/MyCarePage'
 import { AshaDashboardPage } from '@/features/asha/AshaDashboardPage'
 import { DoctorDeskPage } from '@/features/doctor/DoctorDeskPage'
 import { FacilityBedsPage } from '@/features/facility/FacilityBedsPage'
@@ -40,7 +41,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/patient/medicines" element={<FindCarePage />} />
         <Route path="/patient/referrals" element={<PatientReferralsPage />} />
         <Route path="/patient/referrals/:id" element={<ReferralDetailPage />} />
-        <Route path="/patient/records" element={<PatientHomePage />} />
+        <Route path="/patient/my-care" element={<MyCarePage />} />
+        <Route path="/patient/records" element={<MyCarePage />} />
 
         {/* ASHA / ANM Frontline Worker Routes (Guarded: ROLE_ASHA, ROLE_ANM) */}
         <Route element={<RoleGuard allowedRoles={['ROLE_ASHA', 'ROLE_ANM', 'ROLE_SUPER_ADMIN']} />}>
