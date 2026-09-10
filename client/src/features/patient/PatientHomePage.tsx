@@ -5,6 +5,7 @@ import {
   Mic,
   MicOff,
   Building2,
+  Calendar,
   Clock,
   ArrowRight,
   ShieldCheck,
@@ -17,8 +18,10 @@ import {
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
+import { appointmentService } from '@/services/appointmentService'
 import { getSpeechRecognition } from '@/lib/speechRecognition'
 import type { FacilityTelemetry } from '@/types/facility'
+import type { AppointmentDetail } from '@/types/appointment'
 
 export const PatientHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -28,12 +31,21 @@ export const PatientHomePage: React.FC = () => {
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null)
   const [nearbyFacilities, setNearbyFacilities] = useState<FacilityTelemetry[]>([])
   const [isLoadingFacilities, setIsLoadingFacilities] = useState(true)
+  const [activeAppointment, setActiveAppointment] = useState<AppointmentDetail | null>(null)
 
   useEffect(() => {
     facilityService
       .getFacilities({ ownership: 'GOVERNMENT', sortBy: 'RECOMMENDED' })
       .then((data) => setNearbyFacilities(data.slice(0, 3)))
       .finally(() => setIsLoadingFacilities(false))
+
+    appointmentService
+      .getMyAppointments({ status: 'CONFIRMED' })
+      .then((list) => {
+        if (list.length > 0) {
+          setActiveAppointment(list[0])
+        }
+      })
   }, [])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -170,37 +182,80 @@ export const PatientHomePage: React.FC = () => {
         </form>
       </section>
 
-      {/* 2. PERSONAL CONTEXT CARD (If active consultation/token exists) */}
+      {/* 2. PERSONAL CONTEXT CARD (Active appointment or quick booking prompt) */}
       <section aria-label="Active healthcare task">
-        <div className="p-4 sm:p-5 bg-white rounded-2xl border border-[#D0EAE6] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#F2F9F8] flex items-center justify-center text-[#0F5147] shrink-0 border border-[#D0EAE6]">
-              <Clock className="w-5 h-5" aria-hidden="true" />
-            </div>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F5147]">
-                  Your Active OPD Consultation
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+        {activeAppointment ? (
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-[#D0EAE6] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#F2F9F8] flex items-center justify-center text-[#0F5147] shrink-0 border border-[#D0EAE6]">
+                <Calendar className="w-5 h-5" aria-hidden="true" />
               </div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900">
-                Token <span className="font-mono text-[#0F5147]">B-042</span> • Dr. Anand Verma (General Medicine)
-              </h2>
-              <p className="text-xs text-slate-500">
-                Pandit Deendayal Upadhyay District Hospital • Room OPD-102 • ~22 mins wait
-              </p>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F5147]">
+                    Upcoming OPD Consultation
+                  </span>
+                  <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                    {activeAppointment.referenceNumber}
+                  </span>
+                  {activeAppointment.tokenNumber && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  )}
+                </div>
+                <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                  {activeAppointment.doctorName} ({activeAppointment.departmentName})
+                </h2>
+                <p className="text-xs text-slate-500">
+                  {activeAppointment.facilityName} • {activeAppointment.date} ({activeAppointment.timeSlot})
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <Link
+                to={`/patient/appointments/${activeAppointment.id}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl active:scale-95 transition-all touch-target"
+              >
+                <span>View Details</span>
+              </Link>
+
+              <Link
+                to="/patient/appointments"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
+              >
+                <span>All Appointments</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
+        ) : (
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#F2F9F8] flex items-center justify-center text-[#0F5147] shrink-0 border border-[#D0EAE6]">
+                <Calendar className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F5147]">
+                  Fast-Track Hospital OPD Care
+                </span>
+                <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                  Reserve an OPD consultation before visiting the hospital
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Government hospital OPD appointments are 100% free under the National Health Mission.
+                </p>
+              </div>
+            </div>
 
-          <Link
-            to="/patient/queue"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target shrink-0 self-end sm:self-center"
-          >
-            <span>Track Live Position</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+            <Link
+              to="/patient/appointments/book"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target shrink-0 self-end sm:self-center"
+            >
+              <span>Book Appointment</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* 3. ASYMMETRIC PRIMARY ACTION PATHWAYS */}
@@ -271,7 +326,20 @@ export const PatientHomePage: React.FC = () => {
           <span className="text-xs text-slate-400">Direct Public Health Access</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+          <Link
+            to="/patient/appointments"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#F2F9F8] text-[#0F5147] flex items-center justify-center shrink-0 border border-[#D0EAE6]">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block leading-tight">Appointments</span>
+              <span className="text-[10px] text-slate-500">Book OPD slot</span>
+            </div>
+          </Link>
+
           <Link
             to="/patient/find-care?filter=emergency"
             className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"

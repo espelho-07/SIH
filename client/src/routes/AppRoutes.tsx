@@ -9,6 +9,9 @@ import { FindCarePage } from '@/features/patient/FindCarePage'
 import { FacilityDetailPage } from '@/features/patient/FacilityDetailPage'
 import { TreatmentMatcherPage } from '@/features/patient/TreatmentMatcherPage'
 import { LiveQueuePage } from '@/features/patient/LiveQueuePage'
+import { MyAppointmentsPage } from '@/features/patient/MyAppointmentsPage'
+import { AppointmentBookingPage } from '@/features/patient/AppointmentBookingPage'
+import { AppointmentDetailPage } from '@/features/patient/AppointmentDetailPage'
 import { AshaDashboardPage } from '@/features/asha/AshaDashboardPage'
 import { DoctorDeskPage } from '@/features/doctor/DoctorDeskPage'
 import { FacilityBedsPage } from '@/features/facility/FacilityBedsPage'
@@ -27,6 +30,9 @@ export const AppRoutes: React.FC = () => {
         <Route path="/patient/facilities" element={<FindCarePage />} />
         <Route path="/patient/facility/:id" element={<FacilityDetailPage />} />
         <Route path="/patient/treatment-matcher" element={<TreatmentMatcherPage />} />
+        <Route path="/patient/appointments" element={<MyAppointmentsPage />} />
+        <Route path="/patient/appointments/book" element={<AppointmentBookingPage />} />
+        <Route path="/patient/appointments/:id" element={<AppointmentDetailPage />} />
         <Route path="/patient/queue" element={<LiveQueuePage />} />
         <Route path="/patient/blood" element={<FindCarePage />} />
         <Route path="/patient/medicines" element={<FindCarePage />} />

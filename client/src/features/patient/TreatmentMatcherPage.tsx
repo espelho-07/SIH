@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Search,
+  Calendar,
   CheckCircle2,
   ChevronRight,
   Mic,
@@ -310,11 +311,19 @@ export const TreatmentMatcherPage: React.FC = () => {
                   </Link>
 
                   <Link
-                    to="/patient/queue"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
+                    to={`/patient/appointments/book?facilityId=${facility.id}&treatment=${encodeURIComponent(query)}`}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
                   >
-                    <span>Get OPD Token</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Book Slot</span>
+                  </Link>
+
+                  <Link
+                    to="/patient/queue"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors touch-target"
+                  >
+                    <span>OPD Queue</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               </div>

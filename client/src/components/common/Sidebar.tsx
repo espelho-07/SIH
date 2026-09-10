@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import {
   Home,
   Search,
+  Calendar,
   Clock,
   HeartPulse,
   FileText,
@@ -42,6 +43,7 @@ export const Sidebar: React.FC = () => {
       { label: 'Home', to: '/patient/home', icon: Home },
       { label: 'Find Care', to: '/patient/facilities', icon: Search },
       { label: 'Treatment Matcher', to: '/patient/treatment-matcher', icon: Sparkles },
+      { label: 'Appointments', to: '/patient/appointments', icon: Calendar },
       { label: 'Live Queue', to: '/patient/queue', icon: Clock },
       { label: 'Referral Trail', to: '/patient/referrals', icon: Share2 },
       { label: 'Health Records', to: '/patient/records', icon: FileText },

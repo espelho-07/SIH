@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import {
   Home,
   Building2,
-  Stethoscope,
+  Calendar,
   Clock,
   Menu,
 } from 'lucide-react'
@@ -26,9 +26,9 @@ export const BottomNav: React.FC = () => {
       icon: Building2,
     },
     {
-      label: 'Treatment',
-      to: '/patient/treatment-matcher',
-      icon: Stethoscope,
+      label: 'Book/Appts',
+      to: '/patient/appointments',
+      icon: Calendar,
     },
     {
       label: 'Queue',
@@ -71,7 +71,8 @@ export const BottomNav: React.FC = () => {
 
           const isActive =
             location.pathname === item.to ||
-            (item.to === '/patient/find-care' && location.pathname.startsWith('/patient/facility'))
+            (item.to === '/patient/find-care' && location.pathname.startsWith('/patient/facility')) ||
+            (item.to === '/patient/appointments' && location.pathname.startsWith('/patient/appointments'))
 
           return (
             <NavLink

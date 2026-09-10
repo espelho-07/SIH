@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Building2,
+  Calendar,
   MapPin,
   Clock,
   Phone,
@@ -155,10 +156,18 @@ export const FacilityDetailPage: React.FC = () => {
         {/* Quick Action Button Strip */}
         <div className="flex flex-wrap items-center gap-2.5 pt-2">
           <Link
-            to="/patient/queue"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
+            to={`/patient/appointments/book?facilityId=${facility.id}`}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
           >
-            <Clock className="w-4 h-4" />
+            <Calendar className="w-4 h-4" />
+            <span>Book OPD Appointment</span>
+          </Link>
+
+          <Link
+            to="/patient/queue"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl active:scale-95 transition-all touch-target"
+          >
+            <Clock className="w-4 h-4 text-slate-600" />
             <span>Get Live OPD Token</span>
           </Link>
 
@@ -351,9 +360,15 @@ export const FacilityDetailPage: React.FC = () => {
                             <span className="font-semibold text-slate-900">{doc.name}</span>
                             <span className="text-slate-500 ml-1.5">({doc.qualification})</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2.5">
                             <span className="text-slate-500 font-mono">{doc.roomNumber}</span>
                             <span className="text-emerald-700 font-medium">● Available</span>
+                            <Link
+                              to={`/patient/appointments/book?facilityId=${facility.id}&departmentId=${dept.id}&doctorId=${doc.id}`}
+                              className="px-2.5 py-1 bg-[#F2F9F8] hover:bg-[#D0EAE6] text-[#0F5147] border border-[#D0EAE6] rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                            >
+                              Book Slot
+                            </Link>
                           </div>
                         </div>
                       ))}
