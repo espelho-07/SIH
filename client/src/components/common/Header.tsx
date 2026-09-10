@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Menu, X, MapPin, Check, PhoneCall, Bot } from 'lucide-react'
+import { Plus, Menu, X, MapPin, Check, PhoneCall, Bot, Bell } from 'lucide-react'
 import { LanguageSelector } from './LanguageSelector'
+import { NotificationPopover } from '@/components/notification/NotificationPopover'
+import { notificationService } from '@/services/notificationService'
+import type { NotificationItem } from '@/types/notification'
 import { useUiStore } from '@/stores/uiStore'
 import { useAuthStore } from '@/stores/authStore'
 import type { UserRole } from '@/types/auth'
@@ -25,6 +28,57 @@ export const Header: React.FC = () => {
 
   const [currentDistrict, setCurrentDistrict] = useState('Varanasi, UP')
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(0)
+  const [recentNotifications, setRecentNotifications] = useState<NotificationItem[]>([])
+  const [isNotificationPopoverOpen, setIsNotificationPopoverOpen] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+    const loadNotifs = async () => {
+      try {
+        const [count, list] = await Promise.all([
+          notificationService.getUnreadCount(),
+          notificationService.getNotifications(),
+        ])
+        if (isMounted) {
+          setUnreadNotifsCount(count)
+          setRecentNotifications(list)
+        }
+      } catch {
+        // safe fallback
+      }
+    }
+
+    loadNotifs()
+    const unsubscribe = notificationService.subscribe(() => {
+      loadNotifs()
+    })
+
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
+  }, [])
+
+  const handleMarkAsRead = async (id: string) => {
+    await notificationService.markAsRead(id)
+    const [count, list] = await Promise.all([
+      notificationService.getUnreadCount(),
+      notificationService.getNotifications(),
+    ])
+    setUnreadNotifsCount(count)
+    setRecentNotifications(list)
+  }
+
+  const handleMarkAllAsRead = async () => {
+    await notificationService.markAllAsRead()
+    const [count, list] = await Promise.all([
+      notificationService.getUnreadCount(),
+      notificationService.getNotifications(),
+    ])
+    setUnreadNotifsCount(count)
+    setRecentNotifications(list)
+  }
 
   // Role Switching helper for development and evaluation
   const handleRoleChange = (role: UserRole) => {
@@ -125,6 +179,33 @@ export const Header: React.FC = () => {
                 <Bot className="w-3.5 h-3.5 text-[#0F5147]" aria-hidden="true" />
                 <span className="hidden sm:inline">Assistant</span>
               </button>
+
+              {/* Notification Bell with Dynamic Unread Badge */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsNotificationPopoverOpen((prev) => !prev)}
+                  className="relative inline-flex items-center justify-center p-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-colors cursor-pointer touch-target shadow-2xs"
+                  aria-label={`Notifications ${unreadNotifsCount > 0 ? `(${unreadNotifsCount} unread)` : ''}`}
+                  title="Unified Notifications & Patient Action Center"
+                >
+                  <Bell className="w-4 h-4 text-slate-700" aria-hidden="true" />
+                  {unreadNotifsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#0F5147] text-white text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white animate-fade-in">
+                      {unreadNotifsCount > 9 ? '9+' : unreadNotifsCount}
+                    </span>
+                  )}
+                </button>
+
+                <NotificationPopover
+                  isOpen={isNotificationPopoverOpen}
+                  onClose={() => setIsNotificationPopoverOpen(false)}
+                  notifications={recentNotifications}
+                  unreadCount={unreadNotifsCount}
+                  onMarkAsRead={handleMarkAsRead}
+                  onMarkAllAsRead={handleMarkAllAsRead}
+                />
+              </div>
 
               {/* Language Selector */}
               <LanguageSelector />

@@ -20,6 +20,7 @@ import {
   ShieldAlert,
   RotateCcw,
   Bot,
+  Bell,
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
@@ -27,12 +28,14 @@ import { appointmentService } from '@/services/appointmentService'
 import { queueService } from '@/services/queueService'
 import { referralService } from '@/services/referralService'
 import { followUpService } from '@/services/followUpService'
+import { notificationService } from '@/services/notificationService'
 import { getSpeechRecognition } from '@/lib/speechRecognition'
 import type { FacilityTelemetry } from '@/types/facility'
 import type { AppointmentDetail } from '@/types/appointment'
 import type { ActiveToken } from '@/types/queue'
 import type { ReferralClinicalSummary } from '@/types/referral'
 import type { FollowUpCareItem } from '@/types/followUp'
+import type { ActionCenterItem } from '@/types/notification'
 
 export const PatientHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -47,6 +50,7 @@ export const PatientHomePage: React.FC = () => {
   const [activeReferral, setActiveReferral] = useState<ReferralClinicalSummary | null>(null)
   const [activeReferralCount, setActiveReferralCount] = useState(0)
   const [activeFollowUp, setActiveFollowUp] = useState<FollowUpCareItem | null>(null)
+  const [unresolvedActions, setUnresolvedActions] = useState<ActionCenterItem[]>([])
 
   useEffect(() => {
     facilityService
@@ -81,6 +85,10 @@ export const PatientHomePage: React.FC = () => {
       if (pending) {
         setActiveFollowUp(pending)
       }
+    })
+
+    notificationService.getUnresolvedActions().then((actions) => {
+      setUnresolvedActions(actions)
     })
   }, [])
 
@@ -227,6 +235,43 @@ export const PatientHomePage: React.FC = () => {
           )}
         </form>
       </section>
+
+      {/* ACTION CENTER ALERT (Pending clinical tasks) */}
+      {unresolvedActions.length > 0 && (
+        <section
+          aria-label="Action Center Alert"
+          className="bg-[#F2F9F8] border border-[#D0EAE6] rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs"
+        >
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white border border-[#D0EAE6] flex items-center justify-center text-[#0F5147] shrink-0">
+              <Bell className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F5147]">
+                  Action Center
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                  {unresolvedActions.length} Pending
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-slate-900">
+                {unresolvedActions[0].title}
+              </p>
+              <p className="text-xs text-slate-600">
+                {unresolvedActions[0].reason}
+              </p>
+            </div>
+          </div>
+          <Link
+            to={unresolvedActions[0].targetUrl}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs self-end sm:self-center shrink-0 touch-target"
+          >
+            <span>{unresolvedActions[0].ctaText}</span>
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </Link>
+        </section>
+      )}
 
       {/* 2. PERSONAL CONTEXT CARD (Active referral, active queue, active appointment, or quick booking prompt) */}
       <section aria-label="Active healthcare task">

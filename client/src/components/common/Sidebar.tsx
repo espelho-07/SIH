@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   Home,
@@ -20,9 +20,11 @@ import {
   Pill,
   RotateCcw,
   Bot,
+  Bell,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useUiStore } from '@/stores/uiStore'
+import { notificationService } from '@/services/notificationService'
 import { cn } from '@/lib/utils'
 import type { UserRole } from '@/types/auth'
 
@@ -40,11 +42,37 @@ export const Sidebar: React.FC = () => {
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
 
   const currentRole: UserRole = user?.role || 'ROLE_PATIENT'
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(0)
+
+  useEffect(() => {
+    let isMounted = true
+    const updateCount = () => {
+      notificationService
+        .getUnreadCount()
+        .then((count) => {
+          if (isMounted) setUnreadNotifsCount(count)
+        })
+        .catch(() => {})
+    }
+
+    updateCount()
+    const unsubscribe = notificationService.subscribe(updateCount)
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
+  }, [])
 
   // Refined, English-first Navigation Items per Role
   const roleNavItems: Record<UserRole, NavItem[]> = {
     ROLE_PATIENT: [
       { label: 'Home', to: '/patient/home', icon: Home },
+      {
+        label: 'Action Center & Alerts',
+        to: '/patient/notifications',
+        icon: Bell,
+        badge: unreadNotifsCount > 0 ? `${unreadNotifsCount}` : undefined,
+      },
       { label: 'Emergency Help', to: '/patient/emergency', icon: ShieldAlert, badge: '24x7' },
       { label: 'Find Care', to: '/patient/facilities', icon: Search },
       { label: 'Treatment Matcher', to: '/patient/treatment-matcher', icon: Sparkles },
