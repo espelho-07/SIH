@@ -19,9 +19,11 @@ import {
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
 import { appointmentService } from '@/services/appointmentService'
+import { queueService } from '@/services/queueService'
 import { getSpeechRecognition } from '@/lib/speechRecognition'
 import type { FacilityTelemetry } from '@/types/facility'
 import type { AppointmentDetail } from '@/types/appointment'
+import type { ActiveToken } from '@/types/queue'
 
 export const PatientHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -32,6 +34,7 @@ export const PatientHomePage: React.FC = () => {
   const [nearbyFacilities, setNearbyFacilities] = useState<FacilityTelemetry[]>([])
   const [isLoadingFacilities, setIsLoadingFacilities] = useState(true)
   const [activeAppointment, setActiveAppointment] = useState<AppointmentDetail | null>(null)
+  const [activeQueueToken, setActiveQueueToken] = useState<ActiveToken | null>(null)
 
   useEffect(() => {
     facilityService
@@ -46,6 +49,12 @@ export const PatientHomePage: React.FC = () => {
           setActiveAppointment(list[0])
         }
       })
+
+    queueService.getActiveToken().then((token) => {
+      if (token && token.state !== 'COMPLETED' && token.state !== 'CANCELLED') {
+        setActiveQueueToken(token)
+      }
+    })
   }, [])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -122,7 +131,17 @@ export const PatientHomePage: React.FC = () => {
             to="/patient/queue"
             className="text-xs font-semibold text-[#0F5147] hover:underline flex items-center gap-1"
           >
-            <span>Live Token: <strong>B-042</strong></span>
+            <span>
+              {activeQueueToken ? (
+                <>
+                  Live Token: <strong>{activeQueueToken.tokenNumber}</strong> ({activeQueueToken.positionInQueue} ahead)
+                </>
+              ) : (
+                <>
+                  Live Token: <strong>B-042</strong>
+                </>
+              )}
+            </span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -182,9 +201,44 @@ export const PatientHomePage: React.FC = () => {
         </form>
       </section>
 
-      {/* 2. PERSONAL CONTEXT CARD (Active appointment or quick booking prompt) */}
+      {/* 2. PERSONAL CONTEXT CARD (Active queue, active appointment, or quick booking prompt) */}
       <section aria-label="Active healthcare task">
-        {activeAppointment ? (
+        {activeQueueToken ? (
+          <div className="p-4 sm:p-5 bg-white rounded-2xl border border-[#D0EAE6] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#F2F9F8] flex items-center justify-center text-[#0F5147] shrink-0 border border-[#D0EAE6]">
+                <Clock className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#0F5147]">
+                    Live OPD Queue Position
+                  </span>
+                  <span className="font-mono text-xs font-extrabold text-[#0F5147] bg-[#F2F9F8] px-2 py-0.5 rounded border border-[#D0EAE6]">
+                    {activeQueueToken.tokenNumber}
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                </div>
+                <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                  Now serving <span className="font-mono font-bold text-slate-900">{activeQueueToken.currentServingToken}</span> • {activeQueueToken.positionInQueue} people ahead (~{activeQueueToken.estimatedWaitMinutes}m)
+                </h2>
+                <p className="text-xs text-slate-500">
+                  {activeQueueToken.facilityName} • {activeQueueToken.roomNumber} ({activeQueueToken.doctorName})
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <Link
+                to="/patient/queue"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-semibold rounded-xl active:scale-95 transition-all shadow-2xs touch-target"
+              >
+                <span>View Live Queue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        ) : activeAppointment ? (
           <div className="p-4 sm:p-5 bg-white rounded-2xl border border-[#D0EAE6] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-[#F2F9F8] flex items-center justify-center text-[#0F5147] shrink-0 border border-[#D0EAE6]">

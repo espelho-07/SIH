@@ -19,6 +19,7 @@ import {
   Check,
 } from 'lucide-react'
 import { appointmentService } from '@/services/appointmentService'
+import { queueService } from '@/services/queueService'
 import { GovernmentHealthcareBadge } from '@/components/healthcare/GovernmentHealthcareBadge'
 import type { AppointmentDetail } from '@/types/appointment'
 import type { FacilityTier } from '@/types/facility'
@@ -122,6 +123,7 @@ export const AppointmentDetailPage: React.FC = () => {
     if (!appointment) return
     try {
       const res = await appointmentService.checkInForToken(appointment.id)
+      await queueService.checkInAppointment(appointment.id)
       setAppointment((prev) => (prev ? { ...prev, tokenNumber: res.tokenNumber } : null))
       setActionNotice(`Live OPD Token issued: ${res.tokenNumber}. You are now in the clinic room queue!`)
       setTimeout(() => setActionNotice(null), 5000)
@@ -354,6 +356,16 @@ export const AppointmentDetailPage: React.FC = () => {
                     <Clock className="w-3.5 h-3.5" />
                     <span>Generate OPD Token Now</span>
                   </button>
+                )}
+
+                {appointment.tokenNumber && (
+                  <Link
+                    to={`/patient/queue?token=${appointment.tokenNumber}`}
+                    className="mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>View in Live Queue</span>
+                  </Link>
                 )}
               </div>
             </div>

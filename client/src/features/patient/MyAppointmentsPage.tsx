@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { appointmentService } from '@/services/appointmentService'
+import { queueService } from '@/services/queueService'
 import { GovernmentHealthcareBadge } from '@/components/healthcare/GovernmentHealthcareBadge'
 import type { AppointmentDetail } from '@/types/appointment'
 import type { FacilityTier } from '@/types/facility'
@@ -129,6 +130,7 @@ export const MyAppointmentsPage: React.FC = () => {
   const handleCheckInToken = async (aptId: string) => {
     try {
       const result = await appointmentService.checkInForToken(aptId)
+      await queueService.checkInAppointment(aptId)
       reloadAppointments()
       setActionNotice(`Live OPD Token issued: ${result.tokenNumber}. Estimated wait: ~${result.estimatedWaitMins} mins.`)
       setTimeout(() => setActionNotice(null), 5000)
@@ -411,6 +413,16 @@ export const MyAppointmentsPage: React.FC = () => {
                         <Clock className="w-3.5 h-3.5" />
                         <span>Check-in for OPD Token</span>
                       </button>
+                    )}
+
+                    {isConfirmed && apt.tokenNumber && (
+                      <Link
+                        to={`/patient/queue?token=${apt.tokenNumber}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0F5147] hover:bg-[#0B3D35] text-white text-xs font-bold rounded-xl shadow-2xs transition-colors touch-target"
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>View Live Queue ({apt.tokenNumber})</span>
+                      </Link>
                     )}
                   </div>
 
