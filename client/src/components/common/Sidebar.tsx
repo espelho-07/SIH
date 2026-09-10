@@ -19,6 +19,7 @@ import {
   Activity,
   Pill,
   RotateCcw,
+  Bot,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useUiStore } from '@/stores/uiStore'
@@ -54,6 +55,7 @@ export const Sidebar: React.FC = () => {
       { label: 'Diagnostics & Labs', to: '/patient/diagnostics', icon: Activity },
       { label: 'Medicines & Rx', to: '/patient/medicines', icon: Pill },
       { label: 'My Care & Records', to: '/patient/my-care', icon: FileText },
+      { label: 'Healthcare Assistant', to: '/patient/assistant', icon: Bot, badge: 'Voice' },
     ],
     ROLE_ASHA: [
       { label: 'Overview', to: '/asha/dashboard', icon: Home },

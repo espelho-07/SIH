@@ -5,8 +5,12 @@ import { Footer } from '@/components/common/Footer'
 import { Sidebar } from '@/components/common/Sidebar'
 import { BottomNav } from '@/components/common/BottomNav'
 import { OfflineBanner } from '@/components/common/OfflineBanner'
+import { HealthcareAssistantDrawer } from '@/components/assistant/HealthcareAssistantDrawer'
+import { useUiStore } from '@/stores/uiStore'
 
 export const AppLayout: React.FC = () => {
+  const isVoiceModalOpen = useUiStore((state) => state.isVoiceModalOpen)
+  const setVoiceModalOpen = useUiStore((state) => state.setVoiceModalOpen)
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-100 selection:text-teal-900">
       {/* Offline Alert Bar */}
@@ -35,6 +39,12 @@ export const AppLayout: React.FC = () => {
 
       {/* Mobile-first Bottom Navigation */}
       <BottomNav />
+
+      {/* Global AI & Voice Healthcare Assistant Drawer */}
+      <HealthcareAssistantDrawer
+        isOpen={isVoiceModalOpen}
+        onClose={() => setVoiceModalOpen(false)}
+      />
     </div>
   )
 }

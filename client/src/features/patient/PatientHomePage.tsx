@@ -19,6 +19,7 @@ import {
   Activity,
   ShieldAlert,
   RotateCcw,
+  Bot,
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
@@ -573,6 +574,19 @@ export const PatientHomePage: React.FC = () => {
             <div>
               <span className="text-xs font-bold block leading-tight">Follow-Ups</span>
               <span className="text-[10px] text-slate-500">Care continuity</span>
+            </div>
+          </Link>
+
+          <Link
+            to="/patient/assistant"
+            className="p-3.5 bg-white rounded-xl border border-teal-200 hover:border-[#0F5147] hover:bg-[#F2F9F8] transition-colors flex items-center gap-2.5 text-slate-800"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#F2F9F8] text-[#0F5147] flex items-center justify-center shrink-0 border border-[#D0EAE6]">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold block leading-tight">AI Assistant</span>
+              <span className="text-[10px] text-slate-500">Voice navigation</span>
             </div>
           </Link>
 

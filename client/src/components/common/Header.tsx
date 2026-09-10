@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Menu, X, MapPin, Check, PhoneCall } from 'lucide-react'
+import { Plus, Menu, X, MapPin, Check, PhoneCall, Bot } from 'lucide-react'
 import { LanguageSelector } from './LanguageSelector'
 import { useUiStore } from '@/stores/uiStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -19,6 +19,7 @@ const COMMON_DISTRICTS = [
 export const Header: React.FC = () => {
   const isSidebarOpen = useUiStore((state) => state.isSidebarOpen)
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
+  const setVoiceModalOpen = useUiStore((state) => state.setVoiceModalOpen)
   const user = useAuthStore((state) => state.user)
   const setSession = useAuthStore((state) => state.setSession)
 
@@ -112,6 +113,18 @@ export const Header: React.FC = () => {
                 <span className="hidden sm:inline">108 Emergency</span>
                 <span className="sm:hidden font-bold">108</span>
               </a>
+
+              {/* HealthConnect AI & Voice Assistant Trigger */}
+              <button
+                type="button"
+                onClick={() => setVoiceModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-[#F2F9F8] hover:bg-[#E2F2EF] border border-[#D0EAE6] text-[#0F5147] rounded-full text-xs font-semibold active:scale-95 transition-all cursor-pointer touch-target shadow-2xs"
+                aria-label="Open Healthcare AI & Voice Assistant"
+                title="AI & Voice Healthcare Assistant"
+              >
+                <Bot className="w-3.5 h-3.5 text-[#0F5147]" aria-hidden="true" />
+                <span className="hidden sm:inline">Assistant</span>
+              </button>
 
               {/* Language Selector */}
               <LanguageSelector />
