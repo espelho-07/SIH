@@ -8,7 +8,6 @@ import {
   Calendar,
   Clock,
   ArrowRight,
-  ShieldCheck,
   PhoneCall,
   Droplet,
   Pill,
