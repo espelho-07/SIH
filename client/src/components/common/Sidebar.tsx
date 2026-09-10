@@ -43,6 +43,7 @@ export const Sidebar: React.FC = () => {
   const roleNavItems: Record<UserRole, NavItem[]> = {
     ROLE_PATIENT: [
       { label: 'Home', to: '/patient/home', icon: Home },
+      { label: 'Emergency Help', to: '/patient/emergency', icon: ShieldAlert, badge: '24x7' },
       { label: 'Find Care', to: '/patient/facilities', icon: Search },
       { label: 'Treatment Matcher', to: '/patient/treatment-matcher', icon: Sparkles },
       { label: 'Appointments', to: '/patient/appointments', icon: Calendar },

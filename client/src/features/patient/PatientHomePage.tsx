@@ -17,6 +17,7 @@ import {
   Share2,
   FileText,
   Activity,
+  ShieldAlert,
 } from 'lucide-react'
 import { FacilityCard } from '@/components/healthcare/FacilityCard'
 import { facilityService } from '@/services/facilityService'
@@ -517,23 +518,23 @@ export const PatientHomePage: React.FC = () => {
           </Link>
 
           <Link
-            to="/patient/find-care?filter=emergency"
+            to="/patient/emergency?tab=HOSPITALS"
             className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
           >
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold block leading-tight">ICU & Beds</span>
+              <span className="text-xs font-bold block leading-tight">Emergency ICU</span>
               <span className="text-[10px] text-slate-500">Live census</span>
             </div>
           </Link>
 
           <Link
-            to="/patient/find-care?filter=blood"
-            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-2.5 text-slate-800"
+            to="/patient/blood"
+            className="p-3.5 bg-white rounded-xl border border-slate-200 hover:border-rose-300 hover:bg-rose-50/40 transition-colors flex items-center gap-2.5 text-slate-800"
           >
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shrink-0 border border-rose-200">
               <Droplet className="w-4 h-4" />
             </div>
             <div>
@@ -598,7 +599,14 @@ export const PatientHomePage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 flex-wrap justify-center sm:justify-end">
+          <Link
+            to="/patient/emergency"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all touch-target"
+          >
+            <ShieldAlert className="w-4 h-4 text-emerald-400" />
+            <span>Emergency & Blood Hub</span>
+          </Link>
           <a
             href="tel:108"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-sm touch-target"

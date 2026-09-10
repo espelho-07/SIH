@@ -17,6 +17,7 @@ import { ReferralDetailPage } from '@/features/patient/ReferralDetailPage'
 import { MyCarePage } from '@/features/patient/MyCarePage'
 import { DiagnosticsCenterPage } from '@/features/patient/DiagnosticsCenterPage'
 import { PrescriptionsMedicinesPage } from '@/features/patient/PrescriptionsMedicinesPage'
+import { EmergencyHelpPage } from '@/features/patient/EmergencyHelpPage'
 import { AshaDashboardPage } from '@/features/asha/AshaDashboardPage'
 import { DoctorDeskPage } from '@/features/doctor/DoctorDeskPage'
 import { FacilityBedsPage } from '@/features/facility/FacilityBedsPage'
@@ -31,6 +32,8 @@ export const AppRoutes: React.FC = () => {
 
         {/* Patient / Citizen Routes (Public / Citizen Access) */}
         <Route path="/patient/home" element={<PatientHomePage />} />
+        <Route path="/patient/emergency" element={<EmergencyHelpPage />} />
+        <Route path="/patient/urgent-help" element={<EmergencyHelpPage />} />
         <Route path="/patient/find-care" element={<FindCarePage />} />
         <Route path="/patient/facilities" element={<FindCarePage />} />
         <Route path="/patient/facility/:id" element={<FacilityDetailPage />} />
@@ -39,7 +42,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/patient/appointments/book" element={<AppointmentBookingPage />} />
         <Route path="/patient/appointments/:id" element={<AppointmentDetailPage />} />
         <Route path="/patient/queue" element={<LiveQueuePage />} />
-        <Route path="/patient/blood" element={<FindCarePage />} />
+        <Route path="/patient/blood" element={<EmergencyHelpPage />} />
         <Route path="/patient/diagnostics" element={<DiagnosticsCenterPage />} />
         <Route path="/patient/diagnostics/:id" element={<DiagnosticsCenterPage />} />
         <Route path="/patient/medicines" element={<PrescriptionsMedicinesPage />} />
