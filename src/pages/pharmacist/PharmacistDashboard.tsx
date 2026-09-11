@@ -82,17 +82,17 @@ export const PharmacistDashboard: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-in fade-in-50 duration-200">
       {/* 1. Header Banner */}
-      <div className="rounded-3xl bg-linear-to-r from-teal-900 via-teal-800 to-slate-900 text-white p-6 sm:p-8 shadow-sm relative overflow-hidden">
+      <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 shadow-sm relative overflow-hidden border border-slate-800">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3 py-1 text-xs font-semibold text-teal-200 border border-teal-400/30">
-              <Pill className="h-3.5 w-3.5 text-teal-300" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-teal-300 border border-slate-700">
+              <Pill className="h-3.5 w-3.5 text-teal-400" />
               <span>Outpatient Pharmacy Dispensing Station</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Welcome back, {user?.name || 'Pharmacist Priya Nair'}
             </h1>
-            <p className="text-xs sm:text-sm text-teal-100 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
               {user?.facilityName || 'Gandhinagar Civil Hospital'} • Counter 2 (OPD Base) • Safe dispensing with live inventory synchronization.
             </p>
           </div>
@@ -101,25 +101,20 @@ export const PharmacistDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <Button
               onClick={() => navigate('/pharmacist/prescriptions')}
-              variant="primary"
-              className="bg-teal-600 hover:bg-teal-700 text-white shadow-xs font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[44px]"
+              className="bg-white text-teal-950 hover:bg-teal-50 font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] shadow-sm cursor-pointer"
             >
-              <Clock className="h-4 w-4 mr-2" />
+              <Clock className="h-4 w-4 mr-2 text-teal-700" />
               View Dispense Queue ({pendingPrescriptions.length})
             </Button>
             <Button
               onClick={() => navigate('/pharmacist/stock')}
-              variant="outline"
-              className="border-teal-300/40 text-teal-100 hover:bg-teal-700/50 hover:text-white font-semibold text-xs sm:text-sm px-4 py-2.5 min-h-[44px]"
+              className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] cursor-pointer shadow-xs"
             >
-              <Package className="h-4 w-4 mr-2" />
+              <Package className="h-4 w-4 mr-2 text-teal-400" />
               Stock Inventory
             </Button>
           </div>
         </div>
-
-        {/* Decorative background glow */}
-        <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
 
       {/* 2. Urgent Attention Banner (if any stock is low or near expiry) */}

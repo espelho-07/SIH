@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -102,25 +102,23 @@ export const LabTechnicianDashboard: React.FC = () => {
         </div>
 
         {/* Quick Navigation Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Button
-            variant="outline"
             size="sm"
-            onClick={() => navigate('/lab-technician/samples')}
-            className="border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-white text-xs flex items-center gap-1.5"
+            onClick={() => navigate('/lab-technician/tests')}
+            className="bg-white text-teal-950 hover:bg-teal-50 font-bold text-xs flex items-center gap-1.5 min-h-[40px] px-4 cursor-pointer shadow-sm"
           >
-            <QrCode className="h-4 w-4 text-teal-400" />
-            <span>Sample Desk</span>
+            <FlaskConical className="h-4 w-4 text-teal-700" />
+            <span>All Test Orders</span>
           </Button>
 
           <Button
-            variant="primary"
             size="sm"
-            onClick={() => navigate('/lab-technician/tests')}
-            className="bg-teal-700 hover:bg-teal-800 text-white text-xs flex items-center gap-1.5 shadow-sm"
+            onClick={() => navigate('/lab-technician/samples')}
+            className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-xs flex items-center gap-1.5 min-h-[40px] px-4 cursor-pointer shadow-xs"
           >
-            <FlaskConical className="h-4 w-4" />
-            <span>All Test Orders</span>
+            <QrCode className="h-4 w-4 text-teal-400" />
+            <span>Sample Desk</span>
           </Button>
         </div>
       </div>
