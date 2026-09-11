@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ];
 
       // ==================================================
-      // ASHA / HEALTH WORKER
+      // ASHA / FRONTLINE HEALTH WORKER
       // ==================================================
       case 'ASHA':
         return [
@@ -128,31 +128,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             to: '/asha',
             label: 'Home',
             icon: LayoutDashboard,
-            color: 'text-blue-600 bg-blue-50',
+            color: 'text-teal-600 bg-teal-50',
           },
           {
             to: '/asha/visits',
             label: 'Home Visits',
             icon: Home,
-            color: 'text-teal-600 bg-teal-50',
-          },
-          {
-            to: '/asha/follow-ups',
-            label: 'Action Tasks',
-            icon: ListTodo,
-            color: 'text-amber-600 bg-amber-50',
+            color: 'text-blue-600 bg-blue-50',
           },
           {
             to: '/asha/patients',
-            label: 'My Patients',
+            label: 'Village Citizens',
             icon: Users,
             color: 'text-violet-600 bg-violet-50',
-          },
-          {
-            to: '/asha/patients/new',
-            label: 'Add Patient',
-            icon: UserPlus,
-            color: 'text-emerald-600 bg-emerald-50',
           },
           {
             to: '/asha/vitals',
@@ -161,28 +149,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-red-600 bg-red-50',
           },
           {
-            to: '/asha/screening',
-            label: 'Health Screening',
-            icon: ClipboardList,
-            color: 'text-amber-600 bg-amber-50',
-          },
-          {
             to: '/asha/high-risk',
-            label: 'High-Risk Patients',
+            label: 'High-Risk & Referrals',
             icon: AlertOctagon,
             color: 'text-rose-600 bg-rose-50',
-          },
-          {
-            to: '/asha/referrals',
-            label: 'Facility Referrals',
-            icon: GitBranch,
-            color: 'text-indigo-600 bg-indigo-50',
-          },
-          {
-            to: '/asha/facilities',
-            label: 'Facilities & 108',
-            icon: Building2,
-            color: 'text-purple-600 bg-purple-50',
           },
           {
             to: '/asha/sync',

@@ -1,53 +1,33 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConnection } from '@/contexts/ConnectionContext';
-import { FrontlineRoleBar } from '@/components/asha/FrontlineRoleBar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { PriorityBadge } from '@/components/ui/Badge';
-import {
-  INITIAL_ASHA_PATIENTS,
-  INITIAL_ASHA_VISITS,
-  INITIAL_ASHA_TASKS,
-  INITIAL_FRONTLINE_REFERRALS,
-} from '@/mock/mockData';
-import { FrontlineRoleMode, AshaVisit, FollowUpTask } from '@/types/asha';
+import { INITIAL_ASHA_PATIENTS, INITIAL_ASHA_VISITS } from '@/mock/mockData';
 import { Link } from 'react-router-dom';
 import {
   Users,
   UserPlus,
   Activity,
-  ClipboardList,
   AlertOctagon,
   RefreshCw,
   Calendar,
-  Clock,
   MapPin,
   Phone,
-  GitBranch,
-  Building2,
   CheckCircle2,
   ArrowRight,
   ShieldAlert,
   Baby,
   Heart,
-  Stethoscope,
-  ChevronRight,
+  WifiOff,
 } from 'lucide-react';
 
 export const AshaDashboard: React.FC = () => {
   const { user } = useAuth();
   const { pendingSyncCount, isOnline } = useConnection();
-  const [roleMode, setRoleMode] = useState<FrontlineRoleMode>('ALL');
-  const [activeTab, setActiveTab] = useState<'VISITS' | 'TASKS' | 'HIGH_RISK'>('VISITS');
 
   const todayStr = '2026-03-11';
   const todayVisits = useMemo(
     () => INITIAL_ASHA_VISITS.filter((v) => v.visitDate === todayStr || v.status === 'IN_PROGRESS'),
-    []
-  );
-  const dueTasks = useMemo(
-    () => INITIAL_ASHA_TASKS.filter((t) => t.urgency === 'OVERDUE' || t.urgency === 'DUE_TODAY'),
     []
   );
   const highRiskPatients = useMemo(
@@ -56,391 +36,309 @@ export const AshaDashboard: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Frontline Role & Jurisdiction Header */}
-      <FrontlineRoleBar
-        activeMode={roleMode}
-        onModeChange={setRoleMode}
-        title={`Namaste, ${user?.name || 'Sunita Devi'}`}
-        subtitle="Pethapur Subcentre Cluster • Primary PHC: Pethapur PHC • Dist: Gandhinagar"
-      />
+    <div className="space-y-5 font-sans w-full">
+      {/* =====================================================
+          1. SLEEK ASHA GREETING & STATUS BAR
+      ====================================================== */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[11px] font-bold text-teal-800">
+              <Activity className="h-3 w-3 text-teal-600" />
+              ASHA Frontline Console
+            </span>
+            <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+              Pethapur Village (Ward 1–4)
+            </span>
+          </div>
 
-      {/* Primary KPI Metrics Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-        <Link to="/asha/visits">
-          <Card className="p-4 border-slate-200/90 bg-white hover:border-teal-400 hover:shadow-xs transition-all text-left group">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Today's Visits
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Namaste, {user?.name || 'Sunita Devi'}
+          </h1>
+
+          <p className="text-xs text-slate-500">
+            Sub-Centre: <strong className="text-slate-700">Pethapur</strong> • Primary Health Centre: <strong className="text-slate-700">Pethapur PHC</strong> • Dist: Gandhinagar
+          </p>
+        </div>
+
+        {/* Connectivity & Fast Action */}
+        <div className="flex items-center gap-3 self-start md:self-center shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+            {isOnline ? (
+              <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Online
               </span>
-              <Calendar className="h-4 w-4 text-teal-700 group-hover:scale-110 transition-transform" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-teal-800 mt-1">{todayVisits.length}</p>
-            <span className="text-[11px] text-teal-700 font-medium">Home visits due today</span>
-          </Card>
-        </Link>
-
-        <Link to="/asha/follow-ups">
-          <Card className="p-4 border-slate-200/90 bg-white hover:border-amber-400 hover:shadow-xs transition-all text-left group">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
-                Action Tasks
+            ) : (
+              <span className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
+                <WifiOff className="h-3.5 w-3.5" />
+                Offline
               </span>
-              <Clock className="h-4 w-4 text-amber-600 group-hover:scale-110 transition-transform" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-amber-800 mt-1">{dueTasks.length}</p>
-            <span className="text-[11px] text-amber-700 font-medium">Overdue & due today</span>
-          </Card>
-        </Link>
-
-        <Link to="/asha/high-risk">
-          <Card className="p-4 border-rose-200 bg-rose-50/40 hover:border-rose-300 hover:shadow-xs transition-all text-left group">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800">
-                Priority Cases
-              </span>
-              <AlertOctagon className="h-4 w-4 text-rose-600 group-hover:scale-110 transition-transform" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-rose-700 mt-1">{highRiskPatients.length}</p>
-            <span className="text-[11px] text-rose-600 font-semibold">Priority monitoring</span>
-          </Card>
-        </Link>
-
-        <Link to="/asha/patients">
-          <Card className="p-4 border-slate-200/90 bg-white hover:border-teal-400 hover:shadow-xs transition-all text-left group">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Assigned Cohort
-              </span>
-              <Users className="h-4 w-4 text-teal-700 group-hover:scale-110 transition-transform" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              {INITIAL_ASHA_PATIENTS.length * 52}
-            </p>
-            <span className="text-[11px] text-slate-500">Pethapur Ward 1–4</span>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Quick Action Hub (6 Core Frontline Flows Aligned to Patient Style) */}
-      <div className="space-y-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 px-1 block">
-          Frontline Field Operations
-        </span>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <Link to="/asha/visits">
-            <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group bg-white">
-              <Calendar className="h-5 w-5 text-teal-700 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-slate-900 block">Home Visits</span>
-              <span className="text-[10px] text-slate-500">Daily plan & logging</span>
-            </Card>
-          </Link>
-
-          <Link to="/asha/patients">
-            <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group bg-white">
-              <Users className="h-5 w-5 text-indigo-700 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-slate-900 block">Citizen Roster</span>
-              <span className="text-[10px] text-slate-500">Households & Cohort</span>
-            </Card>
-          </Link>
+            )}
+            <span className="text-slate-300">|</span>
+            <span className="text-xs font-medium text-slate-600">
+              {pendingSyncCount > 0 ? `${pendingSyncCount} queued` : 'Synced'}
+            </span>
+          </div>
 
           <Link to="/asha/patients/new">
-            <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group bg-white">
-              <UserPlus className="h-5 w-5 text-emerald-700 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-slate-900 block">Register Citizen</span>
-              <span className="text-[10px] text-slate-500">3-Step offline intake</span>
-            </Card>
-          </Link>
-
-          <Link to="/asha/vitals">
-            <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group bg-white">
-              <Activity className="h-5 w-5 text-sky-700 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-slate-900 block">Record Vitals</span>
-              <span className="text-[10px] text-slate-500">BP, Glucose, SpO2</span>
-            </Card>
-          </Link>
-
-          <Link to="/asha/screening">
-            <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group bg-white">
-              <ClipboardList className="h-5 w-5 text-purple-700 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-slate-900 block">Health Screening</span>
-              <span className="text-[10px] text-slate-500">CBAC & Danger Signs</span>
-            </Card>
-          </Link>
-
-          <Link to="/asha/referrals">
-            <Card className="p-3.5 hover:border-amber-500 hover:shadow-md transition-all text-left group bg-amber-50/30">
-              <GitBranch className="h-5 w-5 text-amber-700 mb-2 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-amber-950 block">Referrals & 108</span>
-              <span className="text-[10px] text-amber-700">Escalate to PHC / CHC</span>
-            </Card>
+            <Button size="sm" className="bg-teal-700 hover:bg-teal-800 text-white text-xs gap-1.5 rounded-xl cursor-pointer shadow-xs">
+              <UserPlus className="h-3.5 w-3.5" />
+              <span>+ Register Citizen</span>
+            </Button>
           </Link>
         </div>
       </div>
 
-      {/* TODAY'S WORK HUB — Task -> Action -> Confirmation Engine */}
-      <Card className="border-slate-200/90 bg-white shadow-xs">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
-          <div>
-            <CardTitle className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-teal-700" />
-              Today's Field Operational Hub
-            </CardTitle>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Prioritized tasks and field encounters requiring your immediate action in the community.
+      {/* =====================================================
+          2. TOP 4 ESSENTIAL FIELD KPIS
+      ====================================================== */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Link to="/asha/visits">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:shadow-xs transition-all cursor-pointer group">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Today's Visits</span>
+              <Calendar className="h-4 w-4 text-teal-700 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+              {todayVisits.length}
+            </div>
+            <p className="text-[11px] text-teal-700 font-medium mt-0.5">Home visits scheduled today</p>
+          </div>
+        </Link>
+
+        <Link to="/asha/high-risk">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-4 hover:border-rose-400 hover:shadow-xs transition-all cursor-pointer group">
+            <div className="flex items-center justify-between text-rose-700">
+              <span className="text-xs font-bold uppercase tracking-wider text-rose-800">High-Risk Cases</span>
+              <AlertOctagon className="h-4 w-4 text-rose-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-rose-700 mt-2">
+              {highRiskPatients.length}
+            </div>
+            <p className="text-[11px] text-rose-600 font-medium mt-0.5">Urgent maternal & elder cases</p>
+          </div>
+        </Link>
+
+        <Link to="/asha/patients">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:shadow-xs transition-all cursor-pointer group">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Village Cohort</span>
+              <Users className="h-4 w-4 text-indigo-700 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+              {INITIAL_ASHA_PATIENTS.length}
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">Families under your care</p>
+          </div>
+        </Link>
+
+        <Link to="/asha/sync">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-cyan-500 hover:shadow-xs transition-all cursor-pointer group">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Offline Sync</span>
+              <RefreshCw className={`h-4 w-4 text-cyan-600 group-hover:scale-110 transition-transform ${pendingSyncCount > 0 ? 'animate-spin' : ''}`} />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+              {pendingSyncCount}
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+              {pendingSyncCount > 0 ? 'Pending to sync with PHC' : 'All records up to date'}
             </p>
           </div>
+        </Link>
+      </div>
 
-          {/* Tab Selector */}
-          <div className="flex bg-slate-100 rounded-xl p-1 gap-1 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab('VISITS')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'VISITS' ? 'bg-white text-teal-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Visits Due ({todayVisits.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('TASKS')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'TASKS' ? 'bg-white text-amber-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Follow-ups ({dueTasks.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('HIGH_RISK')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'HIGH_RISK' ? 'bg-white text-rose-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Priority ({highRiskPatients.length})
-            </button>
+      {/* =====================================================
+          3. HIGH-RISK EMERGENCY ALERT BANNER (If Any)
+      ====================================================== */}
+      {highRiskPatients.length > 0 && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-rose-100 text-rose-700 shrink-0 mt-0.5">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-rose-800">
+                  Priority Health Attention
+                </span>
+                <span className="text-[10px] font-bold bg-rose-200 text-rose-900 px-2 py-0.2 rounded-full">
+                  Action Required
+                </span>
+              </div>
+              <p className="text-xs text-rose-950 mt-0.5">
+                <strong>{highRiskPatients[0]?.name}</strong> ({highRiskPatients[0]?.category?.replace(/_/g, ' ')}) has high-risk markers: <em>{highRiskPatients[0]?.highRiskReasons?.join(', ')}</em>.
+              </p>
+            </div>
           </div>
-        </CardHeader>
+          <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+            {highRiskPatients[0]?.phone && (
+              <a
+                href={`tel:${highRiskPatients[0]?.phone}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-300 text-rose-900 hover:bg-rose-100 text-xs font-bold transition-colors"
+              >
+                <Phone className="h-3.5 w-3.5" />
+                Call
+              </a>
+            )}
+            <Link to="/asha/high-risk">
+              <Button size="sm" className="bg-rose-700 hover:bg-rose-800 text-white text-xs rounded-xl font-bold cursor-pointer">
+                Refer to PHC
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
-        <CardContent className="p-4 sm:p-5 space-y-3">
-          {/* TAB 1: VISITS */}
-          {activeTab === 'VISITS' && (
-            <div className="space-y-3">
-              {todayVisits.map((visit) => (
-                <div
-                  key={visit.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-teal-300 hover:shadow-2xs transition-all gap-3"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-sm text-slate-900">{visit.patientName}</span>
-                      <span className="rounded-full bg-teal-50 border border-teal-200 px-2 py-0.5 text-[10px] font-bold text-teal-800">
-                        {visit.visitType?.replace(/_/g, ' ') || 'ANC'}
-                      </span>
-                      {visit.status === 'IN_PROGRESS' ? (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                          In Progress
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-                          {visit.timeSlot || 'Today'}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-700 font-semibold">{visit.purpose}</p>
-                    <p className="text-xs text-slate-500 italic">Address: {visit.address}</p>
-                  </div>
+      {/* =====================================================
+          4. 4 DIRECT FIELD ACTION BUTTONS
+      ====================================================== */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Link to="/asha/visits">
+          <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-teal-500 hover:shadow-xs transition-all text-left group">
+            <Calendar className="h-5 w-5 text-teal-700 mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-slate-900 block">Home Visits</span>
+            <span className="text-[10px] text-slate-500">Daily plan & field rounds</span>
+          </div>
+        </Link>
 
-                  <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
-                    {visit.patientPhone && (
-                      <a
-                        href={`tel:${visit.patientPhone}`}
-                        className="rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 min-h-[40px] min-w-[40px] flex items-center justify-center"
-                        title="Call Citizen"
-                      >
-                        <Phone className="h-4 w-4" />
-                      </a>
-                    )}
-                    <Link to="/asha/vitals">
-                      <Button variant="outline" size="sm" className="text-xs min-h-[40px]">
-                        Vitals
-                      </Button>
-                    </Link>
-                    <Link to="/asha/visits">
-                      <Button variant="primary" size="sm" className="text-xs min-h-[40px] bg-teal-700 hover:bg-teal-800 font-bold">
-                        Open Visit
-                      </Button>
-                    </Link>
-                  </div>
+        <Link to="/asha/vitals">
+          <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-red-400 hover:shadow-xs transition-all text-left group">
+            <Activity className="h-5 w-5 text-red-600 mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-slate-900 block">Record Vitals</span>
+            <span className="text-[10px] text-slate-500">BP, Sugar, SpO2 & Weight</span>
+          </div>
+        </Link>
+
+        <Link to="/asha/patients">
+          <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-indigo-400 hover:shadow-xs transition-all text-left group">
+            <Users className="h-5 w-5 text-indigo-700 mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-slate-900 block">Village Register</span>
+            <span className="text-[10px] text-slate-500">Citizens & ABHA Cards</span>
+          </div>
+        </Link>
+
+        <Link to="/asha/high-risk">
+          <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-rose-400 hover:shadow-xs transition-all text-left group">
+            <AlertOctagon className="h-5 w-5 text-rose-600 mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-slate-900 block">High-Risk & Referrals</span>
+            <span className="text-[10px] text-slate-500">Priority cases & PHC link</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* =====================================================
+          5. TODAY'S HOME VISITS QUEUE (PRIMARY WORKLIST)
+      ====================================================== */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-teal-700" />
+            <div>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                Today's Home Visits ({todayVisits.length})
+              </h2>
+              <p className="text-xs text-slate-500">
+                Scheduled beneficiaries for home visits today in your ward.
+              </p>
+            </div>
+          </div>
+
+          <Link to="/asha/visits" className="text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1">
+            <span>View All</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        <div className="space-y-2.5">
+          {todayVisits.map((visit) => (
+            <div
+              key={visit.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-teal-400 hover:shadow-2xs transition-all gap-3"
+            >
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-extrabold text-sm text-slate-900">
+                    {visit.patientName}
+                  </span>
+                  <span className="rounded-full bg-teal-50 border border-teal-200 px-2 py-0.5 text-[10px] font-bold text-teal-800">
+                    {visit.visitType?.replace(/_/g, ' ') || 'ANC'}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    • {visit.timeSlot || 'Today'}
+                  </span>
                 </div>
-              ))}
+                <p className="text-xs text-slate-700 font-medium">
+                  {visit.purpose}
+                </p>
+                <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                  <span className="truncate">{visit.address || 'Pethapur Village'}</span>
+                </p>
+              </div>
 
-              <div className="pt-2 flex justify-end">
-                <Link to="/asha/visits" className="text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1">
-                  <span>View All Field Visits</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                {visit.patientPhone && (
+                  <a
+                    href={`tel:${visit.patientPhone}`}
+                    className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50 min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer"
+                    title="Call Beneficiary"
+                  >
+                    <Phone className="h-4 w-4 text-teal-700" />
+                  </a>
+                )}
+                <Link to="/asha/vitals">
+                  <Button variant="outline" size="sm" className="text-xs h-8 rounded-lg cursor-pointer">
+                    Vitals
+                  </Button>
+                </Link>
+                <Link to="/asha/visits">
+                  <Button size="sm" className="text-xs h-8 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-lg cursor-pointer">
+                    Open Visit
+                  </Button>
                 </Link>
               </div>
             </div>
-          )}
+          ))}
+        </div>
+      </div>
 
-          {/* TAB 2: TASKS */}
-          {activeTab === 'TASKS' && (
-            <div className="space-y-3">
-              {dueTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-amber-300 transition-all gap-3"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-sm text-slate-900">{task.patientName}</span>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          task.urgency === 'OVERDUE' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
-                        }`}
-                      >
-                        {task.urgency === 'OVERDUE' ? 'OVERDUE' : 'DUE TODAY'}
-                      </span>
-                      <span className="text-xs text-slate-500">({task.village})</span>
-                    </div>
-                    <p className="text-xs text-slate-800 font-bold">{task.title}</p>
-                    <p className="text-xs text-slate-600">{task.actionRequired}</p>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
-                    {task.patientPhone && (
-                      <a
-                        href={`tel:${task.patientPhone}`}
-                        className="rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 min-h-[40px] min-w-[40px] flex items-center justify-center"
-                        title="Call Beneficiary"
-                      >
-                        <Phone className="h-4 w-4" />
-                      </a>
-                    )}
-                    <Link to="/asha/follow-ups">
-                      <Button variant="primary" size="sm" className="text-xs min-h-[40px] bg-teal-700 hover:bg-teal-800 font-bold">
-                        Review Task
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-
-              <div className="pt-2 flex justify-end">
-                <Link to="/asha/follow-ups" className="text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1">
-                  <span>Open Follow-ups Register</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
+      {/* =====================================================
+          6. VILLAGE HEALTH COHORT BREAKDOWN
+      ====================================================== */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Maternal & Child Health */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-teal-900">
+              <Baby className="h-4 w-4 text-teal-700" />
+              <span className="font-bold text-xs uppercase tracking-wider">Maternal & Child Health</span>
             </div>
-          )}
+            <Link to="/asha/patients" className="text-[11px] font-bold text-teal-700 hover:underline">
+              View Cohort →
+            </Link>
+          </div>
+          <p className="text-xs text-slate-600">
+            <strong>3 Pregnant Mothers</strong> due for IFA tablets & Td booster this week. <strong>2 Infants</strong> due for UIP immunization.
+          </p>
+        </div>
 
-          {/* TAB 3: HIGH RISK */}
-          {activeTab === 'HIGH_RISK' && (
-            <div className="space-y-3">
-              {highRiskPatients.map((patient) => (
-                <div
-                  key={patient.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-rose-200 bg-rose-50/30 hover:border-rose-300 transition-all gap-3"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-sm text-rose-950">{patient.name}</span>
-                      <span className="rounded-full bg-rose-200 px-2 py-0.5 text-[10px] font-bold text-rose-900">
-                        {patient.category?.replace(/_/g, ' ')}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {patient.age}Y, {patient.village}
-                      </span>
-                    </div>
-                    <ul className="text-xs text-rose-900 font-semibold list-disc pl-4 space-y-0.5">
-                      {patient.highRiskReasons?.map((r, i) => (
-                        <li key={i}>{r}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
-                    <a
-                      href={`tel:${patient.phone}`}
-                      className="rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 min-h-[40px] min-w-[40px] flex items-center justify-center"
-                      title="Call Citizen"
-                    >
-                      <Phone className="h-4 w-4" />
-                    </a>
-                    <Link to="/asha/referrals">
-                      <Button variant="outline" size="sm" className="text-xs min-h-[40px] border-rose-300 text-rose-900 hover:bg-rose-50">
-                        Refer to PHC
-                      </Button>
-                    </Link>
-                    <Link to="/asha/vitals">
-                      <Button variant="primary" size="sm" className="text-xs min-h-[40px] bg-rose-700 hover:bg-rose-800 font-bold">
-                        Update Vitals
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-
-              <div className="pt-2 flex justify-end">
-                <Link to="/asha/high-risk" className="text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1">
-                  <span>Open High-Risk Register</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
+        {/* NCD & Elderly Care */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-indigo-900">
+              <Heart className="h-4 w-4 text-indigo-700" />
+              <span className="font-bold text-xs uppercase tracking-wider">Chronic NCD & Elderly Care</span>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Role Adaptive Context Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card 1: Maternal & Child Focus */}
-        <Card className="p-4 border-slate-200/90 bg-white space-y-2">
-          <div className="flex items-center gap-2 text-teal-900">
-            <Baby className="h-4 w-4 text-teal-700" />
-            <span className="font-bold text-xs uppercase tracking-wider">Maternal & Child Cohort</span>
+            <Link to="/asha/vitals" className="text-[11px] font-bold text-indigo-700 hover:underline">
+              Check Vitals →
+            </Link>
           </div>
           <p className="text-xs text-slate-600">
-            <strong>3 ANC Mothers</strong> due for IFA tablets and Td booster. <strong>2 Infants</strong> due for Measles-Rubella (MR) UIP vaccine.
+            <strong>8 Hypertensive / Diabetic Patients</strong> monitored in Pethapur Sector 2. Monthly digital cuff BP checks due.
           </p>
-          <Link to="/asha/patients" className="text-[11px] font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1">
-            <span>Filter Maternal Cohort</span>
-            <ChevronRight className="h-3 w-3" />
-          </Link>
-        </Card>
-
-        {/* Card 2: NCD & Chronic Telemetry */}
-        <Card className="p-4 border-slate-200/90 bg-white space-y-2">
-          <div className="flex items-center gap-2 text-indigo-900">
-            <Heart className="h-4 w-4 text-indigo-700" />
-            <span className="font-bold text-xs uppercase tracking-wider">NCD Screening & BP Clinic</span>
-          </div>
-          <p className="text-xs text-slate-600">
-            <strong>8 Hypertensive Patients</strong> monitored in Pethapur Sector 2. Routine field digital cuff checks due.
-          </p>
-          <Link to="/asha/vitals" className="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-1">
-            <span>Record NCD Vitals</span>
-            <ChevronRight className="h-3 w-3" />
-          </Link>
-        </Card>
-
-        {/* Card 3: Facilities & Ambulance Link */}
-        <Card className="p-4 border-slate-200/90 bg-white space-y-2">
-          <div className="flex items-center gap-2 text-amber-900">
-            <Building2 className="h-4 w-4 text-amber-700" />
-            <span className="font-bold text-xs uppercase tracking-wider">Primary Care Linkage</span>
-          </div>
-          <p className="text-xs text-slate-600">
-            Nearest 24x7 Delivery Point: <strong>Pethapur PHC (3.2 km)</strong>. 108 Emergency Ambulance active on cluster line.
-          </p>
-          <Link to="/asha/facilities" className="text-[11px] font-bold text-amber-800 hover:text-amber-950 inline-flex items-center gap-1">
-            <span>Open Facility Directory</span>
-            <ChevronRight className="h-3 w-3" />
-          </Link>
-        </Card>
+        </div>
       </div>
     </div>
   );
