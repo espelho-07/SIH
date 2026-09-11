@@ -131,9 +131,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-teal-600 bg-teal-50',
           },
           {
-            to: '/asha/visits',
-            label: 'Home Visits',
-            icon: Home,
+            to: '/asha/checkups',
+            label: "Today's Checkup",
+            icon: CalendarCheck2,
             color: 'text-blue-600 bg-blue-50',
           },
           {

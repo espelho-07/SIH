@@ -22,7 +22,16 @@ import {
   CheckCircle2,
   Plus,
   Trash2,
+  Calendar,
+  Clock,
+  Home,
+  ShieldAlert,
+  AlertCircle,
+  Activity,
+  Check,
+  UserCheck,
 } from 'lucide-react';
+import { createDoctorPrescribedVisit, calculateTargetDate } from '@/lib/ashaVisitStore';
 
 export const PatientClinicalWorkspace: React.FC = () => {
   const patient = INITIAL_HEALTH_RECORD;
@@ -83,7 +92,47 @@ export const PatientClinicalWorkspace: React.FC = () => {
     setMeds(meds.filter((_, i) => i !== index));
   };
 
+  // ASHA Community Follow-Up Prescription State
+  const [prescribeAshaVisit, setPrescribeAshaVisit] = useState(true);
+  const [ashaPrescribedDays, setAshaPrescribedDays] = useState(3);
+  const [ashaInstructions, setAshaInstructions] = useState(
+    'Check resting BP and pulse. Verify morning Aspirin 75mg and Sorbitrate SOS adherence. Alert PHC if chest tightness recurs or systolic > 145.'
+  );
+  const [ashaSelectedChecks, setAshaSelectedChecks] = useState<string[]>([
+    'Blood Pressure',
+    'Pulse Rate',
+    'Medication Compliance',
+  ]);
+  const [ashaPriority, setAshaPriority] = useState<'ROUTINE' | 'PRIORITY' | 'URGENT'>('PRIORITY');
+  const [visitPrescribedSuccess, setVisitPrescribedSuccess] = useState(false);
+
+  const toggleCheck = (check: string) => {
+    if (ashaSelectedChecks.includes(check)) {
+      setAshaSelectedChecks(ashaSelectedChecks.filter((c) => c !== check));
+    } else {
+      setAshaSelectedChecks([...ashaSelectedChecks, check]);
+    }
+  };
+
   const handleCompleteEncounter = () => {
+    if (prescribeAshaVisit) {
+      createDoctorPrescribedVisit({
+        patientId: patient.patientId || 'usr_pat_01',
+        patientName: patient.name,
+        patientPhone: patient.phone,
+        village: 'Pethapur Ward 2',
+        address: 'Plot 14, Gayatri Society',
+        prescribedDays: ashaPrescribedDays,
+        doctorName: 'Dr. Rajesh Sharma',
+        doctorSpecialty: 'MD (Cardiology & Internal Medicine)',
+        doctorFacility: 'District Civil Hospital Gandhinagar',
+        doctorInstructions: ashaInstructions,
+        prescribedChecks: ashaSelectedChecks,
+        priority: ashaPriority,
+        purpose: `Doctor Prescribed: Follow-up for ${diagnosis || 'Angina Pectoris'}`,
+      });
+      setVisitPrescribedSuccess(true);
+    }
     setIsCompleted(true);
   };
 
@@ -628,6 +677,156 @@ export const PatientClinicalWorkspace: React.FC = () => {
 
               </div>
 
+              {/* ================================================== */}
+              {/* PRESCRIBE ASHA HOME VISIT */}
+              {/* ================================================== */}
+              <div className="rounded-xl border border-teal-200 bg-teal-50/40 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-teal-100 text-teal-800">
+                      <Home className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-900">
+                        Prescribe ASHA Home Visit
+                      </h3>
+                      <p className="text-[10px] text-slate-500">
+                        Village frontline monitoring & clinical checkup order
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={prescribeAshaVisit}
+                      onChange={(e) => setPrescribeAshaVisit(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-teal-700"></div>
+                  </label>
+                </div>
+
+                {prescribeAshaVisit && (
+                  <div className="space-y-3 pt-1 text-xs">
+                    {/* Prescribed Interval / Days */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-bold text-slate-700">
+                          Visit Interval (Kitne Din Baad):
+                        </span>
+                        <span className="text-[10px] font-bold text-teal-800 bg-teal-100 px-2 py-0.5 rounded-full">
+                          Due Date: {calculateTargetDate('2026-03-11', ashaPrescribedDays)} (In {ashaPrescribedDays} Days)
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                        {[1, 2, 3, 5, 7, 14].map((days) => (
+                          <button
+                            key={days}
+                            type="button"
+                            onClick={() => setAshaPrescribedDays(days)}
+                            className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition-all cursor-pointer text-center ${
+                              ashaPrescribedDays === days
+                                ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:border-teal-400'
+                            }`}
+                          >
+                            In {days} {days === 1 ? 'Day' : 'Days'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Required Checks / Tests */}
+                    <div>
+                      <span className="text-[11px] font-bold text-slate-700 block mb-1.5">
+                        Required Clinical Checks:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          'Blood Pressure',
+                          'Pulse Rate',
+                          'Blood Sugar',
+                          'SpO2 Check',
+                          'Temperature',
+                          'Wound Dressing',
+                          'Medication Compliance',
+                          'Diet Advice',
+                        ].map((chk) => {
+                          const isSel = ashaSelectedChecks.includes(chk);
+                          return (
+                            <button
+                              key={chk}
+                              type="button"
+                              onClick={() => toggleCheck(chk)}
+                              className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                                isSel
+                                  ? 'bg-teal-100 text-teal-900 border-teal-300 font-bold'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {isSel ? '✓ ' : '+ '}
+                              {chk}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Doctor Clinical Instructions */}
+                    <div>
+                      <span className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Doctor Instructions for ASHA Worker:
+                      </span>
+                      <textarea
+                        rows={2}
+                        value={ashaInstructions}
+                        onChange={(e) => setAshaInstructions(e.target.value)}
+                        placeholder="e.g. Check resting BP, inspect foot wound, verify medicine compliance..."
+                        className="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                      />
+                    </div>
+
+                    {/* Urgency */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] font-bold text-slate-700">
+                        Priority Level:
+                      </span>
+                      <div className="flex gap-1.5">
+                        {(['ROUTINE', 'PRIORITY', 'URGENT'] as const).map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setAshaPriority(p)}
+                            className={`text-[10px] uppercase font-extrabold px-2 py-1 rounded-md border cursor-pointer ${
+                              ashaPriority === p
+                                ? p === 'URGENT'
+                                  ? 'bg-rose-600 text-white border-rose-600'
+                                  : p === 'PRIORITY'
+                                  ? 'bg-amber-500 text-white border-amber-500'
+                                  : 'bg-teal-700 text-white border-teal-700'
+                                : 'bg-white text-slate-500 border-slate-200'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {visitPrescribedSuccess && (
+                <div className="rounded-lg bg-teal-50 border border-teal-200 p-2.5 flex items-start gap-2 text-xs text-teal-900">
+                  <CheckCircle2 className="h-4 w-4 text-teal-700 shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="font-bold">ASHA Home Checkup Scheduled!</strong>
+                    <p className="text-[11px] text-teal-800">
+                      Order dispatched to village ASHA for visit in {ashaPrescribedDays} days ({calculateTargetDate('2026-03-11', ashaPrescribedDays)}).
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* ================================================== */}
               {/* BUTTONS */}

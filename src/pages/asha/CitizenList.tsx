@@ -223,9 +223,9 @@ export const CitizenList: React.FC = () => {
                 </a>
 
                 <div className="flex gap-1.5 flex-1">
-                  <Link to="/asha/visits" className="flex-1">
+                  <Link to={`/asha/checkups?patientId=${patient.id}`} className="flex-1">
                     <Button variant="outline" size="sm" className="w-full text-xs min-h-[42px] px-2">
-                      Visit
+                      Checkup
                     </Button>
                   </Link>
                   <Link to={`/asha/vitals?patientId=${patient.id}`} className="flex-1">

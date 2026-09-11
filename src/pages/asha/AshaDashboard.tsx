@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConnection } from '@/contexts/ConnectionContext';
 import { Button } from '@/components/ui/Button';
-import { INITIAL_ASHA_PATIENTS, INITIAL_ASHA_VISITS } from '@/mock/mockData';
+import { INITIAL_ASHA_PATIENTS } from '@/mock/mockData';
+import { getStoredAshaVisits, subscribeToAshaVisits } from '@/lib/ashaVisitStore';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -26,9 +27,15 @@ export const AshaDashboard: React.FC = () => {
   const { pendingSyncCount, isOnline } = useConnection();
 
   const todayStr = '2026-03-11';
+  const [visits, setVisits] = useState<any[]>(() => getStoredAshaVisits());
+
+  useEffect(() => {
+    return subscribeToAshaVisits((updated) => setVisits(updated));
+  }, []);
+
   const todayVisits = useMemo(
-    () => INITIAL_ASHA_VISITS.filter((v) => v.visitDate === todayStr || v.status === 'IN_PROGRESS'),
-    []
+    () => visits.filter((v) => (v.visitDate === todayStr || v.status === 'IN_PROGRESS') && !v.isCompleted),
+    [visits]
   );
   const highRiskPatients = useMemo(
     () => INITIAL_ASHA_PATIENTS.filter((p) => p.isHighRisk),
@@ -94,16 +101,16 @@ export const AshaDashboard: React.FC = () => {
           2. TOP 4 ESSENTIAL FIELD KPIS
       ====================================================== */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Link to="/asha/visits">
+        <Link to="/asha/checkups">
           <div className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:shadow-xs transition-all cursor-pointer group">
             <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Today's Visits</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Today's Checkup</span>
               <Calendar className="h-4 w-4 text-teal-700 group-hover:scale-110 transition-transform" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
               {todayVisits.length}
             </div>
-            <p className="text-[11px] text-teal-700 font-medium mt-0.5">Home visits scheduled today</p>
+            <p className="text-[11px] text-teal-700 font-medium mt-0.5">Doctor-prescribed checkups due today</p>
           </div>
         </Link>
 
@@ -195,11 +202,11 @@ export const AshaDashboard: React.FC = () => {
           4. 4 DIRECT FIELD ACTION BUTTONS
       ====================================================== */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Link to="/asha/visits">
+        <Link to="/asha/checkups">
           <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-teal-500 hover:shadow-xs transition-all text-left group">
             <Calendar className="h-5 w-5 text-teal-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Home Visits</span>
-            <span className="text-[10px] text-slate-500">Daily plan & field rounds</span>
+            <span className="text-xs font-bold text-slate-900 block">Today's Checkup</span>
+            <span className="text-[10px] text-slate-500">Doctor orders & field checks</span>
           </div>
         </Link>
 
@@ -229,7 +236,7 @@ export const AshaDashboard: React.FC = () => {
       </div>
 
       {/* =====================================================
-          5. TODAY'S HOME VISITS QUEUE (PRIMARY WORKLIST)
+          5. TODAY'S CHECKUP QUEUE (DOCTOR PRESCRIBED)
       ====================================================== */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -237,15 +244,15 @@ export const AshaDashboard: React.FC = () => {
             <CheckCircle2 className="h-5 w-5 text-teal-700" />
             <div>
               <h2 className="text-sm sm:text-base font-bold text-slate-900">
-                Today's Home Visits ({todayVisits.length})
+                Today's Checkups ({todayVisits.length})
               </h2>
               <p className="text-xs text-slate-500">
-                Scheduled beneficiaries for home visits today in your ward.
+                Doctor-prescribed clinical checkups due today in your village ward.
               </p>
             </div>
           </div>
 
-          <Link to="/asha/visits" className="text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1">
+          <Link to="/asha/checkups" className="text-xs font-bold text-teal-700 hover:text-teal-900 inline-flex items-center gap-1">
             <span>View All</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -263,15 +270,28 @@ export const AshaDashboard: React.FC = () => {
                     {visit.patientName}
                   </span>
                   <span className="rounded-full bg-teal-50 border border-teal-200 px-2 py-0.5 text-[10px] font-bold text-teal-800">
-                    {visit.visitType?.replace(/_/g, ' ') || 'ANC'}
+                    {visit.visitType?.replace(/_/g, ' ') || 'CHECKUP'}
                   </span>
-                  <span className="text-xs text-slate-500">
-                    • {visit.timeSlot || 'Today'}
-                  </span>
+                  {visit.prescribedByDoctorName && (
+                    <span className="text-[10px] font-bold text-teal-900 bg-teal-100/70 border border-teal-200 px-2 py-0.5 rounded-full">
+                      Prescribed by {visit.prescribedByDoctorName}
+                    </span>
+                  )}
+                  {visit.prescribedDays && (
+                    <span className="text-[10px] font-bold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                      In {visit.prescribedDays} Days
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-slate-700 font-medium">
-                  {visit.purpose}
-                </p>
+                {visit.doctorInstructions ? (
+                  <p className="text-xs text-slate-800 font-medium">
+                    🩺 <em>{visit.doctorInstructions}</em>
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-700 font-medium">
+                    {visit.purpose}
+                  </p>
+                )}
                 <p className="text-[11px] text-slate-400 flex items-center gap-1">
                   <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
                   <span className="truncate">{visit.address || 'Pethapur Village'}</span>
@@ -288,14 +308,14 @@ export const AshaDashboard: React.FC = () => {
                     <Phone className="h-4 w-4 text-teal-700" />
                   </a>
                 )}
-                <Link to="/asha/vitals">
+                <Link to={`/asha/vitals?patientId=${visit.patientId}`}>
                   <Button variant="outline" size="sm" className="text-xs h-8 rounded-lg cursor-pointer">
-                    Vitals
+                    Vitals & Screen
                   </Button>
                 </Link>
-                <Link to="/asha/visits">
+                <Link to="/asha/checkups">
                   <Button size="sm" className="text-xs h-8 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-lg cursor-pointer">
-                    Open Visit
+                    Checkup Details
                   </Button>
                 </Link>
               </div>

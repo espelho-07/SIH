@@ -33,6 +33,7 @@ import { ScreeningWizard } from '@/pages/asha/ScreeningWizard';
 import { HighRiskPatients } from '@/pages/asha/HighRiskPatients';
 import { SyncCenter } from '@/pages/asha/SyncCenter';
 import { HomeVisitsPage } from '@/pages/asha/HomeVisitsPage';
+import { TodaysCheckupPage } from '@/pages/asha/TodaysCheckupPage';
 import { FollowUpsPage } from '@/pages/asha/FollowUpsPage';
 import { FrontlineReferralsPage } from '@/pages/asha/FrontlineReferralsPage';
 import { FrontlineFacilitiesPage } from '@/pages/asha/FrontlineFacilitiesPage';
@@ -331,11 +332,21 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/asha/checkups"
+        element={
+          <ProtectedRoute allowedRoles={['ASHA']}>
+            <AppShell>
+              <TodaysCheckupPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/asha/visits"
         element={
           <ProtectedRoute allowedRoles={['ASHA']}>
             <AppShell>
-              <HomeVisitsPage />
+              <TodaysCheckupPage />
             </AppShell>
           </ProtectedRoute>
         }

@@ -87,6 +87,15 @@ export interface AshaVisit {
   isCompleted: boolean;
   completedAt?: string;
   nextScheduledDate?: string;
+  // Doctor Prescription Metadata
+  prescribedByDoctorName?: string;
+  prescribedByDoctorSpecialty?: string;
+  prescribedByDoctorFacility?: string;
+  prescriptionDate?: string;
+  prescribedDays?: number; // Days interval after which ASHA must visit
+  doctorInstructions?: string; // Exact clinical advice from doctor
+  prescribedChecks?: string[]; // Specific tests e.g. ['Blood Pressure', 'Blood Sugar', 'Wound Check']
+  priority?: 'ROUTINE' | 'PRIORITY' | 'URGENT' | 'HIGH';
 }
 
 export interface FollowUpTask {
