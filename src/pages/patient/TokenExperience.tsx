@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/ui/Badge';
 import { useSocket } from '@/contexts/SocketContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
@@ -22,21 +20,15 @@ import {
   MapPin,
   QrCode,
   RefreshCw,
-  AlertCircle,
   History,
-  Sparkles,
   X,
-  ArrowRight,
   Stethoscope,
   FileText,
   Volume2,
   Calendar,
-  PhoneCall,
   Check,
-  ChevronRight,
   ChevronDown,
   ChevronUp,
-  UserCheck,
 } from 'lucide-react';
 
 interface PastToken {
@@ -155,143 +147,114 @@ export const TokenExperience: React.FC = () => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 600);
+    setTimeout(() => setIsRefreshing(false), 500);
   };
-
-  // Mock live upcoming queue sequence
-  const queueSequence = [
-    { number: 'A-033', status: 'SERVED', label: 'Completed' },
-    { number: 'A-034', status: 'SERVED', label: 'Completed' },
-    { number: INITIAL_LIVE_QUEUE.currentTokenNumber, status: 'NOW_SERVING', label: 'Inside OPD Room 4' },
-    { number: 'A-036', status: 'NEXT', label: 'Next Up (Door)' },
-    { number: 'A-037', status: 'WAITING', label: 'Corridor Waiting' },
-    { number: 'A-038', status: 'WAITING', label: 'Corridor Waiting' },
-    { number: 'A-039', status: 'WAITING', label: 'Corridor Waiting' },
-    { number: 'A-040', status: 'WAITING', label: 'Waiting' },
-    { number: 'A-041', status: 'WAITING', label: 'Waiting' },
-    { number: token.tokenNumber, status: 'YOUR_TOKEN', label: 'Your Active Token' },
-  ];
 
   const filteredPastTokens = activePastFilter === 'ALL'
     ? MOCK_PAST_TOKENS
     : MOCK_PAST_TOKENS.filter((t) => t.date.includes('Sep 2026'));
 
   return (
-    <div className="space-y-5 w-full font-sans">
+    <div className="space-y-4 w-full font-sans">
       {/* =====================================================
-          HEADER BAR (Full Width, No Restrictive Margins)
+          SIMPLE HEADER BAR
       ====================================================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-semibold text-slate-400">
-              Patient Portal /
-            </span>
-            <span className="text-xs font-bold text-teal-800">
-              OPD Queue & Tokens
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              Live Grid Active
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              My Token & Live Queue
+            </h1>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live
             </span>
           </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
-            My Token & Live Hospital Queue
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Real-time OPD counter status, patient queue monitor, and your digital token pass.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Real-time OPD queue status and your active token details
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="text-xs h-9 gap-1.5 rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 cursor-pointer"
+            className="text-xs h-8 gap-1 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-teal-600' : 'text-slate-400'}`} />
-            Refresh Queue
+            <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-teal-600' : 'text-slate-400'}`} />
+            Refresh
           </Button>
 
           <Button
             onClick={() => setShowNewTokenForm(!showNewTokenForm)}
-            className="text-xs h-9 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold cursor-pointer shadow-xs"
+            size="sm"
+            className="text-xs h-8 gap-1 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer shadow-xs"
           >
-            <PlusCircle className="h-4 w-4" />
-            + Get New Token
+            <PlusCircle className="h-3.5 w-3.5" />
+            New Token
           </Button>
         </div>
       </div>
 
       {/* =====================================================
-          NEW TOKEN FORM (Conditional Collapsible)
+          NEW TOKEN FORM (Collapsible)
       ====================================================== */}
       {showNewTokenForm && (
-        <div className="rounded-2xl border border-teal-300 bg-teal-50/70 p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-sm font-bold text-teal-950 flex items-center gap-1.5">
-                <Ticket className="h-4 w-4 text-teal-700" />
-                Generate New OPD Token
-              </h3>
-              <p className="text-xs text-teal-700 mt-0.5">
-                Issue a real-time digital token for active patient: <strong className="text-teal-950">{activeMember?.name || 'Rameshwar Sharma'} ({activeMember?.relation === 'SELF' ? 'Self' : activeMember?.relationLabel})</strong>
-              </p>
-            </div>
+        <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-4 shadow-xs animate-in fade-in duration-150">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h3 className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+              <Ticket className="h-3.5 w-3.5 text-teal-700" />
+              Issue New OPD Token for {activeMember?.name || 'Self'}
+            </h3>
             <button
               onClick={() => setShowNewTokenForm(false)}
-              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-teal-100/50 cursor-pointer"
+              className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <form onSubmit={handleGenerateToken} className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleGenerateToken} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Select Hospital / Health Centre
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Hospital
               </label>
               <select
                 value={facilityId}
                 onChange={(e) => setFacilityId(e.target.value)}
-                className="w-full text-xs font-semibold bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer"
+                className="w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-teal-600"
               >
-                <option value="fac_civil_01">Gandhinagar Civil Hospital (District Super-specialty)</option>
-                <option value="fac_mansa_02">Mansa Community Health Centre (CHC)</option>
-                <option value="fac_kalol_03">Kalol Sub-District Hospital</option>
-                <option value="fac_pet_04">Pethapur Primary Health Centre (PHC)</option>
+                <option value="fac_civil_01">Gandhinagar Civil Hospital</option>
+                <option value="fac_mansa_02">Mansa CHC</option>
+                <option value="fac_kalol_03">Kalol SDH</option>
+                <option value="fac_pet_04">Pethapur PHC</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Select OPD Department
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                Department
               </label>
               <select
                 value={dept}
                 onChange={(e) => setDept(e.target.value)}
-                className="w-full text-xs font-semibold bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-600 cursor-pointer"
+                className="w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-teal-600"
               >
-                <option value="dep_med">General Medicine OPD (Room 4)</option>
-                <option value="dep_card">Cardiology Super-Specialty (Room 8)</option>
-                <option value="dep_ortho">Orthopedics & Fracture Clinic (Room 11)</option>
-                <option value="dep_ped">Pediatrics & Child Health (Room 3)</option>
-                <option value="dep_gyn">Obstetrics & Gynecology (Room 6)</option>
+                <option value="dep_med">General Medicine (Room 4)</option>
+                <option value="dep_card">Cardiology (Room 8)</option>
+                <option value="dep_ortho">Orthopedics (Room 11)</option>
+                <option value="dep_ped">Pediatrics (Room 3)</option>
               </select>
             </div>
 
-            <div className="sm:col-span-2 flex justify-end gap-2.5 pt-2">
+            <div className="sm:col-span-2 flex justify-end gap-2 pt-1">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setShowNewTokenForm(false)}
-                className="text-xs rounded-xl"
+                className="text-xs h-7 rounded-lg"
               >
                 Cancel
               </Button>
@@ -299,9 +262,9 @@ export const TokenExperience: React.FC = () => {
                 type="submit"
                 size="sm"
                 isLoading={isGenerating}
-                className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl px-5"
+                className="bg-teal-700 hover:bg-teal-800 text-white text-xs h-7 rounded-lg px-3"
               >
-                Issue Digital Token
+                Generate Token
               </Button>
             </div>
           </form>
@@ -309,147 +272,120 @@ export const TokenExperience: React.FC = () => {
       )}
 
       {/* =====================================================
-          MAIN SPLIT LAYOUT:
-          - Column 1: LIVE TOKEN / LIVE QUEUE MONITOR (One Side)
-          - Column 2: CURRENT ACTIVE TOKEN (Top) & PAST TOKENS (Bottom)
+          MAIN 2-COLUMN SPLIT LAYOUT (Clean, Light Theme)
       ====================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
         {/* ===================================================
-            SIDE 1: LIVE TOKEN / LIVE QUEUE MONITOR (lg:col-span-5)
+            SIDE 1: LIVE QUEUE STATUS (Clean Light Card)
         ==================================================== */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="rounded-2xl border border-teal-700/30 bg-gradient-to-br from-teal-950 via-teal-900 to-slate-950 p-5 text-white shadow-md relative overflow-hidden">
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-
-            {/* Live Header */}
-            <div className="flex items-center justify-between border-b border-teal-800/80 pb-3">
+        <div className="lg:col-span-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
-                  Live OPD Counter Stream
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                  Live OPD Counter
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-teal-200 bg-teal-800/80 border border-teal-600/40 px-2 py-0.5 rounded-md">
-                COUNTER 4
+              <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
+                Room 4 Active
               </span>
             </div>
 
-            {/* Facility & Doctor Info */}
-            <div className="mt-3.5 space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-teal-200 font-medium">
-                <Building2 className="h-3.5 w-3.5 text-teal-400 shrink-0" />
+            {/* Hospital & Doctor Details */}
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span>{token.facilityName || 'Gandhinagar Civil Hospital'}</span>
               </div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Stethoscope className="h-4 w-4 text-emerald-400" />
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5">
+                <Stethoscope className="h-4 w-4 text-teal-700" />
                 General Medicine OPD
               </h2>
-              <p className="text-xs text-teal-300/80 font-mono">
+              <p className="text-xs text-slate-500">
                 Doctor: Dr. Arvind Patel (MD) • Room 4 (1st Floor)
               </p>
             </div>
 
-            {/* GIANT NOW SERVING DISPLAY */}
-            <div className="mt-5 rounded-2xl bg-teal-950/70 border border-teal-700/60 p-5 text-center shadow-inner relative">
-              <div className="text-[11px] font-extrabold uppercase tracking-widest text-teal-300">
-                ● NOW SERVING PATIENT ●
-              </div>
-              <div className="mt-1 text-5xl sm:text-6xl font-black tracking-tight text-emerald-400 font-mono">
+            {/* Simple Light "Now Serving" Card */}
+            <div className="rounded-xl bg-teal-50/70 border border-teal-200/80 p-4 text-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">
+                Now Calling at Counter
+              </span>
+              <div className="text-4xl sm:text-5xl font-extrabold text-teal-900 font-mono tracking-tight my-1">
                 {INITIAL_LIVE_QUEUE.currentTokenNumber}
               </div>
-              <div className="mt-2 text-xs text-teal-100 flex items-center justify-center gap-2">
-                <span>Patient: Govindbhai P.</span>
-                <span>•</span>
-                <span className="text-emerald-300 font-semibold">Inside Doctor Room</span>
-              </div>
-              <p className="text-[10px] text-teal-300/70 mt-1 font-mono">
-                Called 2 minutes ago • Est. duration ~6 mins
+              <p className="text-xs text-slate-600 font-medium">
+                Patient: Govindbhai P. • Inside Room
               </p>
             </div>
 
-            {/* Queue Velocity Metrics */}
-            <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="rounded-xl bg-teal-900/60 border border-teal-700/40 p-2.5">
-                <span className="text-[10px] text-teal-300 block font-medium">Total Waiting</span>
-                <span className="font-bold text-base text-white mt-0.5 block">{INITIAL_LIVE_QUEUE.totalWaiting}</span>
+            {/* 3 Simple Metrics */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                <span className="text-[10px] text-slate-400 block font-medium">Total Waiting</span>
+                <span className="font-bold text-sm text-slate-800 block mt-0.5">
+                  {INITIAL_LIVE_QUEUE.totalWaiting}
+                </span>
               </div>
-              <div className="rounded-xl bg-teal-900/60 border border-teal-700/40 p-2.5">
-                <span className="text-[10px] text-teal-300 block font-medium">Avg. Consult</span>
-                <span className="font-bold text-base text-amber-300 mt-0.5 block">6-8 min</span>
+              <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                <span className="text-[10px] text-slate-400 block font-medium">Avg. Consult</span>
+                <span className="font-bold text-sm text-amber-700 block mt-0.5">
+                  6-8 min
+                </span>
               </div>
-              <div className="rounded-xl bg-teal-900/60 border border-teal-700/40 p-2.5">
-                <span className="text-[10px] text-teal-300 block font-medium">Queue Pace</span>
-                <span className="font-bold text-base text-emerald-300 mt-0.5 block">On Time</span>
+              <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                <span className="text-[10px] text-slate-400 block font-medium">Queue Status</span>
+                <span className="font-bold text-sm text-emerald-700 block mt-0.5">
+                  On Time
+                </span>
               </div>
             </div>
 
-            {/* Live Queue Sequence Ticker */}
-            <div className="mt-4 rounded-xl bg-teal-950/40 border border-teal-800/60 p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">
-                  Live Queue Sequence
-                </span>
-                <span className="text-[10px] text-teal-400 font-mono">
-                  Your Token: {token.tokenNumber}
+            {/* Simple Clean Queue Progression Sequence */}
+            <div className="rounded-xl bg-slate-50/80 border border-slate-100 p-3 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
+                <span>Queue Flow</span>
+                <span>Your Token: <strong className="text-teal-800 font-mono">{token.tokenNumber}</strong></span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 text-xs">
+                <span className="font-mono font-bold text-slate-400 line-through">A-034</span>
+                <span className="text-[10px] text-slate-400">Consultation Done</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-900">
+                <span className="font-mono text-sm">{INITIAL_LIVE_QUEUE.currentTokenNumber}</span>
+                <span className="text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
+                  Now Inside Room 4
                 </span>
               </div>
 
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {queueSequence.map((item, idx) => {
-                  const isServing = item.status === 'NOW_SERVING';
-                  const isYours = item.status === 'YOUR_TOKEN';
-                  const isServed = item.status === 'SERVED';
-                  const isNext = item.status === 'NEXT';
+              <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 text-xs">
+                <span className="font-mono font-semibold text-slate-700">A-036</span>
+                <span className="text-[10px] text-slate-500">Next Up at Door</span>
+              </div>
 
-                  return (
-                    <div
-                      key={idx}
-                      className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-all ${
-                        isYours
-                          ? 'bg-amber-500/20 border border-amber-400/80 text-amber-200 font-bold'
-                          : isServing
-                          ? 'bg-emerald-500/20 border border-emerald-400/60 text-emerald-200 font-bold'
-                          : isNext
-                          ? 'bg-teal-800/80 border border-teal-600/50 text-white'
-                          : isServed
-                          ? 'bg-teal-950/50 text-teal-400/60 opacity-60'
-                          : 'bg-teal-900/40 text-teal-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-extrabold">{item.number}</span>
-                        {isYours && (
-                          <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded font-black uppercase">
-                            YOU
-                          </span>
-                        )}
-                        {isServing && (
-                          <span className="text-[9px] bg-emerald-400 text-slate-950 px-1.5 py-0.2 rounded font-black uppercase">
-                            NOW
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] font-medium opacity-90">{item.label}</span>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-between p-2 rounded-lg bg-teal-50 border border-teal-300 text-xs font-bold text-teal-900">
+                <span className="font-mono text-sm">{token.tokenNumber} (You)</span>
+                <span className="text-[10px] bg-teal-200 text-teal-800 px-1.5 py-0.2 rounded font-semibold">
+                  7 People Ahead
+                </span>
               </div>
             </div>
 
-            {/* Sound & Directions Actions */}
-            <div className="mt-4 pt-3 border-t border-teal-800 flex items-center gap-2">
+            {/* Simple Utilities */}
+            <div className="pt-2 flex gap-2">
               <Button
                 onClick={() => simulateCallToken(token)}
                 variant="outline"
                 size="sm"
-                className="flex-1 text-xs h-8 bg-teal-800/70 hover:bg-teal-700 border-teal-600 text-teal-100 font-bold rounded-xl cursor-pointer"
+                className="flex-1 text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-medium"
               >
-                <Volume2 className="h-3.5 w-3.5 mr-1 text-emerald-400" />
-                Test Voice Chime
+                <Volume2 className="h-3.5 w-3.5 mr-1 text-teal-600" />
+                Test Voice Alert
               </Button>
 
               <a
@@ -461,10 +397,10 @@ export const TokenExperience: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full text-xs h-8 bg-teal-800/70 hover:bg-teal-700 border-teal-600 text-teal-100 font-bold rounded-xl cursor-pointer"
+                  className="w-full text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-medium"
                 >
-                  <Navigation className="h-3.5 w-3.5 mr-1 text-teal-300" />
-                  OPD Floor Map
+                  <Navigation className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                  Room Map
                 </Button>
               </a>
             </div>
@@ -472,143 +408,121 @@ export const TokenExperience: React.FC = () => {
         </div>
 
         {/* ===================================================
-            SIDE 2: TOP = CURRENT ACTIVE TOKEN | BOTTOM = PAST TOKENS
-            (lg:col-span-7)
+            SIDE 2: TOP = ACTIVE TOKEN | BOTTOM = PAST TOKENS
         ==================================================== */}
-        <div className="lg:col-span-7 space-y-5">
+        <div className="lg:col-span-7 space-y-4">
 
           {/* -------------------------------------------------
               TOP: CURRENT ACTIVE TOKEN
           -------------------------------------------------- */}
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            {/* Active Token Top Ribbon */}
-            <div className="bg-teal-700 px-5 py-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-teal-600 border border-teal-500/50 flex items-center justify-center font-bold text-white shadow-xs">
-                  <Ticket className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-teal-200 uppercase tracking-wider">
-                      Your Current Active Token
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-800 border border-teal-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                      <Clock className="h-3 w-3 text-amber-400" />
-                      {token.status}
-                    </span>
-                  </div>
-                  <h3 className="text-base font-extrabold text-white mt-0.5">
-                    {activeMember?.name || token.patientName} ({activeMember?.relation === 'SELF' ? 'Self' : activeMember?.relationLabel || 'Self'})
-                  </h3>
-                </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Ticket className="h-4 w-4 text-teal-700" />
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                  Your Active Token
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.2 text-[10px] font-bold text-amber-800">
+                  <Clock className="h-3 w-3" />
+                  {token.status}
+                </span>
               </div>
 
-              <div className="text-left sm:text-right">
-                <span className="text-[10px] text-teal-200 block">ABHA ID Linked</span>
-                <span className="font-mono text-xs font-bold text-white">
-                  {activeMember?.abhaId || '14-8921-3409-7721'}
+              <span className="text-xs text-slate-500">
+                Patient: <strong className="text-slate-800">{activeMember?.name || token.patientName}</strong>
+              </span>
+            </div>
+
+            {/* Token Number & QR Action */}
+            <div className="flex items-center justify-between gap-4 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Token Number
+                </span>
+                <div className="text-4xl sm:text-5xl font-black text-teal-800 font-mono tracking-tight mt-0.5">
+                  {token.tokenNumber}
+                </div>
+                <span className="text-xs text-slate-500 mt-0.5 block">
+                  General Medicine • Room 4 (1st Floor)
+                </span>
+              </div>
+
+              <Button
+                onClick={() => setShowQrModal(true)}
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 text-xs rounded-xl border-slate-300 hover:bg-white text-slate-700 font-semibold cursor-pointer shadow-xs"
+              >
+                <QrCode className="h-4 w-4 mr-1.5 text-teal-700" />
+                Scan QR
+              </Button>
+            </div>
+
+            {/* 3 Metric Cards */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                <Users className="h-4 w-4 text-teal-600 mx-auto" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
+                  People Ahead
+                </span>
+                <span className="text-xl font-bold text-slate-900 mt-0.5 block">
+                  {token.positionInQueue || 7}
+                </span>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                <Clock className="h-4 w-4 text-amber-600 mx-auto" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
+                  Est. Wait
+                </span>
+                <span className="text-xl font-bold text-amber-700 mt-0.5 block">
+                  {token.estimatedWaitMinutes || 18} <span className="text-xs font-medium">min</span>
+                </span>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                <MapPin className="h-4 w-4 text-teal-700 mx-auto" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
+                  OPD Room
+                </span>
+                <span className="text-sm sm:text-base font-bold text-slate-900 mt-1 block">
+                  Room 4
                 </span>
               </div>
             </div>
 
-            {/* Token Body Content */}
-            <div className="p-5 space-y-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 rounded-2xl p-4 border border-slate-200/80">
-                <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                    Assigned Token No.
-                  </span>
-                  <div className="text-4xl sm:text-5xl font-black text-teal-800 tracking-tight font-mono mt-0.5">
-                    {token.tokenNumber}
-                  </div>
-                  <span className="text-xs text-slate-500 mt-1 block">
-                    Issued today at 09:40 AM • General Medicine
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 self-start sm:self-center">
-                  <Button
-                    onClick={() => setShowQrModal(true)}
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-3 text-xs rounded-xl border-slate-300 hover:bg-white text-slate-700 font-semibold cursor-pointer shadow-xs"
-                  >
-                    <QrCode className="h-4 w-4 mr-1.5 text-teal-700" />
-                    Scan at Counter
-                  </Button>
-                </div>
+            {/* Progress */}
+            <div className="rounded-xl bg-slate-50 p-3 border border-slate-100 space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-700">Queue Progress</span>
+                <span className="font-bold text-teal-700">65%</span>
               </div>
-
-              {/* 3 Metrics Box */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 text-center shadow-xs">
-                  <Users className="h-4 w-4 text-teal-600 mx-auto" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
-                    People Ahead
-                  </span>
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
-                    {token.positionInQueue || 7}
-                  </span>
-                </div>
-
-                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 text-center shadow-xs">
-                  <Clock className="h-4 w-4 text-amber-600 mx-auto" />
-                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block mt-1">
-                    Estimated Wait
-                  </span>
-                  <span className="text-xl sm:text-2xl font-black text-amber-900 mt-0.5 block">
-                    {token.estimatedWaitMinutes || 18}
-                    <span className="text-xs font-medium ml-1">min</span>
-                  </span>
-                </div>
-
-                <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-3.5 text-center shadow-xs">
-                  <MapPin className="h-4 w-4 text-teal-700 mx-auto" />
-                  <span className="text-[10px] font-bold text-teal-700 uppercase tracking-wider block mt-1">
-                    Consult Room
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-teal-950 mt-1 block">
-                    Room 4
-                  </span>
-                </div>
+              <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                <div className="h-full bg-teal-600 rounded-full w-[65%]" />
               </div>
-
-              {/* Progress Tracker */}
-              <div className="rounded-xl bg-slate-50 p-4 border border-slate-200/80 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-800">
-                    Queue Progression
-                  </span>
-                  <span className="font-bold text-teal-700">
-                    65% Processed
-                  </span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
-                  <div className="h-full bg-teal-600 rounded-full w-[65%]" />
-                </div>
-                <p className="text-[11px] text-slate-500">
-                  Doctor is currently examining Token <strong>{INITIAL_LIVE_QUEUE.currentTokenNumber}</strong>. Please report outside Room 4 when 2 patients remain ahead.
-                </p>
-              </div>
+              <p className="text-[11px] text-slate-500">
+                Please wait near Room 4 when 2 patients remain ahead.
+              </p>
             </div>
           </div>
 
           {/* -------------------------------------------------
               BOTTOM: PAST TOKENS / VISIT HISTORY (Collapsible)
           -------------------------------------------------- */}
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden transition-all">
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
             <button
               type="button"
               onClick={() => setShowPastTokens(!showPastTokens)}
               className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
             >
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
                   <History className="h-4 w-4 text-slate-600" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900">
                       Past Tokens & OPD History
                     </h3>
                     <span className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.2 rounded-full">
@@ -616,9 +530,7 @@ export const TokenExperience: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {showPastTokens
-                      ? 'Click to collapse previous consultations and dispensary history'
-                      : 'Click to view previous consultations and dispensary tokens'}
+                    Click to view previous consultations and dispensary tokens
                   </p>
                 </div>
               </div>
@@ -627,7 +539,7 @@ export const TokenExperience: React.FC = () => {
                 <span className="text-xs font-semibold text-teal-700 hidden sm:inline">
                   {showPastTokens ? 'Hide History' : 'View History'}
                 </span>
-                <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+                <div className="p-1 rounded-md bg-slate-100 text-slate-600">
                   {showPastTokens ? (
                     <ChevronUp className="h-4 w-4" />
                   ) : (
@@ -639,10 +551,10 @@ export const TokenExperience: React.FC = () => {
 
             {/* Collapsible Content */}
             {showPastTokens && (
-              <div className="px-5 pb-5 pt-1 space-y-4 border-t border-slate-100 animate-in fade-in duration-200">
+              <div className="px-4 pb-4 pt-1 space-y-3 border-t border-slate-100 animate-in fade-in duration-150">
                 <div className="flex items-center justify-between gap-2 pt-2">
-                  <span className="text-xs font-semibold text-slate-500">
-                    Filter by Period:
+                  <span className="text-xs font-medium text-slate-500">
+                    Filter:
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -671,21 +583,21 @@ export const TokenExperience: React.FC = () => {
                 </div>
 
                 {/* Past Tokens List */}
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {filteredPastTokens.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-teal-500 hover:shadow-xs transition-all p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
+                      className="rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-teal-500 hover:shadow-xs transition-all p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-black text-sm text-teal-900 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg">
+                          <span className="font-mono font-bold text-xs text-teal-900 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded">
                             {item.tokenNumber}
                           </span>
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.2 text-[10px] font-bold text-emerald-800">
-                            <Check className="h-3 w-3" /> {item.status}
+                            <Check className="h-2.5 w-2.5" /> {item.status}
                           </span>
-                          <span className="text-xs font-bold text-slate-800 truncate">
+                          <span className="text-xs font-semibold text-slate-800 truncate">
                             {item.departmentName}
                           </span>
                         </div>
@@ -694,15 +606,15 @@ export const TokenExperience: React.FC = () => {
                           {item.notes}
                         </p>
 
-                        <div className="flex items-center gap-3 text-[11px] text-slate-400 flex-wrap pt-0.5">
+                        <div className="flex items-center gap-2 text-[11px] text-slate-400 flex-wrap">
                           <span className="font-medium text-slate-600">
                             👤 {item.patientName} ({item.relation})
                           </span>
                           <span>•</span>
                           <span>{item.facilityName}</span>
                           <span>•</span>
-                          <span className="flex items-center gap-1 font-mono text-slate-500">
-                            <Calendar className="h-3 w-3" /> {item.date} at {item.time}
+                          <span className="font-mono text-slate-500">
+                            {item.date} at {item.time}
                           </span>
                         </div>
                       </div>
@@ -712,10 +624,10 @@ export const TokenExperience: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-xs h-7 px-2.5 rounded-lg border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                            className="text-xs h-7 px-2 rounded-lg border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
                           >
-                            <FileText className="h-3.5 w-3.5 mr-1 text-teal-700" />
-                            View Record
+                            <FileText className="h-3 w-3 mr-1 text-teal-700" />
+                            Record
                           </Button>
                         </Link>
                       </div>
@@ -724,14 +636,14 @@ export const TokenExperience: React.FC = () => {
                 </div>
 
                 {/* Bottom Collapse Button */}
-                <div className="text-center pt-2">
+                <div className="text-center pt-1">
                   <button
                     type="button"
                     onClick={() => setShowPastTokens(false)}
                     className="text-xs font-semibold text-slate-500 hover:text-slate-800 inline-flex items-center gap-1 py-1 px-3 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                   >
                     <ChevronUp className="h-3.5 w-3.5" />
-                    Close Past Tokens
+                    Close History
                   </button>
                 </div>
               </div>
@@ -746,8 +658,8 @@ export const TokenExperience: React.FC = () => {
       ====================================================== */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-100">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 text-center space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Hospital OPD QR Check-in
               </span>
@@ -763,7 +675,7 @@ export const TokenExperience: React.FC = () => {
               <span className="text-xs font-bold text-teal-800">
                 TOKEN {token.tokenNumber}
               </span>
-              <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+              <h3 className="text-base font-bold text-slate-900 mt-0.5">
                 {activeMember?.name || token.patientName}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -771,8 +683,8 @@ export const TokenExperience: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-4 bg-slate-900 rounded-2xl inline-block shadow-inner">
-              <QrCode className="h-36 w-36 text-white" />
+            <div className="p-3 bg-slate-900 rounded-xl inline-block shadow-inner">
+              <QrCode className="h-32 w-32 text-white" />
             </div>
 
             <p className="text-[11px] text-slate-400 font-mono">
