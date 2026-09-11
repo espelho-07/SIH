@@ -1,0 +1,57 @@
+export type UserRole =
+  | 'PATIENT'
+  | 'ASHA'
+  | 'DOCTOR'
+  | 'FACILITY_STAFF'
+  | 'DISTRICT_ADMIN'
+  | 'SUPER_ADMIN';
+
+export type StaffSubType =
+  | 'REGISTRATION_CLERK'
+  | 'PHARMACIST'
+  | 'LAB_TECHNICIAN'
+  | 'FACILITY_OPERATIONS';
+
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  phone: string;
+  role: UserRole;
+  staffSubType?: StaffSubType;
+  facilityId?: string;
+  facilityName?: string;
+  district?: string;
+  avatar?: string;
+  abhaId?: string;
+  gender?: 'M' | 'F' | 'Other';
+  age?: number;
+  permissions?: string[];
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+export interface AuthResponse {
+  user: User;
+  tokens: AuthTokens;
+}
+
+export interface LoginCredentials {
+  identifier: string; // phone or email/username
+  password?: string;
+  role?: UserRole;
+  staffSubType?: StaffSubType;
+}
+
+export interface SendOtpRequest {
+  phone: string;
+}
+
+export interface VerifyOtpRequest {
+  phone: string;
+  otp: string;
+}
