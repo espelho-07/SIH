@@ -4,7 +4,6 @@ import { useConnection } from '@/contexts/ConnectionContext';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import {
   LayoutDashboard,
   Building2,
@@ -574,15 +573,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <p className="mt-1 text-[10px] text-amber-700">
               Data will sync when internet is available.
             </p>
-          </div>
-        )}
-
-        {/* ---------------------------------------------
-            PATIENT FAMILY SWITCHER WIDGET
-        --------------------------------------------- */}
-        {role === 'PATIENT' && (
-          <div className="px-3 pt-3 pb-1 border-b border-slate-100">
-            <FamilyMemberSwitcher variant="sidebar" />
           </div>
         )}
 

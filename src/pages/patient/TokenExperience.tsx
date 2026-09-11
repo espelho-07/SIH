@@ -156,7 +156,7 @@ export const TokenExperience: React.FC = () => {
     : MOCK_PAST_TOKENS.filter((t) => t.date.includes('Sep 2026'));
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 font-sans w-full">
+    <div className="w-full space-y-5 font-sans">
       {/* =====================================================
           SLEEK COMPACT TOP STATUS BAR
       ====================================================== */}
@@ -282,139 +282,182 @@ export const TokenExperience: React.FC = () => {
       {/* =====================================================
           MAIN LIVE QUEUE & ACTIVE TOKEN DISPLAY CARD
       ====================================================== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
               Live OPD Counter
             </span>
           </div>
-          <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
+          <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-md">
             Room 4 Active
           </span>
         </div>
 
-        {/* Hospital & Doctor Details */}
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-            <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-            <span>{token.facilityName || 'Gandhinagar Civil Hospital'}</span>
-          </div>
-          <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5">
-            <Stethoscope className="h-4 w-4 text-teal-700" />
-            General Medicine OPD
-          </h2>
-          <p className="text-xs text-slate-500">
-            Doctor: Dr. Arvind Patel (MD) • Room 4 (1st Floor)
-          </p>
-        </div>
+        {/* Responsive 2-Column Split */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Calling Counter & Quick Actions */}
+          <div className="lg:col-span-6 space-y-4">
+            {/* Hospital & Doctor Details */}
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span>{token.facilityName || 'Gandhinagar Civil Hospital'}</span>
+              </div>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                <Stethoscope className="h-4 w-4 text-teal-700" />
+                General Medicine OPD
+              </h2>
+              <p className="text-xs text-slate-500">
+                Doctor: Dr. Arvind Patel (MD) • Room 4 (1st Floor)
+              </p>
+            </div>
 
-        {/* Simple Light "Now Serving" Card */}
-        <div className="rounded-xl bg-teal-50/70 border border-teal-200/80 p-4 text-center">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">
-            Now Calling at Counter
-          </span>
-          <div className="text-4xl sm:text-5xl font-extrabold text-teal-900 font-mono tracking-tight my-1">
-            {INITIAL_LIVE_QUEUE.currentTokenNumber}
-          </div>
-          <p className="text-xs text-slate-600 font-medium">
-            Patient: Govindbhai P. • Inside Room
-          </p>
-        </div>
+            {/* Simple Light "Now Serving" Card */}
+            <div className="rounded-xl bg-teal-50/70 border border-teal-200/80 p-4 text-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">
+                Now Calling at Counter
+              </span>
+              <div className="text-4xl sm:text-5xl font-extrabold text-teal-900 font-mono tracking-tight my-1">
+                {INITIAL_LIVE_QUEUE.currentTokenNumber}
+              </div>
+              <p className="text-xs text-slate-600 font-medium">
+                Patient: Govindbhai P. • Inside Room
+              </p>
+            </div>
 
-        {/* 3 Simple Metrics */}
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
-            <span className="text-[10px] text-slate-400 block font-medium">Total Waiting</span>
-            <span className="font-bold text-sm text-slate-800 block mt-0.5">
-              {INITIAL_LIVE_QUEUE.totalWaiting}
-            </span>
-          </div>
-          <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
-            <span className="text-[10px] text-slate-400 block font-medium">Avg. Consult</span>
-            <span className="font-bold text-sm text-amber-700 block mt-0.5">
-              6-8 min
-            </span>
-          </div>
-          <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
-            <span className="text-[10px] text-slate-400 block font-medium">Queue Status</span>
-            <span className="font-bold text-sm text-emerald-700 block mt-0.5">
-              On Time
-            </span>
-          </div>
-        </div>
+            {/* 3 Simple Metrics */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                <span className="text-[10px] text-slate-400 block font-medium">Total Waiting</span>
+                <span className="font-bold text-sm text-slate-800 block mt-0.5">
+                  {INITIAL_LIVE_QUEUE.totalWaiting}
+                </span>
+              </div>
+              <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                <span className="text-[10px] text-slate-400 block font-medium">Avg. Consult</span>
+                <span className="font-bold text-sm text-amber-700 block mt-0.5">
+                  6-8 min
+                </span>
+              </div>
+              <div className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                <span className="text-[10px] text-slate-400 block font-medium">Queue Status</span>
+                <span className="font-bold text-sm text-emerald-700 block mt-0.5">
+                  On Time
+                </span>
+              </div>
+            </div>
 
-        {/* Simple Clean Queue Progression Sequence */}
-        <div className="rounded-xl bg-slate-50/80 border border-slate-100 p-3 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
-            <span>Queue Flow</span>
-            <span>Your Token: <strong className="text-teal-800 font-mono">{token.tokenNumber}</strong></span>
+            {/* Simple Utilities (Includes Scan QR, Voice Alert & Room Map) */}
+            <div className="pt-1 flex gap-2">
+              <Button
+                onClick={() => setShowQrModal(true)}
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-semibold"
+              >
+                <QrCode className="h-3.5 w-3.5 mr-1 text-teal-700" />
+                Scan QR
+              </Button>
+
+              <Button
+                onClick={() => simulateCallToken(token)}
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-medium"
+              >
+                <Volume2 className="h-3.5 w-3.5 mr-1 text-teal-600" />
+                Voice Alert
+              </Button>
+
+              <a
+                href="https://maps.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-medium"
+                >
+                  <Navigation className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                  Room Map
+                </Button>
+              </a>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 text-xs">
-            <span className="font-mono font-bold text-slate-400 line-through">A-034</span>
-            <span className="text-[10px] text-slate-400">Consultation Done</span>
+          {/* Right Column: Queue Flow Progression & Estimated Wait */}
+          <div className="lg:col-span-6 space-y-3">
+            {/* Active Token Pill Banner */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-teal-50 border border-teal-200">
+              <div className="flex items-center gap-2">
+                <Ticket className="h-4 w-4 text-teal-700 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-teal-950 block">
+                    Your Token: <span className="font-mono">{token.tokenNumber}</span>
+                  </span>
+                  <span className="text-[11px] text-teal-700">
+                    Patient: {activeMember?.name || 'Self'}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-extrabold text-teal-900 block">
+                  7 Ahead
+                </span>
+                <span className="text-[10px] text-teal-600">
+                  Est. ~35 min wait
+                </span>
+              </div>
+            </div>
+
+            {/* Simple Clean Queue Progression Sequence */}
+            <div className="rounded-xl bg-slate-50/80 border border-slate-100 p-3 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
+                <span>Live Queue Progression</span>
+                <span className="text-emerald-700 font-medium flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Sync
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 text-xs">
+                <span className="font-mono font-bold text-slate-400 line-through">A-034</span>
+                <span className="text-[10px] text-slate-400">Consultation Done</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-900">
+                <span className="font-mono text-sm">{INITIAL_LIVE_QUEUE.currentTokenNumber}</span>
+                <span className="text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
+                  Now Inside Room 4
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 text-xs">
+                <span className="font-mono font-semibold text-slate-700">A-036</span>
+                <span className="text-[10px] text-slate-500">Next Up at Door</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded-lg bg-teal-50 border border-teal-300 text-xs font-bold text-teal-900">
+                <span className="font-mono text-sm">{token.tokenNumber} ({activeMember?.name || 'You'})</span>
+                <span className="text-[10px] bg-teal-200 text-teal-800 px-1.5 py-0.2 rounded font-semibold">
+                  7 People Ahead
+                </span>
+              </div>
+            </div>
+
+            {/* Helpful Queue Alert */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-[11px] text-slate-600 flex items-start gap-2">
+              <Clock className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+              <span>
+                Please proceed near <strong>Room 4</strong> when 2 patients remain ahead. Announcements will broadcast over speakers and send SMS notifications.
+              </span>
+            </div>
           </div>
-
-          <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-900">
-            <span className="font-mono text-sm">{INITIAL_LIVE_QUEUE.currentTokenNumber}</span>
-            <span className="text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
-              Now Inside Room 4
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 text-xs">
-            <span className="font-mono font-semibold text-slate-700">A-036</span>
-            <span className="text-[10px] text-slate-500">Next Up at Door</span>
-          </div>
-
-          <div className="flex items-center justify-between p-2 rounded-lg bg-teal-50 border border-teal-300 text-xs font-bold text-teal-900">
-            <span className="font-mono text-sm">{token.tokenNumber} ({activeMember?.name || 'You'})</span>
-            <span className="text-[10px] bg-teal-200 text-teal-800 px-1.5 py-0.2 rounded font-semibold">
-              7 People Ahead
-            </span>
-          </div>
-        </div>
-
-        {/* Simple Utilities (Includes Scan QR, Voice Alert & Room Map) */}
-        <div className="pt-2 flex gap-2">
-          <Button
-            onClick={() => setShowQrModal(true)}
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-semibold"
-          >
-            <QrCode className="h-3.5 w-3.5 mr-1 text-teal-700" />
-            Scan QR
-          </Button>
-
-          <Button
-            onClick={() => simulateCallToken(token)}
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-medium"
-          >
-            <Volume2 className="h-3.5 w-3.5 mr-1 text-teal-600" />
-            Voice Alert
-          </Button>
-
-          <a
-            href="https://maps.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1"
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-xs h-8 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer font-medium"
-            >
-              <Navigation className="h-3.5 w-3.5 mr-1 text-slate-500" />
-              Room Map
-            </Button>
-          </a>
         </div>
       </div>
 
@@ -494,7 +537,7 @@ export const TokenExperience: React.FC = () => {
             </div>
 
             {/* Past Tokens List */}
-            <div className="space-y-2.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {filteredPastTokens.map((item) => (
                 <div
                   key={item.id}
