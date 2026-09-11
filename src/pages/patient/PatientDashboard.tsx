@@ -26,7 +26,7 @@ import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher'
 
 export const PatientDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { activeMember, members } = useFamily();
+  const { activeMember } = useFamily();
 
   const activeToken =
     INITIAL_LIVE_QUEUE.tokens.find(
@@ -351,44 +351,6 @@ export const PatientDashboard: React.FC = () => {
 
         </Card>
 
-      </div>
-
-
-      {/* ================================================== */}
-      {/* FAMILY HEALTHCARE & DECOUPLING PROMO BANNER */}
-      {/* ================================================== */}
-      <div className="rounded-2xl border border-violet-200 bg-gradient-to-r from-violet-50/80 via-white to-purple-50/80 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-xs">
-            <Users className="h-6 w-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-sm font-bold text-slate-900 sm:text-base">
-                Family Account: 1 Mobile Number • {members.length} Dependents
-              </h4>
-              <span className="rounded-full bg-violet-100 text-violet-800 border border-violet-200 px-2 py-0.5 text-[10px] font-bold">
-                ABDM Household System
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 mt-0.5 max-w-2xl leading-relaxed">
-              Managing appointments and records for all family dependents under primary mobile <span className="font-mono font-semibold text-slate-800">+91 98765 43210</span>. Dependents who get their own phone can be decoupled anytime with 1-click OTP verification.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Link to="/patient/profile">
-            <Button
-              size="sm"
-              className="bg-violet-700 hover:bg-violet-800 text-white text-xs font-bold rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-xs cursor-pointer"
-            >
-              <Users className="h-4 w-4" />
-              Manage Family & Health Cards
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
-        </div>
       </div>
 
 
