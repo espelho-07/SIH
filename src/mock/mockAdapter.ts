@@ -3,7 +3,7 @@ import { ApiResponse } from '@/types/api';
 import { User, UserRole, StaffSubType } from '@/types/auth';
 import { FacilityMatchRequest } from '@/types/facility';
 import { CreateReferralRequest } from '@/types/referral';
-import { AshaPatient, ScreeningSession } from '@/types/asha';
+import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
 
 // Intercepts mock requests and returns structured ApiResponse format
 export async function handleMockRequest(url: string, method: string = 'GET', data?: unknown): Promise<ApiResponse<unknown> | null> {
@@ -282,10 +282,84 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   if (cleanUrl.includes('/asha/visits')) {
+    if (method === 'POST') {
+      const newVisit: AshaVisit = {
+        ...((data || {}) as AshaVisit),
+        id: `vis_${Date.now()}`,
+        isCompleted: false,
+        status: 'SCHEDULED',
+      };
+      mockState.ashaVisits.unshift(newVisit);
+      return {
+        success: true,
+        message: 'Home field visit scheduled successfully',
+        data: newVisit,
+      };
+    }
+    if (method === 'PATCH' || method === 'PUT') {
+      const updateData = (data || {}) as Partial<AshaVisit> & { id: string };
+      const visitIndex = mockState.ashaVisits.findIndex((v) => v.id === updateData.id);
+      if (visitIndex >= 0) {
+        mockState.ashaVisits[visitIndex] = {
+          ...mockState.ashaVisits[visitIndex],
+          ...updateData,
+          completedAt: updateData.isCompleted ? new Date().toISOString() : mockState.ashaVisits[visitIndex].completedAt,
+        };
+        return {
+          success: true,
+          message: 'Home visit record updated',
+          data: mockState.ashaVisits[visitIndex],
+        };
+      }
+    }
     return {
       success: true,
       message: 'ASHA field visits retrieved',
       data: mockState.ashaVisits,
+    };
+  }
+
+  if (cleanUrl.includes('/asha/tasks') || cleanUrl.includes('/asha/follow-ups')) {
+    if (method === 'PATCH' || method === 'PUT') {
+      const updateData = (data || {}) as { id: string; isCompleted: boolean };
+      const taskIndex = mockState.ashaTasks.findIndex((t) => t.id === updateData.id);
+      if (taskIndex >= 0) {
+        mockState.ashaTasks[taskIndex].isCompleted = updateData.isCompleted;
+        mockState.ashaTasks[taskIndex].completedAt = updateData.isCompleted ? new Date().toISOString() : undefined;
+        return {
+          success: true,
+          message: 'Follow-up task updated',
+          data: mockState.ashaTasks[taskIndex],
+        };
+      }
+    }
+    return {
+      success: true,
+      message: 'Frontline follow-up tasks retrieved',
+      data: mockState.ashaTasks,
+    };
+  }
+
+  if (cleanUrl.includes('/asha/referrals')) {
+    if (method === 'POST') {
+      const newRef: FrontlineReferral = {
+        ...((data || {}) as FrontlineReferral),
+        id: `ref_fl_${Date.now()}`,
+        referralNumber: `REF-PET-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+        status: 'INITIATED',
+        createdAt: new Date().toISOString(),
+      };
+      mockState.frontlineReferrals.unshift(newRef);
+      return {
+        success: true,
+        message: 'Frontline referral dispatched to health facility',
+        data: newRef,
+      };
+    }
+    return {
+      success: true,
+      message: 'Frontline referrals retrieved',
+      data: mockState.frontlineReferrals,
     };
   }
 

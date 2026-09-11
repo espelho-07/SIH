@@ -34,6 +34,8 @@ import {
   ShieldCheck,
   Settings,
   Stethoscope,
+  Home,
+  ListTodo,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -70,16 +72,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       case 'ASHA':
         return [
-          { to: '/asha', label: t('nav.dashboard'), icon: LayoutDashboard },
-          { to: '/asha/patients', label: 'Assigned Citizens', icon: Users },
-          { to: '/asha/patients/new', label: 'Register Citizen', icon: UserPlus },
-          { to: '/asha/vitals', label: t('nav.vitals'), icon: Activity },
-          { to: '/asha/screening', label: t('nav.screening'), icon: ClipboardList },
-          { to: '/asha/high-risk', label: t('nav.highRisk'), icon: AlertOctagon },
+          // 1. Field Operations
+          { to: '/asha', label: "Today's Work Hub", icon: LayoutDashboard, section: 'Field Operations' },
+          { to: '/asha/visits', label: 'Home Visits', icon: Home, section: 'Field Operations' },
+          { to: '/asha/follow-ups', label: 'Action Tasks', icon: ListTodo, section: 'Field Operations' },
+
+          // 2. Care & Community
+          { to: '/asha/patients', label: 'Village Citizens', icon: Users, section: 'Care & Community' },
+          { to: '/asha/patients/new', label: 'New Registration', icon: UserPlus, section: 'Care & Community' },
+          { to: '/asha/vitals', label: 'Record Vitals', icon: Activity, section: 'Care & Community' },
+          { to: '/asha/screening', label: 'Health Screening', icon: ClipboardList, section: 'Care & Community' },
+          { to: '/asha/high-risk', label: 'Priority Register', icon: AlertOctagon, section: 'Care & Community' },
+
+          // 3. Facilities & Sync
+          { to: '/asha/referrals', label: 'Facility Referrals', icon: GitBranch, section: 'Facilities & Sync' },
+          { to: '/asha/facilities', label: 'Facilities & 108', icon: Building2, section: 'Facilities & Sync' },
           {
             to: '/asha/sync',
-            label: t('nav.sync'),
+            label: 'Offline & Sync',
             icon: RefreshCw,
+            section: 'Facilities & Sync',
             badge: pendingSyncCount > 0 ? pendingSyncCount : undefined,
           },
         ];

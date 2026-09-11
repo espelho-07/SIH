@@ -25,6 +25,10 @@ import { VitalsRecording } from '@/pages/asha/VitalsRecording';
 import { ScreeningWizard } from '@/pages/asha/ScreeningWizard';
 import { HighRiskPatients } from '@/pages/asha/HighRiskPatients';
 import { SyncCenter } from '@/pages/asha/SyncCenter';
+import { HomeVisitsPage } from '@/pages/asha/HomeVisitsPage';
+import { FollowUpsPage } from '@/pages/asha/FollowUpsPage';
+import { FrontlineReferralsPage } from '@/pages/asha/FrontlineReferralsPage';
+import { FrontlineFacilitiesPage } from '@/pages/asha/FrontlineFacilitiesPage';
 
 // Doctor Pages
 import { DoctorDashboard } from '@/pages/doctor/DoctorDashboard';
@@ -223,6 +227,46 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['ASHA']}>
             <AppShell>
               <SyncCenter />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/asha/visits"
+        element={
+          <ProtectedRoute allowedRoles={['ASHA']}>
+            <AppShell>
+              <HomeVisitsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/asha/follow-ups"
+        element={
+          <ProtectedRoute allowedRoles={['ASHA']}>
+            <AppShell>
+              <FollowUpsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/asha/referrals"
+        element={
+          <ProtectedRoute allowedRoles={['ASHA']}>
+            <AppShell>
+              <FrontlineReferralsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/asha/facilities"
+        element={
+          <ProtectedRoute allowedRoles={['ASHA']}>
+            <AppShell>
+              <FrontlineFacilitiesPage />
             </AppShell>
           </ProtectedRoute>
         }

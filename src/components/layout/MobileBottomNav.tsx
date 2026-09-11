@@ -13,6 +13,7 @@ import {
   RefreshCw,
   GitBranch,
   Shield,
+  Calendar,
 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
@@ -31,10 +32,10 @@ export const MobileBottomNav: React.FC = () => {
 
       case 'ASHA':
         return [
-          { to: '/asha', label: 'Home', icon: LayoutDashboard },
+          { to: '/asha', label: 'Today', icon: LayoutDashboard },
+          { to: '/asha/visits', label: 'Visits', icon: Calendar },
           { to: '/asha/patients', label: 'Citizens', icon: Users },
           { to: '/asha/vitals', label: 'Vitals', icon: Activity },
-          { to: '/asha/screening', label: 'Screening', icon: ClipboardList },
           { to: '/asha/sync', label: 'Sync', icon: RefreshCw },
         ];
 

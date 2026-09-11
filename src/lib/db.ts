@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { AshaPatient, ScreeningSession, OfflineSyncItem } from '@/types/asha';
+import { AshaPatient, AshaVisit, ScreeningSession, OfflineSyncItem } from '@/types/asha';
 import { Vitals } from '@/types/clinical';
 
 interface HealthConnectDB extends DBSchema {
@@ -7,6 +7,11 @@ interface HealthConnectDB extends DBSchema {
     key: string;
     value: AshaPatient;
     indexes: { 'by-village': string; 'by-high-risk': number };
+  };
+  visits: {
+    key: string;
+    value: AshaVisit;
+    indexes: { 'by-patient': string; 'by-date': string };
   };
   vitals: {
     key: string;
@@ -26,7 +31,7 @@ interface HealthConnectDB extends DBSchema {
 }
 
 const DB_NAME = 'healthconnect_offline_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<HealthConnectDB>> | null = null;
 
@@ -38,6 +43,12 @@ export function getDB(): Promise<IDBPDatabase<HealthConnectDB>> {
           const patientStore = db.createObjectStore('patients', { keyPath: 'id' });
           patientStore.createIndex('by-village', 'village');
           patientStore.createIndex('by-high-risk', 'isHighRisk');
+        }
+
+        if (!db.objectStoreNames.contains('visits')) {
+          const visitStore = db.createObjectStore('visits', { keyPath: 'id' });
+          visitStore.createIndex('by-patient', 'patientId');
+          visitStore.createIndex('by-date', 'visitDate');
         }
 
         if (!db.objectStoreNames.contains('vitals')) {
@@ -71,6 +82,19 @@ export async function saveOfflinePatient(patient: AshaPatient): Promise<void> {
 export async function getOfflinePatients(): Promise<AshaPatient[]> {
   const db = await getDB();
   return db.getAll('patients');
+}
+
+export async function saveOfflineVisit(visit: AshaVisit): Promise<void> {
+  const db = await getDB();
+  const id = visit.id || `local_vis_${Date.now()}`;
+  const record = { ...visit, id };
+  await db.put('visits', record);
+  await queueMutation('VISIT_NOTE', record as unknown as Record<string, unknown>);
+}
+
+export async function getOfflineVisits(): Promise<AshaVisit[]> {
+  const db = await getDB();
+  return db.getAll('visits');
 }
 
 export async function saveOfflineVitals(vitals: Vitals): Promise<void> {

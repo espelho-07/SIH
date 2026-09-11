@@ -13,6 +13,8 @@ import {
   INITIAL_EQUIPMENT,
   INITIAL_ASHA_PATIENTS,
   INITIAL_ASHA_VISITS,
+  INITIAL_ASHA_TASKS,
+  INITIAL_FRONTLINE_REFERRALS,
   INITIAL_AI_SUMMARY,
   INITIAL_SYSTEM_HEALTH,
   INITIAL_PERMISSION_MATRIX,
@@ -24,7 +26,7 @@ import { Token, LiveQueueState, Appointment } from '@/types/queue';
 import { Referral, CreateReferralRequest } from '@/types/referral';
 import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord } from '@/types/clinical';
 import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem } from '@/types/resources';
-import { AshaPatient, AshaVisit, ScreeningSession } from '@/types/asha';
+import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
 import { AiDemandIntelligenceSummary } from '@/types/ai';
 import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog } from '@/types/admin';
 import { User } from '@/types/auth';
@@ -46,6 +48,8 @@ class MockHealthcareState {
   equipment: EquipmentItem[] = JSON.parse(JSON.stringify(INITIAL_EQUIPMENT));
   ashaPatients: AshaPatient[] = JSON.parse(JSON.stringify(INITIAL_ASHA_PATIENTS));
   ashaVisits: AshaVisit[] = JSON.parse(JSON.stringify(INITIAL_ASHA_VISITS));
+  ashaTasks: FollowUpTask[] = JSON.parse(JSON.stringify(INITIAL_ASHA_TASKS));
+  frontlineReferrals: FrontlineReferral[] = JSON.parse(JSON.stringify(INITIAL_FRONTLINE_REFERRALS));
   screenings: ScreeningSession[] = [];
   aiSummary: AiDemandIntelligenceSummary = JSON.parse(JSON.stringify(INITIAL_AI_SUMMARY));
   systemHealth: SystemHealthOverview = JSON.parse(JSON.stringify(INITIAL_SYSTEM_HEALTH));
