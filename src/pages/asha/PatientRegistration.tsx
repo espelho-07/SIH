@@ -100,7 +100,7 @@ export const PatientRegistration: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 pb-12 w-full">
       <PageHeader
         title="Assisted Citizen Intake"
         subtitle="Progressive frontline mobile registration. Operates with 100% offline persistence using local device storage."
