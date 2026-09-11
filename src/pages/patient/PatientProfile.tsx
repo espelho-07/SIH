@@ -3,6 +3,7 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AddFamilyMemberModal } from '@/components/patient/AddFamilyMemberModal';
 import { AssignPhoneModal } from '@/components/patient/AssignPhoneModal';
+import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import { FamilyMember } from '@/types/family';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -355,7 +356,8 @@ export const PatientProfile: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <FamilyMemberSwitcher variant="compact" />
           <Button
             onClick={() => setIsAddModalOpen(true)}
             className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center gap-2 rounded-xl py-2 px-4 cursor-pointer transition-all"

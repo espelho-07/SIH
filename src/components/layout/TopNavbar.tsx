@@ -21,6 +21,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 
 export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?: boolean }> = ({
   onToggleSidebar,
@@ -106,6 +107,11 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
 
         {/* Right Controls: Status, Mobile Location, Language, Role Switcher, Emergency SOS, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Patient Direct Family Member Switcher (Anywhere in patient portal) */}
+          {role === 'PATIENT' && (
+            <FamilyMemberSwitcher variant="navbar" />
+          )}
+
           {/* Mobile Location Switcher Button */}
           <button
             type="button"
