@@ -1,214 +1,592 @@
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { BottomSheet } from '@/components/ui/BottomSheet';
-import { INITIAL_HEALTH_RECORD } from '@/mock/mockData';
 import {
-  Mic,
-  MicOff,
   Video,
   VideoOff,
-  MonitorUp,
+  Mic,
+  MicOff,
   PhoneOff,
-  Wifi,
-  FileText,
+  MonitorUp,
+  Clock3,
   User,
-  Activity,
-  CheckCircle2,
-  AlertCircle,
+  PhoneIncoming,
+  ShieldCheck,
+  CircleCheck,
+  X,
+  Stethoscope,
 } from 'lucide-react';
 
+type Patient = {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  reason: string;
+  status: 'CALLING' | 'WAITING' | 'COMPLETED';
+};
+
+const PATIENTS: Patient[] = [
+  {
+    id: 'p001',
+    name: 'Rameshwar Sharma',
+    age: 48,
+    gender: 'Male',
+    reason: 'General Consultation',
+    status: 'CALLING',
+  },
+  {
+    id: 'p002',
+    name: 'Priya Patel',
+    age: 35,
+    gender: 'Female',
+    reason: 'Follow-up Consultation',
+    status: 'WAITING',
+  },
+  {
+    id: 'p003',
+    name: 'Amit Shah',
+    age: 52,
+    gender: 'Male',
+    reason: 'Health Check-up',
+    status: 'WAITING',
+  },
+];
+
 export const TeleconsultationRoom: React.FC = () => {
-  const patient = INITIAL_HEALTH_RECORD;
+  const [incomingCall, setIncomingCall] = useState(true);
+  const [callAccepted, setCallAccepted] = useState(false);
+  const [callRejected, setCallRejected] = useState(false);
 
   const [micOn, setMicOn] = useState(true);
   const [cameraOn, setCameraOn] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
-  const [callEnded, setCallEnded] = useState(false);
-  const [notes, setNotes] = useState('Advised continuing Telmisartan 40mg. Follow-up ECG in 2 weeks.');
-  const [showMobileChart, setShowMobileChart] = useState(false);
+
+  const patient = PATIENTS[0];
+
+  const handleAccept = () => {
+    setIncomingCall(false);
+    setCallAccepted(true);
+    setCallRejected(false);
+  };
+
+  const handleReject = () => {
+    setIncomingCall(false);
+    setCallAccepted(false);
+    setCallRejected(true);
+  };
+
+  const handleBackToCalls = () => {
+    setIncomingCall(true);
+    setCallRejected(false);
+    setCallAccepted(false);
+  };
+
+  const handleEndCall = () => {
+    setCallAccepted(false);
+    setIncomingCall(false);
+    setCallRejected(true);
+  };
+
+  /* =========================================================
+     INCOMING CALL
+  ========================================================== */
+
+  if (incomingCall) {
+    return (
+      <div className="space-y-5">
+
+        <div className="[&_h1]:text-xl [&_h1]:sm:text-2xl [&_p]:text-xs [&_p]:sm:text-sm">
+          <PageHeader
+            title="Teleconsultation"
+            subtitle="Receive and manage online consultations from your patients."
+            breadcrumbs={[
+              { label: 'Doctor Dashboard', to: '/doctor' },
+              { label: 'Teleconsultation' },
+            ]}
+          />
+        </div>
+
+        {/* Incoming Call Card */}
+        <Card className="border-slate-200 bg-white shadow-sm">
+          <CardContent className="p-5 sm:p-6">
+
+            <div className="flex flex-col items-center text-center">
+
+              {/* Incoming Icon */}
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-teal-50">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-100">
+                  <PhoneIncoming className="h-7 w-7 text-teal-700" />
+                </div>
+
+                <span className="absolute right-1 top-1 h-4 w-4 rounded-full border-2 border-white bg-emerald-500" />
+              </div>
+
+              <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-teal-700">
+                Incoming Consultation
+              </p>
+
+              <h2 className="mt-1.5 text-xl font-bold text-slate-900">
+                {patient.name}
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                {patient.age}Y • {patient.gender}
+              </p>
+
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold text-slate-700">
+                  {patient.reason}
+                </p>
+
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Patient is requesting a video consultation
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="mt-6 flex w-full max-w-sm flex-col gap-2.5 sm:flex-row">
+
+                <Button
+                  onClick={handleReject}
+                  variant="outline"
+                  size="md"
+                  className="flex-1 gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+                >
+                  <X className="h-4 w-4" />
+                  Reject
+                </Button>
+
+                <Button
+                  onClick={handleAccept}
+                  variant="primary"
+                  size="md"
+                  className="flex-1 gap-2 bg-teal-700 text-white hover:bg-teal-800"
+                >
+                  <PhoneIncoming className="h-4 w-4" />
+                  Accept
+                </Button>
+
+              </div>
+
+            </div>
+
+          </CardContent>
+        </Card>
+
+        {/* My Teleconsultation Patients */}
+        <Card className="border-slate-200 bg-white shadow-sm">
+
+          <CardHeader className="px-4 pb-2 pt-4 sm:px-5">
+            <CardTitle className="text-base font-bold text-slate-900">
+              My Teleconsultation Patients
+            </CardTitle>
+
+            <p className="mt-0.5 text-xs text-slate-500">
+              Patients who can connect with you online
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-2.5 p-4 pt-2 sm:p-5">
+
+            {PATIENTS.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3.5 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+              >
+
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50">
+                    <User className="h-5 w-5 text-teal-700" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      {item.name}
+                    </p>
+
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      {item.age}Y • {item.gender}
+                    </p>
+
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      {item.reason}
+                    </p>
+                  </div>
+
+                </div>
+
+                <div className="flex items-center justify-between gap-3 sm:justify-end">
+
+                  {item.status === 'CALLING' && (
+                    <span className="flex items-center gap-1.5 text-[10px] font-semibold text-amber-600">
+                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                      Calling
+                    </span>
+                  )}
+
+                  {item.status === 'WAITING' && (
+                    <span className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+                      <span className="h-2 w-2 rounded-full bg-slate-400" />
+                      Waiting
+                    </span>
+                  )}
+
+                  {item.status === 'COMPLETED' && (
+                    <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600">
+                      <CircleCheck className="h-3.5 w-3.5" />
+                      Completed
+                    </span>
+                  )}
+
+                </div>
+
+              </div>
+            ))}
+
+          </CardContent>
+        </Card>
+
+        {/* Security Information */}
+        <div className="flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+
+          <p className="text-[10px] leading-relaxed text-slate-500">
+            Teleconsultations are securely managed. Patient information and
+            consultation records are maintained as part of the patient's
+            healthcare record.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  /* =========================================================
+     CALL REJECTED
+  ========================================================== */
+
+  if (callRejected) {
+    return (
+      <div className="space-y-5">
+
+        <div className="[&_h1]:text-xl [&_h1]:sm:text-2xl [&_p]:text-xs [&_p]:sm:text-sm">
+          <PageHeader
+            title="Teleconsultation"
+            subtitle="Manage your online patient consultations."
+            breadcrumbs={[
+              { label: 'Doctor Dashboard', to: '/doctor' },
+              { label: 'Teleconsultation' },
+            ]}
+          />
+        </div>
+
+        <Card className="border-slate-200 bg-white shadow-sm">
+          <CardContent className="flex flex-col items-center p-8 text-center sm:p-10">
+
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+              <PhoneOff className="h-7 w-7 text-slate-500" />
+            </div>
+
+            <h2 className="mt-4 text-base font-bold text-slate-900">
+              Consultation Ended
+            </h2>
+
+            <p className="mt-1.5 max-w-md text-xs leading-relaxed text-slate-500">
+              The patient consultation call has been declined or ended.
+            </p>
+
+            <Button
+              onClick={handleBackToCalls}
+              variant="primary"
+              size="md"
+              className="mt-5 bg-teal-700 text-white hover:bg-teal-800"
+            >
+              Back to Teleconsultations
+            </Button>
+
+          </CardContent>
+        </Card>
+
+      </div>
+    );
+  }
+
+  /* =========================================================
+     ACTIVE CONSULTATION
+  ========================================================== */
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="National Teleconsultation Suite (HealthConnect Grid)"
-        subtitle="Encrypted WebRTC consultation room with clinical EHR timeline and live prescription tools."
-        breadcrumbs={[{ label: 'Doctor Dashboard', to: '/doctor' }, { label: 'Teleconsultation' }]}
-        actions={
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-            <Wifi className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Connection: HD 1080p (Latency: 28ms)</span>
-          </div>
-        }
-      />
+    <div className="space-y-5">
 
-      {callEnded ? (
-        <Card className="p-8 text-center bg-white border-slate-200 space-y-4 max-w-lg mx-auto shadow-md">
-          <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-600">
-            <PhoneOff className="h-6 w-6" />
+      <div className="[&_h1]:text-xl [&_h1]:sm:text-2xl [&_p]:text-xs [&_p]:sm:text-sm">
+        <PageHeader
+          title="Teleconsultation"
+          subtitle="Conduct a secure online consultation with your patient."
+          breadcrumbs={[
+            { label: 'Doctor Dashboard', to: '/doctor' },
+            { label: 'Teleconsultation' },
+          ]}
+        />
+      </div>
+
+      {/* Patient Information */}
+      <Card className="border-slate-200 bg-white shadow-sm">
+
+        <CardContent className="p-4 sm:p-5">
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50">
+                <User className="h-5 w-5 text-teal-700" />
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  {patient.name}
+                </p>
+
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {patient.age}Y • {patient.gender} • {patient.reason}
+                </p>
+              </div>
+
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Consultation Active
+            </div>
+
           </div>
-          <h2 className="text-xl font-bold text-slate-900">Teleconsultation Concluded</h2>
-          <p className="text-xs text-slate-500">
-            Encounter duration: 12 mins 45 secs. Summary saved to citizen's longitudinal health record.
-          </p>
-          <div className="pt-2">
-            <Button onClick={() => setCallEnded(false)} variant="primary" className="bg-teal-700">
-              Re-enter Consultation Room
-            </Button>
+
+        </CardContent>
+
+      </Card>
+
+      {/* Video Area */}
+      <Card className="overflow-hidden border-slate-200 bg-white shadow-sm">
+
+        <div className="relative aspect-video min-h-[320px] bg-slate-900">
+
+          {/* Patient Video */}
+          <div className="flex h-full items-center justify-center">
+
+            {cameraOn ? (
+              <div className="text-center text-white">
+
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-800">
+                  <User className="h-9 w-9 text-slate-300" />
+                </div>
+
+                <p className="mt-3 text-sm font-semibold">
+                  {patient.name}
+                </p>
+
+                <p className="mt-1 text-[10px] text-slate-400">
+                  Patient video
+                </p>
+
+              </div>
+            ) : (
+              <div className="text-center text-slate-400">
+
+                <VideoOff className="mx-auto h-8 w-8" />
+
+                <p className="mt-2 text-xs">
+                  Patient video is off
+                </p>
+
+              </div>
+            )}
+
           </div>
+
+          {/* Doctor Self View */}
+          <div className="absolute right-3 top-3 w-32 overflow-hidden rounded-xl border border-white/10 bg-slate-900/90 p-2 shadow-lg sm:right-4 sm:top-4 sm:w-40">
+
+            <div className="flex aspect-video items-center justify-center rounded-lg bg-slate-800 text-white">
+
+              <div className="text-center">
+
+                <Stethoscope className="mx-auto h-5 w-5 text-teal-300" />
+
+                <p className="mt-1 text-[10px] font-semibold">
+                  Doctor
+                </p>
+
+              </div>
+
+            </div>
+
+            <p className="mt-1.5 text-center text-[9px] text-slate-400">
+              Your video
+            </p>
+
+          </div>
+
+          {/* Call Timer */}
+          <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-slate-950/75 px-2.5 py-1.5 text-[11px] text-white backdrop-blur-sm">
+
+            <Clock3 className="h-3.5 w-3.5 text-slate-300" />
+
+            <span>00:45</span>
+
+          </div>
+
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:gap-3">
+
+          {/* Microphone */}
+          <Button
+            onClick={() => setMicOn(!micOn)}
+            variant={micOn ? 'secondary' : 'destructive'}
+            size="icon"
+            className="h-11 w-11 rounded-full border-slate-200"
+            aria-label={micOn ? 'Mute microphone' : 'Unmute microphone'}
+          >
+            {micOn ? (
+              <Mic className="h-4 w-4" />
+            ) : (
+              <MicOff className="h-4 w-4" />
+            )}
+          </Button>
+
+          {/* Camera */}
+          <Button
+            onClick={() => setCameraOn(!cameraOn)}
+            variant={cameraOn ? 'secondary' : 'destructive'}
+            size="icon"
+            className="h-11 w-11 rounded-full border-slate-200"
+            aria-label={cameraOn ? 'Turn off camera' : 'Turn on camera'}
+          >
+            {cameraOn ? (
+              <Video className="h-4 w-4" />
+            ) : (
+              <VideoOff className="h-4 w-4" />
+            )}
+          </Button>
+
+          {/* Screen Share */}
+          <Button
+            onClick={() => setScreenSharing(!screenSharing)}
+            variant={screenSharing ? 'primary' : 'secondary'}
+            size="icon"
+            className="h-11 w-11 rounded-full border-slate-200"
+            aria-label="Share screen"
+          >
+            <MonitorUp className="h-4 w-4" />
+          </Button>
+
+          {/* End Call */}
+          <Button
+            onClick={handleEndCall}
+            variant="destructive"
+            size="icon"
+            className="h-11 w-11 rounded-full"
+            aria-label="End consultation"
+          >
+            <PhoneOff className="h-4 w-4" />
+          </Button>
+
+        </div>
+
+      </Card>
+
+      {/* Consultation Details */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+        <Card className="border-slate-200 bg-white shadow-sm">
+
+          <CardHeader className="px-4 pb-2 pt-4 sm:px-5">
+            <CardTitle className="text-sm font-bold text-slate-900">
+              Patient Information
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-3 p-4 pt-2 sm:p-5">
+
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="text-xs text-slate-500">
+                Patient
+              </span>
+
+              <span className="text-xs font-semibold text-slate-800">
+                {patient.name}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="text-xs text-slate-500">
+                Age
+              </span>
+
+              <span className="text-xs font-semibold text-slate-800">
+                {patient.age} Years
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="text-xs text-slate-500">
+                Gender
+              </span>
+
+              <span className="text-xs font-semibold text-slate-800">
+                {patient.gender}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-500">
+                Consultation
+              </span>
+
+              <span className="text-xs font-semibold text-teal-700">
+                {patient.reason}
+              </span>
+            </div>
+
+          </CardContent>
+
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          {/* Main Video Area (8 cols on desktop) */}
-          <div className="lg:col-span-8 space-y-3">
-            <div className="relative aspect-video w-full rounded-2xl bg-slate-950 overflow-hidden shadow-xl border border-slate-800 flex items-center justify-center">
-              {/* Simulated Patient Video Stream */}
-              {cameraOn ? (
-                <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-900 via-teal-950 to-slate-900">
-                  <div className="text-center space-y-2">
-                    <div className="h-24 w-24 rounded-full bg-teal-800 text-white flex items-center justify-center mx-auto text-2xl font-bold border-4 border-teal-500/50">
-                      RS
-                    </div>
-                    <p className="text-white font-bold text-sm">Rameshwar Sharma (Patient)</p>
-                    <p className="text-slate-400 text-xs">Pethapur PHC Tele-clinic Kiosk</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-slate-400 text-xs flex flex-col items-center gap-2">
-                  <VideoOff className="h-8 w-8 text-slate-500" />
-                  <span>Video Paused</span>
-                </div>
-              )}
 
-              {/* Doctor's Self-View PIP */}
-              <div className="absolute top-4 right-4 h-28 w-40 rounded-xl bg-slate-800 border-2 border-white/40 overflow-hidden shadow-lg flex items-center justify-center text-white text-xs">
-                <div className="text-center">
-                  <p className="font-semibold text-[11px]">Dr. Arvind Patel</p>
-                  <span className="text-[9px] text-teal-400">Self View (OPD 4)</span>
-                </div>
-              </div>
+        <Card className="border-slate-200 bg-white shadow-sm">
 
-              {/* Overlay Patient Name Tag */}
-              <div className="absolute bottom-4 left-4 rounded-lg bg-slate-900/80 backdrop-blur-xs px-3 py-1.5 text-xs text-white flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Rameshwar Sharma (48Y / M) • ABHA: 14-8921-3409</span>
-              </div>
+          <CardHeader className="px-4 pb-2 pt-4 sm:px-5">
+            <CardTitle className="text-sm font-bold text-slate-900">
+              Consultation Notes
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="p-4 pt-2 sm:p-5">
+
+           <textarea
+  placeholder="Add important observations and consultation notes here..."
+  className="min-h-[130px] w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
+  rows={5}
+/>
+
+            <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-500">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+              Notes are securely maintained in the patient's health record.
             </div>
 
-            {/* Video Control Bar */}
-            <div className="flex items-center justify-center gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-xs">
-              <Button
-                onClick={() => setMicOn(!micOn)}
-                variant={micOn ? 'secondary' : 'destructive'}
-                size="icon"
-                className="rounded-full min-h-[44px] min-w-[44px]"
-                aria-label={micOn ? 'Mute microphone' : 'Unmute microphone'}
-              >
-                {micOn ? <Mic className="h-5 w-5 text-slate-700" /> : <MicOff className="h-5 w-5" />}
-              </Button>
+          </CardContent>
 
-              <Button
-                onClick={() => setCameraOn(!cameraOn)}
-                variant={cameraOn ? 'secondary' : 'destructive'}
-                size="icon"
-                className="rounded-full min-h-[44px] min-w-[44px]"
-                aria-label={cameraOn ? 'Stop camera' : 'Start camera'}
-              >
-                {cameraOn ? <Video className="h-5 w-5 text-slate-700" /> : <VideoOff className="h-5 w-5" />}
-              </Button>
+        </Card>
 
-              <Button
-                onClick={() => setScreenSharing(!screenSharing)}
-                variant={screenSharing ? 'primary' : 'secondary'}
-                size="icon"
-                className="rounded-full min-h-[44px] min-w-[44px]"
-                aria-label="Toggle screen sharing"
-              >
-                <MonitorUp className="h-5 w-5" />
-              </Button>
+      </div>
 
-              <Button
-                onClick={() => setCallEnded(true)}
-                variant="destructive"
-                className="rounded-full px-5 min-h-[44px] gap-2 font-bold"
-              >
-                <PhoneOff className="h-4 w-4" />
-                <span>End Call</span>
-              </Button>
-
-              {/* Mobile chart button */}
-              <Button
-                onClick={() => setShowMobileChart(true)}
-                variant="outline"
-                size="sm"
-                className="md:hidden text-xs gap-1"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Chart</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Desktop Right Side: Integrated Clinical Notes & Vitals (4 cols) */}
-          <div className="hidden lg:block lg:col-span-4 space-y-4">
-            <Card className="border-slate-200 shadow-sm">
-              <CardContent className="p-4 space-y-3 text-xs">
-                <div className="flex items-center justify-between border-b pb-2">
-                  <span className="font-bold text-slate-900 uppercase text-[11px]">Patient EHR Summary</span>
-                  <span className="rounded bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800">
-                    B+ Blood
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-slate-400">Known Conditions:</span>
-                  <p className="font-semibold text-slate-800">{patient.chronicConditions?.join(', ')}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-slate-400">Recent Vitals:</span>
-                  <p className="font-bold text-slate-900">BP: 128/82 mmHg • Pulse: 74 bpm • Sugar: 148 mg/dL</p>
-                </div>
-
-                <div className="space-y-1 pt-2 border-t">
-                  <span className="font-bold text-slate-800 block uppercase text-[10px]">
-                    Live Teleconsultation Notes
-                  </span>
-                  <textarea
-                    rows={4}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs"
-                    placeholder="Document clinical diagnosis and treatment plan..."
-                  />
-                </div>
-
-                <Button variant="primary" size="sm" className="w-full bg-teal-700 text-xs">
-                  Save Notes to EHR
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Chart Bottom Sheet */}
-      <BottomSheet open={showMobileChart} onOpenChange={setShowMobileChart} title="Patient Clinical Chart">
-        <div className="space-y-3 text-xs">
-          <p className="font-bold text-slate-900">{patient.name} ({patient.age}Y / {patient.gender})</p>
-          <p className="text-slate-500">Conditions: {patient.chronicConditions?.join(', ')}</p>
-          <div className="pt-2">
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-lg border p-2 text-xs"
-              placeholder="Clinical notes..."
-            />
-          </div>
-        </div>
-      </BottomSheet>
     </div>
   );
 };
+
+export default TeleconsultationRoom;

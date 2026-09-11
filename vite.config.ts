@@ -21,7 +21,7 @@ export default defineConfig({
     port: 5173,
     host: true,
     watch: {
-      ignored: ['**/*.zip', '**/.git/**'],
+      ignored: ['**/*.zip', '**/.git/**', '**/temp_*/**', '**/temp*/**'],
     },
   },
 })

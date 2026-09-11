@@ -1,285 +1,495 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSocket } from '@/contexts/SocketContext';
-import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
-import { EmergencyButton } from '@/components/emergency/EmergencyButton';
 import { MapView } from '@/components/map/MapView';
-import { INITIAL_FACILITIES, INITIAL_LIVE_QUEUE, INITIAL_REFERRALS } from '@/mock/mockData';
+import {
+  INITIAL_FACILITIES,
+  INITIAL_LIVE_QUEUE,
+  INITIAL_REFERRALS,
+} from '@/mock/mockData';
 import { Link } from 'react-router-dom';
 import {
   Ticket,
-  Calendar,
   Building2,
   GitBranch,
-  FileText,
-  Clock,
   ArrowRight,
   MapPin,
-  BellRing,
-  Navigation,
-  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 
 export const PatientDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { simulateCallToken } = useSocket();
 
-  const activeToken = INITIAL_LIVE_QUEUE.tokens.find((t) => t.patientId === 'usr_pat_01') || INITIAL_LIVE_QUEUE.tokens[3];
+  const activeToken =
+    INITIAL_LIVE_QUEUE.tokens.find(
+      (t) => t.patientId === 'usr_pat_01'
+    ) || INITIAL_LIVE_QUEUE.tokens[3];
+
   const activeReferral = INITIAL_REFERRALS[0];
+
   const nearbyFacilities = INITIAL_FACILITIES.slice(0, 3);
 
   return (
-    <div className="space-y-6">
-      {/* Welcome & Quick Emergency Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-900 to-teal-800 text-white p-6 rounded-3xl shadow-sm">
+    <div className="space-y-7 font-sans">
+
+      {/* ================================================== */}
+      {/* WELCOME */}
+      {/* ================================================== */}
+
+      <div className="rounded-3xl bg-gradient-to-r from-teal-900 to-teal-800 px-6 py-6 text-white shadow-sm">
+
         <div className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wider text-teal-200">
-            Citizen Health Dashboard
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Good morning, {user?.name || 'Rameshwar Sharma'}
+
+          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+            Good morning, {user?.name || 'Rameshwar Sharma'} 👋
           </h1>
-          <p className="text-xs text-teal-100/90">
-            ABHA: <strong>{user?.abhaId || '14-8921-3409-7721'}</strong> • Primary Facility: Gandhinagar Civil Hospital
+
+          <p className="text-xs text-teal-100 sm:text-sm">
+            How can we help you today?
           </p>
+
         </div>
-        <div className="flex items-center gap-2">
-          <EmergencyButton />
-        </div>
+
       </div>
 
-      {/* Quick Action Buttons (6 Primary Patient Flows) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Link to="/patient/facilities">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group">
-            <Building2 className="h-5 w-5 text-teal-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Find Hospital</span>
-            <span className="text-[10px] text-slate-500">Beds & Doctors</span>
-          </Card>
-        </Link>
 
-        <Link to="/patient/tokens">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group">
-            <Ticket className="h-5 w-5 text-sky-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Live Token</span>
-            <span className="text-[10px] text-slate-500">Track Position</span>
-          </Card>
-        </Link>
+      {/* ================================================== */}
+      {/* TOKEN + REFERRAL */}
+      {/* ================================================== */}
 
-        <Link to="/patient/appointments">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group">
-            <Calendar className="h-5 w-5 text-indigo-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Book Slot</span>
-            <span className="text-[10px] text-slate-500">OPD & Teleconsult</span>
-          </Card>
-        </Link>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
 
-        <Link to="/patient/referrals">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group">
-            <GitBranch className="h-5 w-5 text-amber-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">My Referrals</span>
-            <span className="text-[10px] text-slate-500">SLA Tracking</span>
-          </Card>
-        </Link>
 
-        <Link to="/patient/records">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-md transition-all text-left group">
-            <FileText className="h-5 w-5 text-emerald-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Health Records</span>
-            <span className="text-[10px] text-slate-500">EHR & Prescriptions</span>
-          </Card>
-        </Link>
+        {/* ================================================== */}
+        {/* MY TOKEN */}
+        {/* ================================================== */}
 
-        <Link to="/patient/facilities">
-          <Card className="p-3.5 hover:border-red-400 hover:shadow-md transition-all text-left group bg-red-50/40">
-            <BellRing className="h-5 w-5 text-red-600 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-red-950 block">Emergency</span>
-            <span className="text-[10px] text-red-700">108 Hotlines</span>
-          </Card>
-        </Link>
-      </div>
+        <Card className="overflow-hidden border-teal-200 bg-white shadow-sm lg:col-span-3">
 
-      {/* Main Focus: Live Token Tracker & Referral Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Live Token Card with simulated call button */}
-        <Card className="lg:col-span-2 border-teal-200 bg-white shadow-sm overflow-hidden">
-          <div className="bg-teal-700 text-white p-4 flex items-center justify-between">
+          {/* Header */}
+
+          <div className="flex items-center justify-between bg-teal-700 px-5 py-3.5 text-white">
+
             <div className="flex items-center gap-2">
-              <Ticket className="h-5 w-5" />
-              <span className="font-bold text-sm">Active OPD Token Tracking</span>
+
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-600">
+
+                <Ticket className="h-4 w-4" />
+
+              </div>
+
+              <span className="text-sm font-semibold">
+                My Token
+              </span>
+
             </div>
-            <StatusBadge status="WAITING" className="bg-teal-800 text-white border-teal-600" />
+
+            <StatusBadge
+              status="WAITING"
+              className="border-teal-600 bg-teal-800 text-[10px] text-white"
+            />
+
           </div>
 
-          <CardContent className="p-6 space-y-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-              <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Your Token</span>
-                <p className="text-3xl sm:text-4xl font-black text-teal-800 mt-1">{activeToken.tokenNumber}</p>
-              </div>
 
-              <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Queue Position</span>
-                <p className="text-3xl sm:text-4xl font-black text-slate-900 mt-1">{activeToken.positionInQueue}</p>
-              </div>
+          <CardContent className="p-5">
 
-              <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Est. Wait Time</span>
-                <p className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">
-                  {activeToken.estimatedWaitMinutes} <span className="text-sm font-medium">mins</span>
+            {/* Main Token Information */}
+
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+
+
+              {/* Token */}
+
+              <div className="sm:min-w-[95px]">
+
+                <p className="text-[11px] font-medium text-slate-500">
+                  Your Token
                 </p>
+
+                <p className="mt-0.5 text-3xl font-bold tracking-tight text-teal-800">
+                  {activeToken.tokenNumber}
+                </p>
+
               </div>
 
-              <div>
-                <span className="text-[11px] font-bold uppercase text-slate-400">Current Calling</span>
-                <p className="text-3xl sm:text-4xl font-black text-slate-500 mt-1">
-                  {INITIAL_LIVE_QUEUE.currentTokenNumber}
-                </p>
+
+              {/* Information */}
+
+              <div className="grid flex-1 grid-cols-3 gap-3 border-t border-slate-100 pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+
+                <div>
+
+                  <p className="text-[10px] font-medium text-slate-400">
+                    Now Serving
+                  </p>
+
+                  <p className="mt-1 text-base font-semibold text-slate-900">
+                    {INITIAL_LIVE_QUEUE.currentTokenNumber}
+                  </p>
+
+                </div>
+
+
+                <div>
+
+                  <p className="text-[10px] font-medium text-slate-400">
+                    Before You
+                  </p>
+
+                  <p className="mt-1 text-base font-semibold text-slate-900">
+                    7
+                  </p>
+
+                </div>
+
+
+                <div>
+
+                  <p className="text-[10px] font-medium text-slate-400">
+                    Wait Time
+                  </p>
+
+                  <p className="mt-1 text-base font-semibold text-amber-600">
+                    {activeToken.estimatedWaitMinutes} min
+                  </p>
+
+                </div>
+
               </div>
+
             </div>
 
-            {/* Visual Queue Progress */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-semibold text-slate-600">
-                <span>Current: A-035 (Room 4)</span>
-                <span>You are 7 patients away</span>
-              </div>
-              <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full bg-teal-600 rounded-full w-[45%]" />
-              </div>
-            </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-600">
-              <div className="flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-teal-700" />
-                <span>
-                  <strong>{activeToken.facilityName}</strong> • {activeToken.departmentName}
+            {/* Progress */}
+
+            <div className="mt-5">
+
+              <div className="mb-2 flex items-center justify-between">
+
+                <span className="text-[10px] text-slate-400">
+                  Your turn is getting closer
                 </span>
+
+                <span className="text-[10px] font-medium text-teal-700">
+                  45%
+                </span>
+
               </div>
 
-              {/* Demo Button to test Calling Modal */}
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+
+                <div className="h-full w-[45%] rounded-full bg-teal-600" />
+
+              </div>
+
+            </div>
+
+
+            {/* Hospital */}
+
+            <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-4">
+
+              <Building2 className="h-3.5 w-3.5 text-teal-700" />
+
+              <span className="text-xs font-medium text-slate-600">
+                {activeToken.facilityName}
+              </span>
+
+            </div>
+
+          </CardContent>
+
+        </Card>
+
+
+        {/* ================================================== */}
+        {/* MY REFERRAL */}
+        {/* ================================================== */}
+
+        <Card className="border-slate-200 bg-white shadow-sm lg:col-span-2">
+
+          <CardContent className="p-5">
+
+            {/* Header */}
+
+            <div className="mb-4 flex items-center justify-between">
+
+              <div className="flex items-center gap-2">
+
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+
+                  <GitBranch className="h-4 w-4 text-amber-600" />
+
+                </div>
+
+                <div>
+
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    My Referral
+                  </h3>
+
+                  <p className="text-[10px] text-slate-400">
+                    Your referred visit
+                  </p>
+
+                </div>
+
+              </div>
+
+              <PriorityBadge
+                priority={activeReferral.priority}
+              />
+
+            </div>
+
+
+            {/* Referral Details */}
+<div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+
+  <div>
+
+    <p className="text-[10px] font-medium text-slate-400">
+      Hospital
+    </p>
+
+    <p className="mt-0.5 text-sm font-semibold text-slate-900">
+      {activeReferral.toFacilityName}
+    </p>
+
+  </div>
+
+
+  <div className="grid grid-cols-2 gap-4">
+
+    <div>
+
+      <p className="text-[10px] font-medium text-slate-400">
+        Doctor For
+      </p>
+
+      <p className="mt-0.5 text-xs font-medium text-slate-800">
+        {activeReferral.toSpecialty}
+      </p>
+
+    </div>
+
+
+    <div>
+
+      <p className="text-[10px] font-medium text-slate-400">
+        Visit Time
+      </p>
+
+      <p className="mt-0.5 text-xs font-medium text-teal-700">
+        {activeReferral.appointmentSlot || 'Not fixed yet'}
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+            {/* View Referral */}
+
+            <Link
+              to="/patient/referrals"
+              className="mt-4 block"
+            >
+
               <Button
-                onClick={() => simulateCallToken(activeToken)}
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs text-teal-800 border-teal-300 hover:bg-teal-50"
+                className="w-full gap-1.5 text-xs"
               >
-                <BellRing className="h-3.5 w-3.5" />
-                Simulate Doctor Calling You
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Active Referral Card */}
-        <Card className="border-slate-200 shadow-sm flex flex-col justify-between">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Referral</span>
-              <PriorityBadge priority={activeReferral.priority} />
-            </div>
-            <CardTitle className="text-base font-bold text-slate-900 mt-1">{activeReferral.referralCode}</CardTitle>
-          </CardHeader>
+                View Referral
 
-          <CardContent className="space-y-3 flex-1 text-xs">
-            <div className="rounded-xl bg-slate-50 p-3 space-y-1.5 border border-slate-100">
-              <p className="text-slate-500 font-medium">Referred For:</p>
-              <p className="font-semibold text-slate-900 text-sm">{activeReferral.toSpecialty}</p>
-              <p className="text-slate-600 line-clamp-2">{activeReferral.reasonForReferral}</p>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-slate-400">Destination:</span>
-              <p className="font-semibold text-slate-800">{activeReferral.toFacilityName}</p>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-slate-400">Confirmed Slot:</span>
-              <p className="font-semibold text-teal-700">{activeReferral.appointmentSlot || 'Pending scheduling'}</p>
-            </div>
-          </CardContent>
-
-          <div className="p-5 pt-0 border-t border-slate-100">
-            <Link to="/patient/referrals" className="w-full">
-              <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-                <span>View Closed-Loop Timeline</span>
                 <ArrowRight className="h-3.5 w-3.5" />
+
               </Button>
+
             </Link>
-          </div>
+
+          </CardContent>
+
         </Card>
+
       </div>
 
-      {/* Nearby Healthcare Facilities Map & List */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+
+      {/* ================================================== */}
+      {/* NEARBY HOSPITALS */}
+      {/* ================================================== */}
+
+      <section>
+
+        {/* Section Header */}
+
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Nearby Public Health Facilities</h2>
-            <p className="text-xs text-slate-500">Real-time bed availability & emergency status</p>
+
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+              Hospitals Near You
+            </h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Check hospital location and availability
+            </p>
+
           </div>
+
+
+          {/* Find Hospital */}
+
           <Link to="/patient/facilities">
-            <Button variant="outline" size="sm" className="text-xs gap-1">
-              <span>View All Facilities</span>
+
+            <Button
+              variant="primary"
+              size="sm"
+              className="w-full gap-1.5 bg-teal-700 text-xs hover:bg-teal-800 sm:w-auto"
+            >
+
+              <Building2 className="h-3.5 w-3.5" />
+
+              Find Hospital
+
               <ArrowRight className="h-3.5 w-3.5" />
+
             </Button>
+
           </Link>
+
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+
+        {/* Map + Hospital List */}
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+
+
+          {/* MAP */}
+
+          <div className="overflow-hidden rounded-2xl lg:col-span-2">
+
             <MapView facilities={INITIAL_FACILITIES} />
+
           </div>
+
+
+          {/* HOSPITALS */}
 
           <div className="space-y-3">
+
             {nearbyFacilities.map((facility) => (
-              <Card key={facility.id} className="p-4 hover:shadow-md transition-all space-y-2.5">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">{facility.name}</h3>
-                    <p className="text-xs text-slate-500">
-                      {facility.type.replace(/_/g, ' ')} • {facility.distanceKm} km away
-                    </p>
+
+              <Card
+                key={facility.id}
+                className="border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+              >
+
+                {/* Hospital Header */}
+
+                <div className="flex items-start justify-between gap-3">
+
+                  <div className="min-w-0">
+
+                    <h3 className="truncate text-sm font-semibold text-slate-900">
+                      {facility.name}
+                    </h3>
+
+                    <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
+
+                      <MapPin className="h-3 w-3" />
+
+                      {facility.distanceKm} km away
+
+                    </div>
+
                   </div>
+
+
                   {facility.isOpen ? (
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                      Open Now
+
+                    <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
+                      Open
                     </span>
+
                   ) : (
-                    <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500">
                       Closed
                     </span>
+
                   )}
+
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2 rounded-lg text-slate-600">
-                  <div>
-                    Avail. Beds: <strong>{facility.availableBeds} / {facility.totalBeds}</strong>
+
+                {/* Availability */}
+
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+
+                  <div className="flex items-center gap-1.5">
+
+                    <Building2 className="h-3.5 w-3.5 text-teal-700" />
+
+                    <span className="text-[11px] text-slate-600">
+                      <strong className="font-semibold text-slate-900">
+                        {facility.availableBeds}
+                      </strong>{' '}
+                      beds
+                    </span>
+
                   </div>
-                  <div className="text-red-700">
-                    ICU Beds: <strong>{facility.icuBedsAvailable} free</strong>
-                  </div>
+
+
+                  <span className="text-[11px] text-red-700">
+
+                    <strong className="font-semibold">
+                      {facility.icuBedsAvailable}
+                    </strong>{' '}
+                    ICU
+
+                  </span>
+
                 </div>
 
-                <div className="flex gap-2 pt-1">
-                  <Link to={`/patient/facilities/${facility.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full text-xs">
-                      View Details
-                    </Button>
-                  </Link>
-                  <Link to="/patient/tokens" className="flex-1">
-                    <Button variant="primary" size="sm" className="w-full text-xs bg-teal-700 hover:bg-teal-800">
-                      Get Token
-                    </Button>
-                  </Link>
-                </div>
+
+                {/* View Hospital */}
+
+                <Link
+                  to={`/patient/facilities/${facility.id}`}
+                  className="mt-3 block"
+                >
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full text-xs"
+                  >
+
+                    View Hospital
+
+                  </Button>
+
+                </Link>
+
               </Card>
+
             ))}
+
           </div>
+
         </div>
-      </div>
+
+      </section>
+
     </div>
   );
 };

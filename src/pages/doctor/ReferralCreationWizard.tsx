@@ -1,31 +1,109 @@
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import {
+  Card,
+  CardContent,
+} from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { PriorityBadge } from '@/components/ui/Badge';
 import { facilityApi } from '@/api/facilityApi';
 import { referralApi } from '@/api/referralApi';
 import { FacilityMatchResult } from '@/types/facility';
 import { ReferralPriority } from '@/types/referral';
-import { GitBranch, CheckCircle2, ArrowRight, ArrowLeft, Building2, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  GitBranch,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  Building2,
+  ShieldCheck,
+  Sparkles,
+  ChevronDown,
+} from 'lucide-react';
 
 export const ReferralCreationWizard: React.FC = () => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [reason, setReason] = useState('Uncontrolled nocturnal chest tightness and exercise-induced palpitations');
-  const [summary, setClinicalSummary] = useState('ECG reveals non-specific T-wave inversions in leads V4-V6. Requires 2D Echo.');
+
+  const [reason, setReason] = useState(
+    'Uncontrolled nocturnal chest tightness and exercise-induced palpitations'
+  );
+
+  const [summary, setClinicalSummary] = useState(
+    'ECG reveals non-specific T-wave inversions in leads V4-V6. Requires 2D Echo.'
+  );
+
   const [specialty, setSpecialty] = useState('Cardiology');
-  const [urgency, setUrgency] = useState<ReferralPriority>('URGENT');
+
+  const [urgency, setUrgency] =
+    useState<ReferralPriority>('URGENT');
+
   const [requiresIcu, setRequiresIcu] = useState(false);
 
-  const [matchedFacilities, setMatchedFacilities] = useState<FacilityMatchResult[]>([]);
-  const [selectedFacility, setSelectedFacility] = useState<FacilityMatchResult | null>(null);
+  const [matchedFacilities, setMatchedFacilities] =
+    useState<FacilityMatchResult[]>([]);
+
+  const [selectedFacility, setSelectedFacility] =
+    useState<FacilityMatchResult | null>(null);
+
   const [isMatching, setIsMatching] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [createdRefCode, setCreatedRefCode] = useState('');
 
+  // Dropdown states
+  const [departmentOpen, setDepartmentOpen] = useState(false);
+  const [priorityOpen, setPriorityOpen] = useState(false);
+
+  const departmentOptions = [
+    {
+      value: 'Cardiology',
+      label: 'Cardiology',
+    },
+    {
+      value: 'Neurology',
+      label: 'Neurology',
+    },
+    {
+      value: 'Orthopedics',
+      label: 'Orthopedics & Trauma',
+    },
+    {
+      value: 'Pediatrics',
+      label: 'Pediatrics & Neonatology',
+    },
+    {
+      value: 'Obstetrics & Gynecology',
+      label: 'Obstetrics & Gynecology',
+    },
+  ];
+
+  const priorityOptions = [
+    {
+      value: 'ROUTINE',
+      label: 'Normal',
+    },
+    {
+      value: 'URGENT',
+      label: 'Urgent',
+    },
+    {
+      value: 'EMERGENCY',
+      label: 'Emergency',
+    },
+  ];
+
+  const selectedDepartmentLabel =
+    departmentOptions.find(
+      (option) => option.value === specialty
+    )?.label || specialty;
+
+  const selectedPriorityLabel =
+    priorityOptions.find(
+      (option) => option.value === urgency
+    )?.label || 'Urgent';
+
   const handleMatchFacilities = async () => {
     setIsMatching(true);
+
     try {
       const res = await facilityApi.matchFacilities({
         patientId: 'usr_pat_01',
@@ -34,10 +112,13 @@ export const ReferralCreationWizard: React.FC = () => {
         urgency,
         requiresIcu,
       });
+
       setMatchedFacilities(res.data);
+
       if (res.data.length > 0) {
         setSelectedFacility(res.data[0]);
       }
+
       setStep(2);
     } finally {
       setIsMatching(false);
@@ -46,6 +127,7 @@ export const ReferralCreationWizard: React.FC = () => {
 
   const handleSubmitReferral = async () => {
     if (!selectedFacility) return;
+
     try {
       const res = await referralApi.create({
         patientId: 'usr_pat_01',
@@ -56,6 +138,7 @@ export const ReferralCreationWizard: React.FC = () => {
         priority: urgency,
         requiredIcu: requiresIcu,
       });
+
       setCreatedRefCode(res.data.referralCode);
       setIsSubmitted(true);
     } catch (e) {
@@ -64,280 +147,763 @@ export const ReferralCreationWizard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="w-full space-y-5">
+      <style>{`
+        .no-blue-focus:focus,
+        .no-blue-focus:focus-visible {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+
+        .input-hover-effect {
+          transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+        }
+
+        .input-hover-effect:hover {
+          border-color: #14b8a6 !important;
+          box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.18) !important;
+        }
+
+        .input-hover-effect:focus,
+        .input-hover-effect:focus-visible {
+          outline: none !important;
+          box-shadow: none !important;
+          border-color: #cbd5e1 !important;
+        }
+
+        .input-hover-effect:hover:focus,
+        .input-hover-effect:hover:focus-visible {
+          border-color: #14b8a6 !important;
+          box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.18) !important;
+        }
+      `}</style>
+
       <PageHeader
-        title="Smart Clinical Referral Wizard"
-        subtitle="Algorithmic multi-criteria facility matching powered by real-time specialist availability, vacant beds, and equipment."
-        breadcrumbs={[{ label: 'Doctor Dashboard', to: '/doctor' }, { label: 'Create Referral' }]}
+        title="Send Patient to Hospital"
+        subtitle="Choose the right hospital and send the patient details."
+        breadcrumbs={[
+          { label: 'Doctor Dashboard', to: '/doctor' },
+          { label: 'Send Patient' },
+        ]}
       />
 
       {isSubmitted ? (
-        <Card className="border-emerald-200 bg-white p-8 text-center space-y-4 shadow-lg">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900">Clinical Referral Dispatched!</h2>
-          <p className="text-sm text-slate-600">
-            Referral Code: <strong className="text-teal-800 text-base">{createdRefCode}</strong> has been transmitted
-            to the receiving tertiary hospital triage desk.
-          </p>
+        <Card className="border-emerald-200 bg-white shadow-sm">
+          <CardContent className="p-6 sm:p-8 text-center">
 
-          <div className="rounded-2xl bg-teal-50 border border-teal-200 p-4 max-w-md mx-auto text-left text-xs space-y-1.5">
-            <p className="font-bold text-teal-950">Destination: {selectedFacility?.facility.name}</p>
-            <p className="text-teal-800">Specialty Department: {specialty}</p>
-            <p className="text-teal-800">Suitability Match Score: {selectedFacility?.suitabilityScore}%</p>
-            <p className="text-teal-700">48-Hour SLA Tracking target initiated.</p>
-          </div>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <CheckCircle2 className="h-8 w-8" />
+            </div>
 
-          <div className="pt-4 flex justify-center">
-            <Button
-              onClick={() => {
-                setStep(1);
-                setIsSubmitted(false);
-              }}
-              variant="primary"
-              className="bg-teal-700 hover:bg-teal-800"
-            >
-              Create Another Referral
-            </Button>
-          </div>
+            <h2 className="mt-4 text-xl font-bold text-slate-900">
+              Patient Sent Successfully
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-600">
+              The referral has been sent to the selected hospital.
+            </p>
+
+            <div className="mt-5 rounded-xl bg-slate-50 border border-slate-200 p-4 max-w-md mx-auto">
+              <p className="text-xs text-slate-500">
+                Referral Number
+              </p>
+
+              <p className="mt-1 text-lg font-bold text-teal-700">
+                {createdRefCode}
+              </p>
+            </div>
+
+            <div className="mt-3 rounded-xl bg-teal-50 border border-teal-100 p-4 max-w-md mx-auto text-left">
+              <div className="flex items-start gap-3">
+
+                <Building2 className="h-5 w-5 text-teal-700 mt-0.5 shrink-0" />
+
+                <div>
+                  <p className="text-xs text-teal-700">
+                    Hospital
+                  </p>
+
+                  <p className="text-sm font-bold text-teal-950">
+                    {selectedFacility?.facility.name}
+                  </p>
+
+                  <p className="text-xs text-teal-700 mt-1">
+                    Department: {specialty}
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <Button
+                onClick={() => {
+                  setStep(1);
+                  setIsSubmitted(false);
+                }}
+                variant="primary"
+                className="bg-teal-700 hover:bg-teal-800"
+              >
+                Send Another Patient
+              </Button>
+            </div>
+
+          </CardContent>
         </Card>
       ) : (
-        <Card className="border-slate-200 bg-white shadow-md">
-          {/* Step Progress */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/70 text-xs">
-            <span className={`font-bold ${step === 1 ? 'text-teal-800' : 'text-slate-400'}`}>
-              1. Clinical Requirements
-            </span>
-            <ArrowRight className="h-4 w-4 text-slate-300" />
-            <span className={`font-bold ${step === 2 ? 'text-teal-800' : 'text-slate-400'}`}>
-              2. Algorithmic Matching
-            </span>
-            <ArrowRight className="h-4 w-4 text-slate-300" />
-            <span className={`font-bold ${step === 3 ? 'text-teal-800' : 'text-slate-400'}`}>
-              3. Review & Dispatch
-            </span>
+        <Card className="w-full overflow-visible border-slate-200 bg-white shadow-sm">
+
+          {/* Steps */}
+          <div className="border-b border-slate-200 bg-slate-50/60 px-5 sm:px-8 lg:px-10 py-4">
+            <div className="flex items-center justify-between">
+
+              {/* Step 1 */}
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                    step >= 1
+                      ? 'bg-teal-700 text-white'
+                      : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
+                  1
+                </div>
+
+                <span
+                  className={`hidden sm:block text-xs font-semibold ${
+                    step === 1
+                      ? 'text-teal-800'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  Patient Details
+                </span>
+              </div>
+
+              <div className="h-px flex-1 mx-4 bg-slate-200" />
+
+              {/* Step 2 */}
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                    step >= 2
+                      ? 'bg-teal-700 text-white'
+                      : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
+                  2
+                </div>
+
+                <span
+                  className={`hidden sm:block text-xs font-semibold ${
+                    step === 2
+                      ? 'text-teal-800'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  Choose Hospital
+                </span>
+              </div>
+
+              <div className="h-px flex-1 mx-4 bg-slate-200" />
+
+              {/* Step 3 */}
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                    step >= 3
+                      ? 'bg-teal-700 text-white'
+                      : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
+                  3
+                </div>
+
+                <span
+                  className={`hidden sm:block text-xs font-semibold ${
+                    step === 3
+                      ? 'text-teal-800'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  Check & Send
+                </span>
+              </div>
+
+            </div>
           </div>
 
-          <CardContent className="p-6 sm:p-8">
-            {/* STEP 1: Clinical Requirements */}
-            {step === 1 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5 text-left">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                      Required Specialty
-                    </label>
-                    <select
-                      value={specialty}
-                      onChange={(e) => setSpecialty(e.target.value)}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                    >
-                      <option value="Cardiology">Cardiology</option>
-                      <option value="Neurology">Neurology</option>
-                      <option value="Orthopedics">Orthopedics & Trauma</option>
-                      <option value="Pediatrics">Pediatrics & Neonatology</option>
-                      <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
-                    </select>
-                  </div>
+          <CardContent className="p-5 sm:p-8 lg:p-10">
 
-                  <div className="space-y-1.5 text-left">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                      Clinical Urgency Level
-                    </label>
-                    <select
-                      value={urgency}
-                      onChange={(e) => setUrgency(e.target.value as ReferralPriority)}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                    >
-                      <option value="ROUTINE">Routine (Elective review)</option>
-                      <option value="URGENT">Urgent (48-hour window)</option>
-                      <option value="EMERGENCY">Emergency (Immediate transfer)</option>
-                    </select>
-                  </div>
+            {/* ================= STEP 1 ================= */}
+            {step === 1 && (
+              <div className="space-y-6">
+
+                <div className="max-w-3xl">
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Patient Referral
+                  </h2>
+
+                  <p className="text-xs text-slate-500 mt-1">
+                    Tell us why the patient needs hospital care.
+                  </p>
                 </div>
 
-                <Input
-                  label="Primary Clinical Reason for Referral"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  required
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                <div className="space-y-1 text-left">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                    Clinical Summary & Diagnostic Findings
+                  {/* Department */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Department Needed
+                    </label>
+
+                    <div className="relative">
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDepartmentOpen(!departmentOpen);
+                          setPriorityOpen(false);
+                        }}
+                        className="no-blue-focus input-hover-effect relative flex min-h-[42px] w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                      >
+                        <span>
+                          {selectedDepartmentLabel}
+                        </span>
+
+                        <ChevronDown
+                          className={`h-4 w-4 text-slate-900 transition-transform ${
+                            departmentOpen
+                              ? 'rotate-180'
+                              : ''
+                          }`}
+                        />
+                      </button>
+
+                      {departmentOpen && (
+                        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-slate-300 bg-white shadow-lg">
+
+                          {departmentOptions.map((option) => {
+                            const isSelected =
+                              specialty === option.value;
+
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => {
+                                  setSpecialty(option.value);
+                                  setDepartmentOpen(false);
+                                }}
+                                className={`no-blue-focus w-full px-3 py-2.5 text-left text-sm outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 ${
+                                  isSelected
+                                    ? 'bg-teal-50 text-teal-800 font-semibold'
+                                    : 'bg-white text-slate-800 hover:bg-slate-50'
+                                }`}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                  {/* Priority */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Priority
+                    </label>
+
+                    <div className="relative">
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPriorityOpen(!priorityOpen);
+                          setDepartmentOpen(false);
+                        }}
+                        className="no-blue-focus input-hover-effect relative flex min-h-[42px] w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                      >
+                        <span>
+                          {selectedPriorityLabel}
+                        </span>
+
+                        <ChevronDown
+                          className={`h-4 w-4 text-slate-900 transition-transform ${
+                            priorityOpen
+                              ? 'rotate-180'
+                              : ''
+                          }`}
+                        />
+                      </button>
+
+                      {priorityOpen && (
+                        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-slate-300 bg-white shadow-lg">
+
+                          {priorityOptions.map((option) => {
+                            const isSelected =
+                              urgency === option.value;
+
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => {
+                                  setUrgency(
+                                    option.value as ReferralPriority
+                                  );
+                                  setPriorityOpen(false);
+                                }}
+                                className={`no-blue-focus w-full px-3 py-2.5 text-left text-sm outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 ${
+                                  isSelected
+                                    ? 'bg-teal-50 text-teal-800 font-semibold'
+                                    : 'bg-white text-slate-800 hover:bg-slate-50'
+                                }`}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Reason */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Why does the patient need to go?
                   </label>
+                  <input
+                    type="text"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    required
+                    className="no-blue-focus input-hover-effect w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+                    style={{ outline: 'none', boxShadow: 'none' }}
+                  />
+                </div>
+
+                {/* Patient Notes */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Patient Notes
+                  </label>
+
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={summary}
-                    onChange={(e) => setClinicalSummary(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 p-2.5 text-xs text-slate-900"
+                    onChange={(e) =>
+                      setClinicalSummary(e.target.value)
+                    }
+                    placeholder="Add important patient information..."
+                    className="no-blue-focus input-hover-effect w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+                    style={{ outline: 'none', boxShadow: 'none' }}
                     required
                   />
+
+                  <p className="text-[11px] text-slate-400">
+                    Add important findings, test results or other notes.
+                  </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="icuCheck"
-                    checked={requiresIcu}
-                    onChange={(e) => setRequiresIcu(e.target.checked)}
-                    className="h-4 w-4 rounded text-teal-700"
-                  />
-                  <label htmlFor="icuCheck" className="text-xs font-semibold text-slate-800 cursor-pointer">
-                    Requires Immediate ICU / High-Dependency Unit Bed Allocation
+                {/* ICU */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+                  <label className="flex items-start gap-3 cursor-pointer">
+
+                    <input
+                      type="checkbox"
+                      id="icuCheck"
+                      checked={requiresIcu}
+                      onChange={(e) =>
+                        setRequiresIcu(e.target.checked)
+                      }
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+                    />
+
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        ICU bed needed
+                      </p>
+
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Select this if the patient may need ICU care.
+                      </p>
+                    </div>
+
                   </label>
+
                 </div>
 
-                <div className="pt-4 flex justify-end">
+                {/* Find Hospitals */}
+                <div className="flex justify-end pt-2">
+
                   <Button
                     type="button"
                     onClick={handleMatchFacilities}
                     variant="primary"
                     size="lg"
-                    className="bg-teal-700 hover:bg-teal-800 gap-1.5 min-h-[44px]"
+                    className="no-blue-focus bg-teal-700 hover:bg-teal-800 gap-2 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
                     isLoading={isMatching}
                   >
                     <Sparkles className="h-4 w-4" />
-                    <span>Match & Rank Facilities</span>
+
+                    Find Hospitals
+
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
+
                 </div>
+
               </div>
             )}
 
-            {/* STEP 2: Algorithmic Multi-Criteria Facility Match Results */}
+            {/* ================= STEP 2 ================= */}
             {step === 2 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-base text-slate-900">
-                    Ranked Facilities ({matchedFacilities.length} Matches Found)
-                  </h3>
-                  <span className="text-xs text-slate-500">Ranked by Clinical Suitability Algorithm</span>
+              <div className="space-y-6">
+
+                <div className="max-w-3xl">
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Choose a Hospital
+                  </h2>
+
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select the hospital that is best for this patient.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-lg bg-teal-50 border border-teal-100 p-3">
+
+                  <ShieldCheck className="h-4 w-4 text-teal-700 shrink-0" />
+
+                  <p className="text-xs text-teal-800">
+                    Hospitals are shown based on department, priority,
+                    distance and available beds.
+                  </p>
+
                 </div>
 
                 <div className="space-y-3">
-                  {matchedFacilities.map((result) => {
-                    const isSelected = selectedFacility?.facility.id === result.facility.id;
-                    return (
-                      <div
-                        key={result.facility.id}
-                        onClick={() => setSelectedFacility(result)}
-                        className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-teal-600 bg-teal-50/50 shadow-md'
-                            : 'border-slate-200 bg-white hover:border-slate-300'
-                        }`}
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-sm text-slate-900">{result.facility.name}</h4>
-                              <span className="text-xs text-slate-500">
-                                ({result.distanceKm} km • ~{result.estimatedTransitTimeMins} mins transit)
-                              </span>
+
+                  {matchedFacilities.length === 0 ? (
+
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
+
+                      <Building2 className="h-8 w-8 mx-auto text-slate-400" />
+
+                      <p className="mt-2 text-sm font-semibold text-slate-700">
+                        No hospital found
+                      </p>
+
+                      <p className="text-xs text-slate-500 mt-1">
+                        Try changing the department or priority.
+                      </p>
+
+                    </div>
+
+                  ) : (
+
+                    matchedFacilities.map((result) => {
+
+                      const isSelected =
+                        selectedFacility?.facility.id ===
+                        result.facility.id;
+
+                      return (
+                        <button
+                          key={result.facility.id}
+                          type="button"
+                          onClick={() =>
+                            setSelectedFacility(result)
+                          }
+                          className={`no-blue-focus w-full text-left rounded-xl border-2 p-4 transition outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 ${
+                            isSelected
+                              ? 'border-teal-600 bg-teal-50'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                        >
+
+                          <div className="flex items-start gap-3">
+
+                            <div
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                                isSelected
+                                  ? 'bg-teal-100 text-teal-700'
+                                  : 'bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              <Building2 className="h-5 w-5" />
                             </div>
+
+                            <div className="flex-1 min-w-0">
+
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+
+                                <h3 className="text-sm font-bold text-slate-900">
+                                  {result.facility.name}
+                                </h3>
+
+                                <span className="text-xs font-bold text-teal-700">
+                                  {result.suitabilityScore}% match
+                                </span>
+
+                              </div>
+
+                              <p className="text-xs text-slate-500 mt-1">
+                                {result.distanceKm} km away • about{' '}
+                                {result.estimatedTransitTimeMins} mins
+                              </p>
+
+                              <div className="flex flex-wrap gap-2 mt-3">
+
+                                <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] text-slate-700">
+                                  Specialist:{' '}
+                                  <strong>
+                                    {result.specialistAvailability.replace(
+                                      /_/g,
+                                      ' '
+                                    )}
+                                  </strong>
+                                </span>
+
+                                <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] text-slate-700">
+                                  Beds:{' '}
+                                  <strong>
+                                    {result.facility.availableBeds}
+                                  </strong>
+                                </span>
+
+                                <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] text-slate-700">
+                                  ICU:{' '}
+                                  <strong>
+                                    {result.facility.icuBedsAvailable}
+                                  </strong>
+                                </span>
+
+                              </div>
+
+                              {isSelected && (
+                                <div className="flex items-center gap-1.5 mt-3 text-xs font-semibold text-teal-700">
+
+                                  <CheckCircle2 className="h-4 w-4" />
+
+                                  Hospital Selected
+
+                                </div>
+                              )}
+
+                            </div>
+
                           </div>
 
-                          {/* Suitability Score Pill */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-bold text-teal-800">Suitability Match:</span>
-                            <span className="rounded-full bg-teal-700 px-3 py-0.5 text-xs font-black text-white">
-                              {result.suitabilityScore}%
-                            </span>
-                          </div>
-                        </div>
+                        </button>
+                      );
+                    })
 
-                        {/* Match Criteria Points */}
-                        <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                          <div className="space-y-1">
-                            <span className="text-slate-500">Specialist Availability:</span>
-                            <span className="font-bold text-emerald-700 ml-1">
-                              ● {result.specialistAvailability.replace(/_/g, ' ')}
-                            </span>
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-slate-500">Bed Status:</span>
-                            <span className="font-bold text-slate-800 ml-1">
-                              {result.facility.availableBeds} General / {result.facility.icuBedsAvailable} ICU Free
-                            </span>
-                          </div>
-                        </div>
+                  )}
 
-                        <div className="mt-2 text-[11px] text-teal-900 bg-teal-100/60 p-2 rounded-lg">
-                          <strong>Match Rationale: </strong>
-                          {result.matchReasons.join('; ')}
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
 
-                <div className="pt-4 flex justify-between">
-                  <Button type="button" onClick={() => setStep(1)} variant="secondary">
-                    <ArrowLeft className="h-4 w-4 mr-1" /> Back
+                <div className="flex items-center justify-between pt-2">
+
+                  <Button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    variant="secondary"
+                    className="no-blue-focus gap-1.5 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
+                    style={{ outline: 'none', boxShadow: 'none' }}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
                   </Button>
+
                   <Button
                     type="button"
                     onClick={() => setStep(3)}
                     variant="primary"
                     disabled={!selectedFacility}
-                    className="bg-teal-700 hover:bg-teal-800 gap-1.5"
+                    className="no-blue-focus bg-teal-700 hover:bg-teal-800 gap-1.5 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
+                    style={{ outline: 'none', boxShadow: 'none' }}
                   >
-                    <span>Proceed to Review</span>
+                    Continue
                     <ArrowRight className="h-4 w-4" />
                   </Button>
+
                 </div>
+
               </div>
             )}
 
-            {/* STEP 3: Review & Dispatch */}
+            {/* ================= STEP 3 ================= */}
             {step === 3 && selectedFacility && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-base text-slate-900">Review Referral Dispatch</h3>
+              <div className="space-y-6">
 
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-xs">
-                  <div>
-                    <span className="text-slate-400 block font-semibold">Destination Facility:</span>
-                    <span className="font-bold text-slate-900 text-sm">{selectedFacility.facility.name}</span>
-                  </div>
+                <div className="max-w-3xl">
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Check Before Sending
+                  </h2>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <span className="text-slate-400 block font-semibold">Specialty:</span>
-                      <span className="font-bold text-slate-800">{specialty}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block font-semibold">Urgency / Priority:</span>
-                      <PriorityBadge priority={urgency} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-400 block font-semibold">Clinical Reason:</span>
-                    <p className="text-slate-700">{reason}</p>
-                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Please check the details before sending the referral.
+                  </p>
                 </div>
 
-                <div className="pt-4 flex justify-between">
-                  <Button type="button" onClick={() => setStep(2)} variant="secondary">
-                    <ArrowLeft className="h-4 w-4 mr-1" /> Back
+                {/* Hospital */}
+                <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
+
+                  <div className="flex items-start gap-3">
+
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 text-teal-700">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+
+                    <div>
+
+                      <p className="text-[11px] text-teal-700">
+                        Hospital
+                      </p>
+
+                      <p className="text-sm font-bold text-teal-950">
+                        {selectedFacility.facility.name}
+                      </p>
+
+                      <p className="text-xs text-teal-700 mt-1">
+                        {selectedFacility.distanceKm} km away •{' '}
+                        {selectedFacility.estimatedTransitTimeMins} mins
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Details */}
+                <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-200">
+
+                  <div className="p-4">
+                    <p className="text-[11px] text-slate-400">
+                      Department
+                    </p>
+
+                    <p className="text-sm font-semibold text-slate-800 mt-1">
+                      {selectedDepartmentLabel}
+                    </p>
+                  </div>
+
+                  <div className="p-4">
+
+                    <p className="text-[11px] text-slate-400">
+                      Priority
+                    </p>
+
+                    <div className="mt-1">
+                      <PriorityBadge priority={urgency} />
+                    </div>
+
+                  </div>
+
+                  <div className="p-4">
+
+                    <p className="text-[11px] text-slate-400">
+                      Reason
+                    </p>
+
+                    <p className="text-sm text-slate-700 mt-1">
+                      {reason}
+                    </p>
+
+                  </div>
+
+                  <div className="p-4">
+
+                    <p className="text-[11px] text-slate-400">
+                      Patient Notes
+                    </p>
+
+                    <p className="text-sm text-slate-700 mt-1">
+                      {summary}
+                    </p>
+
+                  </div>
+
+                  <div className="p-4">
+
+                    <p className="text-[11px] text-slate-400">
+                      ICU Bed
+                    </p>
+
+                    <p className="text-sm font-semibold text-slate-800 mt-1">
+                      {requiresIcu ? 'Yes' : 'No'}
+                    </p>
+
+                  </div>
+
+                </div>
+
+                {/* Match */}
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+
+                  <div className="flex items-center justify-between">
+
+                    <span className="text-xs text-slate-600">
+                      Hospital Match
+                    </span>
+
+                    <span className="text-sm font-bold text-teal-700">
+                      {selectedFacility.suitabilityScore}%
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {/* Buttons */}
+                <div className="flex items-center justify-between pt-2">
+
+                  <Button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    variant="secondary"
+                    className="no-blue-focus gap-1.5 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
+                    style={{ outline: 'none', boxShadow: 'none' }}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
                   </Button>
+
                   <Button
                     type="button"
                     onClick={handleSubmitReferral}
                     variant="primary"
                     size="lg"
-                    className="bg-teal-700 hover:bg-teal-800 font-bold"
+                    className="no-blue-focus bg-teal-700 hover:bg-teal-800 gap-2 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
+                    style={{ outline: 'none', boxShadow: 'none' }}
                   >
-                    Dispatch Clinical Referral
+                    <GitBranch className="h-4 w-4" />
+                    Send Referral
                   </Button>
+
                 </div>
+
               </div>
             )}
+
           </CardContent>
         </Card>
       )}
+
     </div>
   );
 };

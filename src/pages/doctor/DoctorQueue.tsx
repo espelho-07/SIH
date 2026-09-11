@@ -21,7 +21,9 @@ import {
 
 export const DoctorQueue: React.FC = () => {
   const [tokens, setTokens] = useState<Token[]>(INITIAL_LIVE_QUEUE.tokens);
-  const [currentToken, setCurrentToken] = useState<string>(INITIAL_LIVE_QUEUE.currentTokenNumber);
+  const [currentToken, setCurrentToken] = useState<string>(
+    INITIAL_LIVE_QUEUE.currentTokenNumber
+  );
   const [isCalling, setIsCalling] = useState(false);
 
   const handleCallNext = async () => {
@@ -40,14 +42,18 @@ export const DoctorQueue: React.FC = () => {
   const handleSkip = async (tokenId: string) => {
     await queueApi.skip('queue_civil_01', tokenId);
     setTokens((prev) =>
-      prev.map((t) => (t.id === tokenId ? { ...t, status: 'SKIPPED' } : t))
+      prev.map((t) =>
+        t.id === tokenId ? { ...t, status: 'SKIPPED' } : t
+      )
     );
   };
 
   const handleNoShow = async (tokenId: string) => {
     await queueApi.noShow('queue_civil_01', tokenId);
     setTokens((prev) =>
-      prev.map((t) => (t.id === tokenId ? { ...t, status: 'NO_SHOW' } : t))
+      prev.map((t) =>
+        t.id === tokenId ? { ...t, status: 'NO_SHOW' } : t
+      )
     );
   };
 
@@ -66,7 +72,9 @@ export const DoctorQueue: React.FC = () => {
       header: 'Patient Details',
       render: (t) => (
         <div>
-          <span className="font-bold text-slate-900 block text-sm">{t.patientName}</span>
+          <span className="font-bold text-slate-900 block text-sm">
+            {t.patientName}
+          </span>
           <span className="text-xs text-slate-500">
             {t.patientAge}Y • {t.patientGender} • Phone: {t.patientPhone}
           </span>
@@ -83,7 +91,9 @@ export const DoctorQueue: React.FC = () => {
       header: 'Wait Time',
       render: (t) => (
         <span className="text-xs font-semibold text-slate-600">
-          {t.status === 'CALLED' ? 'Now inside' : `${t.estimatedWaitMinutes} mins`}
+          {t.status === 'CALLED'
+            ? 'Now inside'
+            : `${t.estimatedWaitMinutes} mins`}
         </span>
       ),
     },
@@ -98,10 +108,15 @@ export const DoctorQueue: React.FC = () => {
       render: (t) => (
         <div className="flex items-center gap-1.5">
           <Link to={`/doctor/patients/${t.patientId}`}>
-            <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2.5 text-xs"
+            >
               Open Chart
             </Button>
           </Link>
+
           {t.status === 'WAITING' && (
             <>
               <Button
@@ -113,6 +128,7 @@ export const DoctorQueue: React.FC = () => {
               >
                 Skip
               </Button>
+
               <Button
                 onClick={() => handleNoShow(t.id)}
                 variant="ghost"
@@ -130,47 +146,80 @@ export const DoctorQueue: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Live OPD Queue Management"
-        subtitle="Manage patient flow, room call dispatch, triage prioritization, and clinical record transition."
-        breadcrumbs={[{ label: 'Doctor Dashboard', to: '/doctor' }, { label: 'OPD Queue' }]}
-        actions={
-          <Button
-            onClick={handleCallNext}
-            variant="primary"
-            size="md"
-            className="gap-2 bg-teal-700 hover:bg-teal-800 text-white font-bold"
-            isLoading={isCalling}
-          >
-            <BellRing className="h-4 w-4" />
-            <span>Call Next Patient to Room 4</span>
-          </Button>
-        }
-      />
+    <div className="space-y-5">
+
+      {/* Page Header */}
+      <div className="[&_h1]:text-xl [&_h1]:sm:text-2xl [&_p]:text-xs [&_p]:sm:text-sm">
+        <PageHeader
+          title="Live OPD Queue"
+          subtitle="Manage waiting patients and call them to the consultation room."
+          breadcrumbs={[
+            { label: 'Doctor Dashboard', to: '/doctor' },
+            { label: 'OPD Queue' },
+          ]}
+          actions={
+            <Button
+              onClick={handleCallNext}
+              variant="primary"
+              size="md"
+              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white font-bold"
+              isLoading={isCalling}
+            >
+              <BellRing className="h-4 w-4" />
+              <span>Call Next Patient</span>
+            </Button>
+          }
+        />
+      </div>
+
 
       {/* Queue Status Callout */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+
         <div>
-          <span className="text-xs font-semibold uppercase text-slate-400">Current Calling Token</span>
-          <p className="text-3xl font-black text-teal-800 mt-0.5">{currentToken}</p>
-          <span className="text-xs text-slate-500">In Room 4</span>
+          <span className="text-xs font-semibold uppercase text-slate-400">
+            Current Calling Token
+          </span>
+
+          <p className="text-3xl font-black text-teal-800 mt-0.5">
+            {currentToken}
+          </p>
+
+          <span className="text-xs text-slate-500">
+            In Room 4
+          </span>
         </div>
 
         <div>
-          <span className="text-xs font-semibold uppercase text-slate-400">Total Waiting</span>
+          <span className="text-xs font-semibold uppercase text-slate-400">
+            Total Waiting
+          </span>
+
           <p className="text-3xl font-black text-slate-900 mt-0.5">
             {tokens.filter((t) => t.status === 'WAITING').length}
           </p>
-          <span className="text-xs text-slate-500">In waiting hall</span>
+
+          <span className="text-xs text-slate-500">
+            In waiting hall
+          </span>
         </div>
 
         <div>
-          <span className="text-xs font-semibold uppercase text-slate-400">Average Consult Time</span>
-          <p className="text-3xl font-black text-slate-900 mt-0.5">8 min</p>
-          <span className="text-xs text-slate-500">Within optimal SLA</span>
+          <span className="text-xs font-semibold uppercase text-slate-400">
+            Average Consult Time
+          </span>
+
+          <p className="text-3xl font-black text-slate-900 mt-0.5">
+            8 min
+          </p>
+
+          <span className="text-xs text-slate-500">
+            Within optimal SLA
+          </span>
         </div>
+
       </div>
+
 
       {/* Interactive Responsive Table with Mobile Card Fallback */}
       <DataTable
@@ -179,31 +228,46 @@ export const DoctorQueue: React.FC = () => {
         keyExtractor={(t) => t.id}
         renderMobileCard={(t) => (
           <Card className="p-4 space-y-3">
+
             <div className="flex items-center justify-between">
               <span className="font-mono font-black text-base text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200">
                 {t.tokenNumber}
               </span>
+
               <PriorityBadge priority={t.priority} />
             </div>
 
             <div>
-              <h3 className="font-bold text-sm text-slate-900">{t.patientName}</h3>
+              <h3 className="font-bold text-sm text-slate-900">
+                {t.patientName}
+              </h3>
+
               <p className="text-xs text-slate-500">
-                {t.patientAge}Y • {t.patientGender} • Wait: {t.estimatedWaitMinutes}m
+                {t.patientAge}Y • {t.patientGender} • Wait:{' '}
+                {t.estimatedWaitMinutes}m
               </p>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+
               <StatusBadge status={t.status} />
+
               <Link to={`/doctor/patients/${t.patientId}`}>
-                <Button variant="primary" size="sm" className="text-xs bg-teal-700 hover:bg-teal-800">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="text-xs bg-teal-700 hover:bg-teal-800"
+                >
                   Open Chart
                 </Button>
               </Link>
+
             </div>
+
           </Card>
         )}
       />
+
     </div>
   );
 };

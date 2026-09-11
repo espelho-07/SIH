@@ -1,10 +1,9 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
-import { INITIAL_LIVE_QUEUE, INITIAL_REFERRALS } from '@/mock/mockData';
+import { PriorityBadge } from '@/components/ui/Badge';
+import { INITIAL_LIVE_QUEUE } from '@/mock/mockData';
 import { Link } from 'react-router-dom';
 import {
   Stethoscope,
@@ -15,146 +14,406 @@ import {
   Clock,
   ArrowRight,
   AlertCircle,
-  CheckCircle2,
 } from 'lucide-react';
 
 export const DoctorDashboard: React.FC = () => {
   const { user } = useAuth();
+
   const queue = INITIAL_LIVE_QUEUE;
-  const waitingTokens = queue.tokens.filter((t) => t.status === 'WAITING');
+
+  const waitingTokens = queue.tokens.filter(
+    (t) => t.status === 'WAITING'
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Clinician Top Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-teal-950 via-teal-900 to-slate-900 p-6 sm:p-8 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-widest text-teal-300">
-            Clinical Practitioner Console
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Welcome, {user?.name || 'Dr. Arvind Patel'}
-          </h1>
-          <p className="text-xs text-teal-100/80">
-            Senior Consultant Physician • Gandhinagar Civil Hospital • Room 4 (General Medicine OPD)
-          </p>
-        </div>
+    <div className="space-y-5">
 
-        <div className="flex items-center gap-2">
+      {/* Welcome Section */}
+      <div className="rounded-2xl bg-gradient-to-r from-teal-900 to-slate-900 p-4 sm:p-5 text-white shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+          <div>
+            <p className="text-xs font-medium text-teal-300 mb-1">
+              Doctor Dashboard
+            </p>
+
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+              Welcome, {user?.name || 'Dr. Arvind Patel'} 👋
+            </h1>
+
+            <p className="text-xs text-teal-100/80 mt-1.5">
+              General Medicine • Room 4
+            </p>
+          </div>
+
           <Link to="/doctor/queue">
-            <Button size="lg" className="bg-teal-600 hover:bg-teal-500 font-bold text-white gap-2 shadow-md">
-              <Ticket className="h-5 w-5" />
-              <span>Open Live OPD Queue</span>
+            <Button
+              size="md"
+              className="bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-2 shadow-md w-full sm:w-auto"
+            >
+              <Ticket className="h-4 w-4" />
+              View Patient Queue
             </Button>
           </Link>
+
         </div>
       </div>
 
-      {/* KPI Stats Deck */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-        <Card className="p-4 border-slate-200">
-          <span className="text-xs font-semibold text-slate-500 uppercase">Waiting Patients</span>
-          <p className="text-3xl font-black text-slate-900 mt-1">{queue.totalWaiting}</p>
-          <span className="text-[11px] text-teal-800 font-medium">~8 mins / consult</span>
-        </Card>
 
-        <Card className="p-4 border-slate-200">
-          <span className="text-xs font-semibold text-slate-500 uppercase">Current Calling</span>
-          <p className="text-3xl font-black text-teal-700 mt-1">{queue.currentTokenNumber}</p>
-          <span className="text-[11px] text-slate-500">In Room 4</span>
-        </Card>
+      {/* Today's Summary */}
+      <div>
+        <h2 className="text-base font-bold text-slate-900 mb-2.5">
+          Today’s Summary
+        </h2>
 
-        <Card className="p-4 border-rose-200 bg-rose-50/40">
-          <span className="text-xs font-bold text-rose-800 uppercase">Urgent Triage Cases</span>
-          <p className="text-3xl font-black text-rose-700 mt-1">1</p>
-          <span className="text-[11px] text-rose-600 font-semibold">Pre-eclampsia triage</span>
-        </Card>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
 
-        <Card className="p-4 border-indigo-200 bg-indigo-50/40">
-          <span className="text-xs font-bold text-indigo-800 uppercase">Pending Referrals</span>
-          <p className="text-3xl font-black text-indigo-700 mt-1">2</p>
-          <span className="text-[11px] text-indigo-600 font-semibold">Incoming tertiary cases</span>
-        </Card>
+          {/* Waiting */}
+          <Card className="border-slate-200">
+            <CardContent className="p-3.5">
+
+              <div className="flex items-center justify-between">
+                <div className="h-8 w-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                  <Users className="h-4 w-4 text-teal-700" />
+                </div>
+
+                <span className="text-[10px] font-medium text-slate-400">
+                  Patients
+                </span>
+              </div>
+
+              <p className="text-2xl font-bold text-slate-900 mt-2.5">
+                {queue.totalWaiting}
+              </p>
+
+              <p className="text-xs font-medium text-slate-600 mt-0.5">
+                Waiting
+              </p>
+
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                About 8 min. each
+              </p>
+
+            </CardContent>
+          </Card>
+
+
+          {/* Current Patient */}
+          <Card className="border-slate-200">
+            <CardContent className="p-3.5">
+
+              <div className="flex items-center justify-between">
+                <div className="h-8 w-8 rounded-lg bg-sky-100 flex items-center justify-center">
+                  <Ticket className="h-4 w-4 text-sky-700" />
+                </div>
+
+                <span className="text-[10px] font-medium text-slate-400">
+                  Token
+                </span>
+              </div>
+
+              <p className="text-2xl font-bold text-sky-700 mt-2.5">
+                {queue.currentTokenNumber}
+              </p>
+
+              <p className="text-xs font-medium text-slate-600 mt-0.5">
+                Now Seeing
+              </p>
+
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                Room 4
+              </p>
+
+            </CardContent>
+          </Card>
+
+
+          {/* Urgent */}
+          <Card className="border-rose-200 bg-rose-50/50">
+            <CardContent className="p-3.5">
+
+              <div className="flex items-center justify-between">
+                <div className="h-8 w-8 rounded-lg bg-rose-100 flex items-center justify-center">
+                  <AlertCircle className="h-4 w-4 text-rose-700" />
+                </div>
+
+                <span className="text-[10px] font-medium text-rose-500">
+                  Attention
+                </span>
+              </div>
+
+              <p className="text-2xl font-bold text-rose-700 mt-2.5">
+                1
+              </p>
+
+              <p className="text-xs font-medium text-rose-800 mt-0.5">
+                Urgent Patient
+              </p>
+
+              <p className="text-[10px] text-rose-600 mt-0.5">
+                Needs quick attention
+              </p>
+
+            </CardContent>
+          </Card>
+
+
+          {/* Referrals */}
+          <Card className="border-indigo-200 bg-indigo-50/50">
+            <CardContent className="p-3.5">
+
+              <div className="flex items-center justify-between">
+                <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <GitBranch className="h-4 w-4 text-indigo-700" />
+                </div>
+
+                <span className="text-[10px] font-medium text-indigo-500">
+                  Action
+                </span>
+              </div>
+
+              <p className="text-2xl font-bold text-indigo-700 mt-2.5">
+                2
+              </p>
+
+              <p className="text-xs font-medium text-indigo-800 mt-0.5">
+                Referrals
+              </p>
+
+              <p className="text-[10px] text-indigo-600 mt-0.5">
+                Patients to refer
+              </p>
+
+            </CardContent>
+          </Card>
+
+        </div>
       </div>
 
-      {/* Live Waiting Patients Snapshot & Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      {/* Patients + Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+
+        {/* Waiting Patients */}
         <Card className="lg:col-span-2 border-slate-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
+
+          <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 pt-4">
+
             <div>
-              <CardTitle className="text-base font-bold text-slate-900">Next Waiting OPD Patients</CardTitle>
-              <p className="text-xs text-slate-500 mt-0.5">Triage prioritized queue order</p>
+              <CardTitle className="text-base font-bold text-slate-900">
+                Patients Waiting
+              </CardTitle>
+
+              <p className="text-xs text-slate-500 mt-0.5">
+                Patients ready to see the doctor
+              </p>
             </div>
+
             <Link to="/doctor/queue">
-              <Button variant="outline" size="sm" className="text-xs gap-1">
-                <span>Manage Full Queue</span>
-                <ArrowRight className="h-3.5 w-3.5" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 text-xs"
+              >
+                View All
+                <ArrowRight className="h-3 w-3" />
               </Button>
             </Link>
+
           </CardHeader>
 
-          <CardContent className="p-5 space-y-3">
-            {waitingTokens.map((t) => (
-              <div
-                key={t.id}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-800 font-black text-sm">
-                    {t.tokenNumber}
-                  </span>
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900">{t.patientName}</h3>
-                    <p className="text-xs text-slate-500">
-                      {t.patientAge}Y, {t.patientGender} • Wait: {t.estimatedWaitMinutes}m
-                    </p>
-                  </div>
+
+          <CardContent className="p-4 pt-1.5 space-y-2.5">
+
+            {waitingTokens.length === 0 ? (
+
+              <div className="py-8 text-center">
+                <div className="mx-auto h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-teal-700" />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <PriorityBadge priority={t.priority} />
-                  <Link to={`/doctor/patients/${t.patientId}`}>
-                    <Button variant="primary" size="sm" className="text-xs bg-teal-700 hover:bg-teal-800">
-                      Open Chart
-                    </Button>
-                  </Link>
-                </div>
+                <p className="font-semibold text-sm text-slate-800 mt-2.5">
+                  No patients waiting
+                </p>
+
+                <p className="text-xs text-slate-500 mt-0.5">
+                  The queue is currently clear.
+                </p>
               </div>
-            ))}
+
+            ) : (
+
+              waitingTokens.map((t) => (
+
+                <div
+                  key={t.id}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                >
+
+                  {/* Patient Information */}
+                  <div className="flex items-center gap-2.5">
+
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-800 font-bold text-xs">
+                      {t.tokenNumber}
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-900">
+                        {t.patientName}
+                      </h3>
+
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {t.patientAge} years • {t.patientGender}
+                      </p>
+
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Clock className="h-2.5 w-2.5 text-slate-400" />
+
+                        <p className="text-[11px] text-slate-500">
+                          Waiting {t.estimatedWaitMinutes} min
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+
+
+                  {/* Patient Action */}
+                  <div className="flex items-center gap-2">
+
+                    <PriorityBadge priority={t.priority} />
+
+                    <Link to={`/doctor/patients/${t.patientId}`}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="text-xs bg-teal-700 hover:bg-teal-800"
+                      >
+                        Open Patient
+                      </Button>
+                    </Link>
+
+                  </div>
+
+                </div>
+
+              ))
+
+            )}
+
           </CardContent>
         </Card>
 
-        {/* Quick Launch Clinical Tools */}
-        <div className="space-y-4">
-          <Card className="p-5 border-slate-200 space-y-4">
-            <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wider text-xs">
-              Clinical Workspace Actions
-            </h3>
 
-            <div className="space-y-2">
-              <Link to="/doctor/referrals" className="block">
-                <Button variant="outline" size="md" className="w-full justify-start gap-2.5 text-xs text-left">
-                  <GitBranch className="h-4 w-4 text-teal-700" />
-                  <span>Refer Patient & Match Facilities</span>
-                </Button>
-              </Link>
+        {/* Quick Actions */}
+        <Card className="border-slate-200 h-fit">
 
-              <Link to="/doctor/teleconsultations" className="block">
-                <Button variant="outline" size="md" className="w-full justify-start gap-2.5 text-xs text-left">
-                  <Video className="h-4 w-4 text-sky-700" />
-                  <span>Start Teleconsultation Call</span>
-                </Button>
-              </Link>
+          <CardHeader className="pb-2 px-4 pt-4">
 
-              <Link to="/doctor/patients/usr_pat_01" className="block">
-                <Button variant="outline" size="md" className="w-full justify-start gap-2.5 text-xs text-left">
-                  <Stethoscope className="h-4 w-4 text-indigo-700" />
-                  <span>Open Active Patient Encounter</span>
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
+            <CardTitle className="text-base font-bold text-slate-900">
+              Quick Actions
+            </CardTitle>
+
+            <p className="text-xs text-slate-500 mt-0.5">
+              Common things you can do
+            </p>
+
+          </CardHeader>
+
+
+          <CardContent className="p-4 pt-1.5 space-y-2">
+
+            {/* Refer Patient */}
+            <Link to="/doctor/referrals" className="block">
+
+              <Button
+                variant="outline"
+                size="md"
+                className="w-full justify-start gap-2.5 text-xs text-left h-11"
+              >
+                <div className="h-7 w-7 rounded-lg bg-teal-100 flex items-center justify-center shrink-0">
+                  <GitBranch className="h-3.5 w-3.5 text-teal-700" />
+                </div>
+
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-800">
+                    Refer Patient
+                  </p>
+
+                  <p className="text-[10px] text-slate-500">
+                    Find another hospital
+                  </p>
+                </div>
+
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+              </Button>
+
+            </Link>
+
+
+            {/* Video Consultation */}
+            <Link to="/doctor/teleconsultations" className="block">
+
+              <Button
+                variant="outline"
+                size="md"
+                className="w-full justify-start gap-2.5 text-xs text-left h-11"
+              >
+                <div className="h-7 w-7 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
+                  <Video className="h-3.5 w-3.5 text-sky-700" />
+                </div>
+
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-800">
+                    Video Consultation
+                  </p>
+
+                  <p className="text-[10px] text-slate-500">
+                    Talk to a specialist
+                  </p>
+                </div>
+
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+              </Button>
+
+            </Link>
+
+
+            {/* Open Patient */}
+            <Link
+              to="/doctor/patients/usr_pat_01"
+              className="block"
+            >
+
+              <Button
+                variant="outline"
+                size="md"
+                className="w-full justify-start gap-2.5 text-xs text-left h-11"
+              >
+                <div className="h-7 w-7 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+                  <Stethoscope className="h-3.5 w-3.5 text-indigo-700" />
+                </div>
+
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-800">
+                    Open Patient
+                  </p>
+
+                  <p className="text-[10px] text-slate-500">
+                    View patient details
+                  </p>
+                </div>
+
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+              </Button>
+
+            </Link>
+
+          </CardContent>
+        </Card>
+
       </div>
+
     </div>
   );
 };

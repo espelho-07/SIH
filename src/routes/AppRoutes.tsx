@@ -14,8 +14,14 @@ import { FacilityDiscovery } from '@/pages/patient/FacilityDiscovery';
 import { FacilityDetail } from '@/pages/patient/FacilityDetail';
 import { TokenExperience } from '@/pages/patient/TokenExperience';
 import { AppointmentBooking } from '@/pages/patient/AppointmentBooking';
+import { AppointmentDetails } from '@/pages/patient/AppointmentDetails';
 import { HealthRecordView } from '@/pages/patient/HealthRecordView';
 import { ReferralTracking } from '@/pages/patient/ReferralTracking';
+import { ReferralDetails } from '@/pages/patient/ReferralDetails';
+import ClinicalNotes from '@/pages/patient/ClinicalNotes';
+import TeleconsultationRoomPatient from '@/pages/patient/TeleconsultationRoom';
+import TeleconsultationHistory from '@/pages/patient/TeleconsultationHistory';
+import Teleconsultation from '@/pages/patient/Teleconsultation';
 
 // ASHA Pages
 import { AshaDashboard } from '@/pages/asha/AshaDashboard';
@@ -35,7 +41,7 @@ import { DoctorDashboard } from '@/pages/doctor/DoctorDashboard';
 import { DoctorQueue } from '@/pages/doctor/DoctorQueue';
 import { PatientClinicalWorkspace } from '@/pages/doctor/PatientClinicalWorkspace';
 import { ReferralCreationWizard } from '@/pages/doctor/ReferralCreationWizard';
-import { TeleconsultationRoom } from '@/pages/doctor/TeleconsultationRoom';
+import TeleconsultationRoomDoctor from '@/pages/doctor/TeleconsultationRoom';
 
 // Facility Staff Pages
 import { StaffDashboard } from '@/pages/staff/StaffDashboard';
@@ -162,6 +168,16 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/patient/appointments/:id"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <AppShell>
+              <AppointmentDetails />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/patient/records"
         element={
           <ProtectedRoute allowedRoles={['PATIENT']}>
@@ -182,11 +198,41 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/patient/referrals/:id"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <AppShell>
+              <ReferralDetails />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/patient/consultations"
         element={
           <ProtectedRoute allowedRoles={['PATIENT']}>
             <AppShell>
-              <TeleconsultationRoom />
+              <Teleconsultation />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/consultations/room"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <AppShell>
+              <TeleconsultationRoomPatient />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/teleconsultation-history"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <AppShell>
+              <TeleconsultationHistory />
             </AppShell>
           </ProtectedRoute>
         }
@@ -360,7 +406,17 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['DOCTOR']}>
             <AppShell>
-              <TeleconsultationRoom />
+              <TeleconsultationRoomDoctor />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/clinical-notes"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <ClinicalNotes />
             </AppShell>
           </ProtectedRoute>
         }
