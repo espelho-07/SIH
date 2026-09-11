@@ -371,14 +371,14 @@ export const HomeVisitsPage: React.FC = () => {
                     </a>
                   )}
 
-                  <Link to="/asha/vitals">
+                  <Link to={`/asha/vitals?patientId=${visit.patientId}`}>
                     <Button variant="outline" size="sm" className="text-xs min-h-[44px] gap-1">
                       <Activity className="h-3.5 w-3.5 text-teal-700" />
                       <span>Vitals</span>
                     </Button>
                   </Link>
 
-                  <Link to="/asha/screening">
+                  <Link to={`/asha/vitals?tab=screening&patientId=${visit.patientId}`}>
                     <Button variant="outline" size="sm" className="text-xs min-h-[44px] gap-1">
                       <ClipboardList className="h-3.5 w-3.5 text-indigo-700" />
                       <span>Screen</span>

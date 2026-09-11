@@ -215,13 +215,13 @@ export const HighRiskPatients: React.FC = () => {
                   </a>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link to="/asha/vitals">
+                    <Link to={`/asha/vitals?patientId=${patient.id}`}>
                       <Button variant="outline" size="sm" className="text-xs min-h-[44px] font-bold">
                         <Activity className="h-3.5 w-3.5 mr-1 text-teal-700" />
                         Log Vitals
                       </Button>
                     </Link>
-                    <Link to="/asha/screening">
+                    <Link to={`/asha/vitals?tab=screening&patientId=${patient.id}`}>
                       <Button variant="outline" size="sm" className="text-xs min-h-[44px] font-bold">
                         <Stethoscope className="h-3.5 w-3.5 mr-1 text-teal-700" />
                         Re-Screen

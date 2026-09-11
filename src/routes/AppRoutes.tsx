@@ -305,7 +305,7 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['ASHA']}>
             <AppShell>
-              <ScreeningWizard />
+              <VitalsRecording initialTab="SCREENING" />
             </AppShell>
           </ProtectedRoute>
         }

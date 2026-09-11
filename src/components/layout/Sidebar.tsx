@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           },
           {
             to: '/asha/vitals',
-            label: 'Health Check',
+            label: 'Vitals & Screening',
             icon: Activity,
             color: 'text-red-600 bg-red-50',
           },

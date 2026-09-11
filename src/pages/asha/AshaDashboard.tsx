@@ -206,8 +206,8 @@ export const AshaDashboard: React.FC = () => {
         <Link to="/asha/vitals">
           <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-red-400 hover:shadow-xs transition-all text-left group">
             <Activity className="h-5 w-5 text-red-600 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Record Vitals</span>
-            <span className="text-[10px] text-slate-500">BP, Sugar, SpO2 & Weight</span>
+            <span className="text-xs font-bold text-slate-900 block">Vitals & Screening</span>
+            <span className="text-[10px] text-slate-500">Physical Vitals & CBAC</span>
           </div>
         </Link>
 

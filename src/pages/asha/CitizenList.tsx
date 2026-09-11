@@ -228,12 +228,12 @@ export const CitizenList: React.FC = () => {
                       Visit
                     </Button>
                   </Link>
-                  <Link to="/asha/vitals" className="flex-1">
+                  <Link to={`/asha/vitals?patientId=${patient.id}`} className="flex-1">
                     <Button variant="outline" size="sm" className="w-full text-xs min-h-[42px] px-2">
                       Vitals
                     </Button>
                   </Link>
-                  <Link to="/asha/screening" className="flex-1">
+                  <Link to={`/asha/vitals?tab=screening&patientId=${patient.id}`} className="flex-1">
                     <Button
                       variant="primary"
                       size="sm"
