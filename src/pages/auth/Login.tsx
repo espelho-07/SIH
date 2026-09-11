@@ -120,7 +120,7 @@ export const Login: React.FC = () => {
             <HeartPulse className="h-7 w-7" />
           </div>
         </Link>
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">SANJEEVANI-CONNECT</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">HEALTHCONNECT</h2>
         <p className="text-xs font-semibold text-teal-800 mt-1 uppercase tracking-wider">
           Integrated Public Healthcare Access Platform
         </p>

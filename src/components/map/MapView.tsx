@@ -43,7 +43,7 @@ export const MapView: React.FC<MapViewProps> = ({
     });
 
     L.tileLayer(tileUrl, {
-      attribution: '&copy; OpenStreetMap contributors | Sanjeevani-Connect GIS',
+      attribution: '&copy; OpenStreetMap contributors | HealthConnect GIS',
       maxZoom: 18,
     }).addTo(map);
 

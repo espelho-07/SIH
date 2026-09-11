@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Rehydrate user session from localStorage
-    const savedUser = localStorage.getItem('sanjeevani_user');
+    const savedUser = localStorage.getItem('healthconnect_user') || localStorage.getItem('sanjeevani_user');
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
@@ -33,13 +33,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       // Default to Patient session for immediate smooth testing
       setUser(DEMO_USERS.patient);
-      localStorage.setItem('sanjeevani_user', JSON.stringify(DEMO_USERS.patient));
-      localStorage.setItem('sanjeevani_token', 'mock_jwt_patient');
+      localStorage.setItem('healthconnect_user', JSON.stringify(DEMO_USERS.patient));
+      localStorage.setItem('healthconnect_token', 'mock_jwt_patient');
     }
     setIsLoading(false);
 
     const handleAuthExpired = () => {
       setUser(null);
+      localStorage.removeItem('healthconnect_user');
+      localStorage.removeItem('healthconnect_token');
       localStorage.removeItem('sanjeevani_user');
       localStorage.removeItem('sanjeevani_token');
     };
@@ -52,8 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await authApi.login(credentials);
       setUser(res.data.user);
-      localStorage.setItem('sanjeevani_user', JSON.stringify(res.data.user));
-      localStorage.setItem('sanjeevani_token', res.data.tokens.accessToken);
+      localStorage.setItem('healthconnect_user', JSON.stringify(res.data.user));
+      localStorage.setItem('healthconnect_token', res.data.tokens.accessToken);
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +66,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await authApi.verifyPatientOtp(credentials);
       setUser(res.data.user);
-      localStorage.setItem('sanjeevani_user', JSON.stringify(res.data.user));
-      localStorage.setItem('sanjeevani_token', res.data.tokens.accessToken);
+      localStorage.setItem('healthconnect_user', JSON.stringify(res.data.user));
+      localStorage.setItem('healthconnect_token', res.data.tokens.accessToken);
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ignore
     }
     setUser(null);
+    localStorage.removeItem('healthconnect_user');
+    localStorage.removeItem('healthconnect_token');
     localStorage.removeItem('sanjeevani_user');
     localStorage.removeItem('sanjeevani_token');
   };
@@ -95,8 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     else if (newRole === 'SUPER_ADMIN') targetUser = DEMO_USERS.superAdmin;
 
     setUser(targetUser);
-    localStorage.setItem('sanjeevani_user', JSON.stringify(targetUser));
-    localStorage.setItem('sanjeevani_token', `mock_jwt_${targetUser.role.toLowerCase()}`);
+    localStorage.setItem('healthconnect_user', JSON.stringify(targetUser));
+    localStorage.setItem('healthconnect_token', `mock_jwt_${targetUser.role.toLowerCase()}`);
   };
 
   return (

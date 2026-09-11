@@ -53,7 +53,7 @@ export const NotFound: React.FC = () => {
         <div className="mt-6 flex justify-center">
           <Link to="/">
             <Button variant="primary" className="bg-teal-700 hover:bg-teal-800">
-              Back to Sanjeevani Home
+              Back to HealthConnect Home
             </Button>
           </Link>
         </div>

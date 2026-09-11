@@ -6,7 +6,7 @@ import hi from './hi.json';
 import gu from './gu.json';
 import mr from './mr.json';
 
-const savedLanguage = localStorage.getItem('sanjeevani_language') || 'en';
+const savedLanguage = localStorage.getItem('healthconnect_language') || localStorage.getItem('sanjeevani_language') || 'en';
 
 i18n
   .use(initReactI18next)
@@ -32,6 +32,7 @@ export const supportedLanguages = [
 ];
 
 export const changeAppLanguage = (langCode: string) => {
+  localStorage.setItem('healthconnect_language', langCode);
   localStorage.setItem('sanjeevani_language', langCode);
   i18n.changeLanguage(langCode);
 };

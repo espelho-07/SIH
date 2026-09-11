@@ -2,7 +2,7 @@ import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { AshaPatient, ScreeningSession, OfflineSyncItem } from '@/types/asha';
 import { Vitals } from '@/types/clinical';
 
-interface SanjeevaniDB extends DBSchema {
+interface HealthConnectDB extends DBSchema {
   patients: {
     key: string;
     value: AshaPatient;
@@ -25,14 +25,14 @@ interface SanjeevaniDB extends DBSchema {
   };
 }
 
-const DB_NAME = 'sanjeevani_offline_db';
+const DB_NAME = 'healthconnect_offline_db';
 const DB_VERSION = 1;
 
-let dbPromise: Promise<IDBPDatabase<SanjeevaniDB>> | null = null;
+let dbPromise: Promise<IDBPDatabase<HealthConnectDB>> | null = null;
 
-export function getDB(): Promise<IDBPDatabase<SanjeevaniDB>> {
+export function getDB(): Promise<IDBPDatabase<HealthConnectDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<SanjeevaniDB>(DB_NAME, DB_VERSION, {
+    dbPromise = openDB<HealthConnectDB>(DB_NAME, DB_VERSION, {
       upgrade(db) {
         if (!db.objectStoreNames.contains('patients')) {
           const patientStore = db.createObjectStore('patients', { keyPath: 'id' });

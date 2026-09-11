@@ -52,7 +52,7 @@ export const LandingPage: React.FC = () => {
             </div>
             <div>
               <span className="block text-base font-extrabold tracking-tight text-slate-900 leading-tight">
-                SANJEEVANI-CONNECT
+                HEALTHCONNECT
               </span>
               <span className="block text-[11px] font-semibold text-teal-800 leading-none">
                 National Public Health Access & Care Continuity Grid
@@ -369,7 +369,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <HeartPulse className="h-5 w-5 text-teal-700" />
-            <span className="font-bold text-slate-800">SANJEEVANI-CONNECT</span>
+            <span className="font-bold text-slate-800">HEALTHCONNECT</span>
             <span>• SIH26133 Integrated Healthcare Platform</span>
           </div>
           <div className="flex items-center gap-6">

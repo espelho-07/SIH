@@ -202,7 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Bottom System Identity */}
         <div className="p-4 border-t border-slate-100 text-[11px] text-slate-500 space-y-1 bg-slate-50/50">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-slate-700">SANJEEVANI v2.4</span>
+            <span className="font-semibold text-slate-700">HEALTHCONNECT v2.4</span>
             <span className="rounded bg-teal-100 px-1.5 py-0.5 text-[10px] font-bold text-teal-800">SIH26133</span>
           </div>
           <p className="text-[10px] text-slate-400">MoHFW / NHM Gujarat Public Health Grid</p>

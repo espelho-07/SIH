@@ -17,7 +17,7 @@ export const apiClient: AxiosInstance = axios.create({
 // Request Interceptor: Attach Auth Token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('sanjeevani_token');
+    const token = localStorage.getItem('healthconnect_token') || localStorage.getItem('sanjeevani_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,12 +37,13 @@ apiClient.interceptors.response.use(
     // Centralized 401 Token Expiry Handler
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      const refreshToken = localStorage.getItem('sanjeevani_refresh_token');
+      const refreshToken = localStorage.getItem('healthconnect_refresh_token') || localStorage.getItem('sanjeevani_refresh_token');
 
       if (refreshToken) {
         try {
           const res = await axios.post(`${baseURL}/auth/refresh`, { refreshToken });
           const newAccessToken = res.data.data.accessToken;
+          localStorage.setItem('healthconnect_token', newAccessToken);
           localStorage.setItem('sanjeevani_token', newAccessToken);
 
           if (originalRequest.headers) {
@@ -51,6 +52,8 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         } catch {
           // Token refresh failed - clean session
+          localStorage.removeItem('healthconnect_token');
+          localStorage.removeItem('healthconnect_user');
           localStorage.removeItem('sanjeevani_token');
           localStorage.removeItem('sanjeevani_user');
           window.dispatchEvent(new Event('auth:expired'));

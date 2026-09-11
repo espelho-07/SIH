@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ConnectionProvider } from '@/contexts/ConnectionContext';
 import { SocketProvider } from '@/contexts/SocketContext';
+import { LocationProvider } from '@/contexts/LocationContext';
+import { LocationSelectorModal } from '@/components/location/LocationSelectorModal';
 import { AppRoutes } from '@/routes/AppRoutes';
 import '@/locales/i18n';
 
@@ -27,7 +29,7 @@ export default function App() {
         navigator.serviceWorker
           .register('/sw.js')
           .then((reg) => {
-            console.log('Sanjeevani PWA Service Worker registered:', reg.scope);
+            console.log('HealthConnect PWA Service Worker registered:', reg.scope);
           })
           .catch((err) => {
             console.warn('PWA registration ignored:', err);
@@ -42,7 +44,10 @@ export default function App() {
         <AuthProvider>
           <ConnectionProvider>
             <SocketProvider>
-              <AppRoutes />
+              <LocationProvider>
+                <AppRoutes />
+                <LocationSelectorModal />
+              </LocationProvider>
             </SocketProvider>
           </ConnectionProvider>
         </AuthProvider>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocationContext } from '@/contexts/LocationContext';
 import { StatusIndicator } from '@/components/common/StatusIndicator';
 import { EmergencyButton } from '@/components/emergency/EmergencyButton';
 import { RoleBadge } from '@/components/ui/Badge';
@@ -29,6 +30,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
   isSidebarOpen,
 }) => {
   const { user, role, staffSubType, logout, quickSwitchRole } = useAuth();
+  const { selectedDistrict, selectedFacility, openLocationModal } = useLocationContext();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -68,26 +70,52 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
             </div>
             <div className="text-left hidden sm:block">
               <span className="block text-base font-extrabold tracking-tight text-slate-900 leading-tight">
-                SANJEEVANI-CONNECT
+                HEALTHCONNECT
               </span>
               <span className="block text-[11px] font-medium text-teal-800 leading-none">
                 Public Healthcare Access & Care Continuity
               </span>
             </div>
-            <span className="font-bold text-base text-slate-900 sm:hidden">Sanjeevani</span>
+            <span className="font-bold text-base text-slate-900 sm:hidden">HealthConnect</span>
           </Link>
         </div>
 
-        {/* Center: District Geo Tag */}
-        <div className="hidden lg:flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 border border-slate-200">
-          <MapPin className="h-3.5 w-3.5 text-teal-700" />
-          <span className="font-semibold text-slate-800">Gandhinagar District</span>
-          <span className="text-slate-400">|</span>
-          <span>Gujarat Public Health Grid</span>
-        </div>
+        {/* Center: District & Hospital Geo Tag with Interactive Location Switcher */}
+        <button
+          type="button"
+          onClick={openLocationModal}
+          className="hidden md:flex items-center gap-2 rounded-full bg-slate-100/90 hover:bg-slate-200/80 px-3 py-1.5 text-xs text-slate-700 border border-slate-200 shadow-2xs transition-all cursor-pointer group"
+          title="Click to change your hospital or district location"
+        >
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-50 group-hover:bg-teal-100 text-teal-700 transition-colors">
+            <MapPin className="h-3 w-3" />
+          </div>
+          <div className="flex items-center gap-1.5 font-medium">
+            <span className="font-bold text-slate-900">{selectedDistrict}</span>
+            <span className="text-slate-400 hidden xl:inline">|</span>
+            <span className="text-slate-600 truncate max-w-[170px] hidden xl:inline">
+              {selectedFacility.split('&')[0].trim()}
+            </span>
+          </div>
+          <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200/60 ml-0.5 group-hover:bg-teal-700 group-hover:text-white transition-colors">
+            Change
+          </span>
+        </button>
 
-        {/* Right Controls: Status, Language, Role Switcher, Emergency SOS, Profile */}
+        {/* Right Controls: Status, Mobile Location, Language, Role Switcher, Emergency SOS, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Location Switcher Button */}
+          <button
+            type="button"
+            onClick={openLocationModal}
+            className="md:hidden flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 min-h-[38px] cursor-pointer"
+            title={`Current Location: ${selectedDistrict}`}
+            aria-label="Change Location"
+          >
+            <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+            <span className="truncate max-w-[65px]">{selectedDistrict}</span>
+          </button>
+
           {/* Online/Offline Status Indicator */}
           <StatusIndicator />
 

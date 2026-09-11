@@ -32,7 +32,7 @@ export const TeleconsultationRoom: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="National Teleconsultation Suite (eSanjeevani Grid)"
+        title="National Teleconsultation Suite (HealthConnect Grid)"
         subtitle="Encrypted WebRTC consultation room with clinical EHR timeline and live prescription tools."
         breadcrumbs={[{ label: 'Doctor Dashboard', to: '/doctor' }, { label: 'Teleconsultation' }]}
         actions={

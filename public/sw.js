@@ -1,5 +1,5 @@
-// Sanjeevani-Connect Service Worker (Offline Shell & Asset Cache)
-const CACHE_NAME = 'sanjeevani-v1';
+// HealthConnect Service Worker (Offline Shell & Asset Cache)
+const CACHE_NAME = 'healthconnect-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
