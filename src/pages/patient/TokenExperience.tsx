@@ -8,6 +8,7 @@ import { tokenApi } from '@/api/queueApi';
 import { INITIAL_LIVE_QUEUE } from '@/mock/mockData';
 import { Token } from '@/types/queue';
 import { Link } from 'react-router-dom';
+import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import {
   Ticket,
   Clock,
@@ -157,30 +158,37 @@ export const TokenExperience: React.FC = () => {
   return (
     <div className="space-y-4 w-full font-sans">
       {/* =====================================================
-          SIMPLE HEADER BAR
+          SLEEK COMPACT TOP STATUS BAR
       ====================================================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              My Token & Live Queue
-            </h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white border border-slate-200/80 rounded-2xl px-4 py-2.5 shadow-xs">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-bold text-emerald-800">
+              Live OPD Active
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time OPD queue status and your active token details
-          </p>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-xl">
+            <Building2 className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+            <span className="font-semibold text-slate-800">Gandhinagar Civil Hospital</span>
+            <span className="text-slate-400">(Room 4)</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <FamilyMemberSwitcher variant="compact" />
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="text-xs h-8 gap-1 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
+            className="text-xs h-7 px-2.5 gap-1 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
           >
             <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-teal-600' : 'text-slate-400'}`} />
             Refresh
@@ -189,10 +197,10 @@ export const TokenExperience: React.FC = () => {
           <Button
             onClick={() => setShowNewTokenForm(!showNewTokenForm)}
             size="sm"
-            className="text-xs h-8 gap-1 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer shadow-xs"
+            className="text-xs h-7 px-3 gap-1 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer shadow-xs"
           >
             <PlusCircle className="h-3.5 w-3.5" />
-            New Token
+            + New Token
           </Button>
         </div>
       </div>
