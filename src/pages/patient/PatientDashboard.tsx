@@ -17,6 +17,8 @@ import {
   ArrowRight,
   MapPin,
   Clock,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 
 export const PatientDashboard: React.FC = () => {
@@ -35,23 +37,40 @@ export const PatientDashboard: React.FC = () => {
     <div className="space-y-7 font-sans">
 
       {/* ================================================== */}
-      {/* WELCOME */}
+      {/* CITIZEN HEALTH BAR / ABHA IDENTITY */}
       {/* ================================================== */}
 
-      <div className="rounded-3xl bg-gradient-to-r from-teal-900 to-teal-800 px-6 py-6 text-white shadow-sm">
+      <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-5 text-white shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700/80 border border-teal-500/40 text-white shadow-xs">
+              <ShieldCheck className="h-6 w-6 text-teal-200" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-bold tracking-tight text-white sm:text-base">
+                  Ayushman Bharat Citizen Health Portal
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-teal-700/80 border border-teal-500/50 px-2 py-0.5 text-[10px] font-semibold text-teal-100">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-400" /> ABHA Verified
+                </span>
+              </div>
+              <p className="text-xs text-teal-200/90 mt-0.5 font-mono">
+                ABHA ID: 91-4820-1940-2819 • Primary Center: Pethapur PHC
+              </p>
+            </div>
+          </div>
 
-        <div className="space-y-1">
-
-          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-            Good morning, {user?.name || 'Rameshwar Sharma'} 👋
-          </h1>
-
-          <p className="text-xs text-teal-100 sm:text-sm">
-            How can we help you today?
-          </p>
-
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center gap-1.5 rounded-xl bg-teal-800/80 border border-teal-600/40 px-3 py-1.5 text-xs text-teal-100">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>OPD Active Today</span>
+            </div>
+          </div>
         </div>
-
       </div>
 
 
