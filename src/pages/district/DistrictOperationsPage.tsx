@@ -187,7 +187,7 @@ export const DistrictOperationsPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="Appointments & OPD Queues"
-        subtitle={`Live token traffic, outpatient queue wait times, and consultation flow across ${selectedDistrict}.`}
+        subtitle={`Monitor outpatient queues, token progress, and wait times across district facilities.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Appointments & Queues' },
@@ -199,19 +199,19 @@ export const DistrictOperationsPage: React.FC = () => {
         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3 text-xs text-amber-950">
           <AlertTriangle className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h4 className="font-bold text-amber-900">High OPD Wait Time Warning</h4>
+            <h4 className="font-bold text-amber-900">OPD Backlog Alert</h4>
             <p className="text-amber-800">
               <strong>{congestedCounters[0].department}</strong> ({congestedCounters[0].name}) currently has{' '}
               {congestedCounters[0].waitingCount} waiting patients with an estimated wait time of{' '}
-              {congestedCounters[0].avgWaitMin} minutes. Consider opening an overflow counter.
+              {congestedCounters[0].avgWaitMin} minutes. Consider opening an overflow room.
             </p>
           </div>
         </div>
       )}
 
-      {/* District Operations KPI Deck */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Tokens Issued Today</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
@@ -219,40 +219,29 @@ export const DistrictOperationsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">142</p>
-          <span className="text-[11px] text-teal-700 font-medium">Across all OPD counters</span>
+          <span className="text-[11px] text-teal-700 font-medium">District OPD registrations today</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Waiting in Queue</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
               <Users className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{totalWaiting}</p>
-          <span className="text-[11px] text-amber-700 font-medium">Patients in waiting halls</span>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{totalWaiting} Patients</p>
+          <span className="text-[11px] text-amber-700 font-medium">Average district wait: ~{avgDistrictWait} mins</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Average Wait Time</span>
-            <div className="p-2 rounded-xl bg-sky-50 text-sky-700">
-              <Clock className="h-4 w-4" />
+            <span className="text-xs font-medium text-slate-500">Congested Counters</span>
+            <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
+              <AlertTriangle className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{avgDistrictWait} min</p>
-          <span className="text-[11px] text-sky-700 font-medium">Target is under 20 mins</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Completed Visits</span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
-              <CheckCircle2 className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">94</p>
-          <span className="text-[11px] text-emerald-700 font-medium">Consulted and dispensed</span>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{congestedCounters.length}</p>
+          <span className="text-[11px] text-rose-700 font-medium">Wait time exceeding 30 mins</span>
         </Card>
       </div>
 

@@ -45,7 +45,7 @@ export const AiDemandIntelligence: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="Healthcare Demand Forecast"
-        subtitle={`Predictive patient footfall, specialist doctor gap analysis, and bed surge forecasting for ${selectedDistrict}.`}
+        subtitle={`Forecast patient volume, specialist doctor gaps, and hospital bed demand for ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Demand Forecast' },

@@ -67,7 +67,7 @@ export const DistrictMedicinesPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Medicine Inventory"
-        subtitle={`Essential Medicines List (EML) stock balances, expiration monitoring, and reorder indents for ${selectedDistrict}.`}
+        subtitle={`Track essential drug inventory, low stock thresholds, and warehouse indents across ${selectedDistrict}.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Medicines' },
@@ -92,55 +92,44 @@ export const DistrictMedicinesPage: React.FC = () => {
         </div>
       )}
 
-      {/* KPI Cards Deck */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Monitored EML Drugs</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
               <Pill className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{totalItems} SKUs</p>
-          <span className="text-[11px] text-teal-700 font-medium">Gujarat Essential Formulary</span>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{totalItems} Items</p>
+          <span className="text-[11px] text-teal-700 font-medium">{inStockCount} drugs in adequate supply</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Adequate Stock</span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
-              <CheckCircle2 className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{inStockCount}</p>
-          <span className="text-[11px] text-emerald-700 font-medium">&gt; 30 days buffer secured</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Low Stock Buffer</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
               <TrendingDown className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{lowStockCount}</p>
-          <span className="text-[11px] text-amber-700 font-medium">Reorder threshold breached</span>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{lowStockCount} Items</p>
+          <span className="text-[11px] text-amber-700 font-medium">Reorder threshold reached</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Critical Stockouts</span>
             <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
               <AlertTriangle className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{criticalStockouts}</p>
-          <span className="text-[11px] text-rose-700 font-medium">Immediate indent needed</span>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{criticalStockouts} Items</p>
+          <span className="text-[11px] text-rose-700 font-medium">Immediate warehouse indent needed</span>
         </Card>
       </div>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4 bg-white border-slate-200 space-y-3">
+      <Card className="p-4 bg-white border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -149,7 +138,7 @@ export const DistrictMedicinesPage: React.FC = () => {
               placeholder="Search by drug name, batch, or therapeutic class..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-teal-700/20 focus:border-teal-700 text-slate-900 placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-teal-700/20 focus:border-teal-700 text-slate-900 placeholder:text-slate-400"
             />
           </div>
 
@@ -168,7 +157,7 @@ export const DistrictMedicinesPage: React.FC = () => {
         </div>
 
         {/* Category Pills */}
-        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-100">
+        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -186,16 +175,15 @@ export const DistrictMedicinesPage: React.FC = () => {
       </Card>
 
       {/* Medicines Inventory Table */}
-      <Card className="p-5 bg-white border-slate-200 space-y-4">
+      <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-4">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500 font-semibold bg-slate-50/50">
                 <th className="py-2.5 px-3">Medicine & Dosage</th>
-                <th className="py-2.5 px-3">Therapeutic Class</th>
-                <th className="py-2.5 px-3">District Stock</th>
-                <th className="py-2.5 px-3">Minimum Buffer</th>
-                <th className="py-2.5 px-3">Batch & Expiry</th>
+                <th className="py-2.5 px-3">Category</th>
+                <th className="py-2.5 px-3">Available Stock</th>
+                <th className="py-2.5 px-3">Minimum Safety Limit</th>
                 <th className="py-2.5 px-3">Status</th>
                 <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
@@ -218,14 +206,10 @@ export const DistrictMedicinesPage: React.FC = () => {
                     </td>
                     <td className="py-3 px-3">
                       <span className={`font-bold ${isCritical ? 'text-rose-600 font-black' : isLow ? 'text-amber-600 font-bold' : 'text-slate-900'}`}>
-                        {med.availableQuantity}
+                        {med.availableQuantity} {med.unit}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-slate-600">{med.minimumStockThreshold} units</td>
-                    <td className="py-3 px-3">
-                      <span className="font-mono text-[11px] text-slate-800 block">{med.batchNumber}</span>
-                      <span className="text-[10px] text-slate-400">Exp: {med.expiryDate}</span>
-                    </td>
+                    <td className="py-3 px-3 text-slate-600">{med.minimumStockThreshold} {med.unit}</td>
                     <td className="py-3 px-3">
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${

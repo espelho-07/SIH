@@ -51,7 +51,7 @@ export const DistrictResourcesPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Resource Planning"
-        subtitle={`Real-time distribution, supply reserves, and inter-facility resource balancing for ${selectedDistrict}.`}
+        subtitle={`Monitor beds, oxygen, blood, and ambulance reserves across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Resource Planning' },
@@ -79,7 +79,7 @@ export const DistrictResourcesPage: React.FC = () => {
       {/* 4 Primary Resource Pillars Deck */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Bed Capacity Pillar */}
-        <Card className="p-5 bg-white border-slate-200 hover:border-slate-300 transition-all space-y-3">
+        <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hospital Beds</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
@@ -105,7 +105,7 @@ export const DistrictResourcesPage: React.FC = () => {
         </Card>
 
         {/* 2. Medical Oxygen Pillar */}
-        <Card className="p-5 bg-white border-slate-200 hover:border-slate-300 transition-all space-y-3">
+        <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Medical Oxygen</span>
             <div className="p-2 rounded-xl bg-sky-50 text-sky-700">
@@ -131,7 +131,7 @@ export const DistrictResourcesPage: React.FC = () => {
         </Card>
 
         {/* 3. Blood Reserves Pillar */}
-        <Card className="p-5 bg-white border-slate-200 hover:border-slate-300 transition-all space-y-3">
+        <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Blood Bank Grid</span>
             <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
@@ -157,7 +157,7 @@ export const DistrictResourcesPage: React.FC = () => {
         </Card>
 
         {/* 4. Ambulances Pillar */}
-        <Card className="p-5 bg-white border-slate-200 hover:border-slate-300 transition-all space-y-3">
+        <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">108 Ambulances</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
@@ -184,11 +184,11 @@ export const DistrictResourcesPage: React.FC = () => {
       </div>
 
       {/* Facility Breakdown Table */}
-      <Card className="p-5 bg-white border-slate-200 space-y-4">
+      <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Facility Resource Distribution Matrix</h3>
-            <p className="text-xs text-slate-500">Live equipment, oxygen reserve, and bed capacity per health facility</p>
+            <h3 className="text-sm font-bold text-slate-900">Facility Resource Distribution</h3>
+            <p className="text-xs text-slate-500">Available beds, ICU ventilators, and oxygen status per facility</p>
           </div>
         </div>
 
@@ -200,8 +200,7 @@ export const DistrictResourcesPage: React.FC = () => {
                 <th className="py-2.5 px-3">Type</th>
                 <th className="py-2.5 px-3">Available Beds</th>
                 <th className="py-2.5 px-3">ICU Ventilators</th>
-                <th className="py-2.5 px-3">Oxygen Status</th>
-                <th className="py-2.5 px-3">Blood Storage</th>
+                <th className="py-2.5 px-3">Oxygen Supply</th>
                 <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
             </thead>
@@ -231,12 +230,7 @@ export const DistrictResourcesPage: React.FC = () => {
                     </td>
                     <td className="py-3 px-3">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                        PSA Normal
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="text-slate-700 font-medium">
-                        {fac.emergencyAvailable ? 'Storage Ready' : 'Depot Link'}
+                        Normal (4.2 bar)
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right">
@@ -250,7 +244,7 @@ export const DistrictResourcesPage: React.FC = () => {
                         }}
                         className="text-xs font-semibold"
                       >
-                        Transfer Here
+                        Rebalance
                       </Button>
                     </td>
                   </tr>

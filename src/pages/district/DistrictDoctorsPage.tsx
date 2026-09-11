@@ -198,16 +198,16 @@ export const DistrictDoctorsPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Doctors & Medical Officers"
-        subtitle={`Roster, clinical specialties, and active duty coverage across ${selectedDistrict} public health grid.`}
+        subtitle={`Monitor doctor deployment, duty status, and daily patient load across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Doctors' },
         ]}
       />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Registered Doctors</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
@@ -218,7 +218,7 @@ export const DistrictDoctorsPage: React.FC = () => {
           <span className="text-[11px] text-teal-700 font-medium">In {selectedDistrict} public grid</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Active On Duty</span>
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
@@ -226,21 +226,10 @@ export const DistrictDoctorsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{onDutyCount}</p>
-          <span className="text-[11px] text-emerald-700 font-medium">Currently consulting patients</span>
+          <span className="text-[11px] text-emerald-700 font-medium">Currently consulting in OPD & wards</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Teleconsult Ready</span>
-            <div className="p-2 rounded-xl bg-sky-50 text-sky-700">
-              <Video className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{teleconsultCount}</p>
-          <span className="text-[11px] text-sky-700 font-medium">e-Sanjeevani enabled</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Consultations Today</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
@@ -248,7 +237,7 @@ export const DistrictDoctorsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{totalPatientsToday}</p>
-          <span className="text-[11px] text-amber-700 font-medium">Patients treated today</span>
+          <span className="text-[11px] text-amber-700 font-medium">{teleconsultCount} doctors teleconsult-enabled</span>
         </Card>
       </div>
 

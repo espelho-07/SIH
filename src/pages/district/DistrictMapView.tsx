@@ -26,7 +26,7 @@ export const DistrictMapView: React.FC = () => {
     <div className="space-y-4">
       <PageHeader
         title="District Health Map"
-        subtitle={`Live geographical map of hospitals, community centres, and bed occupancy across ${selectedDistrict}.`}
+        subtitle={`Geographical view of healthcare facilities, bed status, and emergency casualty centres in ${selectedDistrict} District.`}
         breadcrumbs={[{ label: 'District Admin', to: '/district' }, { label: 'District Map' }]}
         actions={
           <div className="flex items-center gap-1.5 overflow-x-auto">

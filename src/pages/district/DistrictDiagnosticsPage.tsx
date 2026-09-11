@@ -125,7 +125,7 @@ export const DistrictDiagnosticsPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Diagnostics & Lab Network"
-        subtitle={`Diagnostic sample volume, turnaround times, and biomedical equipment status across ${selectedDistrict}.`}
+        subtitle={`Monitor lab test volume, turnaround times, and biomedical machine uptime across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Diagnostics' },
@@ -150,9 +150,9 @@ export const DistrictDiagnosticsPage: React.FC = () => {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Lab Tests Today</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
@@ -160,21 +160,10 @@ export const DistrictDiagnosticsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{totalTests}</p>
-          <span className="text-[11px] text-teal-700 font-medium">Across all district public labs</span>
+          <span className="text-[11px] text-teal-700 font-medium">Across all district public labs · avg TAT 1.5h</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Avg Turnaround Time</span>
-            <div className="p-2 rounded-xl bg-sky-50 text-sky-700">
-              <Clock className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">1.5 hrs</p>
-          <span className="text-[11px] text-sky-700 font-medium">From collection to report</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Equipment Uptime</span>
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
@@ -184,10 +173,10 @@ export const DistrictDiagnosticsPage: React.FC = () => {
           <p className="text-2xl font-bold text-slate-900 mt-2">
             {Math.round((operationalCount / (totalEquipment || 1)) * 100)}%
           </p>
-          <span className="text-[11px] text-emerald-700 font-medium">{operationalCount} of {totalEquipment} active</span>
+          <span className="text-[11px] text-emerald-700 font-medium">{operationalCount} of {totalEquipment} machines active</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Service Due / Alert</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
@@ -195,7 +184,7 @@ export const DistrictDiagnosticsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{maintenanceCount}</p>
-          <span className="text-[11px] text-amber-700 font-medium">Calibration or PM scheduled</span>
+          <span className="text-[11px] text-amber-700 font-medium">Scheduled biomedical maintenance</span>
         </Card>
       </div>
 

@@ -88,8 +88,8 @@ export const DistrictAmbulancesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="District 108 Ambulance Grid"
-        subtitle={`Live emergency ambulance tracking, dispatch readiness, and fleet coverage across ${selectedDistrict}.`}
+        title="District 108 Ambulance Fleet"
+        subtitle={`Track emergency ambulance locations, readiness status, and fleet dispatch across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Ambulances' },
@@ -114,9 +114,9 @@ export const DistrictAmbulancesPage: React.FC = () => {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Total 108 Fleet</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
@@ -124,10 +124,10 @@ export const DistrictAmbulancesPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{totalAmbulances} units</p>
-          <span className="text-[11px] text-teal-700 font-medium">Under GVK EMRI Gujarat</span>
+          <span className="text-[11px] text-teal-700 font-medium">GVK EMRI Gujarat network</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Available Ready</span>
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
@@ -138,26 +138,15 @@ export const DistrictAmbulancesPage: React.FC = () => {
           <span className="text-[11px] text-emerald-700 font-medium">Ready for immediate dispatch</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">On Active Mission</span>
+            <span className="text-xs font-medium text-slate-500">Active Missions</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
               <Navigation className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{inTransitCount}</p>
-          <span className="text-[11px] text-amber-700 font-medium">Patient transit in progress</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">In Maintenance</span>
-            <div className="p-2 rounded-xl bg-slate-100 text-slate-600">
-              <Wrench className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{maintenanceCount}</p>
-          <span className="text-[11px] text-slate-500 font-medium">Mechanical inspection / servicing</span>
+          <span className="text-[11px] text-amber-700 font-medium">{maintenanceCount} vehicle in maintenance</span>
         </Card>
       </div>
 

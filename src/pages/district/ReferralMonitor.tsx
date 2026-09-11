@@ -52,16 +52,16 @@ export const ReferralMonitor: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Referrals"
-        subtitle={`Track inter-facility patient transfers, arrival confirmations, and triage status across ${selectedDistrict}.`}
+        subtitle={`Track patient transfers, acceptance status, and SLA compliance across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Referrals' },
         ]}
       />
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Total Referrals</span>
             <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
@@ -69,45 +69,34 @@ export const ReferralMonitor: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{totalReferrals}</p>
-          <span className="text-[11px] text-teal-700 font-medium">In {selectedDistrict} grid</span>
+          <span className="text-[11px] text-teal-700 font-medium">Active in {selectedDistrict} network</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Emergency Priority</span>
+            <span className="text-xs font-medium text-slate-500">Emergency Transfers</span>
             <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
               <AlertTriangle className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{emergencyCount}</p>
-          <span className="text-[11px] text-rose-700 font-medium">Under 4-hour SLA window</span>
+          <span className="text-[11px] text-rose-700 font-medium">Critical bed allocation required</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Awaiting Acceptance</span>
+            <span className="text-xs font-medium text-slate-500">Pending Acceptance</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
               <Clock className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{pendingCount}</p>
-          <span className="text-[11px] text-amber-700 font-medium">Pending bed reservation</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">SLA Delayed</span>
-            <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{breachedCount}</p>
-          <span className="text-[11px] text-rose-700 font-medium">Action recommended</span>
+          <span className="text-[11px] text-amber-700 font-medium">{breachedCount} transfer near SLA window limit</span>
         </Card>
       </div>
 
       {/* Filter & Search Bar */}
-      <Card className="p-4 bg-white border-slate-200 space-y-3">
+      <Card className="p-4 bg-white border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -116,7 +105,7 @@ export const ReferralMonitor: React.FC = () => {
               placeholder="Search by code, patient name, hospital, or specialty..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-teal-700/20 focus:border-teal-700 text-slate-900 placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-teal-700/20 focus:border-teal-700 text-slate-900 placeholder:text-slate-400"
             />
           </div>
 
@@ -135,7 +124,7 @@ export const ReferralMonitor: React.FC = () => {
         </div>
 
         {/* Status Filter Pills */}
-        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-100">
+        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
           {['ALL', 'CREATED', 'ACCEPTED', 'PATIENT_ARRIVED', 'CLOSED'].map((st) => (
             <button
               key={st}
@@ -153,7 +142,7 @@ export const ReferralMonitor: React.FC = () => {
       </Card>
 
       {/* Referrals List Table */}
-      <Card className="p-5 bg-white border-slate-200 space-y-4">
+      <Card className="p-5 bg-white border-slate-200 shadow-xs space-y-4">
         {filteredReferrals.length === 0 ? (
           <div className="p-12 text-center text-slate-400">
             <GitBranch className="h-10 w-10 mx-auto mb-2 text-slate-300" />
@@ -170,9 +159,8 @@ export const ReferralMonitor: React.FC = () => {
                   <th className="py-2.5 px-3">Transfer Route</th>
                   <th className="py-2.5 px-3">Specialty</th>
                   <th className="py-2.5 px-3">Priority</th>
-                  <th className="py-2.5 px-3">SLA Status</th>
                   <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3 text-right">Details</th>
+                  <th className="py-2.5 px-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -196,15 +184,6 @@ export const ReferralMonitor: React.FC = () => {
                       <PriorityBadge priority={r.priority} />
                     </td>
                     <td className="py-3 px-3">
-                      <span
-                        className={`font-semibold ${
-                          r.slaBreached ? 'text-rose-600 font-bold' : 'text-emerald-700'
-                        }`}
-                      >
-                        {r.slaBreached ? '⚠️ Breached' : 'Within Target'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
                       <StatusBadge status={r.status} />
                     </td>
                     <td className="py-3 px-3 text-right">
@@ -214,7 +193,7 @@ export const ReferralMonitor: React.FC = () => {
                         onClick={() => setSelectedReferral(r)}
                         className="text-xs font-semibold"
                       >
-                        View
+                        View Details
                       </Button>
                     </td>
                   </tr>

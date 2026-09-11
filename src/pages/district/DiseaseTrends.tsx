@@ -27,7 +27,7 @@ export const DiseaseTrends: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="Disease Trends & Surveillance"
-        subtitle={`Syndromic reporting, seasonal fever patterns, and early anomaly projections for ${selectedDistrict}.`}
+        subtitle={`Track seasonal illness patterns, fever spikes, and epidemiological forecasts for ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Disease Trends' },
@@ -35,11 +35,11 @@ export const DiseaseTrends: React.FC = () => {
       />
 
       {/* Advisory Banner */}
-      <div className="rounded-2xl bg-teal-50/70 border border-teal-200 p-4 text-xs text-teal-950 flex items-center gap-3">
+      <div className="rounded-2xl bg-teal-50/70 border border-teal-200 p-3.5 text-xs text-teal-950 flex items-center gap-3">
         <ShieldCheck className="h-5 w-5 text-teal-700 shrink-0" />
         <p className="leading-relaxed">
-          <strong>Public Health Protocol: </strong>
-          Surveillance trends detect statistical deviations compared to the 3-year seasonal baseline. They are intended for early preventive mobilization (source reduction, fever surveys, larvicide fogging) before hospital bed saturation occurs.
+          <strong>Surveillance Guidance: </strong>
+          Projections indicate statistical deviations vs seasonal baselines to assist in early source reduction and vector fogging.
         </p>
       </div>
 

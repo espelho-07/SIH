@@ -136,16 +136,16 @@ export const DistrictAlertsPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Health Alerts"
-        subtitle={`Action center for clinical stock shortages, referral bottlenecks, and epidemiological warnings across ${selectedDistrict}.`}
+        subtitle={`Urgent clinical, referral, and resource notifications across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Alerts' },
         ]}
       />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Active Incidents</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
@@ -156,7 +156,7 @@ export const DistrictAlertsPage: React.FC = () => {
           <span className="text-[11px] text-amber-700 font-medium">Requiring supervision today</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Critical Priority</span>
             <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
@@ -167,7 +167,7 @@ export const DistrictAlertsPage: React.FC = () => {
           <span className="text-[11px] text-rose-700 font-medium">Urgent intervention needed</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Resolved Today</span>
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
@@ -175,18 +175,7 @@ export const DistrictAlertsPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{resolvedCount}</p>
-          <span className="text-[11px] text-emerald-700 font-medium">Mitigated & verified</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">District Status</span>
-            <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-lg font-bold text-slate-900 mt-2">Guarded</p>
-          <span className="text-[11px] text-teal-700 font-medium">Triage grid fully operational</span>
+          <span className="text-[11px] text-emerald-700 font-medium">Mitigated & closed</span>
         </Card>
       </div>
 

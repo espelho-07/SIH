@@ -9,32 +9,21 @@ import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { EmergencyButton } from '@/components/emergency/EmergencyButton';
 import {
   INITIAL_FACILITIES,
-  INITIAL_AI_SUMMARY,
   INITIAL_REFERRALS,
   INITIAL_MEDICINES,
-  INITIAL_BLOOD_INVENTORY,
   INITIAL_AMBULANCES,
 } from '@/mock/mockData';
 import { Link } from 'react-router-dom';
 import {
   Building2,
-  Users,
   GitBranch,
   Bed,
-  Droplet,
   Ambulance,
-  AlertTriangle,
   MapPin,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Clock,
   Pill,
-  Stethoscope,
-  Ticket,
   AlertOctagon,
   Activity,
-  Calendar,
+  ArrowRight,
 } from 'lucide-react';
 
 export const DistrictCommandDashboard: React.FC = () => {
@@ -43,9 +32,8 @@ export const DistrictCommandDashboard: React.FC = () => {
 
   const facilities = INITIAL_FACILITIES;
   const referrals = INITIAL_REFERRALS;
-  const outbreakAlert = INITIAL_AI_SUMMARY.outbreakAlerts[0];
 
-  // Real operational counts
+  // Key operational counts
   const totalBedsAvailable = facilities.reduce((acc, f) => acc + f.availableBeds, 0);
   const totalBeds = facilities.reduce((acc, f) => acc + f.totalBeds, 0);
   const totalIcuAvailable = facilities.reduce((acc, f) => acc + f.icuBedsAvailable, 0);
@@ -54,11 +42,11 @@ export const DistrictCommandDashboard: React.FC = () => {
   const pendingReferrals = referrals.filter((r) => r.status === 'CREATED' || r.status === 'ACCEPTED').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
       <PageHeader
         title="District Overview"
-        subtitle={`Real-time facilities, patient queues, referrals, and medical resources across ${selectedDistrict} District.`}
+        subtitle={`Immediate hospital capacity, referral transfers, and urgent priorities across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'HealthConnect', to: '/' },
           { label: 'District Admin', to: '/district' },
@@ -67,26 +55,26 @@ export const DistrictCommandDashboard: React.FC = () => {
         actions={
           <div className="flex items-center gap-2">
             <Link to="/district/alerts">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs font-semibold">
                 <AlertOctagon className="h-4 w-4 text-amber-600" />
-                <span>Alerts</span>
+                <span>Action Center</span>
                 <span className="ml-1 rounded-full bg-amber-100 text-amber-800 px-1.5 py-0.2 text-[10px] font-bold">
                   3
                 </span>
               </Button>
             </Link>
             <Link to="/district/map">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs font-semibold">
                 <MapPin className="h-4 w-4 text-teal-700" />
-                <span>District Map</span>
+                <span>Map View</span>
               </Button>
             </Link>
           </div>
         }
       />
 
-      {/* Top Welcome & Operational Status Banner (Patient Style) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-900 to-teal-800 text-white p-6 rounded-2xl shadow-xs">
+      {/* Top Welcome & Operational Status Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-900 to-teal-800 text-white p-5 rounded-2xl shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-teal-200">
@@ -110,104 +98,39 @@ export const DistrictCommandDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Primary District KPI Deck */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* 4 Focused Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Active Facilities"
-          value={facilities.length.toString()}
-          subtitle="Hospital & CHC network"
-          icon={Building2}
-          colorScheme="teal"
-        />
-        <StatCard
-          title="Available Beds"
+          title="Hospital Beds Available"
           value={`${totalBedsAvailable} / ${totalBeds}`}
-          subtitle={`${totalIcuAvailable} ICU beds free`}
+          subtitle={`${totalIcuAvailable} ICU free across ${facilities.length} centres`}
           icon={Bed}
-          colorScheme="blue"
+          colorScheme="teal"
         />
         <StatCard
           title="Active Referrals"
           value={pendingReferrals.toString()}
-          subtitle="In transfer window"
+          subtitle="Patient transfers in progress"
           icon={GitBranch}
+          colorScheme="blue"
+        />
+        <StatCard
+          title="Critical Alerts"
+          value="3 Items"
+          subtitle={`${lowStockMedicines} low medicines · O- blood low`}
+          icon={AlertOctagon}
           colorScheme="amber"
-        />
-        <StatCard
-          title="Medicines Alert"
-          value={lowStockMedicines.toString()}
-          subtitle="Needs reorder"
-          icon={Pill}
-          colorScheme="rose"
-        />
-        <StatCard
-          title="Blood Units"
-          value={INITIAL_BLOOD_INVENTORY.totalUnits.toString()}
-          subtitle="Across 8 blood banks"
-          icon={Droplet}
-          colorScheme="rose"
         />
         <StatCard
           title="Ambulances Ready"
           value={`${activeAmbulances} / ${INITIAL_AMBULANCES.length}`}
-          subtitle="On call & available"
+          subtitle="Ready for immediate dispatch"
           icon={Ambulance}
           colorScheme="teal"
         />
       </div>
 
-      {/* Quick Action Buttons (Patient Style) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Link to="/district/facilities">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-xs transition-all text-left group">
-            <Building2 className="h-5 w-5 text-teal-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Facilities</span>
-            <span className="text-[10px] text-slate-500">Beds & Services</span>
-          </Card>
-        </Link>
-
-        <Link to="/district/doctors">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-xs transition-all text-left group">
-            <Stethoscope className="h-5 w-5 text-sky-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Doctors</span>
-            <span className="text-[10px] text-slate-500">Specialist Duty</span>
-          </Card>
-        </Link>
-
-        <Link to="/district/referrals">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-xs transition-all text-left group">
-            <GitBranch className="h-5 w-5 text-amber-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Referrals</span>
-            <span className="text-[10px] text-slate-500">Track Transfers</span>
-          </Card>
-        </Link>
-
-        <Link to="/district/operations">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-xs transition-all text-left group">
-            <Ticket className="h-5 w-5 text-indigo-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Queues</span>
-            <span className="text-[10px] text-slate-500">OPD Bottlenecks</span>
-          </Card>
-        </Link>
-
-        <Link to="/district/resources">
-          <Card className="p-3.5 hover:border-teal-500 hover:shadow-xs transition-all text-left group">
-            <Activity className="h-5 w-5 text-emerald-700 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Resources</span>
-            <span className="text-[10px] text-slate-500">Stock & Supplies</span>
-          </Card>
-        </Link>
-
-        <Link to="/district/alerts">
-          <Card className="p-3.5 hover:border-amber-400 hover:shadow-xs transition-all text-left group bg-amber-50/40">
-            <AlertOctagon className="h-5 w-5 text-amber-600 mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-900 block">Action Center</span>
-            <span className="text-[10px] text-amber-700">3 Priority Alerts</span>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Needs Attention Today Section */}
+      {/* What Needs My Attention Today? (Immediate Action Section) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -216,106 +139,120 @@ export const DistrictCommandDashboard: React.FC = () => {
               Needs Attention Today
             </h2>
           </div>
-          <Link to="/district/alerts" className="text-xs text-teal-700 font-semibold hover:underline">
-            View All Alerts ({lowStockMedicines + 2}) →
+          <Link to="/district/alerts" className="text-xs text-teal-700 font-semibold hover:underline flex items-center gap-1">
+            <span>Open Action Center (3)</span>
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Item 1: Referral Bottleneck */}
-          <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/60 space-y-2 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-amber-950 flex items-center gap-1.5">
-                <GitBranch className="h-3.5 w-3.5 text-amber-700" />
-                Referral Awaiting Bed
-              </span>
-              <PriorityBadge priority="HIGH" />
+          {/* Priority 1: Referral Bed Assignment */}
+          <Card className="p-4 border-amber-200 bg-amber-50/50 space-y-3 hover:border-amber-300 transition-all flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-amber-950 text-xs flex items-center gap-1.5">
+                  <GitBranch className="h-3.5 w-3.5 text-amber-700" />
+                  Referral Awaiting Inpatient Bed
+                </span>
+                <PriorityBadge priority="HIGH" />
+              </div>
+              <p className="text-xs font-semibold text-slate-900">
+                Pethapur PHC → Gandhinagar Civil Hospital
+              </p>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Acute cardiac transfer dispatched 1.5h ago. Inpatient cardiology bed reservation pending confirmation.
+              </p>
             </div>
-            <p className="text-slate-700 font-medium">
-              Pethapur PHC → Gandhinagar Civil (Cardiology)
-            </p>
-            <p className="text-[11px] text-slate-500">
-              Patient referral dispatched 1.5h ago. Inpatient bed allocation pending at destination.
-            </p>
-            <div className="pt-1 flex items-center justify-between">
-              <span className="text-[10px] text-amber-800 font-semibold">SLA Window: 2.5h remaining</span>
-              <Link to="/district/referrals" className="text-xs font-bold text-teal-800 hover:underline">
-                Review →
+            <div className="pt-2 border-t border-amber-200/60 flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-amber-800">SLA: 2.5h left</span>
+              <Link to="/district/referrals">
+                <Button size="sm" variant="outline" className="h-7 text-xs font-semibold bg-white border-amber-300 hover:bg-amber-100/50 text-amber-900">
+                  Assign Bed →
+                </Button>
               </Link>
             </div>
-          </div>
+          </Card>
 
-          {/* Item 2: Low Stock Warning */}
-          <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/60 space-y-2 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-rose-950 flex items-center gap-1.5">
-                <Pill className="h-3.5 w-3.5 text-rose-700" />
-                Critical Medicine Stock
-              </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-200 text-rose-900">
-                Low Supply
-              </span>
+          {/* Priority 2: Critical Medicine Threshold */}
+          <Card className="p-4 border-rose-200 bg-rose-50/50 space-y-3 hover:border-rose-300 transition-all flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-rose-950 text-xs flex items-center gap-1.5">
+                  <Pill className="h-3.5 w-3.5 text-rose-700" />
+                  Medicine Supply Depletion
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-200 text-rose-900">
+                  Low Stock
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-900">
+                Paracetamol Infusion 100ml (Mansa CHC)
+              </p>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Stock is at 25 units (Safety limit: 50 units). Expected to reach stockout in 48 hours without warehouse dispatch.
+              </p>
             </div>
-            <p className="text-slate-700 font-medium">
-              Paracetamol Infusion 100ml (Mansa CHC)
-            </p>
-            <p className="text-[11px] text-slate-500">
-              Current stock: 25 bottles (Threshold: 50). Supply expected to deplete in 48 hours.
-            </p>
-            <div className="pt-1 flex items-center justify-between">
-              <span className="text-[10px] text-rose-800 font-semibold">Warehouse reorder needed</span>
-              <Link to="/district/medicines" className="text-xs font-bold text-teal-800 hover:underline">
-                Reorder →
+            <div className="pt-2 border-t border-rose-200/60 flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-rose-800">48h until stockout</span>
+              <Link to="/district/medicines">
+                <Button size="sm" variant="outline" className="h-7 text-xs font-semibold bg-white border-rose-300 hover:bg-rose-100/50 text-rose-900">
+                  Reorder Stock →
+                </Button>
               </Link>
             </div>
-          </div>
+          </Card>
 
-          {/* Item 3: Public Health Watch */}
-          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                <Activity className="h-3.5 w-3.5 text-teal-700" />
-                Public Health Surveillance
-              </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800">
-                Watch Active
-              </span>
+          {/* Priority 3: Vector Case Spike */}
+          <Card className="p-4 border-slate-200 bg-slate-50/70 space-y-3 hover:border-slate-300 transition-all flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                  <Activity className="h-3.5 w-3.5 text-teal-700" />
+                  Public Health Surveillance
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-800">
+                  Watch Active
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-900">
+                Vector-Borne Clustering (Sector 24)
+              </p>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                42 cases reported this week vs baseline of 15. ASHA field fogging verification is in progress.
+              </p>
             </div>
-            <p className="text-slate-700 font-medium">
-              Vector-Borne Case Clustering (Sector 24)
-            </p>
-            <p className="text-[11px] text-slate-500">
-              Unusual case increase detected: 42 cases vs baseline 15. Field fogging verification underway.
-            </p>
-            <div className="pt-1 flex items-center justify-between">
-              <span className="text-[10px] text-slate-500">Statistically flagged 18h ago</span>
-              <Link to="/district/disease-trends" className="text-xs font-bold text-teal-800 hover:underline">
-                View Trends →
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-[11px] text-slate-500 font-medium">Flagged 18h ago</span>
+              <Link to="/district/disease-trends">
+                <Button size="sm" variant="outline" className="h-7 text-xs font-semibold bg-white border-slate-300 hover:bg-slate-100 text-slate-800">
+                  View Trends →
+                </Button>
               </Link>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
-      {/* Main Operational Split: Facilities Grid & Active Transfers */}
+      {/* Main Operational Split: Facilities Summary & In-Transit Referrals */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* District Facilities Table (2 cols) */}
+        {/* District Facilities Summary (2 cols) */}
         <Card className="lg:col-span-2 border-slate-200 shadow-xs">
           <CardHeader className="p-4 border-b border-slate-100 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-sm font-bold text-slate-900">
-                District Healthcare Facilities
+                Healthcare Facilities Readiness
               </CardTitle>
               <p className="text-xs text-slate-500">Operational readiness and bed capacity</p>
             </div>
-            <Link to="/district/facilities" className="text-xs text-teal-700 font-semibold hover:underline">
-              View All ({facilities.length}) →
+            <Link to="/district/facilities" className="text-xs text-teal-700 font-semibold hover:underline flex items-center gap-1">
+              <span>View All Facilities ({facilities.length})</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </CardHeader>
 
           <CardContent className="p-0">
             <div className="divide-y divide-slate-100 text-xs">
-              {facilities.slice(0, 4).map((facility) => {
+              {facilities.slice(0, 3).map((facility) => {
                 const occupancyRate = Math.round(
                   ((facility.totalBeds - facility.availableBeds) / facility.totalBeds) * 100
                 );
@@ -363,8 +300,8 @@ export const DistrictCommandDashboard: React.FC = () => {
                       </div>
 
                       <Link to={`/district/facilities/${facility.id}`}>
-                        <Button variant="outline" size="sm" className="text-xs h-8 px-2.5">
-                          Details
+                        <Button variant="outline" size="sm" className="text-xs h-8 px-2.5 font-semibold">
+                          View Details
                         </Button>
                       </Link>
                     </div>
@@ -382,10 +319,11 @@ export const DistrictCommandDashboard: React.FC = () => {
               <CardTitle className="text-sm font-bold text-slate-900">
                 Active Referrals
               </CardTitle>
-              <p className="text-xs text-slate-500">Live inter-facility transfers</p>
+              <p className="text-xs text-slate-500">Live inter-facility patient transfers</p>
             </div>
-            <Link to="/district/referrals" className="text-xs text-teal-700 font-semibold hover:underline">
-              All ({referrals.length}) →
+            <Link to="/district/referrals" className="text-xs text-teal-700 font-semibold hover:underline flex items-center gap-1">
+              <span>All ({referrals.length})</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </CardHeader>
 
@@ -397,7 +335,7 @@ export const DistrictCommandDashboard: React.FC = () => {
                   <PriorityBadge priority={ref.priority} />
                 </div>
                 <p className="font-semibold text-slate-800 line-clamp-1">{ref.reasonForReferral}</p>
-                <div className="flex items-center justify-between text-slate-500 text-[11px] pt-1 border-t border-slate-200">
+                <div className="flex items-center justify-between text-slate-500 text-[11px] pt-2 border-t border-slate-200">
                   <span className="truncate max-w-[150px]">{ref.fromFacilityName.split(' ')[0]} → {ref.toFacilityName.split(' ')[0]}</span>
                   <StatusBadge status={ref.status} />
                 </div>

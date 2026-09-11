@@ -41,13 +41,21 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+  section?: string;
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { role, staffSubType } = useAuth();
   const { pendingSyncCount, networkState } = useConnection();
   const { t } = useTranslation();
 
   // Navigation Items per Role
-  const getNavItems = () => {
+  const getNavItems = (): NavItem[] => {
     switch (role) {
       case 'PATIENT':
         return [
@@ -111,21 +119,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       case 'DISTRICT_ADMIN':
         return [
-          { to: '/district', label: 'Overview', icon: LayoutDashboard },
-          { to: '/district/facilities', label: 'Facilities', icon: Building2 },
-          { to: '/district/doctors', label: 'Doctors', icon: Stethoscope },
-          { to: '/district/referrals', label: 'Referrals', icon: GitBranch },
-          { to: '/district/operations', label: 'Appointments & Queues', icon: Ticket },
-          { to: '/district/resources', label: 'Resource Planning', icon: Activity },
-          { to: '/district/medicines', label: 'Medicines', icon: Pill },
-          { to: '/district/blood', label: 'Blood Bank', icon: Droplet },
-          { to: '/district/ambulances', label: 'Ambulances', icon: Ambulance },
-          { to: '/district/diagnostics', label: 'Diagnostics', icon: FlaskConical },
-          { to: '/district/map', label: 'District Map', icon: Map },
-          { to: '/district/disease-trends', label: 'Disease Trends', icon: TrendingUp },
-          { to: '/district/ai', label: 'Demand Forecast', icon: BrainCircuit },
-          { to: '/district/alerts', label: 'Alerts', icon: AlertOctagon },
-          { to: '/district/reports', label: 'Reports', icon: FileText },
+          // 1. Overview
+          { to: '/district', label: 'Overview', icon: LayoutDashboard, section: 'Overview' },
+          { to: '/district/alerts', label: 'Action Center', icon: AlertOctagon, section: 'Overview' },
+
+          // 2. Facilities & Care
+          { to: '/district/facilities', label: 'Facilities', icon: Building2, section: 'Facilities & Care' },
+          { to: '/district/doctors', label: 'Doctors', icon: Stethoscope, section: 'Facilities & Care' },
+          { to: '/district/referrals', label: 'Referrals', icon: GitBranch, section: 'Facilities & Care' },
+          { to: '/district/operations', label: 'Queues & OPD', icon: Ticket, section: 'Facilities & Care' },
+
+          // 3. District Resources
+          { to: '/district/resources', label: 'Resource Planning', icon: Activity, section: 'District Resources' },
+          { to: '/district/medicines', label: 'Medicines', icon: Pill, section: 'District Resources' },
+          { to: '/district/blood', label: 'Blood Bank', icon: Droplet, section: 'District Resources' },
+          { to: '/district/ambulances', label: 'Ambulances', icon: Ambulance, section: 'District Resources' },
+          { to: '/district/diagnostics', label: 'Diagnostics', icon: FlaskConical, section: 'District Resources' },
+
+          // 4. Public Health & Insights
+          { to: '/district/map', label: 'District Map', icon: Map, section: 'Public Health & Insights' },
+          { to: '/district/disease-trends', label: 'Disease Trends', icon: TrendingUp, section: 'Public Health & Insights' },
+          { to: '/district/ai', label: 'Demand Forecast', icon: BrainCircuit, section: 'Public Health & Insights' },
+          { to: '/district/reports', label: 'Reports & Exports', icon: FileText, section: 'Public Health & Insights' },
         ];
 
       case 'SUPER_ADMIN':
@@ -174,37 +189,46 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         )}
 
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            Navigation
-          </div>
+          {!navItems[0]?.section && (
+            <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Navigation
+            </div>
+          )}
 
-          {navItems.map((item) => {
+          {navItems.map((item, index) => {
             const Icon = item.icon;
+            const showSection = item.section && (index === 0 || navItems[index - 1].section !== item.section);
             return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={onClose}
-                end={item.to.split('/').length <= 2}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all min-h-[44px]',
-                    isActive
-                      ? 'bg-teal-50 text-teal-800 font-semibold shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  )
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="h-5 w-5 shrink-0 text-slate-500" />
-                  <span className="truncate">{item.label}</span>
-                </div>
-                {item.badge !== undefined && (
-                  <span className="rounded-full bg-amber-600 px-2 py-0.5 text-[11px] font-bold text-white">
-                    {item.badge}
-                  </span>
+              <React.Fragment key={item.to}>
+                {showSection && (
+                  <div className={cn('px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400', index > 0 ? 'pt-4 pb-1.5' : 'pb-1.5')}>
+                    {item.section}
+                  </div>
                 )}
-              </NavLink>
+                <NavLink
+                  to={item.to}
+                  onClick={onClose}
+                  end={item.to.split('/').length <= 2}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-all min-h-[38px]',
+                      isActive
+                        ? 'bg-teal-50 text-teal-800 font-semibold shadow-xs'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    )
+                  }
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 shrink-0 text-slate-500" />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                  {item.badge !== undefined && (
+                    <span className="rounded-full bg-amber-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {item.badge}
+                    </span>
+                  )}
+                </NavLink>
+              </React.Fragment>
             );
           })}
         </div>

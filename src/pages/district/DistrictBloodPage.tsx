@@ -102,7 +102,7 @@ export const DistrictBloodPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Blood Bank & Components"
-        subtitle={`Real-time blood stock levels, component availability, and donor mobilization for ${selectedDistrict}.`}
+        subtitle={`Monitor whole blood units, rare groups, and blood bank storage across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Blood Bank' },
@@ -132,7 +132,7 @@ export const DistrictBloodPage: React.FC = () => {
                   {c.group} ({c.count} units left)
                 </strong>
               ))}{' '}
-              have breached minimum safe buffer levels. Voluntary donor camps or blood transfers are required.
+              have breached minimum safe buffer levels. Voluntary donor mobilization is required.
             </p>
           </div>
         </div>
@@ -146,50 +146,39 @@ export const DistrictBloodPage: React.FC = () => {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+      {/* 3 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total Blood Units</span>
+            <span className="text-xs font-medium text-slate-500">Total Tested Units</span>
             <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
               <Droplet className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{totalUnits} units</p>
-          <span className="text-[11px] text-teal-700 font-medium">Tested & cross-match ready</span>
+          <span className="text-[11px] text-teal-700 font-medium">Whole blood & components tested</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Packed Red Cells (PRBC)</span>
-            <div className="p-2 rounded-xl bg-teal-50 text-teal-700">
-              <Heart className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">108 units</p>
-          <span className="text-[11px] text-teal-700 font-medium">For surgical & trauma use</span>
-        </Card>
-
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Platelets & FFP</span>
+            <span className="text-xs font-medium text-slate-500">Critical Group Alert</span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
-              <Clock className="h-4 w-4" />
+              <AlertTriangle className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">39 units</p>
-          <span className="text-[11px] text-amber-700 font-medium">5-day shelf life monitored</span>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{criticalShortages.length} Groups</p>
+          <span className="text-[11px] text-rose-700 font-medium">O-Negative & AB-Negative below buffer</span>
         </Card>
 
-        <Card className="p-4 bg-white border-slate-200 hover:border-slate-300 transition-all">
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Licensed Blood Banks</span>
+            <span className="text-xs font-medium text-slate-500">Licensed Blood Facilities</span>
             <div className="p-2 rounded-xl bg-sky-50 text-sky-700">
               <Building2 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{MOCK_BLOOD_CENTRES.length}</p>
-          <span className="text-[11px] text-sky-700 font-medium">CDSCO & FDA certified</span>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{MOCK_BLOOD_CENTRES.length} Centres</p>
+          <span className="text-[11px] text-sky-700 font-medium">Cold chain certified</span>
         </Card>
       </div>
 

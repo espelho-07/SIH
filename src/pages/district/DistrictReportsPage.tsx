@@ -96,7 +96,7 @@ export const DistrictReportsPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="District Health Reports"
-        subtitle={`Official administrative reports, epidemiological summaries, and clinical compliance records for ${selectedDistrict}.`}
+        subtitle={`Generate, preview, and download statutory health reports for ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Reports' },
@@ -112,7 +112,7 @@ export const DistrictReportsPage: React.FC = () => {
       )}
 
       {/* Filter / Range Selector */}
-      <Card className="p-4 bg-white border-slate-200 space-y-3">
+      <Card className="p-4 bg-white border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-slate-400" />
