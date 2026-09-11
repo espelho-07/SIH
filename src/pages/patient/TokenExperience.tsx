@@ -34,6 +34,8 @@ import {
   PhoneCall,
   Check,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   UserCheck,
 } from 'lucide-react';
 
@@ -126,6 +128,7 @@ export const TokenExperience: React.FC = () => {
   const [showNewTokenForm, setShowNewTokenForm] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showPastTokens, setShowPastTokens] = useState(false);
   const [activePastFilter, setActivePastFilter] = useState<'ALL' | 'THIS_MONTH'>('ALL');
 
   const [dept, setDept] = useState('dep_med');
@@ -591,100 +594,148 @@ export const TokenExperience: React.FC = () => {
           </div>
 
           {/* -------------------------------------------------
-              BOTTOM: PAST TOKENS / VISIT HISTORY
+              BOTTOM: PAST TOKENS / VISIT HISTORY (Collapsible)
           -------------------------------------------------- */}
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => setShowPastTokens(!showPastTokens)}
+              className="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
                   <History className="h-4 w-4 text-slate-600" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                    Past Tokens & OPD History
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Previous consultations and dispensary tokens for your household
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                      Past Tokens & OPD History
+                    </h3>
+                    <span className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.2 rounded-full">
+                      {MOCK_PAST_TOKENS.length} Records
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {showPastTokens
+                      ? 'Click to collapse previous consultations and dispensary history'
+                      : 'Click to view previous consultations and dispensary tokens'}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setActivePastFilter('ALL')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activePastFilter === 'ALL'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  All ({MOCK_PAST_TOKENS.length})
-                </button>
-                <button
-                  onClick={() => setActivePastFilter('THIS_MONTH')}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activePastFilter === 'THIS_MONTH'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  This Month
-                </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs font-semibold text-teal-700 hidden sm:inline">
+                  {showPastTokens ? 'Hide History' : 'View History'}
+                </span>
+                <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+                  {showPastTokens ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </div>
               </div>
-            </div>
+            </button>
 
-            {/* Past Tokens List */}
-            <div className="space-y-3">
-              {filteredPastTokens.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-xl border border-slate-200/80 bg-white hover:border-teal-500 hover:shadow-xs transition-all p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
-                >
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-black text-sm text-teal-900 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg">
-                        {item.tokenNumber}
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.2 text-[10px] font-bold text-emerald-800">
-                        <Check className="h-3 w-3" /> {item.status}
-                      </span>
-                      <span className="text-xs font-bold text-slate-800 truncate">
-                        {item.departmentName}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-600 line-clamp-1">
-                      {item.notes}
-                    </p>
-
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400 flex-wrap pt-0.5">
-                      <span className="font-medium text-slate-600">
-                        👤 {item.patientName} ({item.relation})
-                      </span>
-                      <span>•</span>
-                      <span>{item.facilityName}</span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1 font-mono text-slate-500">
-                        <Calendar className="h-3 w-3" /> {item.date} at {item.time}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                    <Link to="/patient/records">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-xs h-7 px-2.5 rounded-lg border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
-                      >
-                        <FileText className="h-3.5 w-3.5 mr-1 text-teal-700" />
-                        View Record
-                      </Button>
-                    </Link>
+            {/* Collapsible Content */}
+            {showPastTokens && (
+              <div className="px-5 pb-5 pt-1 space-y-4 border-t border-slate-100 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between gap-2 pt-2">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Filter by Period:
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setActivePastFilter('ALL')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activePastFilter === 'ALL'
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      All ({MOCK_PAST_TOKENS.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActivePastFilter('THIS_MONTH')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activePastFilter === 'THIS_MONTH'
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      This Month
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Past Tokens List */}
+                <div className="space-y-3">
+                  {filteredPastTokens.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-teal-500 hover:shadow-xs transition-all p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5"
+                    >
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-black text-sm text-teal-900 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg">
+                            {item.tokenNumber}
+                          </span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.2 text-[10px] font-bold text-emerald-800">
+                            <Check className="h-3 w-3" /> {item.status}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800 truncate">
+                            {item.departmentName}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-600 line-clamp-1">
+                          {item.notes}
+                        </p>
+
+                        <div className="flex items-center gap-3 text-[11px] text-slate-400 flex-wrap pt-0.5">
+                          <span className="font-medium text-slate-600">
+                            👤 {item.patientName} ({item.relation})
+                          </span>
+                          <span>•</span>
+                          <span>{item.facilityName}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 font-mono text-slate-500">
+                            <Calendar className="h-3 w-3" /> {item.date} at {item.time}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <Link to="/patient/records">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs h-7 px-2.5 rounded-lg border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold cursor-pointer"
+                          >
+                            <FileText className="h-3.5 w-3.5 mr-1 text-teal-700" />
+                            View Record
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bottom Collapse Button */}
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPastTokens(false)}
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 inline-flex items-center gap-1 py-1 px-3 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                    Close Past Tokens
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
