@@ -56,6 +56,14 @@ import { PharmacyStockPage } from '@/pages/pharmacist/PharmacyStockPage';
 import { ExpiryManagementPage } from '@/pages/pharmacist/ExpiryManagementPage';
 import { DispensingHistoryPage } from '@/pages/pharmacist/DispensingHistoryPage';
 
+// Lab Technician Pages
+import { LabTechnicianDashboard } from '@/pages/lab-technician/LabTechnicianDashboard';
+import { TestQueuePage } from '@/pages/lab-technician/TestQueuePage';
+import { SampleDeskPage } from '@/pages/lab-technician/SampleDeskPage';
+import { ResultEntryPage } from '@/pages/lab-technician/ResultEntryPage';
+import { TestOrderDetailPage } from '@/pages/lab-technician/TestOrderDetailPage';
+import { LabHistoryPage } from '@/pages/lab-technician/LabHistoryPage';
+
 // District Admin Pages
 import { DistrictCommandDashboard } from '@/pages/district/DistrictCommandDashboard';
 import { DistrictFacilitiesPage } from '@/pages/district/DistrictFacilitiesPage';
@@ -372,6 +380,16 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/staff/lab"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <LabTechnicianDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/registration"
         element={
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
@@ -521,6 +539,68 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
             <AppShell>
               <DispensingHistoryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* DEDICATED LAB TECHNICIAN ROUTES */}
+      <Route
+        path="/lab-technician"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <LabTechnicianDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lab-technician/tests"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <TestQueuePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lab-technician/tests/:id"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <TestOrderDetailPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lab-technician/tests/:id/result"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <ResultEntryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lab-technician/samples"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <SampleDeskPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/lab-technician/history"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <LabHistoryPage />
             </AppShell>
           </ProtectedRoute>
         }

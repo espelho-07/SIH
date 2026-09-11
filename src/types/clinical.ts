@@ -67,10 +67,23 @@ export interface Prescription {
 
 export type DiagnosticOrderStatus =
   | 'ORDERED'
+  | 'AWAITING_SAMPLE'
   | 'SAMPLE_COLLECTED'
+  | 'SAMPLE_RECEIVED'
   | 'PROCESSING'
+  | 'RESULT_SUBMITTED'
+  | 'REPORT_READY'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'REJECTED';
+
+export interface LabResultParameter {
+  name: string;
+  value: string;
+  unit: string;
+  referenceRange: string;
+  status: 'NORMAL' | 'ABNORMAL' | 'CRITICAL';
+}
 
 export interface DiagnosticOrder {
   id: string;
@@ -79,20 +92,32 @@ export interface DiagnosticOrder {
   patientName: string;
   patientAge: number;
   patientGender: string;
+  patientPhone?: string;
+  patientAbha?: string;
   testName: string;
   testCategory: 'HEMATOLOGY' | 'BIOCHEMISTRY' | 'RADIOLOGY' | 'MICROBIOLOGY' | 'PATHOLOGY';
+  priority?: 'ROUTINE' | 'URGENT' | 'STAT';
   orderedBy: string;
   orderedAt: string;
   facilityId: string;
   facilityName: string;
   status: DiagnosticOrderStatus;
+  sampleId?: string;
+  sampleType?: string;
+  containerType?: string;
+  barcodeNumber?: string;
   sampleCollectedAt?: string;
+  sampleReceivedAt?: string;
   processedAt?: string;
   completedAt?: string;
+  rejectionReason?: string;
+  rejectionNotes?: string;
+  resultParameters?: LabResultParameter[];
   resultSummary?: string;
   reportFileUrl?: string;
   isAbnormal?: boolean;
   notes?: string;
+  technicianName?: string;
 }
 
 export interface Encounter {

@@ -41,6 +41,8 @@ import {
   Home,
   ListTodo,
   LogOut,
+  QrCode,
+  FileCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -132,6 +134,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           ];
         }
 
+        if (staffSubType === 'LAB_TECHNICIAN') {
+          return [
+            { to: '/lab-technician', label: 'Lab Work Desk', icon: LayoutDashboard, section: 'Laboratory Station' },
+            { to: '/lab-technician/tests', label: 'Test Queue', icon: FlaskConical, section: 'Laboratory Station' },
+            { to: '/lab-technician/samples', label: 'Sample Desk', icon: QrCode, section: 'Laboratory Station' },
+            { to: '/lab-technician/history', label: 'Verified Reports', icon: FileCheck, section: 'Quality & Archive' },
+          ];
+        }
+
         const staffItems = [{ to: '/staff', label: t('nav.dashboard'), icon: LayoutDashboard }];
         if (!staffSubType) {
           staffItems.push(
@@ -142,8 +153,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         if (!staffSubType) {
           staffItems.push({ to: '/pharmacist', label: 'Pharmacy & Stock', icon: Pill });
         }
-        if (staffSubType === 'LAB_TECHNICIAN' || !staffSubType) {
-          staffItems.push({ to: '/staff/lab', label: 'Diagnostics & Labs', icon: FlaskConical });
+        if (!staffSubType) {
+          staffItems.push({ to: '/lab-technician', label: 'Diagnostics & Labs', icon: FlaskConical });
         }
         if (staffSubType === 'FACILITY_OPERATIONS' || !staffSubType) {
           staffItems.push(
