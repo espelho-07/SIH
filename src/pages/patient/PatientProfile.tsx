@@ -35,7 +35,32 @@ import {
   Building2,
   PhoneCall,
   UserCheck,
+  Search,
+  Eye,
+  Printer,
+  X,
+  LayoutGrid,
+  ListFilter,
+  Stethoscope,
+  ExternalLink,
+  Filter,
 } from 'lucide-react';
+
+interface MockMedication {
+  name: string;
+  dosage: string;
+  timing: string;
+  duration: string;
+  instructions: string;
+}
+
+interface MockLabResult {
+  test: string;
+  result: string;
+  unit: string;
+  normalRange: string;
+  status: 'NORMAL' | 'HIGH' | 'LOW';
+}
 
 interface MockFamilyRecord {
   id: string;
@@ -45,11 +70,25 @@ interface MockFamilyRecord {
   type: 'PRESCRIPTION' | 'LAB_REPORT' | 'OPD_VISIT' | 'VACCINATION';
   title: string;
   facility: string;
+  department?: string;
   doctor: string;
+  doctorReg?: string;
   date: string;
+  time?: string;
   summary: string;
   status: 'VERIFIED' | 'COMPLETED' | 'ACTIVE';
   documentUrl?: string;
+  tags?: string[];
+  medications?: MockMedication[];
+  labResults?: MockLabResult[];
+  vitals?: {
+    bp?: string;
+    pulse?: string;
+    spo2?: string;
+    temp?: string;
+    weight?: string;
+  };
+  careContextId: string;
 }
 
 const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
@@ -61,10 +100,21 @@ const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
     type: 'OPD_VISIT',
     title: 'Cardiology Follow-up & ECG',
     facility: 'Gandhinagar District Hospital',
+    department: 'Cardiology OPD (Room 12)',
     doctor: 'Dr. Vikramaditya Mehta (MD Card)',
+    doctorReg: 'GMC-48291',
     date: '10 Sep 2026',
-    summary: 'Hypertension stable on Telmisartan 40mg. Mild bradycardia noted; advised salt restriction and walking.',
+    time: '10:30 AM',
+    summary: 'Hypertension stable on Telmisartan 40mg. Normal sinus rhythm on ECG. Advised low salt diet, daily brisk walking, and morning BP logs.',
     status: 'COMPLETED',
+    vitals: {
+      bp: '134/84 mmHg',
+      pulse: '68 bpm',
+      spo2: '98%',
+      weight: '68 kg',
+    },
+    tags: ['Cardiology', 'ECG Normal', 'Hypertension Review', 'Low Sodium'],
+    careContextId: 'CC-GDH-2026-CARD-0912',
   },
   {
     id: 'rec-02',
@@ -74,10 +124,38 @@ const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
     type: 'PRESCRIPTION',
     title: 'Hypertension & Lipid Regimen',
     facility: 'Gandhinagar District Hospital',
+    department: 'General Medicine & Cardiology',
     doctor: 'Dr. Vikramaditya Mehta',
+    doctorReg: 'GMC-48291',
     date: '10 Sep 2026',
-    summary: 'Rx: Tab Telmisartan 40mg OD, Tab Atorvastatin 10mg HS for 90 days.',
+    time: '11:00 AM',
+    summary: 'Long-term maintenance prescription for stage-1 hypertension and dyslipidemia. Valid for 90 days across Jan Aushadhi Kendra.',
     status: 'ACTIVE',
+    medications: [
+      {
+        name: 'Tab Telmisartan',
+        dosage: '40 mg',
+        timing: '1-0-0 (Morning)',
+        duration: '90 Days',
+        instructions: 'After breakfast with water',
+      },
+      {
+        name: 'Tab Atorvastatin',
+        dosage: '10 mg',
+        timing: '0-0-1 (Night)',
+        duration: '90 Days',
+        instructions: 'After dinner before sleep',
+      },
+      {
+        name: 'Tab Amlodipine',
+        dosage: '5 mg',
+        timing: 'SOS (As Needed)',
+        duration: '30 Days',
+        instructions: 'Take only if SBP exceeds 145 mmHg',
+      },
+    ],
+    tags: ['Blood Pressure', 'Lipids / Cholesterol', 'Chronic Care 90 Days'],
+    careContextId: 'CC-GDH-2026-RX-0842',
   },
   {
     id: 'rec-03',
@@ -87,10 +165,22 @@ const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
     type: 'LAB_REPORT',
     title: 'Complete Blood Count & Thyroid Profile',
     facility: 'Pethapur Primary Health Centre (PHC)',
-    doctor: 'Dr. Priya Desai',
+    department: 'NABL Certified Pathology Lab',
+    doctor: 'Dr. Priya Desai (MD Path)',
+    doctorReg: 'GMC-55102',
     date: '28 Aug 2026',
-    summary: 'Hb: 12.4 g/dL (Normal). TSH: 2.8 uIU/mL (Normal). Blood Glucose Fasting: 96 mg/dL.',
+    time: '09:15 AM',
+    summary: 'All hematology and endocrine parameters within physiological limits. Thyroid stimulating hormone is optimal.',
     status: 'VERIFIED',
+    labResults: [
+      { test: 'Hemoglobin (Hb)', result: '12.4', unit: 'g/dL', normalRange: '12.0 - 15.5', status: 'NORMAL' },
+      { test: 'TSH (Thyroid Stimulating)', result: '2.80', unit: 'uIU/mL', normalRange: '0.40 - 4.20', status: 'NORMAL' },
+      { test: 'Fasting Blood Glucose', result: '96', unit: 'mg/dL', normalRange: '70 - 100', status: 'NORMAL' },
+      { test: 'Total Leukocyte Count (TLC)', result: '6,800', unit: '/mcL', normalRange: '4,500 - 11,000', status: 'NORMAL' },
+      { test: 'Platelet Count', result: '2.45', unit: 'Lakh/mcL', normalRange: '1.50 - 4.50', status: 'NORMAL' },
+    ],
+    tags: ['CBC Normal', 'TSH Optimal', 'Fasting Glucose 96', 'NABL Accredited'],
+    careContextId: 'CC-PHC-2026-LAB-0198',
   },
   {
     id: 'rec-04',
@@ -98,12 +188,17 @@ const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
     memberName: 'Pooja Sharma',
     relation: 'Daughter',
     type: 'VACCINATION',
-    title: 'National Immunization Td Booster',
+    title: 'National Immunization Td Booster Certificate',
     facility: 'Urban Health Centre - Sector 21',
+    department: 'Universal Immunization Programme (UIP)',
     doctor: 'Sister Meena Solanki (ANM)',
+    doctorReg: 'NUR-GJ-9021',
     date: '14 Jul 2026',
-    summary: 'Administered Tetanus and adult Diphtheria (Td) booster dose. No adverse reactions observed.',
+    time: '11:45 AM',
+    summary: 'Administered Tetanus and adult Diphtheria (Td) booster dose. Verified under National Universal Immunization Grid.',
     status: 'VERIFIED',
+    tags: ['Td Booster', 'CoWIN / UIP Linked', 'Next Due in 10 Yrs'],
+    careContextId: 'CC-UHC-2026-UIP-0044',
   },
   {
     id: 'rec-05',
@@ -111,12 +206,24 @@ const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
     memberName: 'Rameshwar Sharma',
     relation: 'Self',
     type: 'OPD_VISIT',
-    title: 'Seasonal Bronchitis & General OPD',
+    title: 'Seasonal Bronchitis & General OPD Encounter',
     facility: 'Pethapur Primary Health Centre (PHC)',
+    department: 'General Medicine OPD (Room 2)',
     doctor: 'Dr. Ananya Patel (MO)',
+    doctorReg: 'GMC-61209',
     date: '02 Sep 2026',
-    summary: 'Dry cough and mild evening fever x 3 days. Chest clear. Advised hydration, steam inhalation, and antihistamines.',
+    time: '10:15 AM',
+    summary: 'Patient presented with dry irritating cough and mild evening fever x 3 days. Chest auscultation clear. Advised steam inhalation and hydration.',
     status: 'COMPLETED',
+    vitals: {
+      bp: '122/80 mmHg',
+      pulse: '74 bpm',
+      spo2: '99%',
+      temp: '98.8°F',
+      weight: '72 kg',
+    },
+    tags: ['Respiratory OPD', 'No Wheezing', 'Symptomatic Relief'],
+    careContextId: 'CC-PHC-2026-OPD-7721',
   },
   {
     id: 'rec-06',
@@ -124,12 +231,40 @@ const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
     memberName: 'Rameshwar Sharma',
     relation: 'Self',
     type: 'PRESCRIPTION',
-    title: 'Acute Bronchitis Prescription',
+    title: 'Acute Bronchitis & Cough Prescription',
     facility: 'Pethapur Primary Health Centre (PHC)',
+    department: 'PHC Pharmacy Dispensary',
     doctor: 'Dr. Ananya Patel',
+    doctorReg: 'GMC-61209',
     date: '02 Sep 2026',
-    summary: 'Rx: Tab Levocetirizine 5mg HS x 5 days, Syp Ambroxol 10ml TDS x 5 days.',
+    time: '10:40 AM',
+    summary: '5-day symptomatic treatment for seasonal allergy and upper respiratory congestion. Free medicines dispensed from PHC counter.',
     status: 'ACTIVE',
+    medications: [
+      {
+        name: 'Tab Levocetirizine',
+        dosage: '5 mg',
+        timing: '0-0-1 (Night)',
+        duration: '5 Days',
+        instructions: 'Take 1 tablet before sleeping',
+      },
+      {
+        name: 'Syp Ambroxol HCl',
+        dosage: '10 ml',
+        timing: '1-1-1 (TDS)',
+        duration: '5 Days',
+        instructions: 'After meals with lukewarm water',
+      },
+      {
+        name: 'Tab Paracetamol',
+        dosage: '650 mg',
+        timing: 'SOS (As needed)',
+        duration: '3 Days',
+        instructions: 'Take only if temperature exceeds 99.5°F',
+      },
+    ],
+    tags: ['Antihistamine', 'Cough Syrup', '5 Days Course', 'PHC Pharmacy'],
+    careContextId: 'CC-PHC-2026-RX-7722',
   },
 ];
 
@@ -148,6 +283,9 @@ export const PatientProfile: React.FC = () => {
   const [selectedAbhaMember, setSelectedAbhaMember] = useState<FamilyMember>(activeMember);
   const [recordFilterMemberId, setRecordFilterMemberId] = useState<string>('ALL');
   const [recordFilterType, setRecordFilterType] = useState<string>('ALL');
+  const [recordSearchQuery, setRecordSearchQuery] = useState<string>('');
+  const [vaultViewMode, setVaultViewMode] = useState<'grid' | 'timeline'>('grid');
+  const [viewingRecord, setViewingRecord] = useState<MockFamilyRecord | null>(null);
   const [showQrFullscreen, setShowQrFullscreen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -156,12 +294,30 @@ export const PatientProfile: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // KPI category counts
+  const totalRecordsCount = MOCK_FAMILY_RECORDS.length;
+  const prescriptionCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'PRESCRIPTION').length;
+  const labCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'LAB_REPORT').length;
+  const opdCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'OPD_VISIT').length;
+  const vaccineCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'VACCINATION').length;
+
   const filteredRecords = MOCK_FAMILY_RECORDS.filter((rec) => {
     const matchesMember =
       recordFilterMemberId === 'ALL' || rec.memberId === recordFilterMemberId;
     const matchesType =
       recordFilterType === 'ALL' || rec.type === recordFilterType;
-    return matchesMember && matchesType;
+    const q = recordSearchQuery.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      rec.title.toLowerCase().includes(q) ||
+      rec.summary.toLowerCase().includes(q) ||
+      rec.doctor.toLowerCase().includes(q) ||
+      rec.facility.toLowerCase().includes(q) ||
+      rec.memberName.toLowerCase().includes(q) ||
+      (rec.tags && rec.tags.some((t) => t.toLowerCase().includes(q))) ||
+      (rec.medications && rec.medications.some((m) => m.name.toLowerCase().includes(q))) ||
+      (rec.labResults && rec.labResults.some((l) => l.test.toLowerCase().includes(q)));
+    return matchesMember && matchesType && matchesSearch;
   });
 
   return (
@@ -175,61 +331,38 @@ export const PatientProfile: React.FC = () => {
       )}
 
       {/* ================================================== */}
-      {/* HEADER BANNER */}
+      {/* HEADER: Sleek, Modern & Government Health Tech Standard */}
       {/* ================================================== */}
-      <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-950 p-6 text-white shadow-md relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-700/80 border border-teal-500/50 px-3 py-1 text-xs font-semibold text-teal-100">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                ABDM Family Health Account
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 border border-amber-400/40 px-2.5 py-0.5 text-[11px] font-semibold text-amber-200">
-                Primary Phone: +91 98765 43210
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Family Healthcare & Member Profiles
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+              Family Healthcare & Profiles
             </h1>
-            <p className="text-xs sm:text-sm text-teal-100/90 max-w-2xl leading-relaxed">
-              In India, multiple household members often share a single mobile device. With Sanjeevani Connect, one primary mobile number manages up to 6 family members with individual ABHA Health IDs. When any dependent acquires their own smartphone, easily decouple and assign their dedicated mobile number.
-            </p>
-
-            {/* Quick Metrics */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <div className="flex items-center gap-2 bg-teal-950/40 rounded-lg px-3 py-1.5 border border-teal-700/40 text-xs">
-                <Users className="h-4 w-4 text-teal-300" />
-                <span className="text-teal-200 font-medium">Household Size:</span>
-                <span className="font-bold text-white">{members.length} Members</span>
-              </div>
-              <div className="flex items-center gap-2 bg-teal-950/40 rounded-lg px-3 py-1.5 border border-teal-700/40 text-xs">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <span className="text-teal-200 font-medium">Active Member:</span>
-                <span className="font-bold text-white">{activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})</span>
-              </div>
-              <div className="flex items-center gap-2 bg-teal-950/40 rounded-lg px-3 py-1.5 border border-teal-700/40 text-xs">
-                <Smartphone className="h-4 w-4 text-amber-300" />
-                <span className="text-teal-200 font-medium">Decoupled Phones:</span>
-                <span className="font-bold text-white">
-                  {members.filter((m) => m.hasOwnPhone || m.phoneType === 'PERSONAL').length} Personal
-                </span>
-              </div>
-            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-xs font-bold text-teal-800">
+              <ShieldCheck className="h-3.5 w-3.5 text-teal-600" />
+              ABDM Verified
+            </span>
           </div>
+          <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+            <span>Primary Mobile: <strong className="font-mono text-slate-700">+91 98765 43210</strong></span>
+            <span>•</span>
+            <span>{members.length} Household Members</span>
+            <span>•</span>
+            <span className="text-teal-700 font-medium">
+              Active: <strong>{activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})</strong>
+            </span>
+          </p>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 rounded-xl py-2.5 px-4 cursor-pointer"
-            >
-              <UserPlus className="h-4 w-4" />
-              + Add Family Member
-            </Button>
-          </div>
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center gap-2 rounded-xl py-2 px-4 cursor-pointer transition-all"
+          >
+            <UserPlus className="h-4 w-4" />
+            + Add Family Member
+          </Button>
         </div>
       </div>
 
@@ -720,146 +853,572 @@ export const PatientProfile: React.FC = () => {
       {/* TAB 3: FAMILY HEALTH RECORDS VAULT */}
       {/* ================================================== */}
       {activeTab === 'records' && (
-        <div className="space-y-6">
-          {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200">
+        <div className="space-y-5">
+          {/* Top KPI Category Summary & Filter Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Prescriptions */}
+            <div
+              onClick={() =>
+                setRecordFilterType((prev) =>
+                  prev === 'PRESCRIPTION' ? 'ALL' : 'PRESCRIPTION'
+                )
+              }
+              className={`p-4 rounded-2xl border transition-all cursor-pointer bg-white relative overflow-hidden group ${
+                recordFilterType === 'PRESCRIPTION'
+                  ? 'border-emerald-600 ring-2 ring-emerald-500/20 shadow-md'
+                  : 'border-slate-200 hover:border-emerald-300 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold">
+                  <Pill className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800">
+                  e-Rx
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black text-slate-900">
+                  {prescriptionCount}
+                </div>
+                <div className="text-xs font-bold text-slate-700 mt-0.5">
+                  Prescriptions
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Active medicine regimens
+                </div>
+              </div>
+            </div>
+
+            {/* Lab Diagnostics */}
+            <div
+              onClick={() =>
+                setRecordFilterType((prev) =>
+                  prev === 'LAB_REPORT' ? 'ALL' : 'LAB_REPORT'
+                )
+              }
+              className={`p-4 rounded-2xl border transition-all cursor-pointer bg-white relative overflow-hidden group ${
+                recordFilterType === 'LAB_REPORT'
+                  ? 'border-blue-600 ring-2 ring-blue-500/20 shadow-md'
+                  : 'border-slate-200 hover:border-blue-300 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center font-bold">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800">
+                  Diagnostics
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black text-slate-900">
+                  {labCount}
+                </div>
+                <div className="text-xs font-bold text-slate-700 mt-0.5">
+                  Lab Reports
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Pathology & blood profiles
+                </div>
+              </div>
+            </div>
+
+            {/* Hospital OPD Visits */}
+            <div
+              onClick={() =>
+                setRecordFilterType((prev) =>
+                  prev === 'OPD_VISIT' ? 'ALL' : 'OPD_VISIT'
+                )
+              }
+              className={`p-4 rounded-2xl border transition-all cursor-pointer bg-white relative overflow-hidden group ${
+                recordFilterType === 'OPD_VISIT'
+                  ? 'border-amber-600 ring-2 ring-amber-500/20 shadow-md'
+                  : 'border-slate-200 hover:border-amber-300 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="h-10 w-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center font-bold">
+                  <Stethoscope className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100/80 text-amber-800">
+                  Consultations
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black text-slate-900">
+                  {opdCount}
+                </div>
+                <div className="text-xs font-bold text-slate-700 mt-0.5">
+                  Hospital Visits
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Doctor clinical notes & ECG
+                </div>
+              </div>
+            </div>
+
+            {/* Vaccinations */}
+            <div
+              onClick={() =>
+                setRecordFilterType((prev) =>
+                  prev === 'VACCINATION' ? 'ALL' : 'VACCINATION'
+                )
+              }
+              className={`p-4 rounded-2xl border transition-all cursor-pointer bg-white relative overflow-hidden group ${
+                recordFilterType === 'VACCINATION'
+                  ? 'border-purple-600 ring-2 ring-purple-500/20 shadow-md'
+                  : 'border-slate-200 hover:border-purple-300 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="h-10 w-10 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center font-bold">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100/80 text-purple-800">
+                  Immunization
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black text-slate-900">
+                  {vaccineCount}
+                </div>
+                <div className="text-xs font-bold text-slate-700 mt-0.5">
+                  Vaccinations
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  UIP & booster certificates
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Smart Search & Filter Toolbar */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              {/* Live Search Input */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={recordSearchQuery}
+                  onChange={(e) => setRecordSearchQuery(e.target.value)}
+                  placeholder="Search by diagnosis, medicine, doctor, hospital, or care tag..."
+                  className="w-full pl-9 pr-9 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
+                />
+                {recordSearchQuery && (
+                  <button
+                    onClick={() => setRecordSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* View Switcher & Clear Button */}
+              <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+                {(recordFilterType !== 'ALL' || recordFilterMemberId !== 'ALL' || recordSearchQuery) && (
+                  <button
+                    onClick={() => {
+                      setRecordFilterType('ALL');
+                      setRecordFilterMemberId('ALL');
+                      setRecordSearchQuery('');
+                    }}
+                    className="text-xs font-semibold text-rose-600 hover:text-rose-700 px-2.5 py-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                  >
+                    Reset Filters
+                  </button>
+                )}
+
+                <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+                  <button
+                    onClick={() => setVaultViewMode('grid')}
+                    title="Grid View"
+                    className={`p-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      vaultViewMode === 'grid'
+                        ? 'bg-white text-teal-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setVaultViewMode('timeline')}
+                    title="List View"
+                    className={`p-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      vaultViewMode === 'timeline'
+                        ? 'bg-white text-teal-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <ListFilter className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Member Filter Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-slate-100">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
                 Family Member:
               </span>
               <button
                 onClick={() => setRecordFilterMemberId('ALL')}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
                   recordFilterMemberId === 'ALL'
-                    ? 'bg-teal-800 text-white'
+                    ? 'bg-slate-900 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                All Family ({MOCK_FAMILY_RECORDS.length})
+                All Family ({totalRecordsCount})
               </button>
-              {members.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setRecordFilterMemberId(m.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0 ${
-                    recordFilterMemberId === m.id
-                      ? 'bg-teal-800 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {m.name}
-                </button>
-              ))}
-            </div>
-
-            {/* Type Filter */}
-            <div className="flex items-center gap-2 shrink-0">
-              <select
-                value={recordFilterType}
-                onChange={(e) => setRecordFilterType(e.target.value)}
-                className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value="ALL">All Record Types</option>
-                <option value="PRESCRIPTION">Prescriptions</option>
-                <option value="LAB_REPORT">Lab Reports</option>
-                <option value="OPD_VISIT">Hospital OPD Visits</option>
-                <option value="VACCINATION">Vaccination Certificates</option>
-              </select>
+              {members.map((m) => {
+                const count = MOCK_FAMILY_RECORDS.filter((r) => r.memberId === m.id).length;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setRecordFilterMemberId(m.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                      recordFilterMemberId === m.id
+                        ? 'bg-teal-800 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>{m.name}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                        recordFilterMemberId === m.id
+                          ? 'bg-teal-900 text-teal-200'
+                          : 'bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Records List */}
-          <div className="space-y-3">
-            {filteredRecords.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 p-12 text-center bg-slate-50">
-                <FileText className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-                <h4 className="text-sm font-bold text-slate-700">No records found</h4>
-                <p className="text-xs text-slate-400 mt-1">
-                  Try switching family member or record type filters.
-                </p>
-              </div>
-            ) : (
-              filteredRecords.map((rec) => {
-                const getBadge = () => {
-                  switch (rec.type) {
-                    case 'PRESCRIPTION':
-                      return (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold">
-                          <Pill className="h-3 w-3" /> Prescription
-                        </span>
-                      );
-                    case 'LAB_REPORT':
-                      return (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 text-[10px] font-bold">
-                          <Activity className="h-3 w-3" /> Lab Diagnostics
-                        </span>
-                      );
-                    case 'VACCINATION':
-                      return (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200 px-2 py-0.5 text-[10px] font-bold">
-                          <ShieldCheck className="h-3 w-3" /> Immunization
-                        </span>
-                      );
-                    default:
-                      return (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 text-[10px] font-bold">
-                          <Building2 className="h-3 w-3" /> Hospital OPD Visit
-                        </span>
-                      );
-                  }
-                };
+          {/* Active Filter Indicators */}
+          {recordFilterType !== 'ALL' && (
+            <div className="flex items-center justify-between text-xs px-1 text-slate-500">
+              <span>
+                Filtering by:{' '}
+                <strong className="text-teal-900 font-bold">
+                  {recordFilterType.replace('_', ' ')}
+                </strong>{' '}
+                ({filteredRecords.length} records found)
+              </span>
+              <button
+                onClick={() => setRecordFilterType('ALL')}
+                className="text-teal-700 hover:underline font-semibold cursor-pointer"
+              >
+                Show All Types
+              </button>
+            </div>
+          )}
+
+          {/* Records Display: Grid vs Timeline */}
+          {filteredRecords.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 p-12 text-center bg-white">
+              <FileText className="h-10 w-10 text-slate-300 mx-auto mb-2" />
+              <h4 className="text-sm font-bold text-slate-800">No medical records match your criteria</h4>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                Try searching with different terms or selecting &quot;All Family&quot; from the filter chips above.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setRecordFilterType('ALL');
+                  setRecordFilterMemberId('ALL');
+                  setRecordSearchQuery('');
+                }}
+                className="mt-4 text-xs rounded-xl cursor-pointer"
+              >
+                Reset All Filters
+              </Button>
+            </div>
+          ) : vaultViewMode === 'grid' ? (
+            /* ================= GRID VIEW ================= */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredRecords.map((rec) => {
+                const isRx = rec.type === 'PRESCRIPTION';
+                const isLab = rec.type === 'LAB_REPORT';
+                const isOpd = rec.type === 'OPD_VISIT';
+                const isVac = rec.type === 'VACCINATION';
+
+                const theme = isRx
+                  ? {
+                      badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                      icon: <Pill className="h-3.5 w-3.5 text-emerald-600" />,
+                      borderHover: 'hover:border-emerald-500',
+                      label: 'Prescription',
+                    }
+                  : isLab
+                  ? {
+                      badge: 'bg-blue-50 text-blue-800 border-blue-200',
+                      icon: <Activity className="h-3.5 w-3.5 text-blue-600" />,
+                      borderHover: 'hover:border-blue-500',
+                      label: 'Lab Diagnostics',
+                    }
+                  : isVac
+                  ? {
+                      badge: 'bg-purple-50 text-purple-800 border-purple-200',
+                      icon: <ShieldCheck className="h-3.5 w-3.5 text-purple-600" />,
+                      borderHover: 'hover:border-purple-500',
+                      label: 'Immunization',
+                    }
+                  : {
+                      badge: 'bg-amber-50 text-amber-800 border-amber-200',
+                      icon: <Stethoscope className="h-3.5 w-3.5 text-amber-600" />,
+                      borderHover: 'hover:border-amber-500',
+                      label: 'OPD Encounter',
+                    };
 
                 return (
                   <div
                     key={rec.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    className={`rounded-2xl border border-slate-200 bg-white p-5 transition-all flex flex-col justify-between gap-4 ${theme.borderHover} hover:shadow-md group`}
                   >
-                    <div className="space-y-1.5 max-w-2xl">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {getBadge()}
-                        <span className="text-xs font-bold text-slate-900">
+                    <div className="space-y-3">
+                      {/* Top Bar */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${theme.badge}`}
+                        >
+                          {theme.icon}
+                          {theme.label}
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                            <Calendar className="h-3 w-3" />
+                            {rec.date}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              rec.status === 'ACTIVE'
+                                ? 'bg-teal-100 text-teal-800 border border-teal-200'
+                                : rec.status === 'VERIFIED'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            ● {rec.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Title & Patient */}
+                      <div>
+                        <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-teal-900 transition-colors">
                           {rec.title}
-                        </span>
-                        <span className="text-[11px] font-semibold text-teal-800 bg-teal-50 px-2 py-0.2 rounded-full border border-teal-200">
-                          👤 {rec.memberName} ({rec.relation})
-                        </span>
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1">
+                          <span className="font-semibold text-teal-900 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
+                            👤 {rec.memberName}
+                          </span>
+                          <span className="text-slate-400">({rec.relation})</span>
+                        </div>
                       </div>
 
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        {rec.summary}
-                      </p>
-
-                      <div className="flex items-center gap-3 text-[11px] text-slate-400 flex-wrap pt-0.5">
-                        <span className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3 text-slate-400" />
-                          {rec.facility}
-                        </span>
-                        <span>•</span>
-                        <span>{rec.doctor}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 font-mono text-slate-600">
-                          <Calendar className="h-3 w-3" /> {rec.date}
-                        </span>
+                      {/* Doctor & Facility */}
+                      <div className="space-y-1 text-xs text-slate-500 border-t border-slate-100 pt-2.5">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{rec.facility}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Stethoscope className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                          <span className="font-medium text-slate-700 truncate">{rec.doctor}</span>
+                        </div>
                       </div>
+
+                      {/* Clinical Highlight Pill Box */}
+                      {isRx && rec.medications && (
+                        <div className="rounded-xl bg-emerald-50/60 border border-emerald-200/80 p-2.5 space-y-1.5">
+                          <div className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1">
+                            <Pill className="h-3 w-3" /> Prescribed Medications:
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {rec.medications.map((m, idx) => (
+                              <span
+                                key={idx}
+                                className="bg-white border border-emerald-200 text-emerald-900 font-semibold px-2 py-0.5 rounded-md text-[11px] shadow-2xs"
+                              >
+                                {m.name} {m.dosage} <span className="text-slate-500 font-normal">({m.timing})</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {isLab && rec.labResults && (
+                        <div className="rounded-xl bg-blue-50/60 border border-blue-200/80 p-2.5 space-y-1.5">
+                          <div className="text-[10px] font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1">
+                            <Activity className="h-3 w-3" /> Key Test Results:
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {rec.labResults.slice(0, 3).map((l, idx) => (
+                              <span
+                                key={idx}
+                                className="bg-white border border-blue-200 text-blue-950 font-semibold px-2 py-0.5 rounded-md text-[11px] shadow-2xs"
+                              >
+                                {l.test}: <strong className="font-bold text-blue-800">{l.result} {l.unit}</strong>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {isOpd && (
+                        <div className="rounded-xl bg-amber-50/60 border border-amber-200/80 p-2.5 space-y-1">
+                          <div className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">
+                            Encounter Observation:
+                          </div>
+                          <p className="text-xs text-slate-700 line-clamp-2">
+                            {rec.summary}
+                          </p>
+                          {rec.vitals?.bp && (
+                            <div className="text-[11px] font-mono text-amber-950 font-bold pt-0.5">
+                              Vitals: BP {rec.vitals.bp} • Pulse {rec.vitals.pulse}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {isVac && (
+                        <div className="rounded-xl bg-purple-50/60 border border-purple-200/80 p-2.5 space-y-1">
+                          <div className="text-[10px] font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3" /> Immunization Status:
+                          </div>
+                          <p className="text-xs text-purple-950 font-medium">
+                            {rec.summary}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+                    {/* Bottom Action Footer */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => showToast(`Opened medical document for ${rec.memberName}`)}
-                        className="text-xs h-8 px-3 rounded-xl border-slate-200 hover:bg-slate-50 font-semibold cursor-pointer"
+                        onClick={() => setViewingRecord(rec)}
+                        className="bg-slate-900 hover:bg-teal-800 text-white text-xs font-semibold rounded-xl h-8 px-3 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
                       >
-                        <Download className="h-3.5 w-3.5 mr-1 text-slate-500" />
-                        Download
+                        <Eye className="h-3.5 w-3.5" />
+                        View Document
                       </Button>
+
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => showToast(`Downloaded PDF for ${rec.title}`)}
+                          className="text-xs h-8 px-2.5 rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 cursor-pointer"
+                          title="Download PDF"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(rec.careContextId);
+                            showToast(`Copied Care Context ID: ${rec.careContextId}`);
+                          }}
+                          className="text-xs h-8 px-2.5 rounded-xl text-slate-500 hover:text-slate-800 cursor-pointer"
+                          title="Copy ABDM ID"
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          ) : (
+            /* ================= TIMELINE / LIST VIEW ================= */
+            <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+              {filteredRecords.map((rec) => (
+                <div
+                  key={rec.id}
+                  className="p-4 hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div
+                      className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                        rec.type === 'PRESCRIPTION'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : rec.type === 'LAB_REPORT'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : rec.type === 'VACCINATION'
+                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}
+                    >
+                      {rec.type === 'PRESCRIPTION' ? (
+                        <Pill className="h-5 w-5" />
+                      ) : rec.type === 'LAB_REPORT' ? (
+                        <Activity className="h-5 w-5" />
+                      ) : rec.type === 'VACCINATION' ? (
+                        <ShieldCheck className="h-5 w-5" />
+                      ) : (
+                        <Stethoscope className="h-5 w-5" />
+                      )}
+                    </div>
+
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                          {rec.title}
+                        </h4>
+                        <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.2 rounded-full">
+                          👤 {rec.memberName} ({rec.relation})
+                        </span>
+                        <span className="text-[10px] font-semibold text-slate-500">
+                          {rec.date}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-600 line-clamp-1">
+                        {rec.summary}
+                      </p>
+
+                      <div className="flex items-center gap-2 text-[11px] text-slate-400 flex-wrap">
+                        <span>{rec.facility}</span>
+                        <span>•</span>
+                        <span>{rec.doctor}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                    <Button
+                      size="sm"
+                      onClick={() => setViewingRecord(rec)}
+                      className="bg-slate-900 hover:bg-teal-800 text-white text-xs font-semibold rounded-xl h-8 px-3 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => showToast(`Downloaded PDF for ${rec.title}`)}
+                      className="text-xs h-8 px-2.5 rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 cursor-pointer"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -961,6 +1520,265 @@ export const PatientProfile: React.FC = () => {
           member={assigningMember}
           onClose={() => setAssigningMember(null)}
         />
+      )}
+
+      {/* ================================================== */}
+      {/* ABDM OFFICIAL RECORD PREVIEW MODAL */}
+      {/* ================================================== */}
+      {viewingRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6 animate-in zoom-in-95 duration-150">
+            {/* Top ABDM Government Header */}
+            <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 px-6 py-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-teal-700/80 border border-teal-500/40 flex items-center justify-center text-teal-100 font-bold shrink-0">
+                  <ShieldCheck className="h-6 w-6 text-emerald-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] uppercase tracking-widest font-extrabold text-teal-200">
+                      Ayushman Bharat Digital Mission (ABDM)
+                    </span>
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.2 text-[10px] font-bold text-emerald-300">
+                      VERIFIED EHR
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white">
+                    {viewingRecord.facility}
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setViewingRecord(null)}
+                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Document Content */}
+            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+              {/* Document Reference Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                <div>
+                  <span className="text-slate-400 font-medium">Care Context ID: </span>
+                  <span className="font-mono font-bold text-slate-800">{viewingRecord.careContextId}</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Calendar className="h-3.5 w-3.5 text-teal-700" />
+                  <span className="font-medium">{viewingRecord.date} {viewingRecord.time && `• ${viewingRecord.time}`}</span>
+                </div>
+              </div>
+
+              {/* Patient Demographics */}
+              <div className="rounded-xl border border-slate-200 p-4 bg-teal-50/30 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Patient Name</span>
+                  <span className="font-bold text-slate-900">{viewingRecord.memberName}</span>
+                  <span className="text-[11px] text-teal-700 block">({viewingRecord.relation})</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Treating Doctor</span>
+                  <span className="font-bold text-slate-900">{viewingRecord.doctor}</span>
+                  <span className="text-[11px] text-slate-500 block">{viewingRecord.department || 'Clinical OPD'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Document Type</span>
+                  <span className="font-bold text-slate-900">{viewingRecord.type.replace('_', ' ')}</span>
+                  <span className="text-[10px] font-mono text-emerald-700 block font-semibold">● {viewingRecord.status}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Linked Household</span>
+                  <span className="font-mono font-bold text-slate-800">+91 98765 43210</span>
+                  <span className="text-[10px] text-slate-400 block font-semibold">Primary SIM</span>
+                </div>
+              </div>
+
+              {/* Clinical Summary */}
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Clinical Summary & Diagnosis
+                </h4>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed font-medium">
+                  {viewingRecord.summary}
+                </div>
+              </div>
+
+              {/* Vitals (if present) */}
+              {viewingRecord.vitals && (
+                <div className="space-y-1.5">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Recorded Vital Signs
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {viewingRecord.vitals.bp && (
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white text-center">
+                        <span className="text-[10px] text-slate-400 block font-medium">Blood Pressure</span>
+                        <span className="text-xs font-bold text-slate-900 font-mono">{viewingRecord.vitals.bp}</span>
+                      </div>
+                    )}
+                    {viewingRecord.vitals.pulse && (
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white text-center">
+                        <span className="text-[10px] text-slate-400 block font-medium">Pulse Rate</span>
+                        <span className="text-xs font-bold text-slate-900 font-mono">{viewingRecord.vitals.pulse}</span>
+                      </div>
+                    )}
+                    {viewingRecord.vitals.spo2 && (
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white text-center">
+                        <span className="text-[10px] text-slate-400 block font-medium">SpO2 Level</span>
+                        <span className="text-xs font-bold text-slate-900 font-mono">{viewingRecord.vitals.spo2}</span>
+                      </div>
+                    )}
+                    {viewingRecord.vitals.weight && (
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white text-center">
+                        <span className="text-[10px] text-slate-400 block font-medium">Body Weight</span>
+                        <span className="text-xs font-bold text-slate-900 font-mono">{viewingRecord.vitals.weight}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Prescription Table (if prescription) */}
+              {viewingRecord.medications && viewingRecord.medications.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Pill className="h-3.5 w-3.5 text-emerald-600" /> Prescribed Medications (Rx)
+                  </h4>
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[11px]">
+                        <tr>
+                          <th className="py-2.5 px-3">Medicine</th>
+                          <th className="py-2.5 px-3">Dosage</th>
+                          <th className="py-2.5 px-3">Frequency</th>
+                          <th className="py-2.5 px-3">Duration</th>
+                          <th className="py-2.5 px-3">Instructions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {viewingRecord.medications.map((med, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="py-2 px-3 font-bold text-slate-900">{med.name}</td>
+                            <td className="py-2 px-3 font-mono text-teal-800 font-semibold">{med.dosage}</td>
+                            <td className="py-2 px-3 text-slate-600">{med.timing}</td>
+                            <td className="py-2 px-3 font-medium text-slate-700">{med.duration}</td>
+                            <td className="py-2 px-3 text-slate-500 text-[11px]">{med.instructions}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Lab Results Table (if lab report) */}
+              {viewingRecord.labResults && viewingRecord.labResults.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Activity className="h-3.5 w-3.5 text-blue-600" /> Diagnostic Test Parameters
+                  </h4>
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[11px]">
+                        <tr>
+                          <th className="py-2.5 px-3">Investigation</th>
+                          <th className="py-2.5 px-3">Result</th>
+                          <th className="py-2.5 px-3">Reference Range</th>
+                          <th className="py-2.5 px-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {viewingRecord.labResults.map((lab, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="py-2 px-3 font-bold text-slate-900">{lab.test}</td>
+                            <td className="py-2 px-3 font-mono font-bold text-blue-900">
+                              {lab.result} <span className="text-[10px] text-slate-500 font-normal">{lab.unit}</span>
+                            </td>
+                            <td className="py-2 px-3 text-slate-500 font-mono text-[11px]">{lab.normalRange} {lab.unit}</td>
+                            <td className="py-2 px-3">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold">
+                                <Check className="h-2.5 w-2.5" /> Normal
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Tags */}
+              {viewingRecord.tags && viewingRecord.tags.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                  <span className="text-[11px] font-bold text-slate-400 mr-1">Care Tags:</span>
+                  {viewingRecord.tags.map((t, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-semibold text-slate-600"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* ABDM Digital Signature Stamp */}
+              <div className="p-3.5 rounded-xl border border-dashed border-teal-200 bg-teal-50/40 flex items-center justify-between gap-4">
+                <div className="space-y-0.5 text-[11px]">
+                  <span className="font-bold text-teal-950 flex items-center gap-1">
+                    <ShieldCheck className="h-3.5 w-3.5 text-teal-700" />
+                    Digitally Signed via National Health Claims &amp; EHR Exchange
+                  </span>
+                  <span className="text-slate-500 font-mono text-[10px] block">
+                    Signing Authority: {viewingRecord.doctor} {viewingRecord.doctorReg && `(${viewingRecord.doctorReg})`} • NHA-HMIS Hash: #NHA-SEC-99120
+                  </span>
+                </div>
+                <div className="h-10 w-10 bg-white rounded-lg border border-teal-200 flex items-center justify-center p-1 shrink-0">
+                  <QrCode className="h-8 w-8 text-teal-900" />
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.print();
+                }}
+                className="text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer className="h-3.5 w-3.5 text-slate-600" />
+                Print Record
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    showToast(`Downloaded official PDF for ${viewingRecord.title}`);
+                  }}
+                  className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setViewingRecord(null)}
+                  className="text-xs rounded-xl cursor-pointer"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
