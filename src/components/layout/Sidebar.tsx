@@ -33,6 +33,7 @@ import {
   KeyRound,
   ShieldCheck,
   Settings,
+  Stethoscope,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -110,12 +111,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       case 'DISTRICT_ADMIN':
         return [
-          { to: '/district', label: t('nav.commandCenter'), icon: LayoutDashboard },
-          { to: '/district/map', label: t('nav.districtMap'), icon: Map },
-          { to: '/district/referrals', label: 'Referral SLA Monitor', icon: GitBranch },
-          { to: '/district/resources', label: 'Resource Intelligence', icon: Activity },
-          { to: '/district/disease-trends', label: t('nav.diseaseTrends'), icon: TrendingUp },
-          { to: '/district/ai', label: t('nav.aiDemand'), icon: BrainCircuit },
+          { to: '/district', label: 'Overview', icon: LayoutDashboard },
+          { to: '/district/facilities', label: 'Facilities', icon: Building2 },
+          { to: '/district/doctors', label: 'Doctors', icon: Stethoscope },
+          { to: '/district/referrals', label: 'Referrals', icon: GitBranch },
+          { to: '/district/operations', label: 'Appointments & Queues', icon: Ticket },
+          { to: '/district/resources', label: 'Resource Planning', icon: Activity },
+          { to: '/district/medicines', label: 'Medicines', icon: Pill },
+          { to: '/district/blood', label: 'Blood Bank', icon: Droplet },
+          { to: '/district/ambulances', label: 'Ambulances', icon: Ambulance },
+          { to: '/district/diagnostics', label: 'Diagnostics', icon: FlaskConical },
+          { to: '/district/map', label: 'District Map', icon: Map },
+          { to: '/district/disease-trends', label: 'Disease Trends', icon: TrendingUp },
+          { to: '/district/ai', label: 'Demand Forecast', icon: BrainCircuit },
+          { to: '/district/alerts', label: 'Alerts', icon: AlertOctagon },
+          { to: '/district/reports', label: 'Reports', icon: FileText },
         ];
 
       case 'SUPER_ADMIN':
