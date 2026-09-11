@@ -10,6 +10,7 @@ import {
   INITIAL_BLOOD_INVENTORY,
   INITIAL_AMBULANCES,
   INITIAL_MEDICINES,
+  INITIAL_DISPENSING_HISTORY,
   INITIAL_EQUIPMENT,
   INITIAL_ASHA_PATIENTS,
   INITIAL_ASHA_VISITS,
@@ -25,7 +26,7 @@ import { Facility, FacilityMatchRequest, FacilityMatchResult } from '@/types/fac
 import { Token, LiveQueueState, Appointment } from '@/types/queue';
 import { Referral, CreateReferralRequest } from '@/types/referral';
 import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord } from '@/types/clinical';
-import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem } from '@/types/resources';
+import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem, DispensingRecord } from '@/types/resources';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
 import { AiDemandIntelligenceSummary } from '@/types/ai';
 import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog } from '@/types/admin';
@@ -45,6 +46,7 @@ class MockHealthcareState {
   bloodInventory: BloodInventory = JSON.parse(JSON.stringify(INITIAL_BLOOD_INVENTORY));
   ambulances: Ambulance[] = JSON.parse(JSON.stringify(INITIAL_AMBULANCES));
   medicines: MedicineInventoryItem[] = JSON.parse(JSON.stringify(INITIAL_MEDICINES));
+  dispensingHistory: DispensingRecord[] = JSON.parse(JSON.stringify(INITIAL_DISPENSING_HISTORY));
   equipment: EquipmentItem[] = JSON.parse(JSON.stringify(INITIAL_EQUIPMENT));
   ashaPatients: AshaPatient[] = JSON.parse(JSON.stringify(INITIAL_ASHA_PATIENTS));
   ashaVisits: AshaVisit[] = JSON.parse(JSON.stringify(INITIAL_ASHA_VISITS));
@@ -243,16 +245,122 @@ class MockHealthcareState {
   }
 
   // Pharmacy & Resource mutations
-  dispensePrescription(prescriptionId: string): Prescription | null {
+  dispensePrescription(prescriptionId: string, pharmacistName?: string, notes?: string): Prescription | null {
     const rx = this.prescriptions.find((p) => p.id === prescriptionId);
-    if (rx) {
-      rx.status = 'DISPENSED';
-      rx.items.forEach((item) => {
-        item.dispensedStatus = 'DISPENSED';
-        item.dispensedQuantity = item.totalQuantity;
-      });
+    if (!rx) return null;
+
+    // Double-dispense protection
+    if (rx.status === 'DISPENSED') {
+      return rx;
     }
-    return rx || null;
+
+    const dispensedItemsSummary: Array<{
+      medicineName: string;
+      genericName?: string;
+      batchNumber: string;
+      quantity: number;
+      unit: string;
+      dosageInstructions: string;
+    }> = [];
+
+    // Deduct stock for each prescribed item
+    rx.items.forEach((item) => {
+      item.dispensedStatus = 'DISPENSED';
+      item.dispensedQuantity = item.totalQuantity;
+
+      // Find best-matching medicine in inventory
+      const genNorm = (item.genericName || '').toLowerCase().trim();
+      const nameNorm = item.medicineName.toLowerCase().trim();
+
+      const matchedMed = this.medicines.find((m) => {
+        const mGen = m.genericName.toLowerCase().trim();
+        const mName = m.medicineName.toLowerCase().trim();
+        if (genNorm && (mGen.includes(genNorm) || genNorm.includes(mGen))) return true;
+        if (mName.includes(nameNorm) || nameNorm.includes(mName)) return true;
+        return false;
+      });
+
+      if (matchedMed) {
+        // Safe authoritative stock deduction
+        matchedMed.availableQuantity = Math.max(0, matchedMed.availableQuantity - item.totalQuantity);
+        if (matchedMed.availableQuantity === 0) {
+          matchedMed.status = 'OUT_OF_STOCK';
+        } else if (matchedMed.availableQuantity <= matchedMed.minimumStockThreshold) {
+          matchedMed.status = 'LOW_STOCK';
+        }
+        matchedMed.lastUpdated = new Date().toISOString();
+
+        dispensedItemsSummary.push({
+          medicineName: matchedMed.medicineName,
+          genericName: matchedMed.genericName,
+          batchNumber: matchedMed.batchNumber,
+          quantity: item.totalQuantity,
+          unit: matchedMed.unit,
+          dosageInstructions: `${item.frequency} • ${item.instructions || ''}`.trim(),
+        });
+      } else {
+        dispensedItemsSummary.push({
+          medicineName: item.medicineName,
+          genericName: item.genericName,
+          batchNumber: 'GEN-2026-DISP',
+          quantity: item.totalQuantity,
+          unit: 'Units',
+          dosageInstructions: `${item.frequency} • ${item.instructions || ''}`.trim(),
+        });
+      }
+    });
+
+    rx.status = 'DISPENSED';
+    rx.pharmacyNotes = notes;
+
+    // Record authoritative audit trail
+    const auditRecord: DispensingRecord = {
+      id: `disp_${Date.now()}`,
+      prescriptionId: rx.id,
+      patientId: rx.patientId,
+      patientName: rx.patientName,
+      patientAge: 48,
+      patientGender: 'M',
+      doctorId: rx.doctorId,
+      doctorName: rx.doctorName,
+      facilityId: rx.facilityId,
+      facilityName: rx.facilityName,
+      dispensedBy: pharmacistName || 'Priya Nair (Pharmacist)',
+      dispensedAt: new Date().toISOString(),
+      items: dispensedItemsSummary,
+      notes: notes || 'Verified with patient identity. Full course dispensed.',
+    };
+
+    this.dispensingHistory.unshift(auditRecord);
+    return rx;
+  }
+
+  quarantineBatch(medicineId: string, reason: string): MedicineInventoryItem | null {
+    const med = this.medicines.find((m) => m.id === medicineId);
+    if (med) {
+      med.status = 'QUARANTINED';
+      med.quarantineReason = reason;
+      med.lastUpdated = new Date().toISOString();
+    }
+    return med || null;
+  }
+
+  adjustMedicineStock(medicineId: string, delta: number, reason: string): MedicineInventoryItem | null {
+    const med = this.medicines.find((m) => m.id === medicineId);
+    if (med) {
+      med.availableQuantity = Math.max(0, med.availableQuantity + delta);
+      if (med.status !== 'QUARANTINED') {
+        if (med.availableQuantity === 0) {
+          med.status = 'OUT_OF_STOCK';
+        } else if (med.availableQuantity <= med.minimumStockThreshold) {
+          med.status = 'LOW_STOCK';
+        } else {
+          med.status = 'IN_STOCK';
+        }
+      }
+      med.lastUpdated = new Date().toISOString();
+    }
+    return med || null;
   }
 
   updateBedStatus(facilityId: string, category: string, available: number): BedSummary {

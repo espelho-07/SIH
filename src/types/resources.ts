@@ -70,8 +70,36 @@ export interface MedicineInventoryItem {
   minimumStockThreshold: number;
   unit: string; // e.g. "Tablets", "Vials", "Strips"
   expiryDate: string; // YYYY-MM-DD
-  status: 'IN_STOCK' | 'LOW_STOCK' | 'EXPIRING_SOON' | 'OUT_OF_STOCK';
+  status: 'IN_STOCK' | 'LOW_STOCK' | 'EXPIRING_SOON' | 'OUT_OF_STOCK' | 'QUARANTINED';
+  quarantineReason?: string;
   lastUpdated: string;
+}
+
+export interface DispensingRecordItem {
+  medicineName: string;
+  genericName?: string;
+  batchNumber: string;
+  quantity: number;
+  unit: string;
+  dosageInstructions: string;
+}
+
+export interface DispensingRecord {
+  id: string;
+  prescriptionId: string;
+  patientId: string;
+  patientName: string;
+  patientAge: number;
+  patientGender: string;
+  patientPhone?: string;
+  doctorId: string;
+  doctorName: string;
+  facilityId: string;
+  facilityName: string;
+  dispensedBy: string;
+  dispensedAt: string;
+  items: DispensingRecordItem[];
+  notes?: string;
 }
 
 export interface EquipmentItem {

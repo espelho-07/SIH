@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
 import { StaffSubType } from '@/types/auth';
 import {
-  INITIAL_PRESCRIPTIONS,
   INITIAL_DIAGNOSTIC_ORDERS,
   INITIAL_BED_SUMMARY,
   INITIAL_BLOOD_INVENTORY,
@@ -17,6 +16,7 @@ import {
 } from '@/mock/mockData';
 import { clinicalApi } from '@/api/clinicalApi';
 import { resourceApi } from '@/api/resourceApi';
+import { PharmacistDashboard } from '@/pages/pharmacist/PharmacistDashboard';
 import {
   Building2,
   Ticket,
@@ -36,21 +36,11 @@ export const StaffDashboard: React.FC = () => {
   const { user, staffSubType, quickSwitchRole } = useAuth();
   const activeSubType: StaffSubType = staffSubType || 'PHARMACIST';
 
-  // State for Pharmacist Dispensing
-  const [prescriptions, setPrescriptions] = useState(INITIAL_PRESCRIPTIONS);
-
   // State for Lab Technician
   const [labOrders, setLabOrders] = useState(INITIAL_DIAGNOSTIC_ORDERS);
 
   // State for Bed Operations
   const [bedSummary, setBedSummary] = useState(INITIAL_BED_SUMMARY);
-
-  const handleDispense = async (rxId: string) => {
-    await clinicalApi.dispensePrescription(rxId);
-    setPrescriptions((prev) =>
-      prev.map((p) => (p.id === rxId ? { ...p, status: 'DISPENSED' } : p))
-    );
-  };
 
   const handleCollectSample = async (orderId: string) => {
     await clinicalApi.collectSample(orderId);
@@ -169,77 +159,7 @@ export const StaffDashboard: React.FC = () => {
       {/* 2. PHARMACIST EXPERIENCE */}
       {/* ========================================================================= */}
       {activeSubType === 'PHARMACIST' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Pending Prescriptions</span>
-              <p className="text-3xl font-black text-amber-600 mt-1">
-                {prescriptions.filter((p) => p.status === 'PENDING').length}
-              </p>
-              <span className="text-[11px] text-amber-700">Awaiting dispensing</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Dispensed Today</span>
-              <p className="text-3xl font-black text-teal-700 mt-1">84</p>
-              <span className="text-[11px] text-emerald-700 font-semibold">100% fulfilled</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Low Stock Alerts</span>
-              <p className="text-3xl font-black text-rose-600 mt-1">1</p>
-              <span className="text-[11px] text-rose-700">Amoxicillin 625mg</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Expiring Batches (&lt;30d)</span>
-              <p className="text-3xl font-black text-amber-700 mt-1">1</p>
-              <span className="text-[11px] text-amber-800">Insulin Regular 40IU</span>
-            </Card>
-          </div>
-
-          <Card className="border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-base font-bold">Pending Digital Prescriptions Queue</CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 space-y-4">
-              {prescriptions.map((rx) => (
-                <div key={rx.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                    <div>
-                      <span className="font-bold text-slate-900 text-sm">{rx.patientName}</span>
-                      <span className="text-xs text-slate-500 ml-2">Prescribed by {rx.doctorName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={rx.status} />
-                      {rx.status !== 'DISPENSED' && (
-                        <Button
-                          onClick={() => handleDispense(rx.id)}
-                          variant="primary"
-                          size="sm"
-                          className="bg-teal-700 hover:bg-teal-800 text-xs font-bold"
-                        >
-                          Dispense & Deduct Stock
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="divide-y divide-slate-200 text-xs">
-                    {rx.items.map((it) => (
-                      <div key={it.id} className="py-1.5 flex justify-between">
-                        <span className="font-bold text-slate-800">{it.medicineName}</span>
-                        <span className="text-slate-600">
-                          Qty: <strong>{it.totalQuantity}</strong> ({it.instructions})
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+        <PharmacistDashboard />
       )}
 
       {/* ========================================================================= */}

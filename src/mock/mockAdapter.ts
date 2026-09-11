@@ -145,16 +145,40 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
+  if (cleanUrl.includes('/pharmacy/history')) {
+    return {
+      success: true,
+      message: 'Dispensing history records retrieved',
+      data: mockState.dispensingHistory,
+    };
+  }
+
   if (cleanUrl.includes('/prescriptions')) {
     if (method === 'PATCH' && cleanUrl.includes('/dispense')) {
-      const rxId = cleanUrl.split('/')[4];
-      const dispensed = mockState.dispensePrescription(rxId);
+      const parts = cleanUrl.split('/');
+      const rxIndex = parts.findIndex((p) => p === 'prescriptions');
+      const rxId = rxIndex !== -1 ? parts[rxIndex + 1] : parts[4];
+      const body = (data || {}) as { pharmacistName?: string; notes?: string };
+      const dispensed = mockState.dispensePrescription(rxId, body.pharmacistName, body.notes);
       return {
         success: true,
-        message: 'Prescription marked as dispensed',
+        message: 'Prescription verified, dispensed and inventory deducted successfully',
         data: dispensed,
       };
     }
+
+    const rxSingleMatch = cleanUrl.match(/\/prescriptions\/([a-zA-Z0-9_-]+)$/);
+    if (rxSingleMatch && method === 'GET') {
+      const targetRx = mockState.prescriptions.find((p) => p.id === rxSingleMatch[1]);
+      if (targetRx) {
+        return {
+          success: true,
+          message: 'Prescription details retrieved',
+          data: targetRx,
+        };
+      }
+    }
+
     return {
       success: true,
       message: 'Prescriptions list retrieved',
@@ -242,6 +266,44 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   if (cleanUrl.includes('/medicines') || cleanUrl.includes('/medicine-inventory')) {
+    if (method === 'PATCH' && cleanUrl.includes('/quarantine')) {
+      const parts = cleanUrl.split('/');
+      const medIndex = parts.findIndex((p) => p === 'medicines');
+      const medId = medIndex !== -1 ? parts[medIndex + 1] : parts[parts.length - 2];
+      const body = (data || {}) as { reason?: string };
+      const updated = mockState.quarantineBatch(medId, body.reason || 'Batch quarantined by Pharmacist');
+      return {
+        success: true,
+        message: 'Medicine batch quarantined successfully',
+        data: updated,
+      };
+    }
+
+    if (method === 'PATCH' && (cleanUrl.includes('/stock') || cleanUrl.includes('/adjust'))) {
+      const parts = cleanUrl.split('/');
+      const medIndex = parts.findIndex((p) => p === 'medicines');
+      const medId = medIndex !== -1 ? parts[medIndex + 1] : parts[parts.length - 2];
+      const body = (data || {}) as { delta?: number; reason?: string };
+      const updated = mockState.adjustMedicineStock(medId, body.delta || 0, body.reason || 'Inventory reconciliation');
+      return {
+        success: true,
+        message: 'Medicine stock level adjusted successfully',
+        data: updated,
+      };
+    }
+
+    const medSingleMatch = cleanUrl.match(/\/medicines\/([a-zA-Z0-9_-]+)$/);
+    if (medSingleMatch && method === 'GET') {
+      const targetMed = mockState.medicines.find((m) => m.id === medSingleMatch[1]);
+      if (targetMed) {
+        return {
+          success: true,
+          message: 'Medicine details retrieved',
+          data: targetMed,
+        };
+      }
+    }
+
     return {
       success: true,
       message: 'Medicine inventory retrieved',

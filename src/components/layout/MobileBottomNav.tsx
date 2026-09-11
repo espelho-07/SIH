@@ -14,10 +14,13 @@ import {
   GitBranch,
   Shield,
   Calendar,
+  Package,
+  Clock,
+  Pill,
 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
-  const { role } = useAuth();
+  const { role, staffSubType } = useAuth();
 
   const getMobileNavItems = () => {
     switch (role) {
@@ -48,11 +51,20 @@ export const MobileBottomNav: React.FC = () => {
         ];
 
       case 'FACILITY_STAFF':
+        if (staffSubType === 'PHARMACIST') {
+          return [
+            { to: '/pharmacist', label: 'Hub', icon: LayoutDashboard },
+            { to: '/pharmacist/prescriptions', label: 'Queue', icon: Clock },
+            { to: '/pharmacist/stock', label: 'Stock', icon: Package },
+            { to: '/pharmacist/expiry', label: 'Expiry', icon: Calendar },
+            { to: '/pharmacist/history', label: 'History', icon: FileText },
+          ];
+        }
         return [
           { to: '/staff', label: 'Home', icon: LayoutDashboard },
           { to: '/staff/registration', label: 'Register', icon: Users },
           { to: '/staff/queue', label: 'Queue', icon: Ticket },
-          { to: '/staff/pharmacy', label: 'Pharmacy', icon: Activity },
+          { to: '/pharmacist', label: 'Pharmacy', icon: Pill },
           { to: '/staff/beds', label: 'Beds', icon: Building2 },
         ];
 

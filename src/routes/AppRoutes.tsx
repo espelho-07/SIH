@@ -40,6 +40,14 @@ import { TeleconsultationRoom } from '@/pages/doctor/TeleconsultationRoom';
 // Facility Staff Pages
 import { StaffDashboard } from '@/pages/staff/StaffDashboard';
 
+// Pharmacist Pages
+import { PharmacistDashboard } from '@/pages/pharmacist/PharmacistDashboard';
+import { PrescriptionQueuePage } from '@/pages/pharmacist/PrescriptionQueuePage';
+import { PrescriptionDetailPage } from '@/pages/pharmacist/PrescriptionDetailPage';
+import { PharmacyStockPage } from '@/pages/pharmacist/PharmacyStockPage';
+import { ExpiryManagementPage } from '@/pages/pharmacist/ExpiryManagementPage';
+import { DispensingHistoryPage } from '@/pages/pharmacist/DispensingHistoryPage';
+
 // District Admin Pages
 import { DistrictCommandDashboard } from '@/pages/district/DistrictCommandDashboard';
 import { DistrictFacilitiesPage } from '@/pages/district/DistrictFacilitiesPage';
@@ -334,7 +342,7 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* 4. FACILITY STAFF ROUTES (Adaptive for Registration, Pharmacy, Lab, Operations) */}
+      {/* 4. FACILITY STAFF & PHARMACIST ROUTES */}
       <Route
         path="/staff"
         element={
@@ -346,11 +354,83 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/staff/pharmacy"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PharmacistDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/:subview"
         element={
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
             <AppShell>
               <StaffDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* DEDICATED PHARMACIST ROUTES */}
+      <Route
+        path="/pharmacist"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PharmacistDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pharmacist/prescriptions"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PrescriptionQueuePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pharmacist/prescriptions/:id"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PrescriptionDetailPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pharmacist/stock"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PharmacyStockPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pharmacist/expiry"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <ExpiryManagementPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pharmacist/history"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <DispensingHistoryPage />
             </AppShell>
           </ProtectedRoute>
         }

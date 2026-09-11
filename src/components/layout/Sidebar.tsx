@@ -20,6 +20,9 @@ import {
   RefreshCw,
   Users,
   Pill,
+  Package,
+  Clock,
+  History,
   FlaskConical,
   Bed,
   Ambulance,
@@ -108,6 +111,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ];
 
       case 'FACILITY_STAFF':
+        if (staffSubType === 'PHARMACIST') {
+          return [
+            { to: '/pharmacist', label: 'Today / Hub', icon: LayoutDashboard, section: 'Pharmacy Station' },
+            { to: '/pharmacist/prescriptions', label: 'Prescriptions Queue', icon: Clock, section: 'Pharmacy Station' },
+            { to: '/pharmacist/stock', label: 'Stock & Inventory', icon: Package, section: 'Pharmacy Station' },
+            { to: '/pharmacist/expiry', label: 'Expiry & Quarantine', icon: Calendar, section: 'Quality & Safety' },
+            { to: '/pharmacist/history', label: 'Dispense History', icon: History, section: 'Quality & Safety' },
+          ];
+        }
+
         const staffItems = [{ to: '/staff', label: t('nav.dashboard'), icon: LayoutDashboard }];
         if (staffSubType === 'REGISTRATION_CLERK' || !staffSubType) {
           staffItems.push(
@@ -115,8 +128,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             { to: '/staff/queue', label: 'OPD Token Counter', icon: Ticket }
           );
         }
-        if (staffSubType === 'PHARMACIST' || !staffSubType) {
-          staffItems.push({ to: '/staff/pharmacy', label: 'Pharmacy & Stock', icon: Pill });
+        if (!staffSubType) {
+          staffItems.push({ to: '/pharmacist', label: 'Pharmacy & Stock', icon: Pill });
         }
         if (staffSubType === 'LAB_TECHNICIAN' || !staffSubType) {
           staffItems.push({ to: '/staff/lab', label: 'Diagnostics & Labs', icon: FlaskConical });

@@ -26,7 +26,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
   onToggleSidebar,
   isSidebarOpen,
 }) => {
-  const { role, quickSwitchRole } = useAuth();
+  const { role, staffSubType, quickSwitchRole } = useAuth();
   const { selectedDistrict, selectedFacility, openLocationModal } = useLocationContext();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -40,7 +40,10 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
     if (newRole === 'PATIENT') navigate('/patient');
     else if (newRole === 'ASHA') navigate('/asha');
     else if (newRole === 'DOCTOR') navigate('/doctor');
-    else if (newRole === 'FACILITY_STAFF') navigate('/staff');
+    else if (newRole === 'FACILITY_STAFF') {
+      if (subType === 'PHARMACIST') navigate('/pharmacist');
+      else navigate('/staff');
+    }
     else if (newRole === 'DISTRICT_ADMIN') navigate('/district');
     else if (newRole === 'SUPER_ADMIN') navigate('/super-admin');
   };
@@ -154,7 +157,9 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
               title="Quick switch role for live demonstration"
             >
               <Sliders className="h-3.5 w-3.5 text-teal-700" />
-              <span className="hidden md:inline">Role: {role}</span>
+              <span className="hidden md:inline">
+                Role: {role === 'FACILITY_STAFF' && staffSubType ? staffSubType : role}
+              </span>
               <ChevronDown className="h-3 w-3 text-teal-700" />
             </button>
 
