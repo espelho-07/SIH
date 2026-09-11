@@ -648,9 +648,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* ---------------------------------------------
-            BOTTOM USER PROFILE & SYSTEM STATUS
+            BOTTOM USER PROFILE
         --------------------------------------------- */}
-        <div className="border-t border-slate-100 bg-slate-50/70 p-3 space-y-2.5 shrink-0">
+        <div className="border-t border-slate-100 bg-slate-50/70 p-3 shrink-0">
           {/* USER PROFILE & LOGOUT */}
           <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-slate-200 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -683,37 +683,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <LogOut className="h-4 w-4" />
             </button>
           </div>
-
-          {/* SYSTEM STATUS */}
-          <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <div className="absolute inset-0 h-2.5 w-2.5 animate-ping rounded-full bg-emerald-400 opacity-50" />
-                </div>
-                <span className="text-[10px] font-bold text-slate-700">
-                  System Online
-                </span>
-              </div>
-              <span className="text-[9px] font-semibold text-slate-400">
-                v2.4
-              </span>
-            </div>
-
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-[9px] text-slate-400">
-                SANJEEVANI-CONNECT
-              </span>
-              <span className="rounded-md bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold text-teal-700">
-                SIH26133
-              </span>
-            </div>
-          </div>
-
-          <p className="text-center text-[9px] text-slate-400">
-            MoHFW / NHM Gujarat Public Health Grid
-          </p>
         </div>
       </aside>
     </>
