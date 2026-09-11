@@ -64,6 +64,14 @@ import { ResultEntryPage } from '@/pages/lab-technician/ResultEntryPage';
 import { TestOrderDetailPage } from '@/pages/lab-technician/TestOrderDetailPage';
 import { LabHistoryPage } from '@/pages/lab-technician/LabHistoryPage';
 
+// Facility Operations Pages
+import { FacilityOperationsDashboard } from '@/pages/facility-operations/FacilityOperationsDashboard';
+import { ServicesOperationsPage } from '@/pages/facility-operations/ServicesOperationsPage';
+import { QueuesOperationsPage } from '@/pages/facility-operations/QueuesOperationsPage';
+import { ReferralOperationsPage } from '@/pages/facility-operations/ReferralOperationsPage';
+import { ResourceOperationsPage } from '@/pages/facility-operations/ResourceOperationsPage';
+import { AlertsCenterPage } from '@/pages/facility-operations/AlertsCenterPage';
+
 // District Admin Pages
 import { DistrictCommandDashboard } from '@/pages/district/DistrictCommandDashboard';
 import { DistrictFacilitiesPage } from '@/pages/district/DistrictFacilitiesPage';
@@ -410,6 +418,16 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/staff/operations"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <FacilityOperationsDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/:subview"
         element={
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
@@ -601,6 +619,68 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
             <AppShell>
               <LabHistoryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* DEDICATED FACILITY OPERATIONS ROUTES */}
+      <Route
+        path="/facility-operations"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <FacilityOperationsDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/facility-operations/services"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <ServicesOperationsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/facility-operations/queues"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <QueuesOperationsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/facility-operations/referrals"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <ReferralOperationsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/facility-operations/resources"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <ResourceOperationsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/facility-operations/alerts"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <AlertsCenterPage />
             </AppShell>
           </ProtectedRoute>
         }

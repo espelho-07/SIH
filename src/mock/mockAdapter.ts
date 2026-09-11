@@ -94,6 +94,107 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
+  // 2b. FACILITY OPERATIONS (FACILITY_OPERATIONS)
+  if (cleanUrl.includes('/operations') || cleanUrl.includes('/facilities/fac_civil_01') || cleanUrl.includes('/facility-operations')) {
+    const facId = 'fac_civil_01';
+
+    // Update facility status (Open, Limited, Closed, Emergency-Only)
+    if (cleanUrl.includes('/status') && (method === 'PATCH' || method === 'POST')) {
+      const body = (data || {}) as { status: any; reason?: string; updatedBy?: string };
+      const updated = mockState.updateFacilityStatus(facId, body.status, body.reason, body.updatedBy);
+      return {
+        success: true,
+        message: `Facility operational status updated to ${body.status}`,
+        data: updated,
+      };
+    }
+
+    // Services management
+    if (cleanUrl.includes('/services')) {
+      if (method === 'PATCH' || method === 'POST') {
+        const servMatch = cleanUrl.match(/\/services\/(serv_[a-z0-9_]+)/);
+        const servId = servMatch ? servMatch[1] : '';
+        const body = (data || {}) as { status: any; reason?: string; notes?: string };
+        const updatedServ = mockState.toggleServiceStatus(servId, body.status, body.reason, body.notes);
+        return {
+          success: true,
+          message: `Department service status updated to ${body.status}`,
+          data: updatedServ,
+        };
+      }
+      return {
+        success: true,
+        message: 'Operational services retrieved',
+        data: mockState.operationalServices,
+      };
+    }
+
+    // Announcements & broadcasts
+    if (cleanUrl.includes('/announcements')) {
+      if (method === 'POST') {
+        const body = (data || {}) as { title: string; message: string; severity?: any; author?: string };
+        const created = mockState.broadcastAnnouncement(body.title, body.message, body.severity, body.author);
+        return {
+          success: true,
+          message: 'Facility announcement broadcasted successfully',
+          data: created,
+        };
+      }
+      return {
+        success: true,
+        message: 'Active operational announcements retrieved',
+        data: mockState.operationalAnnouncements.filter((a) => a.active),
+      };
+    }
+
+    // Operational Issues & Alerts
+    if (cleanUrl.includes('/issues')) {
+      if (cleanUrl.includes('/resolve') && (method === 'PATCH' || method === 'POST')) {
+        const issMatch = cleanUrl.match(/\/issues\/(iss_[a-z0-9_]+)/);
+        const issueId = issMatch ? issMatch[1] : '';
+        const body = (data || {}) as { resolvedBy?: string };
+        const resolved = mockState.resolveOperationalIssue(issueId, body.resolvedBy);
+        return {
+          success: true,
+          message: 'Operational issue marked resolved',
+          data: resolved,
+        };
+      }
+      return {
+        success: true,
+        message: 'Operational issues retrieved',
+        data: mockState.operationalIssues,
+      };
+    }
+
+    // Staff Duty Roster
+    if (cleanUrl.includes('/staff-duty')) {
+      return {
+        success: true,
+        message: 'Operational staff duty roster retrieved',
+        data: mockState.staffDuty,
+      };
+    }
+
+    // Queue Delay Broadcast
+    if (cleanUrl.includes('/queues/delay') && (method === 'PATCH' || method === 'POST')) {
+      const body = (data || {}) as { departmentId: string; delayMinutes: number };
+      mockState.updateDepartmentQueueWait(body.departmentId, body.delayMinutes);
+      return {
+        success: true,
+        message: `Broadcasted ${body.delayMinutes} min delay for department`,
+        data: mockState.liveQueue,
+      };
+    }
+
+    // Default operations summary
+    return {
+      success: true,
+      message: 'Facility operations summary retrieved',
+      data: mockState.getFacilityOperationsSummary(facId),
+    };
+  }
+
   // 3. QUEUES & TOKENS
   if (cleanUrl.includes('/queues') && cleanUrl.includes('/live')) {
     return {

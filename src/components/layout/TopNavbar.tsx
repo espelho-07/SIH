@@ -44,6 +44,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
       if (subType === 'PHARMACIST') navigate('/pharmacist');
       else if (subType === 'REGISTRATION_CLERK') navigate('/registration-clerk');
       else if (subType === 'LAB_TECHNICIAN') navigate('/lab-technician');
+      else if (subType === 'FACILITY_OPERATIONS') navigate('/facility-operations');
       else navigate('/staff');
     }
     else if (newRole === 'DISTRICT_ADMIN') navigate('/district');

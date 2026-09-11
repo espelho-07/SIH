@@ -82,6 +82,15 @@ export const MobileBottomNav: React.FC = () => {
             { to: '/lab-technician/history', label: 'Archive', icon: FileCheck },
           ];
         }
+        if (staffSubType === 'FACILITY_OPERATIONS') {
+          return [
+            { to: '/facility-operations', label: 'Hub', icon: LayoutDashboard },
+            { to: '/facility-operations/services', label: 'Services', icon: Activity },
+            { to: '/facility-operations/queues', label: 'Queues', icon: Clock },
+            { to: '/facility-operations/referrals', label: 'Transfers', icon: GitBranch },
+            { to: '/facility-operations/resources', label: 'Capacity', icon: Building2 },
+          ];
+        }
         return [
           { to: '/staff', label: 'Home', icon: LayoutDashboard },
           { to: '/staff/registration', label: 'Register', icon: Users },

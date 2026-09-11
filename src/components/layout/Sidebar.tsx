@@ -18,6 +18,7 @@ import {
   Activity,
   ClipboardList,
   AlertOctagon,
+  AlertTriangle,
   RefreshCw,
   Users,
   Pill,
@@ -140,6 +141,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             { to: '/lab-technician/tests', label: 'Test Queue', icon: FlaskConical, section: 'Laboratory Station' },
             { to: '/lab-technician/samples', label: 'Sample Desk', icon: QrCode, section: 'Laboratory Station' },
             { to: '/lab-technician/history', label: 'Verified Reports', icon: FileCheck, section: 'Quality & Archive' },
+          ];
+        }
+
+        if (staffSubType === 'FACILITY_OPERATIONS') {
+          return [
+            { to: '/facility-operations', label: 'Operations Control', icon: LayoutDashboard, section: 'Facility Operations' },
+            { to: '/facility-operations/services', label: 'Services & OPD Matrix', icon: Activity, section: 'Facility Operations' },
+            { to: '/facility-operations/queues', label: 'Queue Velocity Monitor', icon: Clock, section: 'Facility Operations' },
+            { to: '/facility-operations/referrals', label: 'Transfer Coordination', icon: GitBranch, section: 'Facility Operations' },
+            { to: '/facility-operations/resources', label: 'Capacity & Fleet', icon: Bed, section: 'Resources & Fleet' },
+            { to: '/facility-operations/alerts', label: 'Alerts & Triage Center', icon: AlertTriangle, section: 'Resources & Fleet' },
           ];
         }
 

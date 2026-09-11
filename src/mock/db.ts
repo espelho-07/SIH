@@ -23,6 +23,10 @@ import {
   INITIAL_AUDIT_LOGS,
   INITIAL_PATIENTS,
   INITIAL_APPOINTMENTS,
+  INITIAL_OPERATIONAL_SERVICES,
+  INITIAL_OPERATIONAL_ANNOUNCEMENTS,
+  INITIAL_STAFF_DUTY,
+  INITIAL_OPERATIONAL_ISSUES,
 } from './mockData';
 import { Facility, FacilityMatchRequest, FacilityMatchResult } from '@/types/facility';
 import { Token, LiveQueueState, Appointment, RegisteredPatient } from '@/types/queue';
@@ -33,6 +37,15 @@ import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferr
 import { AiDemandIntelligenceSummary } from '@/types/ai';
 import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog } from '@/types/admin';
 import { User } from '@/types/auth';
+import {
+  OperationalService,
+  OperationalAnnouncement,
+  StaffDutyItem,
+  OperationalIssue,
+  FacilityOperationalStatus,
+  FacilityOperationsSummary,
+  ServiceOperationalStatus,
+} from '@/types/operations';
 
 class MockHealthcareState {
   users: Record<string, User> = { ...DEMO_USERS };
@@ -62,6 +75,18 @@ class MockHealthcareState {
   auditLogs: AuditLog[] = JSON.parse(JSON.stringify(INITIAL_AUDIT_LOGS));
   patients: RegisteredPatient[] = JSON.parse(JSON.stringify(INITIAL_PATIENTS));
   appointments: Appointment[] = JSON.parse(JSON.stringify(INITIAL_APPOINTMENTS));
+  facilityStatus: Record<string, { status: FacilityOperationalStatus; reason?: string; lastUpdated: string; updatedBy: string }> = {
+    fac_civil_01: {
+      status: 'OPEN',
+      reason: 'Full acute, emergency, and ambulatory care operating normally',
+      lastUpdated: new Date().toISOString(),
+      updatedBy: 'Vikram Joshi (Operations Lead)',
+    },
+  };
+  operationalServices: OperationalService[] = JSON.parse(JSON.stringify(INITIAL_OPERATIONAL_SERVICES));
+  operationalAnnouncements: OperationalAnnouncement[] = JSON.parse(JSON.stringify(INITIAL_OPERATIONAL_ANNOUNCEMENTS));
+  staffDuty: StaffDutyItem[] = JSON.parse(JSON.stringify(INITIAL_STAFF_DUTY));
+  operationalIssues: OperationalIssue[] = JSON.parse(JSON.stringify(INITIAL_OPERATIONAL_ISSUES));
 
   // Patient Registration & Duplicate Detection
   searchPatients(query: string): RegisteredPatient[] {
@@ -641,6 +666,154 @@ class MockHealthcareState {
         });
       }
     }
+  }
+
+  // --- FACILITY OPERATIONS METHODS ---
+  getFacilityOperationsSummary(facilityId: string = 'fac_civil_01'): FacilityOperationsSummary {
+    const statusEntry = this.facilityStatus[facilityId] || {
+      status: 'OPEN',
+      reason: 'Normal acute and emergency healthcare operations active',
+      lastUpdated: new Date().toISOString(),
+      updatedBy: 'Vikram Joshi (Operations Lead)',
+    };
+
+    const activeIssues = this.operationalIssues.filter((i) => !i.resolved);
+    const criticalCount = activeIssues.filter((i) => i.severity === 'CRITICAL').length;
+    const activeTokens = this.liveQueue.tokens.filter(
+      (t) => t.status === 'WAITING' || t.status === 'CALLED'
+    );
+    const ambulancesReady = this.ambulances.filter((a) => a.status === 'AVAILABLE').length;
+    const pendingIncoming = this.referrals.filter(
+      (r) => r.toFacilityId === facilityId && (r.status === 'CREATED' || r.status === 'ACCEPTED')
+    ).length;
+    const staffOnDuty = this.staffDuty.filter((s) => s.status === 'ON_DUTY').length;
+
+    return {
+      facilityId,
+      facilityName: 'Gandhinagar Civil Hospital & Medical College',
+      operationalStatus: statusEntry.status,
+      statusReason: statusEntry.reason,
+      lastStatusUpdate: statusEntry.lastUpdated,
+      updatedBy: statusEntry.updatedBy,
+      totalActiveIssues: activeIssues.length,
+      criticalIssuesCount: criticalCount,
+      services: this.operationalServices,
+      announcements: this.operationalAnnouncements.filter((a) => a.active),
+      telemetry: {
+        totalWaitingQueue: activeTokens.length,
+        avgQueueWaitMinutes: this.liveQueue.averageConsultTimeMinutes || 20,
+        bedsOccupied: this.bedSummary.totalOccupied,
+        bedsTotal: this.bedSummary.totalBeds,
+        bedsAvailable: this.bedSummary.totalAvailable,
+        icuAvailable: this.bedSummary.icuAvailable,
+        ambulancesReady,
+        ambulancesTotal: this.ambulances.length,
+        pendingIncomingReferrals: pendingIncoming,
+        staffOnDutyCount: staffOnDuty,
+      },
+    };
+  }
+
+  updateFacilityStatus(
+    facilityId: string = 'fac_civil_01',
+    status: FacilityOperationalStatus,
+    reason?: string,
+    updatedBy?: string
+  ): FacilityOperationsSummary {
+    const actor = updatedBy || 'Vikram Joshi (Operations Lead)';
+    this.facilityStatus[facilityId] = {
+      status,
+      reason: reason || (status === 'OPEN' ? 'Full healthcare services operating normally' : 'Operational status updated'),
+      lastUpdated: new Date().toISOString(),
+      updatedBy: actor,
+    };
+
+    const targetFac = this.facilities.find((f) => f.id === facilityId);
+    if (targetFac) {
+      targetFac.isOpen = status !== 'CLOSED';
+      targetFac.emergencyAvailable = status !== 'CLOSED';
+      targetFac.lastUpdated = new Date().toISOString();
+    }
+
+    // Register a priority announcement
+    this.broadcastAnnouncement(
+      `Hospital Operational Status Changed to ${status.replace(/_/g, ' ')}`,
+      reason || `Operational status transition authorized by ${actor}.`,
+      status === 'EMERGENCY_ONLY' || status === 'CLOSED' ? 'URGENT' : 'WARNING',
+      actor
+    );
+
+    return this.getFacilityOperationsSummary(facilityId);
+  }
+
+  toggleServiceStatus(
+    serviceId: string,
+    status: ServiceOperationalStatus,
+    reason?: string,
+    notes?: string
+  ): OperationalService | null {
+    const serv = this.operationalServices.find((s) => s.id === serviceId);
+    if (!serv) return null;
+
+    serv.status = status;
+    serv.statusReason = reason;
+    if (notes) serv.notes = notes;
+    serv.lastUpdated = new Date().toISOString();
+
+    if (status === 'OFFLINE') {
+      serv.currentWaitMinutes = 0;
+    } else if (status === 'DEGRADED') {
+      serv.currentWaitMinutes = Math.max(serv.currentWaitMinutes, 30);
+    }
+
+    return serv;
+  }
+
+  broadcastAnnouncement(
+    title: string,
+    message: string,
+    severity: 'INFO' | 'WARNING' | 'URGENT' = 'INFO',
+    author: string = 'Vikram Joshi (Operations Lead)'
+  ): OperationalAnnouncement {
+    const newAnnouncement: OperationalAnnouncement = {
+      id: `ann_ops_${Date.now()}`,
+      title,
+      message,
+      severity,
+      createdAt: new Date().toISOString(),
+      author,
+      active: true,
+    };
+    this.operationalAnnouncements.unshift(newAnnouncement);
+    return newAnnouncement;
+  }
+
+  resolveOperationalIssue(issueId: string, resolvedBy?: string): OperationalIssue | null {
+    const issue = this.operationalIssues.find((i) => i.id === issueId);
+    if (!issue) return null;
+
+    issue.resolved = true;
+    issue.resolvedAt = new Date().toISOString();
+    issue.resolvedBy = resolvedBy || 'Vikram Joshi (Operations Lead)';
+    return issue;
+  }
+
+  updateDepartmentQueueWait(departmentId: string, delayDeltaMinutes: number): void {
+    const serv = this.operationalServices.find((s) => s.code.toLowerCase().includes(departmentId.toLowerCase()));
+    if (serv) {
+      serv.currentWaitMinutes = Math.max(0, serv.currentWaitMinutes + delayDeltaMinutes);
+      serv.lastUpdated = new Date().toISOString();
+    }
+    if (this.liveQueue.averageConsultTimeMinutes) {
+      this.liveQueue.averageConsultTimeMinutes = Math.max(
+        5,
+        this.liveQueue.averageConsultTimeMinutes + Math.round(delayDeltaMinutes / 2)
+      );
+    }
+  }
+
+  getStaffDuty(facilityId?: string): StaffDutyItem[] {
+    return this.staffDuty;
   }
 }
 

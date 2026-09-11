@@ -1,53 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/ui/Badge';
 import { StaffSubType } from '@/types/auth';
-import {
-  INITIAL_DIAGNOSTIC_ORDERS,
-  INITIAL_BED_SUMMARY,
-  INITIAL_BLOOD_INVENTORY,
-  INITIAL_AMBULANCES,
-  INITIAL_MEDICINES,
-  INITIAL_EQUIPMENT,
-  INITIAL_LIVE_QUEUE,
-} from '@/mock/mockData';
-import { clinicalApi } from '@/api/clinicalApi';
-import { resourceApi } from '@/api/resourceApi';
 import { PharmacistDashboard } from '@/pages/pharmacist/PharmacistDashboard';
 import { RegistrationClerkDashboard } from '@/pages/registration-clerk/RegistrationClerkDashboard';
 import { LabTechnicianDashboard } from '@/pages/lab-technician/LabTechnicianDashboard';
-import {
-  Building2,
-  Ticket,
-  Pill,
-  FlaskConical,
-  Bed,
-  Droplet,
-  Ambulance,
-  Wrench,
-  UserPlus,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-} from 'lucide-react';
+import { FacilityOperationsDashboard } from '@/pages/facility-operations/FacilityOperationsDashboard';
 
 export const StaffDashboard: React.FC = () => {
   const { user, staffSubType, quickSwitchRole } = useAuth();
   const activeSubType: StaffSubType = staffSubType || 'PHARMACIST';
-
-  // State for Bed Operations
-  const [bedSummary, setBedSummary] = useState(INITIAL_BED_SUMMARY);
-
-  const handleUpdateBeds = async (catType: string, delta: number) => {
-    const cat = bedSummary.categories.find((c) => c.type === catType);
-    if (!cat) return;
-    const newAvail = Math.max(0, cat.available + delta);
-    const updated = await resourceApi.updateBedStatus('fac_civil_01', catType, newAvail);
-    setBedSummary({ ...updated.data });
-  };
 
   return (
     <div className="space-y-6">
@@ -107,102 +68,10 @@ export const StaffDashboard: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 4. FACILITY OPERATIONS (Beds, Equipment, Blood, Ambulances) */}
+      {/* 4. FACILITY OPERATIONS (Live Control Center) */}
       {/* ========================================================================= */}
       {activeSubType === 'FACILITY_OPERATIONS' && (
-        <div className="space-y-6">
-          {/* Bed Inventory Editor */}
-          <Card className="border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-base font-bold">Hospital Bed Capacity Management</CardTitle>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Update vacant bed counters in real time to inform referral algorithms
-                </p>
-              </div>
-              <span className="text-xs text-slate-400">Total: {bedSummary.totalBeds} Beds</span>
-            </CardHeader>
-            <CardContent className="p-5">
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {bedSummary.categories.map((cat) => (
-                  <div key={cat.type} className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-center space-y-2">
-                    <span className="text-[11px] font-bold uppercase text-slate-500">{cat.type}</span>
-                    <p className="text-2xl font-black text-slate-900">{cat.available} Free</p>
-                    <span className="text-[10px] text-slate-400 block">Total: {cat.total} beds</span>
-                    <div className="flex justify-center gap-2 pt-2">
-                      <Button
-                        onClick={() => handleUpdateBeds(cat.type, -1)}
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 font-black"
-                      >
-                        -
-                      </Button>
-                      <Button
-                        onClick={() => handleUpdateBeds(cat.type, 1)}
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 font-black"
-                      >
-                        +
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Blood & Ambulance Fleet */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Blood Bank */}
-            <Card className="border-slate-200">
-              <CardHeader>
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Droplet className="h-5 w-5 text-red-600" />
-                  <span>Blood Units Inventory</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5">
-                <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                  {INITIAL_BLOOD_INVENTORY.stock.map((b) => (
-                    <div key={b.bloodGroup} className="p-2.5 rounded-xl border bg-slate-50">
-                      <span className="font-extrabold text-red-700 block">{b.bloodGroup}</span>
-                      <span className="text-lg font-bold text-slate-900">{b.unitsAvailable}</span>
-                      <span className="text-[10px] text-slate-400 block">{b.status}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Ambulance Fleet */}
-            <Card className="border-slate-200">
-              <CardHeader>
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Ambulance className="h-5 w-5 text-teal-700" />
-                  <span>Ambulance Fleet Telemetry</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 space-y-2.5">
-                {INITIAL_AMBULANCES.map((amb) => (
-                  <div
-                    key={amb.id}
-                    className="p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <span className="font-mono font-bold text-slate-900 block">{amb.vehicleNumber}</span>
-                      <span className="text-slate-500">
-                        {amb.type.replace(/_/g, ' ')} • Driver: {amb.driverName}
-                      </span>
-                    </div>
-                    <StatusBadge status={amb.status} />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <FacilityOperationsDashboard />
       )}
     </div>
   );
