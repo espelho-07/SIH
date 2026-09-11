@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocationContext } from '@/contexts/LocationContext';
-import { EmergencyButton } from '@/components/emergency/EmergencyButton';
 import { supportedLanguages, changeAppLanguage } from '@/locales/i18n';
 import { useTranslation } from 'react-i18next';
 import { UserRole, StaffSubType } from '@/types/auth';
@@ -19,6 +18,7 @@ import {
   Menu,
   X,
   Search,
+  LogOut,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -26,7 +26,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
   onToggleSidebar,
   isSidebarOpen,
 }) => {
-  const { role, staffSubType, quickSwitchRole } = useAuth();
+  const { user, role, staffSubType, logout, quickSwitchRole } = useAuth();
   const { selectedDistrict, selectedFacility, openLocationModal } = useLocationContext();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -117,9 +117,6 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
             <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
             <span className="truncate max-w-[65px]">{selectedDistrict}</span>
           </button>
-
-          {/* Emergency SOS Button */}
-          <EmergencyButton compact />
 
           {/* Language Switcher */}
           <div className="relative">
@@ -238,6 +235,36 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                 </button>
               </div>
             )}
+          </div>
+
+          {/* User Profile & Logout */}
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white font-bold text-xs uppercase shadow-2xs">
+                {user?.name ? user.name.slice(0, 2) : 'HC'}
+              </div>
+              <div className="hidden lg:block text-left min-w-0">
+                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]" title={user?.name}>
+                  {user?.name || 'Authorized User'}
+                </p>
+                <span className="text-[10px] font-semibold text-teal-800 bg-teal-50 px-1 py-0.5 rounded border border-teal-200/60 uppercase leading-none inline-block mt-0.5">
+                  {role === 'FACILITY_STAFF' && staffSubType ? staffSubType.replace('_', ' ') : role?.replace('_', ' ')}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={async () => {
+                await logout();
+                navigate('/login');
+              }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+              title="Sign Out"
+              aria-label="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>

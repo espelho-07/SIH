@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConnection } from '@/contexts/ConnectionContext';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -36,7 +36,6 @@ import {
   History,
   QrCode,
   FileCheck,
-  LogOut,
   Home,
   ListTodo,
 } from 'lucide-react';
@@ -56,10 +55,9 @@ type NavItem = {
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { user, role, staffSubType, logout } = useAuth();
+  const { role, staffSubType } = useAuth();
   const { pendingSyncCount, networkState } = useConnection();
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   // --------------------------------------------------
   // NAVIGATION ITEMS
@@ -645,44 +643,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               );
             })}
           </nav>
-        </div>
-
-        {/* ---------------------------------------------
-            BOTTOM USER PROFILE
-        --------------------------------------------- */}
-        <div className="border-t border-slate-100 bg-slate-50/70 p-3 shrink-0">
-          {/* USER PROFILE & LOGOUT */}
-          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-slate-200 shadow-2xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white font-bold text-xs uppercase shadow-2xs">
-                {user?.name ? user.name.slice(0, 2) : 'HC'}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-900 leading-tight truncate" title={user?.name}>
-                  {user?.name || 'Authorized User'}
-                </p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="text-[10px] font-semibold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200/60 uppercase leading-none truncate">
-                    {role?.replace('_', ' ')}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={async () => {
-                await logout();
-                if (onClose) onClose();
-                navigate('/login');
-              }}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-              title="Sign Out"
-              aria-label="Sign Out"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
         </div>
       </aside>
     </>
