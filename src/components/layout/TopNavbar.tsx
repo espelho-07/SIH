@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocationContext } from '@/contexts/LocationContext';
-import { StatusIndicator } from '@/components/common/StatusIndicator';
 import { EmergencyButton } from '@/components/emergency/EmergencyButton';
-import { RoleBadge } from '@/components/ui/Badge';
 import { supportedLanguages, changeAppLanguage } from '@/locales/i18n';
 import { useTranslation } from 'react-i18next';
 import { UserRole, StaffSubType } from '@/types/auth';
@@ -12,7 +10,6 @@ import {
   Globe,
   MapPin,
   ChevronDown,
-  LogOut,
   UserCheck,
   Shield,
   Stethoscope,
@@ -29,14 +26,13 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
   onToggleSidebar,
   isSidebarOpen,
 }) => {
-  const { user, role, staffSubType, logout, quickSwitchRole } = useAuth();
+  const { role, quickSwitchRole } = useAuth();
   const { selectedDistrict, selectedFacility, openLocationModal } = useLocationContext();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const handleRoleSwitch = (newRole: UserRole, subType?: StaffSubType) => {
     quickSwitchRole(newRole, subType);
@@ -115,9 +111,6 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
             <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
             <span className="truncate max-w-[65px]">{selectedDistrict}</span>
           </button>
-
-          {/* Online/Offline Status Indicator */}
-          <StatusIndicator />
 
           {/* Emergency SOS Button */}
           <EmergencyButton compact />
@@ -234,47 +227,6 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                 >
                   <Shield className="h-4 w-4 text-red-600" />
                   <span>6. Super Admin (Tech)</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Profile & Session */}
-          <div className="relative">
-            <button
-              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              className="flex items-center gap-2 rounded-xl p-1 text-left hover:bg-slate-100 min-h-[44px]"
-              aria-label="User profile menu"
-            >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-800 text-white font-bold text-xs uppercase shadow-xs">
-                {user?.name ? user.name.slice(0, 2) : 'US'}
-              </div>
-              <div className="hidden xl:block">
-                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]">{user?.name}</p>
-                <p className="text-[10px] text-slate-500 capitalize">{role?.toLowerCase().replace('_', ' ')}</p>
-              </div>
-            </button>
-
-            {profileMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white p-3 shadow-2xl border border-slate-200 z-50 animate-in fade-in-50 duration-100 space-y-2">
-                <div className="border-b border-slate-100 pb-2">
-                  <p className="text-sm font-bold text-slate-900">{user?.name}</p>
-                  <p className="text-xs text-slate-500">{user?.phone}</p>
-                  <div className="mt-2">
-                    <RoleBadge role={user?.role || 'PATIENT'} subType={user?.staffSubType} />
-                  </div>
-                </div>
-
-                <button
-                  onClick={async () => {
-                    await logout();
-                    setProfileMenuOpen(false);
-                    navigate('/login');
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 transition-colors"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign Out
                 </button>
               </div>
             )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConnection } from '@/contexts/ConnectionContext';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -36,6 +36,7 @@ import {
   Stethoscope,
   Home,
   ListTodo,
+  LogOut,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,9 +53,10 @@ interface NavItem {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { role, staffSubType } = useAuth();
+  const { user, role, staffSubType, logout } = useAuth();
   const { pendingSyncCount, networkState } = useConnection();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   // Navigation Items per Role
   const getNavItems = (): NavItem[] => {
@@ -245,13 +247,49 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           })}
         </div>
 
-        {/* Bottom System Identity */}
-        <div className="p-4 border-t border-slate-100 text-[11px] text-slate-500 space-y-1 bg-slate-50/50">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-slate-700">HEALTHCONNECT v2.4</span>
-            <span className="rounded bg-teal-100 px-1.5 py-0.5 text-[10px] font-bold text-teal-800">SIH26133</span>
+        {/* Bottom User / Patient Profile & Identity */}
+        <div className="p-3 border-t border-slate-200 bg-slate-50/70 space-y-2 shrink-0">
+          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white font-bold text-xs uppercase shadow-xs">
+                {user?.name ? user.name.slice(0, 2) : 'HC'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-slate-900 leading-tight truncate" title={user?.name}>
+                  {user?.name || 'Patient'}
+                </p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-[10px] font-semibold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200/60 uppercase leading-none">
+                    {role?.replace('_', ' ')}
+                  </span>
+                  {user?.phone && (
+                    <span className="text-[10px] text-slate-400 truncate hidden xl:inline">
+                      • {user.phone.slice(-4)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={async () => {
+                await logout();
+                if (onClose) onClose();
+                navigate('/login');
+              }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+              title="Sign Out"
+              aria-label="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
-          <p className="text-[10px] text-slate-400">MoHFW / NHM Gujarat Public Health Grid</p>
+
+          <div className="flex items-center justify-between px-1 text-[10px] text-slate-400">
+            <span className="font-semibold text-slate-600">HEALTHCONNECT v2.4</span>
+            <span className="rounded bg-teal-100 px-1.5 py-0.5 font-bold text-teal-800">SIH26133</span>
+          </div>
         </div>
       </aside>
     </>
