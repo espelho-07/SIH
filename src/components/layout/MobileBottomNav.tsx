@@ -17,6 +17,8 @@ import {
   Package,
   Clock,
   Pill,
+  UserPlus,
+  CalendarCheck2,
 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
@@ -58,6 +60,15 @@ export const MobileBottomNav: React.FC = () => {
             { to: '/pharmacist/stock', label: 'Stock', icon: Package },
             { to: '/pharmacist/expiry', label: 'Expiry', icon: Calendar },
             { to: '/pharmacist/history', label: 'History', icon: FileText },
+          ];
+        }
+        if (staffSubType === 'REGISTRATION_CLERK') {
+          return [
+            { to: '/registration-clerk', label: 'Desk', icon: LayoutDashboard },
+            { to: '/registration-clerk/register', label: 'Register', icon: UserPlus },
+            { to: '/registration-clerk/patients', label: 'Directory', icon: Users },
+            { to: '/registration-clerk/appointments', label: 'Check-In', icon: CalendarCheck2 },
+            { to: '/registration-clerk/queue', label: 'Counter', icon: Ticket },
           ];
         }
         return [

@@ -136,6 +136,109 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
+  // 3b. REGISTRATION CLERK PATIENTS & APPOINTMENTS
+  if (cleanUrl.includes('/clerk/patients/check-duplicate') && method === 'POST') {
+    const body = (data || {}) as { phone?: string; abhaId?: string; name?: string };
+    const duplicate = mockState.checkDuplicatePatient(body.phone || '', body.abhaId, body.name);
+    return {
+      success: true,
+      message: duplicate ? 'Matching patient record found' : 'No duplicate record found',
+      data: duplicate,
+    };
+  }
+
+  if (cleanUrl.includes('/clerk/patients/register') && method === 'POST') {
+    const patientData = (data || {}) as any;
+    const newPatient = mockState.registerPatient(patientData);
+    return {
+      success: true,
+      message: `Patient ${newPatient.name} registered successfully with ID ${newPatient.id}`,
+      data: newPatient,
+    };
+  }
+
+  const clerkPatientMatch = cleanUrl.match(/\/clerk\/patients\/(usr_pat_[a-z0-9_]+)$/);
+  if (clerkPatientMatch && method === 'GET') {
+    const patient = mockState.getPatientById(clerkPatientMatch[1]);
+    if (!patient) {
+      return {
+        success: false,
+        message: 'Patient not found',
+        data: null,
+      };
+    }
+    return {
+      success: true,
+      message: 'Patient record retrieved',
+      data: patient,
+    };
+  }
+
+  if (cleanUrl.includes('/clerk/patients') && method === 'GET') {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const searchQuery = queryParams.get('search') || '';
+    const results = mockState.searchPatients(searchQuery);
+    return {
+      success: true,
+      message: `Found ${results.length} patient records`,
+      data: results,
+    };
+  }
+
+  if (cleanUrl.includes('/appointments') && cleanUrl.includes('/check-in') && method === 'POST') {
+    const parts = cleanUrl.split('/');
+    const aptIndex = parts.findIndex((p) => p === 'appointments');
+    const aptId = aptIndex !== -1 ? parts[aptIndex + 1] : '';
+    try {
+      const result = mockState.checkInAppointment(aptId);
+      return {
+        success: true,
+        message: `Patient ${result.appointment.patientName} checked in. Token ${result.token.tokenNumber} issued.`,
+        data: result,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || 'Check-in failed',
+        data: null,
+      };
+    }
+  }
+
+  if (cleanUrl.includes('/appointments') && method === 'POST') {
+    const aptData = (data || {}) as any;
+    const newApt = mockState.bookAppointment(aptData);
+    return {
+      success: true,
+      message: `Appointment booked for ${newApt.patientName} on ${newApt.date} at ${newApt.timeSlot}`,
+      data: newApt,
+    };
+  }
+
+  if (cleanUrl.includes('/appointments') && method === 'GET') {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const patientId = queryParams.get('patientId');
+    const status = queryParams.get('status');
+    const date = queryParams.get('date');
+
+    let list = mockState.appointments;
+    if (patientId) {
+      list = list.filter((a) => a.patientId === patientId);
+    }
+    if (status && status !== 'ALL') {
+      list = list.filter((a) => a.status === status);
+    }
+    if (date) {
+      list = list.filter((a) => a.date === date);
+    }
+
+    return {
+      success: true,
+      message: 'Appointments retrieved',
+      data: list,
+    };
+  }
+
   // 4. EHR & CLINICAL TIMELINE
   if (cleanUrl.includes('/health-record') || cleanUrl.includes('/timeline')) {
     return {

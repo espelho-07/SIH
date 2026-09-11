@@ -17,6 +17,7 @@ import {
 import { clinicalApi } from '@/api/clinicalApi';
 import { resourceApi } from '@/api/resourceApi';
 import { PharmacistDashboard } from '@/pages/pharmacist/PharmacistDashboard';
+import { RegistrationClerkDashboard } from '@/pages/registration-clerk/RegistrationClerkDashboard';
 import {
   Building2,
   Ticket,
@@ -97,62 +98,7 @@ export const StaffDashboard: React.FC = () => {
       {/* 1. REGISTRATION CLERK EXPERIENCE */}
       {/* ========================================================================= */}
       {activeSubType === 'REGISTRATION_CLERK' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Today's Registrations</span>
-              <p className="text-3xl font-black text-slate-900 mt-1">214</p>
-              <span className="text-[11px] text-teal-800 font-medium">New OPD cards</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Tokens Issued</span>
-              <p className="text-3xl font-black text-teal-700 mt-1">182</p>
-              <span className="text-[11px] text-slate-500">Across 6 clinics</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Active Counters</span>
-              <p className="text-3xl font-black text-slate-900 mt-1">4</p>
-              <span className="text-[11px] text-emerald-700 font-semibold">Operational</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Avg Token Issue Time</span>
-              <p className="text-3xl font-black text-slate-900 mt-1">45s</p>
-              <span className="text-[11px] text-slate-400">Barcode / ABHA fast track</span>
-            </Card>
-          </div>
-
-          <Card className="border-slate-200">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-base font-bold">Live Counter Queue Tokens</CardTitle>
-                <p className="text-xs text-slate-500 mt-0.5">Real-time OPD token distribution</p>
-              </div>
-            </CardHeader>
-            <CardContent className="p-5">
-              <div className="divide-y divide-slate-100 text-xs">
-                {INITIAL_LIVE_QUEUE.tokens.map((t) => (
-                  <div key={t.id} className="py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono font-black text-sm text-teal-800 bg-teal-50 px-2 py-1 rounded">
-                        {t.tokenNumber}
-                      </span>
-                      <div>
-                        <span className="font-bold text-slate-900 text-sm block">{t.patientName}</span>
-                        <span className="text-slate-500">
-                          {t.patientAge}Y • Phone: +91 {t.patientPhone} • {t.departmentName}
-                        </span>
-                      </div>
-                    </div>
-                    <StatusBadge status={t.status} />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <RegistrationClerkDashboard />
       )}
 
       {/* ========================================================================= */}

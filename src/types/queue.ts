@@ -51,6 +51,8 @@ export interface Appointment {
   patientId: string;
   patientName: string;
   patientPhone: string;
+  patientAge?: number;
+  patientGender?: 'M' | 'F' | 'Other';
   facilityId: string;
   facilityName: string;
   doctorId: string;
@@ -62,4 +64,28 @@ export interface Appointment {
   type: 'IN_PERSON' | 'TELECONSULT';
   reasonForVisit: string;
   createdAt: string;
+  tokenNumber?: string;
+  checkedInAt?: string;
 }
+
+export interface RegisteredPatient {
+  id: string;
+  name: string;
+  phone: string;
+  gender: 'M' | 'F' | 'Other';
+  age: number;
+  dob?: string;
+  abhaId?: string;
+  abhaVerified?: boolean;
+  address?: string;
+  district?: string;
+  pincode?: string;
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  registeredAt: string;
+  lastVisitAt?: string;
+}
+

@@ -40,6 +40,14 @@ import { TeleconsultationRoom } from '@/pages/doctor/TeleconsultationRoom';
 // Facility Staff Pages
 import { StaffDashboard } from '@/pages/staff/StaffDashboard';
 
+// Registration Clerk Pages
+import { RegistrationClerkDashboard } from '@/pages/registration-clerk/RegistrationClerkDashboard';
+import { PatientRegistrationWizard } from '@/pages/registration-clerk/PatientRegistrationWizard';
+import { PatientSearchPage } from '@/pages/registration-clerk/PatientSearchPage';
+import { PatientSummaryPage } from '@/pages/registration-clerk/PatientSummaryPage';
+import { AppointmentDeskPage } from '@/pages/registration-clerk/AppointmentDeskPage';
+import { QueueCounterPage } from '@/pages/registration-clerk/QueueCounterPage';
+
 // Pharmacist Pages
 import { PharmacistDashboard } from '@/pages/pharmacist/PharmacistDashboard';
 import { PrescriptionQueuePage } from '@/pages/pharmacist/PrescriptionQueuePage';
@@ -342,7 +350,7 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* 4. FACILITY STAFF & PHARMACIST ROUTES */}
+      {/* 4. FACILITY STAFF & PHARMACIST & REGISTRATION CLERK ROUTES */}
       <Route
         path="/staff"
         element={
@@ -364,11 +372,93 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/staff/registration"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PatientRegistrationWizard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/queue"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <QueueCounterPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/:subview"
         element={
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
             <AppShell>
               <StaffDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* DEDICATED REGISTRATION CLERK ROUTES */}
+      <Route
+        path="/registration-clerk"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <RegistrationClerkDashboard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/registration-clerk/register"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PatientRegistrationWizard />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/registration-clerk/patients"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PatientSearchPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/registration-clerk/patients/:id"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <PatientSummaryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/registration-clerk/appointments"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <AppointmentDeskPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/registration-clerk/queue"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <QueueCounterPage />
             </AppShell>
           </ProtectedRoute>
         }

@@ -38,6 +38,9 @@ export const appointmentApi = {
   book: (data: Partial<Appointment>) =>
     apiRequest<Appointment>('/appointments', 'POST', data),
 
+  checkIn: (appointmentId: string) =>
+    apiRequest<{ appointment: Appointment; token: Token }>(`/appointments/${appointmentId}/check-in`, 'POST'),
+
   cancel: (appointmentId: string) =>
     apiRequest<Appointment>(`/appointments/${appointmentId}/cancel`, 'PATCH'),
 };

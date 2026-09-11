@@ -9,6 +9,7 @@ import {
   Building2,
   Ticket,
   Calendar,
+  CalendarCheck2,
   FileText,
   GitBranch,
   Video,
@@ -121,11 +122,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           ];
         }
 
+        if (staffSubType === 'REGISTRATION_CLERK') {
+          return [
+            { to: '/registration-clerk', label: 'Front Desk Hub', icon: LayoutDashboard, section: 'Registration Desk' },
+            { to: '/registration-clerk/register', label: 'Patient Registration', icon: UserPlus, section: 'Registration Desk' },
+            { to: '/registration-clerk/patients', label: 'Citizen Directory', icon: Users, section: 'Registration Desk' },
+            { to: '/registration-clerk/appointments', label: 'Appointment Desk', icon: CalendarCheck2, section: 'OPD Services' },
+            { to: '/registration-clerk/queue', label: 'OPD Token Counter', icon: Ticket, section: 'OPD Services' },
+          ];
+        }
+
         const staffItems = [{ to: '/staff', label: t('nav.dashboard'), icon: LayoutDashboard }];
-        if (staffSubType === 'REGISTRATION_CLERK' || !staffSubType) {
+        if (!staffSubType) {
           staffItems.push(
-            { to: '/staff/registration', label: 'Patient Registration', icon: UserPlus },
-            { to: '/staff/queue', label: 'OPD Token Counter', icon: Ticket }
+            { to: '/registration-clerk/register', label: 'Patient Registration', icon: UserPlus },
+            { to: '/registration-clerk/queue', label: 'OPD Token Counter', icon: Ticket }
           );
         }
         if (!staffSubType) {

@@ -21,9 +21,11 @@ import {
   INITIAL_PERMISSION_MATRIX,
   INITIAL_AI_MODELS,
   INITIAL_AUDIT_LOGS,
+  INITIAL_PATIENTS,
+  INITIAL_APPOINTMENTS,
 } from './mockData';
 import { Facility, FacilityMatchRequest, FacilityMatchResult } from '@/types/facility';
-import { Token, LiveQueueState, Appointment } from '@/types/queue';
+import { Token, LiveQueueState, Appointment, RegisteredPatient } from '@/types/queue';
 import { Referral, CreateReferralRequest } from '@/types/referral';
 import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord } from '@/types/clinical';
 import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem, DispensingRecord } from '@/types/resources';
@@ -58,28 +60,144 @@ class MockHealthcareState {
   permissions: PermissionMatrixItem[] = JSON.parse(JSON.stringify(INITIAL_PERMISSION_MATRIX));
   aiModels: AiModelRegistryItem[] = JSON.parse(JSON.stringify(INITIAL_AI_MODELS));
   auditLogs: AuditLog[] = JSON.parse(JSON.stringify(INITIAL_AUDIT_LOGS));
-  appointments: Appointment[] = [
-    {
-      id: 'apt_01',
-      patientId: 'usr_pat_01',
-      patientName: 'Rameshwar Sharma',
-      patientPhone: '9876543210',
-      facilityId: 'fac_civil_01',
-      facilityName: 'Gandhinagar Civil Hospital',
-      doctorId: 'usr_doc_01',
-      doctorName: 'Dr. Arvind Patel',
-      specialty: 'Cardiology',
-      date: '2026-03-14',
-      timeSlot: '10:00 AM',
+  patients: RegisteredPatient[] = JSON.parse(JSON.stringify(INITIAL_PATIENTS));
+  appointments: Appointment[] = JSON.parse(JSON.stringify(INITIAL_APPOINTMENTS));
+
+  // Patient Registration & Duplicate Detection
+  searchPatients(query: string): RegisteredPatient[] {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) return this.patients;
+    const cleanDigits = q.replace(/\D/g, '');
+    return this.patients.filter((p) => {
+      const nameMatch = p.name.toLowerCase().includes(q);
+      const abhaMatch = p.abhaId?.toLowerCase().includes(q) || (p.abhaId && p.abhaId.replace(/\D/g, '').includes(cleanDigits) && cleanDigits.length >= 4);
+      const phoneMatch = p.phone.includes(cleanDigits) && cleanDigits.length >= 4;
+      const idMatch = p.id.toLowerCase().includes(q);
+      return nameMatch || abhaMatch || phoneMatch || idMatch;
+    });
+  }
+
+  getPatientById(id: string): RegisteredPatient | null {
+    return this.patients.find((p) => p.id === id) || null;
+  }
+
+  checkDuplicatePatient(phone: string, abhaId?: string, name?: string): RegisteredPatient | null {
+    const cleanPhone = (phone || '').replace(/\D/g, '');
+    const cleanAbha = (abhaId || '').replace(/\D/g, '');
+    const cleanName = (name || '').trim().toLowerCase();
+
+    for (const p of this.patients) {
+      // 1. Exact phone match (10 digits)
+      if (cleanPhone.length >= 10 && p.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10))) {
+        return p;
+      }
+      // 2. Exact ABHA match (14 digits)
+      if (cleanAbha.length >= 12 && p.abhaId && p.abhaId.replace(/\D/g, '') === cleanAbha) {
+        return p;
+      }
+      // 3. Exact name and partial phone match
+      if (cleanName && p.name.toLowerCase() === cleanName && cleanPhone && p.phone.includes(cleanPhone.slice(-5))) {
+        return p;
+      }
+    }
+    return null;
+  }
+
+  registerPatient(patientData: Omit<RegisteredPatient, 'id' | 'registeredAt'> & { id?: string }): RegisteredPatient {
+    const newId = patientData.id || `usr_pat_${Date.now()}`;
+    const newPatient: RegisteredPatient = {
+      ...patientData,
+      id: newId,
+      registeredAt: new Date().toISOString(),
+      lastVisitAt: new Date().toISOString(),
+    };
+    this.patients.unshift(newPatient);
+
+    // Also register in users if not present
+    if (!this.users[newId]) {
+      this.users[newId] = {
+        id: newId,
+        name: newPatient.name,
+        phone: newPatient.phone,
+        role: 'PATIENT',
+        age: newPatient.age,
+        gender: newPatient.gender,
+        abhaId: newPatient.abhaId,
+        district: newPatient.district || 'Gandhinagar',
+      };
+    }
+
+    return newPatient;
+  }
+
+  // Appointment Desk & Fast Check-In
+  checkInAppointment(appointmentId: string): { appointment: Appointment; token: Token } {
+    const apt = this.appointments.find((a) => a.id === appointmentId);
+    if (!apt) {
+      throw new Error(`Appointment with ID ${appointmentId} not found`);
+    }
+
+    // Determine department
+    const facility = this.facilities.find((f) => f.id === apt.facilityId) || this.facilities[0];
+    const dept = facility.departments[0] || { id: 'dep_med', name: 'General Medicine OPD' };
+
+    // Generate token
+    const token = this.generateToken(
+      apt.patientName,
+      apt.patientPhone,
+      apt.facilityId,
+      dept.id,
+      'ROUTINE',
+      apt.patientAge,
+      apt.patientGender,
+      apt.patientId
+    );
+    token.doctorId = apt.doctorId;
+    token.doctorName = apt.doctorName;
+
+    // Update appointment
+    apt.status = 'CHECKED_IN';
+    apt.tokenNumber = token.tokenNumber;
+    apt.checkedInAt = new Date().toISOString();
+
+    return { appointment: apt, token };
+  }
+
+  bookAppointment(data: Partial<Appointment>): Appointment {
+    const newApt: Appointment = {
+      id: `apt_${Date.now()}`,
+      patientId: data.patientId || 'usr_pat_01',
+      patientName: data.patientName || 'Patient',
+      patientPhone: data.patientPhone || '9876543210',
+      patientAge: data.patientAge || 35,
+      patientGender: data.patientGender || 'M',
+      facilityId: data.facilityId || 'fac_civil_01',
+      facilityName: data.facilityName || 'Gandhinagar Civil Hospital',
+      doctorId: data.doctorId || 'usr_doc_01',
+      doctorName: data.doctorName || 'Dr. Arvind Patel',
+      specialty: data.specialty || 'General Medicine',
+      date: data.date || new Date().toISOString().split('T')[0],
+      timeSlot: data.timeSlot || '11:00 AM',
       status: 'CONFIRMED',
-      type: 'IN_PERSON',
-      reasonForVisit: 'Chest pain follow-up and ECG evaluation',
+      type: data.type || 'IN_PERSON',
+      reasonForVisit: data.reasonForVisit || 'General Consultation',
       createdAt: new Date().toISOString(),
-    },
-  ];
+    };
+    this.appointments.unshift(newApt);
+    return newApt;
+  }
 
   // Token & Queue operations
-  generateToken(patientName: string, patientPhone: string, facilityId: string, departmentId: string, priority: 'ROUTINE' | 'URGENT' | 'EMERGENCY' = 'ROUTINE'): Token {
+  generateToken(
+    patientName: string,
+    patientPhone: string,
+    facilityId: string,
+    departmentId: string,
+    priority: 'ROUTINE' | 'URGENT' | 'EMERGENCY' = 'ROUTINE',
+    patientAge: number = 45,
+    patientGender: 'M' | 'F' | 'Other' = 'M',
+    patientId: string = 'usr_pat_01'
+  ): Token {
     const facility = this.facilities.find((f) => f.id === facilityId) || this.facilities[0];
     const dept = facility.departments.find((d) => d.id === departmentId) || facility.departments[0];
     const num = Math.floor(Math.random() * 50) + 40;
@@ -88,10 +206,10 @@ class MockHealthcareState {
     const newToken: Token = {
       id: `tok_${Date.now()}`,
       tokenNumber,
-      patientId: 'usr_pat_01',
+      patientId,
       patientName,
-      patientAge: 48,
-      patientGender: 'M',
+      patientAge,
+      patientGender,
       patientPhone,
       facilityId: facility.id,
       facilityName: facility.name,
