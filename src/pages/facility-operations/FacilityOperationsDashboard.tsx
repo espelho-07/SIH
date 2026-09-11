@@ -153,25 +153,25 @@ export const FacilityOperationsDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Top Global Facility Operational Header */}
-      <div className="rounded-3xl bg-slate-900 p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 border border-slate-800">
+      {/* Top Global Facility Operational Header - Clean Green Theme */}
+      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="bg-slate-800 text-teal-300 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-slate-700">
+            <span className="bg-teal-100 text-teal-900 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-300">
               Operations Control Center
             </span>
             <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${statusMeta.bg}`}>
               <span className={`h-2 w-2 rounded-full ${statusMeta.dot}`} />
               <span>{statusMeta.label}</span>
             </div>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500">
               Updated {new Date(summary?.lastStatusUpdate || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {summary?.updatedBy || 'Operations Desk'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
             {summary?.facilityName || 'Gandhinagar Civil Hospital'}
           </h1>
-          <p className="text-xs text-slate-300 max-w-2xl">
+          <p className="text-xs text-slate-600 max-w-2xl">
             Live operations matrix: Monitoring capacity freshness, clinical departmental bottlenecks, queue velocity, and emergency referrals.
           </p>
         </div>
@@ -180,9 +180,9 @@ export const FacilityOperationsDashboard: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <Button
             onClick={() => setStatusModalOpen(true)}
-            className="bg-white text-teal-950 hover:bg-teal-50 font-bold text-xs gap-2 min-h-[42px] px-4 shadow-sm cursor-pointer"
+            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer"
           >
-            <SlidersHorizontal className="h-4 w-4 text-teal-700" />
+            <SlidersHorizontal className="h-4 w-4 text-teal-200" />
             Update Facility Status
           </Button>
 

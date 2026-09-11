@@ -131,7 +131,7 @@ export const AshaDashboard: React.FC = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-teal-500 hover:shadow-xs transition-all cursor-pointer group">
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Village Cohort</span>
-              <Users className="h-4 w-4 text-indigo-700 group-hover:scale-110 transition-transform" />
+              <Users className="h-4 w-4 text-teal-700 group-hover:scale-110 transition-transform" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
               {INITIAL_ASHA_PATIENTS.length}
@@ -219,8 +219,8 @@ export const AshaDashboard: React.FC = () => {
         </Link>
 
         <Link to="/asha/patients">
-          <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-indigo-400 hover:shadow-xs transition-all text-left group">
-            <Users className="h-5 w-5 text-indigo-700 mb-2 group-hover:scale-110 transition-transform" />
+          <div className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-teal-400 hover:shadow-xs transition-all text-left group">
+            <Users className="h-5 w-5 text-teal-700 mb-2 group-hover:scale-110 transition-transform" />
             <span className="text-xs font-bold text-slate-900 block">Village Register</span>
             <span className="text-[10px] text-slate-500">Citizens & ABHA Cards</span>
           </div>
@@ -347,11 +347,11 @@ export const AshaDashboard: React.FC = () => {
         {/* NCD & Elderly Care */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-indigo-900">
-              <Heart className="h-4 w-4 text-indigo-700" />
+            <div className="flex items-center gap-2 text-teal-900">
+              <Heart className="h-4 w-4 text-teal-700" />
               <span className="font-bold text-xs uppercase tracking-wider">Chronic NCD & Elderly Care</span>
             </div>
-            <Link to="/asha/vitals" className="text-[11px] font-bold text-indigo-700 hover:underline">
+            <Link to="/asha/vitals" className="text-[11px] font-bold text-teal-700 hover:underline">
               Check Vitals →
             </Link>
           </div>

@@ -430,7 +430,7 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <ClipboardList className="h-4 w-4 text-indigo-600" />
+          <ClipboardList className="h-4 w-4 text-emerald-600" />
           <span>2. Health Screening & CBAC Checklist</span>
         </button>
       </div>
@@ -478,7 +478,7 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
                   setActiveTab('SCREENING');
                   setIsScreeningSaved(false);
                 }}
-                className="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold"
               >
                 Proceed to Screening Checklist →
               </Button>
@@ -718,7 +718,7 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
               <Card className="p-4 sm:p-5 border-slate-200/90 bg-white shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
                       <Thermometer className="h-4 w-4" />
                     </div>
                     <div>
@@ -838,8 +838,8 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
       ====================================================== */}
       {activeTab === 'SCREENING' && (
         isScreeningSaved ? (
-          <Card className="border-indigo-200 bg-white p-8 text-center space-y-5 shadow-sm">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-800">
+          <Card className="border-teal-200 bg-white p-8 text-center space-y-5 shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-100 text-teal-800">
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <div className="space-y-1.5">
@@ -912,7 +912,7 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
                     }}
                     className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       isCatActive
-                        ? 'bg-indigo-700 text-white shadow-xs'
+                        ? 'bg-teal-700 text-white shadow-xs'
                         : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
@@ -926,7 +926,7 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
             {/* Progress Strip */}
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 flex items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-indigo-600" />
+                <Clock className="h-4 w-4 text-teal-600" />
                 <span className="font-semibold text-slate-700">
                   Questions Answered: {answeredScreeningCount} of {totalScreeningQuestions}
                 </span>
@@ -934,11 +934,11 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
               <div className="flex items-center gap-2">
                 <div className="h-2 w-24 bg-slate-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-indigo-600 transition-all duration-200 rounded-full"
+                    className="h-full bg-teal-600 transition-all duration-200 rounded-full"
                     style={{ width: `${screeningProgress}%` }}
                   />
                 </div>
-                <span className="font-bold text-indigo-900">{screeningProgress}%</span>
+                <span className="font-bold text-teal-900">{screeningProgress}%</span>
               </div>
             </div>
 
@@ -962,7 +962,7 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="space-y-1 flex-1">
                         <div className="flex items-start gap-2">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-extrabold text-indigo-800">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-100 text-[11px] font-extrabold text-teal-800">
                             {idx + 1}
                           </span>
                           <p className="text-xs sm:text-sm font-bold text-slate-900">
@@ -1044,7 +1044,7 @@ export const VitalsRecording: React.FC<VitalsRecordingProps> = ({ initialTab = '
             <Button
               type="submit"
               size="lg"
-              className="w-full bg-indigo-700 hover:bg-indigo-800 font-bold min-h-[46px] shadow-sm text-sm"
+              className="w-full bg-teal-700 hover:bg-teal-800 font-bold min-h-[46px] shadow-sm text-sm"
               isLoading={isScreeningLoading}
             >
               Save Screening Checklist to Offline Record

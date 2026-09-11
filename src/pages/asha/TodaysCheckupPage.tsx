@@ -269,20 +269,20 @@ export const TodaysCheckupPage: React.FC = () => {
           onClick={() => setFilter('UPCOMING')}
           className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
             filter === 'UPCOMING'
-              ? 'bg-blue-50 border-blue-500 shadow-xs ring-1 ring-blue-500'
-              : 'bg-white border-slate-200 hover:border-blue-300'
+              ? 'bg-emerald-50 border-emerald-500 shadow-xs ring-1 ring-emerald-500'
+              : 'bg-white border-slate-200 hover:border-emerald-300'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-blue-800">Upcoming (2-7 Days)</span>
-            <span className="p-1.5 rounded-lg bg-blue-100 text-blue-700">
+            <span className="text-xs font-bold text-emerald-800">Upcoming (2-7 Days)</span>
+            <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
               <Clock className="h-4 w-4" />
             </span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-blue-950 mt-2">
+          <div className="text-2xl sm:text-3xl font-black text-emerald-950 mt-2">
             {counts.upcoming}
           </div>
-          <p className="text-[11px] text-blue-700 mt-0.5">
+          <p className="text-[11px] text-emerald-700 mt-0.5">
             Doctor prescribed for next 2 to 7 days
           </p>
         </div>
@@ -469,7 +469,7 @@ export const TodaysCheckupPage: React.FC = () => {
                       </span>
                     )}
                     {isUpcoming && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                         Upcoming
                       </span>
                     )}

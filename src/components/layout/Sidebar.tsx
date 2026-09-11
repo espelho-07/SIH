@@ -134,13 +134,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             to: '/asha/checkups',
             label: "Today's Checkup",
             icon: CalendarCheck2,
-            color: 'text-blue-600 bg-blue-50',
+            color: 'text-emerald-700 bg-emerald-50',
           },
           {
             to: '/asha/patients',
             label: 'Village Citizens',
             icon: Users,
-            color: 'text-violet-600 bg-violet-50',
+            color: 'text-teal-700 bg-teal-50',
           },
           {
             to: '/asha/vitals',

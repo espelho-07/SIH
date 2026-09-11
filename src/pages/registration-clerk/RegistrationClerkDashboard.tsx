@@ -121,17 +121,17 @@ export const RegistrationClerkDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Hero Welcome Banner */}
-      <div className="rounded-3xl bg-slate-900 p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800">
+      {/* Hero Welcome Banner - Clean Green Theme */}
+      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-slate-800 text-teal-300 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-slate-700">
+            <span className="bg-teal-100 text-teal-900 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-300">
               Counter 1 • OPD Front Desk
             </span>
-            <span className="text-xs text-slate-400">Gandhinagar Civil Hospital</span>
+            <span className="text-xs text-slate-500">Gandhinagar Civil Hospital</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Front Desk Registration & Queue</h1>
-          <p className="text-xs text-slate-300 mt-1">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Front Desk Registration & Queue</h1>
+          <p className="text-xs text-slate-600 mt-1">
             Search citizens, verify ABHA, check-in scheduled appointments, and issue OPD tokens.
           </p>
         </div>
@@ -139,14 +139,14 @@ export const RegistrationClerkDashboard: React.FC = () => {
         {/* Quick Search Shortcut */}
         <div className="flex items-center gap-2.5 shrink-0">
           <Link to="/registration-clerk/register">
-            <Button className="bg-white text-teal-950 hover:bg-teal-50 font-bold text-xs gap-2 min-h-[42px] px-4 shadow-sm cursor-pointer">
-              <UserPlus className="h-4 w-4 text-teal-700" />
+            <Button className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer">
+              <UserPlus className="h-4 w-4 text-teal-200" />
               Register New Citizen
             </Button>
           </Link>
           <Link to="/registration-clerk/patients">
-            <Button className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-xs gap-2 min-h-[42px] px-4 cursor-pointer shadow-xs">
-              <Search className="h-4 w-4 text-teal-400" />
+            <Button className="bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-2xs">
+              <Search className="h-4 w-4 text-teal-700" />
               Search Directory
             </Button>
           </Link>

@@ -380,7 +380,7 @@ export const HomeVisitsPage: React.FC = () => {
 
                   <Link to={`/asha/vitals?tab=screening&patientId=${visit.patientId}`}>
                     <Button variant="outline" size="sm" className="text-xs min-h-[44px] gap-1">
-                      <ClipboardList className="h-3.5 w-3.5 text-indigo-700" />
+                      <ClipboardList className="h-3.5 w-3.5 text-emerald-700" />
                       <span>Screen</span>
                     </Button>
                   </Link>

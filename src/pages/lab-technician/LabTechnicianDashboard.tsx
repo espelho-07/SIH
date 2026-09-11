@@ -84,20 +84,20 @@ export const LabTechnicianDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Station Header */}
-      <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Station Header - Clean Green Theme */}
+      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-wider text-teal-400">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-wider text-teal-800">
               Laboratory Work Desk • {user?.facilityName || 'Gandhinagar Civil Hospital'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
             Central Pathology & Diagnostic Hub
           </h1>
-          <p className="text-xs text-slate-300">
-            Duty Technologist: <strong className="text-white">{user?.name || 'Ramesh Patel, MLT'}</strong> • NABL MC-3091 Calibrated Workstation
+          <p className="text-xs text-slate-600">
+            Duty Technologist: <strong className="text-slate-900">{user?.name || 'Ramesh Patel, MLT'}</strong> • NABL MC-3091 Calibrated Workstation
           </p>
         </div>
 
@@ -106,18 +106,18 @@ export const LabTechnicianDashboard: React.FC = () => {
           <Button
             size="sm"
             onClick={() => navigate('/lab-technician/tests')}
-            className="bg-white text-teal-950 hover:bg-teal-50 font-bold text-xs flex items-center gap-1.5 min-h-[40px] px-4 cursor-pointer shadow-sm"
+            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs"
           >
-            <FlaskConical className="h-4 w-4 text-teal-700" />
+            <FlaskConical className="h-4 w-4 text-teal-200" />
             <span>All Test Orders</span>
           </Button>
 
           <Button
             size="sm"
             onClick={() => navigate('/lab-technician/samples')}
-            className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-xs flex items-center gap-1.5 min-h-[40px] px-4 cursor-pointer shadow-xs"
+            className="bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-bold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-2xs"
           >
-            <QrCode className="h-4 w-4 text-teal-400" />
+            <QrCode className="h-4 w-4 text-teal-700" />
             <span>Sample Desk</span>
           </Button>
         </div>

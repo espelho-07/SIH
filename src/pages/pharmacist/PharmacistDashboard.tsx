@@ -81,18 +81,18 @@ export const PharmacistDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-in fade-in-50 duration-200">
-      {/* 1. Header Banner */}
-      <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 shadow-sm relative overflow-hidden border border-slate-800">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* 1. Header Banner - Clean Green Theme */}
+      <div className="rounded-2xl border border-teal-200 bg-teal-50/70 p-5 sm:p-6 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-teal-300 border border-slate-700">
-              <Pill className="h-3.5 w-3.5 text-teal-400" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-teal-100 border border-teal-300 px-3 py-0.5 text-xs font-bold text-teal-900">
+              <Pill className="h-3.5 w-3.5 text-teal-700" />
               <span>Outpatient Pharmacy Dispensing Station</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
               Welcome back, {user?.name || 'Pharmacist Priya Nair'}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
               {user?.facilityName || 'Gandhinagar Civil Hospital'} • Counter 2 (OPD Base) • Safe dispensing with live inventory synchronization.
             </p>
           </div>
@@ -101,16 +101,16 @@ export const PharmacistDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <Button
               onClick={() => navigate('/pharmacist/prescriptions')}
-              className="bg-white text-teal-950 hover:bg-teal-50 font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] shadow-sm cursor-pointer"
+              className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl shadow-xs cursor-pointer"
             >
-              <Clock className="h-4 w-4 mr-2 text-teal-700" />
+              <Clock className="h-4 w-4 mr-2 text-teal-200" />
               View Dispense Queue ({pendingPrescriptions.length})
             </Button>
             <Button
               onClick={() => navigate('/pharmacist/stock')}
-              className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] cursor-pointer shadow-xs"
+              className="bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl cursor-pointer shadow-2xs"
             >
-              <Package className="h-4 w-4 mr-2 text-teal-400" />
+              <Package className="h-4 w-4 mr-2 text-teal-700" />
               Stock Inventory
             </Button>
           </div>
