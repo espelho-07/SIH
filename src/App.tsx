@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ConnectionProvider } from '@/contexts/ConnectionContext';
 import { SocketProvider } from '@/contexts/SocketContext';
 import { LocationProvider } from '@/contexts/LocationContext';
+import { FamilyProvider } from '@/contexts/FamilyContext';
 import { LocationSelectorModal } from '@/components/location/LocationSelectorModal';
 import { AppRoutes } from '@/routes/AppRoutes';
 import '@/locales/i18n';
@@ -45,8 +46,10 @@ export default function App() {
           <ConnectionProvider>
             <SocketProvider>
               <LocationProvider>
-                <AppRoutes />
-                <LocationSelectorModal />
+                <FamilyProvider>
+                  <AppRoutes />
+                  <LocationSelectorModal />
+                </FamilyProvider>
               </LocationProvider>
             </SocketProvider>
           </ConnectionProvider>

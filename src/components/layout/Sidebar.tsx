@@ -111,6 +111,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             icon: Video,
             color: 'text-cyan-600 bg-cyan-50',
           },
+          {
+            to: '/patient/profile',
+            label: 'Family & Profile',
+            icon: Users,
+            color: 'text-violet-600 bg-violet-50',
+          },
         ];
 
       // ==================================================

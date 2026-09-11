@@ -22,6 +22,7 @@ import ClinicalNotes from '@/pages/patient/ClinicalNotes';
 import TeleconsultationRoomPatient from '@/pages/patient/TeleconsultationRoom';
 import TeleconsultationHistory from '@/pages/patient/TeleconsultationHistory';
 import Teleconsultation from '@/pages/patient/Teleconsultation';
+import { PatientProfile } from '@/pages/patient/PatientProfile';
 
 // ASHA Pages
 import { AshaDashboard } from '@/pages/asha/AshaDashboard';
@@ -233,6 +234,26 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['PATIENT']}>
             <AppShell>
               <TeleconsultationHistory />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/profile"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <AppShell>
+              <PatientProfile />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/family"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT']}>
+            <AppShell>
+              <PatientProfile />
             </AppShell>
           </ProtectedRoute>
         }
