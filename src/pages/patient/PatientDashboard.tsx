@@ -212,18 +212,26 @@ export const PatientDashboard: React.FC = () => {
             </div>
 
 
-            {/* Hospital */}
+            {/* Hospital & View Live Queue Link */}
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100 pt-4">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-3.5 w-3.5 text-teal-700" />
+                <span className="text-xs font-medium text-slate-600">
+                  {activeToken.facilityName}
+                </span>
+              </div>
 
-            <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-4">
-
-              <Building2 className="h-3.5 w-3.5 text-teal-700" />
-
-              <span className="text-xs font-medium text-slate-600">
-                {activeToken.facilityName}
-              </span>
-
+              <Link to="/patient/tokens">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs px-2.5 rounded-lg border-teal-600 text-teal-700 hover:bg-teal-50 font-semibold cursor-pointer gap-1"
+                >
+                  View Live Queue & History
+                  <ArrowRight className="h-3 w-3" />
+                </Button>
+              </Link>
             </div>
-
           </CardContent>
 
         </Card>
