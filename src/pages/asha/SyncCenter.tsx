@@ -51,7 +51,7 @@ export const SyncCenter: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <div className="space-y-6 pb-12 w-full">
       <PageHeader
         title="Field Sync & Offline Buffer"
         subtitle="Manage client-side IndexedDB records, inspect pending transmission buffers, and sync with the Central Health Grid."

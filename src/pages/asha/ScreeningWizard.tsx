@@ -214,7 +214,7 @@ export const ScreeningWizard: React.FC = () => {
   const summary = calculateRiskSummary();
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-12">
+    <div className="space-y-6 pb-12 w-full">
       <PageHeader
         title="Community Health Screening"
         subtitle="Standardized RCH & CBAC questionnaires for early maternal danger signs, infant nutrition, and chronic NCD surveillance."

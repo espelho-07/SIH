@@ -133,7 +133,7 @@ export const VitalsRecording: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-12">
+    <div className="space-y-6 pb-12 w-full">
       <PageHeader
         title="Field Vitals Capture"
         subtitle="Tactile vitals recording with instant clinical boundary detection and local IndexedDB offline storage."
