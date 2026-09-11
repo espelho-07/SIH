@@ -18,6 +18,7 @@ import { clinicalApi } from '@/api/clinicalApi';
 import { resourceApi } from '@/api/resourceApi';
 import { PharmacistDashboard } from '@/pages/pharmacist/PharmacistDashboard';
 import { RegistrationClerkDashboard } from '@/pages/registration-clerk/RegistrationClerkDashboard';
+import { LabTechnicianDashboard } from '@/pages/lab-technician/LabTechnicianDashboard';
 import {
   Building2,
   Ticket,
@@ -37,18 +38,8 @@ export const StaffDashboard: React.FC = () => {
   const { user, staffSubType, quickSwitchRole } = useAuth();
   const activeSubType: StaffSubType = staffSubType || 'PHARMACIST';
 
-  // State for Lab Technician
-  const [labOrders, setLabOrders] = useState(INITIAL_DIAGNOSTIC_ORDERS);
-
   // State for Bed Operations
   const [bedSummary, setBedSummary] = useState(INITIAL_BED_SUMMARY);
-
-  const handleCollectSample = async (orderId: string) => {
-    await clinicalApi.collectSample(orderId);
-    setLabOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status: 'PROCESSING' } : o))
-    );
-  };
 
   const handleUpdateBeds = async (catType: string, delta: number) => {
     const cat = bedSummary.categories.find((c) => c.type === catType);
@@ -112,75 +103,7 @@ export const StaffDashboard: React.FC = () => {
       {/* 3. LAB TECHNICIAN EXPERIENCE */}
       {/* ========================================================================= */}
       {activeSubType === 'LAB_TECHNICIAN' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Pending Samples</span>
-              <p className="text-3xl font-black text-amber-600 mt-1">1</p>
-              <span className="text-[11px] text-amber-700">Phlebotomy due</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Processing</span>
-              <p className="text-3xl font-black text-sky-600 mt-1">1</p>
-              <span className="text-[11px] text-slate-500">On automated analyzer</span>
-            </Card>
-
-            <Card className="p-4 border-slate-200">
-              <span className="text-xs font-semibold text-slate-500 uppercase">Completed Today</span>
-              <p className="text-3xl font-black text-emerald-700 mt-1">42</p>
-              <span className="text-[11px] text-emerald-800 font-medium">Uploaded to EHR</span>
-            </Card>
-          </div>
-
-          <Card className="border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-base font-bold">Diagnostic Lab Orders Workflow</CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 space-y-3">
-              {labOrders.map((ord) => (
-                <div
-                  key={ord.id}
-                  className="p-4 rounded-xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-slate-900">{ord.testName}</span>
-                      <StatusBadge status={ord.status} />
-                    </div>
-                    <p className="text-slate-500">
-                      Patient: <strong>{ord.patientName}</strong> ({ord.patientAge}Y / {ord.patientGender}) • Ordered by {ord.orderedBy}
-                    </p>
-                    {ord.resultSummary && (
-                      <p className="font-mono text-slate-800 bg-slate-50 p-1.5 rounded border mt-1">
-                        {ord.resultSummary}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {ord.status === 'SAMPLE_COLLECTED' && (
-                      <Button
-                        onClick={() => handleCollectSample(ord.id)}
-                        variant="primary"
-                        size="sm"
-                        className="text-xs bg-teal-700 hover:bg-teal-800"
-                      >
-                        Process on Analyzer
-                      </Button>
-                    )}
-                    {ord.status === 'COMPLETED' && (
-                      <span className="text-emerald-700 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Verified & Pushed to EHR
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+        <LabTechnicianDashboard />
       )}
 
       {/* ========================================================================= */}

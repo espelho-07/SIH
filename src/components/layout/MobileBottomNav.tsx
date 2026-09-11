@@ -19,6 +19,9 @@ import {
   Pill,
   UserPlus,
   CalendarCheck2,
+  FlaskConical,
+  QrCode,
+  FileCheck,
 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
@@ -69,6 +72,14 @@ export const MobileBottomNav: React.FC = () => {
             { to: '/registration-clerk/patients', label: 'Directory', icon: Users },
             { to: '/registration-clerk/appointments', label: 'Check-In', icon: CalendarCheck2 },
             { to: '/registration-clerk/queue', label: 'Counter', icon: Ticket },
+          ];
+        }
+        if (staffSubType === 'LAB_TECHNICIAN') {
+          return [
+            { to: '/lab-technician', label: 'Desk', icon: LayoutDashboard },
+            { to: '/lab-technician/tests', label: 'Orders', icon: FlaskConical },
+            { to: '/lab-technician/samples', label: 'Samples', icon: QrCode },
+            { to: '/lab-technician/history', label: 'Archive', icon: FileCheck },
           ];
         }
         return [

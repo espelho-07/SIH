@@ -27,7 +27,7 @@ import {
 import { Facility, FacilityMatchRequest, FacilityMatchResult } from '@/types/facility';
 import { Token, LiveQueueState, Appointment, RegisteredPatient } from '@/types/queue';
 import { Referral, CreateReferralRequest } from '@/types/referral';
-import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord } from '@/types/clinical';
+import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord, LabResultParameter } from '@/types/clinical';
 import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem, DispensingRecord } from '@/types/resources';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
 import { AiDemandIntelligenceSummary } from '@/types/ai';
@@ -492,6 +492,155 @@ class MockHealthcareState {
     this.bedSummary.totalOccupied = this.bedSummary.totalBeds - this.bedSummary.totalAvailable;
     this.bedSummary.lastUpdated = new Date().toISOString();
     return this.bedSummary;
+  }
+
+  // --- LABORATORY / DIAGNOSTICS METHODS ---
+  getDiagnosticOrders(filters?: {
+    status?: string;
+    category?: string;
+    priority?: string;
+    search?: string;
+  }): DiagnosticOrder[] {
+    let list = [...this.diagnosticOrders];
+
+    if (filters?.status && filters.status !== 'ALL') {
+      list = list.filter((ord) => ord.status === filters.status);
+    }
+    if (filters?.category && filters.category !== 'ALL') {
+      list = list.filter((ord) => ord.testCategory === filters.category);
+    }
+    if (filters?.priority && filters.priority !== 'ALL') {
+      list = list.filter((ord) => ord.priority === filters.priority);
+    }
+    if (filters?.search && filters.search.trim()) {
+      const q = filters.search.toLowerCase().trim();
+      list = list.filter(
+        (ord) =>
+          ord.id.toLowerCase().includes(q) ||
+          ord.testName.toLowerCase().includes(q) ||
+          ord.patientName.toLowerCase().includes(q) ||
+          (ord.patientPhone && ord.patientPhone.includes(q)) ||
+          (ord.patientAbha && ord.patientAbha.toLowerCase().includes(q)) ||
+          (ord.sampleId && ord.sampleId.toLowerCase().includes(q)) ||
+          (ord.barcodeNumber && ord.barcodeNumber.toLowerCase().includes(q))
+      );
+    }
+
+    return list;
+  }
+
+  getDiagnosticOrderById(orderId: string): DiagnosticOrder | null {
+    const ord = this.diagnosticOrders.find((o) => o.id === orderId);
+    return ord || null;
+  }
+
+  collectSample(orderId: string, technicianName?: string, notes?: string): DiagnosticOrder | null {
+    const ord = this.diagnosticOrders.find((o) => o.id === orderId);
+    if (!ord) return null;
+
+    ord.status = 'SAMPLE_COLLECTED';
+    ord.sampleCollectedAt = new Date().toISOString();
+    ord.technicianName = technicianName || 'Ramesh Patel, MLT';
+    if (!ord.sampleId) {
+      ord.sampleId = `SMP-${Date.now().toString().slice(-6)}`;
+    }
+    if (!ord.barcodeNumber) {
+      ord.barcodeNumber = `BC-${Date.now().toString().slice(-8)}`;
+    }
+    if (notes) {
+      ord.notes = ord.notes ? `${ord.notes} | ${notes}` : notes;
+    }
+
+    this.syncOrderWithHealthRecord(ord);
+    return ord;
+  }
+
+  receiveSample(orderId: string, technicianName?: string): DiagnosticOrder | null {
+    const ord = this.diagnosticOrders.find((o) => o.id === orderId);
+    if (!ord) return null;
+
+    ord.status = 'SAMPLE_RECEIVED';
+    ord.sampleReceivedAt = new Date().toISOString();
+    ord.technicianName = technicianName || 'Ramesh Patel, MLT';
+
+    this.syncOrderWithHealthRecord(ord);
+    return ord;
+  }
+
+  rejectSample(orderId: string, reason: string, notes?: string, technicianName?: string): DiagnosticOrder | null {
+    const ord = this.diagnosticOrders.find((o) => o.id === orderId);
+    if (!ord) return null;
+
+    ord.status = 'REJECTED';
+    ord.rejectionReason = reason;
+    ord.rejectionNotes = notes;
+    ord.completedAt = new Date().toISOString();
+    ord.technicianName = technicianName || 'Ramesh Patel, MLT';
+
+    this.syncOrderWithHealthRecord(ord);
+    return ord;
+  }
+
+  startProcessing(orderId: string, technicianName?: string): DiagnosticOrder | null {
+    const ord = this.diagnosticOrders.find((o) => o.id === orderId);
+    if (!ord) return null;
+
+    ord.status = 'PROCESSING';
+    ord.processedAt = new Date().toISOString();
+    ord.technicianName = technicianName || 'Ramesh Patel, MLT';
+
+    this.syncOrderWithHealthRecord(ord);
+    return ord;
+  }
+
+  submitResult(
+    orderId: string,
+    parameters: LabResultParameter[],
+    resultSummary?: string,
+    technicianName?: string
+  ): DiagnosticOrder | null {
+    const ord = this.diagnosticOrders.find((o) => o.id === orderId);
+    if (!ord) return null;
+
+    ord.resultParameters = parameters;
+    const hasAbnormal = parameters.some((p) => p.status === 'ABNORMAL' || p.status === 'CRITICAL');
+    ord.isAbnormal = hasAbnormal;
+    ord.resultSummary =
+      resultSummary ||
+      (hasAbnormal
+        ? 'One or more parameters flagged outside biological reference range.'
+        : 'All parameter values within expected biological reference range.');
+    ord.status = 'REPORT_READY';
+    ord.completedAt = new Date().toISOString();
+    ord.technicianName = technicianName || 'Ramesh Patel, MLT';
+    ord.reportFileUrl = `/reports/${ord.id}.pdf`;
+
+    this.syncOrderWithHealthRecord(ord);
+    return ord;
+  }
+
+  private syncOrderWithHealthRecord(updatedOrder: DiagnosticOrder): void {
+    const patientRecord = this.healthRecords[updatedOrder.patientId];
+    if (patientRecord && patientRecord.timeline) {
+      const existingIdx = patientRecord.timeline.findIndex(
+        (ev) => ev.details && (ev.details as any).orderId === updatedOrder.id
+      );
+      if (existingIdx !== -1) {
+        patientRecord.timeline[existingIdx].summary = `${updatedOrder.testName}: ${updatedOrder.resultSummary || updatedOrder.status}`;
+        patientRecord.timeline[existingIdx].details = { orderId: updatedOrder.id, ...updatedOrder } as Record<string, unknown>;
+      } else if (updatedOrder.status === 'REPORT_READY' || updatedOrder.status === 'COMPLETED') {
+        patientRecord.timeline.unshift({
+          id: `tl_lab_${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          eventType: 'LAB_REPORT',
+          title: `Diagnostic Report: ${updatedOrder.testName}`,
+          facilityName: updatedOrder.facilityName,
+          doctorName: updatedOrder.orderedBy,
+          summary: updatedOrder.resultSummary || 'Investigation completed and verified by laboratory.',
+          details: { orderId: updatedOrder.id, ...updatedOrder } as Record<string, unknown>,
+        });
+      }
+    }
   }
 }
 

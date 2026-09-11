@@ -289,11 +289,124 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
+  // 4b. DIAGNOSTIC ORDERS (LAB TECHNICIAN)
   if (cleanUrl.includes('/diagnostics/orders')) {
+    // 1. Collect sample
+    if (cleanUrl.includes('/collect') && (method === 'PATCH' || method === 'POST')) {
+      const parts = cleanUrl.split('/');
+      const ordIndex = parts.findIndex((p) => p === 'orders');
+      const orderId = ordIndex !== -1 ? parts[ordIndex + 1] : '';
+      const body = (data || {}) as { technicianName?: string; notes?: string };
+      const updated = mockState.collectSample(orderId, body.technicianName, body.notes);
+      if (!updated) {
+        return { success: false, message: 'Test order not found', data: null };
+      }
+      return {
+        success: true,
+        message: `Sample collected successfully for ${updated.testName}. Barcode: ${updated.barcodeNumber}`,
+        data: updated,
+      };
+    }
+
+    // 2. Receive sample at desk
+    if (cleanUrl.includes('/receive') && (method === 'PATCH' || method === 'POST')) {
+      const parts = cleanUrl.split('/');
+      const ordIndex = parts.findIndex((p) => p === 'orders');
+      const orderId = ordIndex !== -1 ? parts[ordIndex + 1] : '';
+      const body = (data || {}) as { technicianName?: string };
+      const updated = mockState.receiveSample(orderId, body.technicianName);
+      if (!updated) {
+        return { success: false, message: 'Test order not found', data: null };
+      }
+      return {
+        success: true,
+        message: `Specimen ${updated.sampleId} received and registered at lab desk`,
+        data: updated,
+      };
+    }
+
+    // 3. Reject sample (pre-analytical failure)
+    if (cleanUrl.includes('/reject') && (method === 'PATCH' || method === 'POST')) {
+      const parts = cleanUrl.split('/');
+      const ordIndex = parts.findIndex((p) => p === 'orders');
+      const orderId = ordIndex !== -1 ? parts[ordIndex + 1] : '';
+      const body = (data || {}) as { reason: string; notes?: string; technicianName?: string };
+      const updated = mockState.rejectSample(orderId, body.reason, body.notes, body.technicianName);
+      if (!updated) {
+        return { success: false, message: 'Test order not found', data: null };
+      }
+      return {
+        success: true,
+        message: `Specimen rejected: ${body.reason}. Re-collection request flagged.`,
+        data: updated,
+      };
+    }
+
+    // 4. Start processing / load analyzer
+    if (cleanUrl.includes('/process') && (method === 'PATCH' || method === 'POST')) {
+      const parts = cleanUrl.split('/');
+      const ordIndex = parts.findIndex((p) => p === 'orders');
+      const orderId = ordIndex !== -1 ? parts[ordIndex + 1] : '';
+      const body = (data || {}) as { technicianName?: string };
+      const updated = mockState.startProcessing(orderId, body.technicianName);
+      if (!updated) {
+        return { success: false, message: 'Test order not found', data: null };
+      }
+      return {
+        success: true,
+        message: `Specimen loaded on analyzer for ${updated.testName}`,
+        data: updated,
+      };
+    }
+
+    // 5. Submit result
+    if (cleanUrl.includes('/result') && (method === 'PATCH' || method === 'POST')) {
+      const parts = cleanUrl.split('/');
+      const ordIndex = parts.findIndex((p) => p === 'orders');
+      const orderId = ordIndex !== -1 ? parts[ordIndex + 1] : '';
+      const body = (data || {}) as {
+        parameters: any[];
+        resultSummary?: string;
+        technicianName?: string;
+      };
+      const updated = mockState.submitResult(orderId, body.parameters || [], body.resultSummary, body.technicianName);
+      if (!updated) {
+        return { success: false, message: 'Test order not found', data: null };
+      }
+      return {
+        success: true,
+        message: `Test results submitted and verified for ${updated.testName}. Diagnostic report generated.`,
+        data: updated,
+      };
+    }
+
+    // 6. Single order detail
+    const singleMatch = cleanUrl.match(/\/diagnostics\/orders\/([a-zA-Z0-9_-]+)$/);
+    if (singleMatch && method === 'GET') {
+      const orderId = singleMatch[1];
+      const ord = mockState.getDiagnosticOrderById(orderId);
+      if (!ord) {
+        return { success: false, message: 'Diagnostic order not found', data: null };
+      }
+      return {
+        success: true,
+        message: 'Diagnostic order retrieved',
+        data: ord,
+      };
+    }
+
+    // 7. Filtered orders list
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const status = queryParams.get('status') || undefined;
+    const category = queryParams.get('category') || undefined;
+    const priority = queryParams.get('priority') || undefined;
+    const search = queryParams.get('search') || undefined;
+
+    const list = mockState.getDiagnosticOrders({ status, category, priority, search });
     return {
       success: true,
-      message: 'Diagnostic orders retrieved',
-      data: mockState.diagnosticOrders,
+      message: `Found ${list.length} diagnostic orders`,
+      data: list,
     };
   }
 
