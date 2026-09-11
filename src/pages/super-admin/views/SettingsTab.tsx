@@ -32,9 +32,9 @@ export const SettingsTab: React.FC = () => {
             <Settings className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Platform Settings & Governance</h3>
+            <h3 className="text-sm font-bold text-slate-900">System Settings</h3>
             <p className="text-xs text-slate-500">
-              Configure session security, communication gateways, and system maintenance
+              Manage automatic logout times, patient message alerts, and system maintenance
             </p>
           </div>
         </div>
@@ -46,30 +46,30 @@ export const SettingsTab: React.FC = () => {
           className="gap-1.5 text-xs font-semibold cursor-pointer"
         >
           <Save className="h-4 w-4" />
-          Save Changes
+          Save Settings
         </Button>
       </div>
 
       {savedSuccess && (
         <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-in fade-in-50">
           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-          Platform configuration changes successfully saved and propagated across active nodes.
+          All settings have been saved successfully.
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Security & Session Governance */}
+        {/* Login & Security */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-teal-700" />
-              <CardTitle className="text-base font-bold text-slate-900">Security & Sessions</CardTitle>
+              <CardTitle className="text-base font-bold text-slate-900">Login & Security</CardTitle>
             </div>
-            <p className="text-xs text-slate-500">ABHA tokens and healthcare staff idle timeout</p>
+            <p className="text-xs text-slate-500">Protect staff accounts when computers are left unattended</p>
           </CardHeader>
           <CardContent className="p-5 pt-0 space-y-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-700">Staff Session Inactivity Timeout (Minutes)</label>
+              <label className="font-semibold text-slate-700">Auto-Logout Idle Computers (Minutes)</label>
               <Input
                 type="number"
                 min="15"
@@ -78,34 +78,37 @@ export const SettingsTab: React.FC = () => {
                 onChange={(e) => setSessionTimeoutMinutes(e.target.value)}
               />
               <p className="text-[11px] text-slate-500">
-                Enforces automatic logout for hospital terminal sessions left unattended.
+                Signs out staff automatically if their computer is left idle for this long.
               </p>
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-700">System Log Level</label>
+              <label className="font-semibold text-slate-700">System Activity Detail Level</label>
               <select
                 value={logLevel}
                 onChange={(e) => setLogLevel(e.target.value)}
                 className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
               >
-                <option value="DEBUG">Debug (Verbose Diagnostics)</option>
-                <option value="INFO">Info (Standard Production)</option>
-                <option value="WARN">Warning (Anomalies Only)</option>
-                <option value="ERROR">Error (Failures Only)</option>
+                <option value="DEBUG">Detailed (For technical troubleshooting)</option>
+                <option value="INFO">Normal (Recommended for everyday use)</option>
+                <option value="WARN">Warnings Only (Unexpected slowdowns only)</option>
+                <option value="ERROR">Errors Only (System errors only)</option>
               </select>
+              <p className="text-[11px] text-slate-500">
+                "Normal" is recommended for everyday hospital use.
+              </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Messaging & Communication Gateways */}
+        {/* Patient Messages & Alerts */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-teal-700" />
-              <CardTitle className="text-base font-bold text-slate-900">Gateways & Notifications</CardTitle>
+              <CardTitle className="text-base font-bold text-slate-900">Patient Messages & Alerts</CardTitle>
             </div>
-            <p className="text-xs text-slate-500">SMS, WhatsApp, and OPD token calling broadcasts</p>
+            <p className="text-xs text-slate-500">Send text messages and queue updates directly to patients</p>
           </CardHeader>
           <CardContent className="p-5 pt-0 space-y-4 text-xs">
             <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer">
@@ -116,9 +119,9 @@ export const SettingsTab: React.FC = () => {
                 className="h-4 w-4 mt-0.5 rounded text-teal-700 focus:ring-teal-700"
               />
               <div>
-                <span className="font-bold text-slate-900 block">Citizen SMS / WhatsApp Notifications</span>
+                <span className="font-bold text-slate-900 block">Send SMS & WhatsApp Alerts</span>
                 <span className="text-slate-500 text-[11px] block mt-0.5">
-                  Sends live token position alerts when a patient is within 5 numbers of being called.
+                  Sends automated messages to patients with their token link and when their turn is 5 numbers away.
                 </span>
               </div>
             </label>
@@ -131,9 +134,9 @@ export const SettingsTab: React.FC = () => {
                 className="h-4 w-4 mt-0.5 rounded text-rose-600 focus:ring-rose-600"
               />
               <div>
-                <span className="font-bold text-rose-950 block">Platform Maintenance Mode</span>
+                <span className="font-bold text-rose-950 block">Turn On Maintenance Mode</span>
                 <span className="text-rose-800 text-[11px] block mt-0.5">
-                  Locks write operations and displays maintenance banner to non-emergency users.
+                  Temporarily stops online registrations and shows a friendly maintenance notice to patients. Emergency desks remain open.
                 </span>
               </div>
             </label>

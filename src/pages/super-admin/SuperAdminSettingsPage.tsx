@@ -50,11 +50,11 @@ export const SuperAdminSettingsPage: React.FC = () => {
     <form onSubmit={handleSave} className="space-y-6">
       {/* Patient-Standard Page Header */}
       <PageHeader
-        title="Platform Configuration & Settings"
-        subtitle="Operational parameters, session security, communications gateways, and system maintenance controls."
+        title="System Settings"
+        subtitle="Manage automatic logout times, patient message alerts, and system maintenance."
         breadcrumbs={[
           { label: 'HealthConnect', to: '/' },
-          { label: 'Technical Center', to: '/super-admin' },
+          { label: 'Super Admin', to: '/super-admin' },
           { label: 'Settings' },
         ]}
         actions={
@@ -65,7 +65,7 @@ export const SuperAdminSettingsPage: React.FC = () => {
             className="text-xs gap-1.5 cursor-pointer font-semibold"
           >
             <Save className="h-4 w-4" />
-            Save Configuration
+            Save Settings
           </Button>
         }
       />
@@ -74,7 +74,7 @@ export const SuperAdminSettingsPage: React.FC = () => {
       {savedSuccess && (
         <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2.5 shadow-sm animate-in fade-in-50">
           <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-          <span>Platform configuration changes successfully saved and propagated across all district cluster nodes.</span>
+          <span>All settings have been saved successfully.</span>
         </div>
       )}
 
@@ -83,16 +83,16 @@ export const SuperAdminSettingsPage: React.FC = () => {
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-semibold flex items-start gap-2.5 shadow-sm">
           <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold block">Platform Maintenance Mode is Active</span>
+            <span className="font-bold block">Maintenance Mode is Currently ON</span>
             <span className="text-rose-700 font-normal">
-              Non-emergency citizen booking and scheduled operations are locked with a maintenance notice. Emergency triage remains functional.
+              New online registrations are temporarily paused. Patients will see a friendly maintenance message. Walk-in emergency desks remain open as usual.
             </span>
           </div>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 1. Security & Staff Session Governance */}
+        {/* 1. Login & Staff Security */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -100,8 +100,8 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 <Shield className="h-4 w-4" />
               </div>
               <div>
-                <CardTitle className="text-base font-bold text-slate-900">Security & Sessions</CardTitle>
-                <p className="text-xs text-slate-500">Access control timeouts for hospital terminals and ABHA identity</p>
+                <CardTitle className="text-base font-bold text-slate-900">Login & Security</CardTitle>
+                <p className="text-xs text-slate-500">Protect staff accounts when computers are left unattended</p>
               </div>
             </div>
           </CardHeader>
@@ -109,7 +109,7 @@ export const SuperAdminSettingsPage: React.FC = () => {
           <CardContent className="p-5 pt-0 space-y-4 text-xs">
             <div className="space-y-1.5">
               <label className="font-semibold text-slate-700 flex items-center justify-between">
-                <span>Hospital Terminal Inactivity Timeout</span>
+                <span>Auto-Logout Idle Computers</span>
                 <span className="text-teal-700 font-mono font-bold">{sessionTimeoutMinutes} min</span>
               </label>
               <Input
@@ -121,14 +121,14 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 className="bg-slate-50 text-xs"
               />
               <p className="text-[11px] text-slate-500">
-                Automatically logs out unattended OPD counter and consultation room computers.
+                Automatically signs out doctor and desk computers if nobody touches the mouse or keyboard for this long.
               </p>
             </div>
 
             <div className="space-y-1.5">
               <label className="font-semibold text-slate-700 flex items-center justify-between">
-                <span>Max Concurrent Logins Per Healthcare Worker</span>
-                <span className="text-teal-700 font-mono font-bold">{maxConcurrentSessions} sessions</span>
+                <span>Allowed Devices per Staff Account</span>
+                <span className="text-teal-700 font-mono font-bold">{maxConcurrentSessions} devices</span>
               </label>
               <Input
                 type="number"
@@ -139,13 +139,13 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 className="bg-slate-50 text-xs"
               />
               <p className="text-[11px] text-slate-500">
-                Prevents account sharing while allowing mobile tablet + OPD desk workstation access.
+                How many phones, tablets, or computers can be logged into the same staff account at the same time.
               </p>
             </div>
 
             <div className="space-y-1.5">
               <label className="font-semibold text-slate-700 flex items-center justify-between">
-                <span>ABHA Identity Verification Cache Lifetime</span>
+                <span>Remember Verified Patient ID</span>
                 <span className="text-teal-700 font-mono font-bold">{abhaCacheHours} hours</span>
               </label>
               <Input
@@ -157,7 +157,7 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 className="bg-slate-50 text-xs"
               />
               <p className="text-[11px] text-slate-500">
-                Reduces round-trips to national ABDM gateway for verified citizens within the same day.
+                Keeps patient ABHA verification active so patients don't have to re-verify with OTP on the same hospital visit.
               </p>
             </div>
           </CardContent>
@@ -171,8 +171,8 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 <Bell className="h-4 w-4" />
               </div>
               <div>
-                <CardTitle className="text-base font-bold text-slate-900">Gateways & Patient Alerts</CardTitle>
-                <p className="text-xs text-slate-500">SMS, WhatsApp token tracking, and teleconsultation heartbeat</p>
+                <CardTitle className="text-base font-bold text-slate-900">SMS & WhatsApp Alerts</CardTitle>
+                <p className="text-xs text-slate-500">Send text messages and queue updates directly to patient phones</p>
               </div>
             </div>
           </CardHeader>
@@ -186,9 +186,9 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 className="h-4 w-4 mt-0.5 rounded text-teal-700 focus:ring-teal-700"
               />
               <div>
-                <span className="font-bold text-slate-900 block">Citizen SMS Gateway</span>
+                <span className="font-bold text-slate-900 block">Send SMS to Patients</span>
                 <span className="text-slate-500 text-[11px] block mt-0.5">
-                  Sends automated SMS with live token link when booking is confirmed.
+                  Sends a direct SMS text message with the live token tracking link when an appointment is booked.
                 </span>
               </div>
             </label>
@@ -201,16 +201,16 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 className="h-4 w-4 mt-0.5 rounded text-teal-700 focus:ring-teal-700"
               />
               <div>
-                <span className="font-bold text-slate-900 block">WhatsApp Queue Alerts</span>
+                <span className="font-bold text-slate-900 block">Send WhatsApp Turn Alerts</span>
                 <span className="text-slate-500 text-[11px] block mt-0.5">
-                  Sends proactive notification when patient is within 5 numbers of being called at OPD.
+                  Sends a WhatsApp alert when the patient is within 5 numbers of being called to the doctor's room.
                 </span>
               </div>
             </label>
 
             <div className="space-y-1.5 pt-1">
               <label className="font-semibold text-slate-700 flex items-center justify-between">
-                <span>Teleconsultation Signaling Ping (Seconds)</span>
+                <span>Video Call Connection Check Frequency</span>
                 <span className="text-teal-700 font-mono font-bold">{teleconsultationHeartbeat}s</span>
               </label>
               <Input
@@ -221,6 +221,9 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 onChange={(e) => setTeleconsultationHeartbeat(e.target.value)}
                 className="bg-slate-50 text-xs"
               />
+              <p className="text-[11px] text-slate-500">
+                How often the system checks if the online doctor-patient video call is still connected.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -233,39 +236,45 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 <Database className="h-4 w-4" />
               </div>
               <div>
-                <CardTitle className="text-base font-bold text-slate-900">Telemetry & Retention</CardTitle>
-                <p className="text-xs text-slate-500">Log level thresholds and statutory audit ledger archival</p>
+                <CardTitle className="text-base font-bold text-slate-900">Activity History & Records</CardTitle>
+                <p className="text-xs text-slate-500">Choose how detailed system logs are and how long records are stored</p>
               </div>
             </div>
           </CardHeader>
 
           <CardContent className="p-5 pt-0 space-y-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-700">System Log Verbosity</label>
+              <label className="font-semibold text-slate-700">System Activity Detail Level</label>
               <select
                 value={logLevel}
                 onChange={(e) => setLogLevel(e.target.value)}
                 className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
               >
-                <option value="DEBUG">Debug — Verbose diagnostic logs for staging</option>
-                <option value="INFO">Info — Standard production operational telemetry</option>
-                <option value="WARN">Warning — Clinical pipeline bottlenecks and anomalies</option>
-                <option value="ERROR">Error — Unhandled exceptions and network dropouts</option>
+                <option value="DEBUG">Detailed (For technical testing and troubleshooting)</option>
+                <option value="INFO">Normal (Recommended for everyday hospital use)</option>
+                <option value="WARN">Warnings Only (Only records unexpected delays or slowdowns)</option>
+                <option value="ERROR">Errors Only (Only records system failures or crashes)</option>
               </select>
+              <p className="text-[11px] text-slate-500">
+                "Normal" is best for everyday operations. Use "Detailed" only if technical support is diagnosing a problem.
+              </p>
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-700">Audit Ledger Statutory Retention</label>
+              <label className="font-semibold text-slate-700">Keep Past Activity Records For</label>
               <select
                 value={auditRetentionDays}
                 onChange={(e) => setAuditRetentionDays(e.target.value)}
                 className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
               >
-                <option value="90">90 Days (Development environment)</option>
-                <option value="365">1 Year (Standard healthcare governance)</option>
-                <option value="1825">5 Years (Clinical EHR statutory requirement)</option>
-                <option value="2555">7 Years (ABDM national compliance standard)</option>
+                <option value="90">3 Months (Short-term storage)</option>
+                <option value="365">1 Year (Standard hospital practice)</option>
+                <option value="1825">5 Years (Recommended for hospital clinical records)</option>
+                <option value="2555">7 Years (Full government compliance standard)</option>
               </select>
+              <p className="text-[11px] text-slate-500">
+                Activity records include staff login history, appointment changes, and token actions.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -278,8 +287,8 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 <Lock className="h-4 w-4" />
               </div>
               <div>
-                <CardTitle className="text-base font-bold text-slate-900">Emergency Governance</CardTitle>
-                <p className="text-xs text-slate-500">Platform maintenance locks and disaster recovery drill triggers</p>
+                <CardTitle className="text-base font-bold text-slate-900">Maintenance & Safety Controls</CardTitle>
+                <p className="text-xs text-slate-500">Pause online registrations or run safety test drills</p>
               </div>
             </div>
           </CardHeader>
@@ -293,9 +302,9 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 className="h-4 w-4 mt-0.5 rounded text-rose-600 focus:ring-rose-600"
               />
               <div>
-                <span className="font-bold text-rose-950 block">Platform Maintenance Mode</span>
+                <span className="font-bold text-rose-950 block">Turn On Maintenance Mode</span>
                 <span className="text-rose-800 text-[11px] block mt-0.5">
-                  Temporarily suspends non-emergency online registrations and displays friendly maintenance screen.
+                  Temporarily stops new online bookings and displays a friendly maintenance screen to patients. In-person emergency counters stay active.
                 </span>
               </div>
             </label>
@@ -308,9 +317,9 @@ export const SuperAdminSettingsPage: React.FC = () => {
                 className="h-4 w-4 mt-0.5 rounded text-teal-700 focus:ring-teal-700"
               />
               <div>
-                <span className="font-bold text-slate-900 block">Disaster Recovery Read-Only Lock</span>
+                <span className="font-bold text-slate-900 block">View-Only Mode (System Test Drill)</span>
                 <span className="text-slate-500 text-[11px] block mt-0.5">
-                  Forces read-only database replicas for database failover verification drills.
+                  Freezes all edits and new data entry so the technical team can safely test backup systems and servers.
                 </span>
               </div>
             </label>
