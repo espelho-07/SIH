@@ -43,6 +43,7 @@ import { FrontlineFacilitiesPage } from '@/pages/asha/FrontlineFacilitiesPage';
 import { DoctorDashboard } from '@/pages/doctor/DoctorDashboard';
 import { DoctorQueue } from '@/pages/doctor/DoctorQueue';
 import { PatientClinicalWorkspace } from '@/pages/doctor/PatientClinicalWorkspace';
+import { PatientHistoryPage } from '@/pages/doctor/PatientHistoryPage';
 import { ReferralCreationWizard } from '@/pages/doctor/ReferralCreationWizard';
 import TeleconsultationRoomDoctor from '@/pages/doctor/TeleconsultationRoom';
 
@@ -434,6 +435,26 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['DOCTOR']}>
             <AppShell>
               <PatientClinicalWorkspace />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/patients/:id/history"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <PatientHistoryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/patients/history"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <PatientHistoryPage />
             </AppShell>
           </ProtectedRoute>
         }
