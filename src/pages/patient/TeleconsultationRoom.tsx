@@ -386,8 +386,8 @@ export const TeleconsultationRoom: React.FC = () => {
   // Layout Modes: 'SPEAKER' (Doctor focus) | 'GRID' (Side-by-side) | 'SHARE_REPORT' (Live diagnostic review)
   const [callLayout, setCallLayout] = useState<'SPEAKER' | 'GRID' | 'SHARE_REPORT'>('SPEAKER');
 
-  // Active Clinical Panel Tab: 'PRESCRIPTION' | 'CHAT' | 'VITALS' | 'DOCTOR_INFO'
-  const [activeCallTab, setActiveCallTab] = useState<'PRESCRIPTION' | 'CHAT' | 'VITALS' | 'DOCTOR_INFO'>('PRESCRIPTION');
+  // Active Clinical Panel Tab: 'PRESCRIPTION' | 'CHAT' | 'VITALS'
+  const [activeCallTab, setActiveCallTab] = useState<'PRESCRIPTION' | 'CHAT' | 'VITALS'>('PRESCRIPTION');
 
   // Subtitles / Closed Captions Toggle
   const [showCaptions, setShowCaptions] = useState<boolean>(true);
@@ -2106,7 +2106,6 @@ export const TeleconsultationRoom: React.FC = () => {
                     { id: 'PRESCRIPTION', label: 'Prescription', icon: Pill },
                     { id: 'CHAT', label: 'Live Chat', icon: MessageSquare },
                     { id: 'VITALS', label: 'Vitals & Lab', icon: Activity },
-                    { id: 'DOCTOR_INFO', label: 'Doctor Info', icon: Stethoscope },
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeCallTab === tab.id;
@@ -2373,45 +2372,6 @@ export const TeleconsultationRoom: React.FC = () => {
                             <span className="text-[9px] text-slate-500">Cardiology Dept • 15 Jul 2026</span>
                           </div>
                           <span className="text-[10px] text-emerald-700 font-semibold">● Attached</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 4: DOCTOR INFO */}
-                  {activeCallTab === 'DOCTOR_INFO' && (
-                    <div className="space-y-3 animate-in fade-in duration-150 text-xs">
-                      <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                        <div
-                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr ${selectedDoctor.avatarColor} text-white font-black text-base shadow-xs`}
-                        >
-                          {selectedDoctor.initials}
-                        </div>
-                        <div>
-                          <h4 className="font-black text-slate-900 text-sm">{selectedDoctor.name}</h4>
-                          <p className="text-[11px] text-teal-800 font-bold">{selectedDoctor.specialty}</p>
-                          <p className="text-[10px] text-slate-500">{selectedDoctor.experience}</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase block">Hospital & Unit</span>
-                          <p className="text-slate-900 font-bold">{selectedDoctor.hospital}</p>
-                          <p className="text-slate-500 text-[10px]">{selectedDoctor.department} • {selectedDoctor.roomNumber}</p>
-                        </div>
-
-                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase block">Medical Registration</span>
-                          <p className="text-slate-900 font-mono font-bold">GMC-2008-54210</p>
-                          <p className="text-emerald-700 text-[10px] font-semibold">● Gujarat Medical Council Verified</p>
-                        </div>
-
-                        <div className="p-2 rounded-xl bg-teal-50 border border-teal-200 text-[11px] text-teal-950">
-                          <strong className="block font-bold">Government Tele-OPD Support:</strong>
-                          <p className="text-[10px] mt-0.5">
-                            Telemedicine hotline: 079-2322-1080. In case of acute chest discomfort or breathlessness, call 108 immediately.
-                          </p>
                         </div>
                       </div>
                     </div>
