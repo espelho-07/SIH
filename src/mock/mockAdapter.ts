@@ -67,7 +67,15 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   // 2. FACILITIES
-  if (cleanUrl === '/api/v1/facilities' || cleanUrl.includes('/facilities/nearby') || cleanUrl.includes('/facilities/search')) {
+  if (cleanUrl === '/facilities' || cleanUrl === '/api/v1/facilities' || cleanUrl.includes('/facilities/nearby') || cleanUrl.includes('/facilities/search')) {
+    if (method === 'POST') {
+      const createdFac = mockState.addFacility(data as any);
+      return {
+        success: true,
+        message: `Government facility ${createdFac.name} registered successfully in ${createdFac.district}`,
+        data: createdFac,
+      };
+    }
     return {
       success: true,
       message: 'Facilities retrieved',
@@ -95,7 +103,80 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
-  // 2b. FACILITY OPERATIONS (FACILITY_OPERATIONS)
+  // 2a. DOCTORS & SPECIALISTS MANAGEMENT
+  if (cleanUrl === '/doctors' || cleanUrl === '/api/v1/doctors') {
+    if (method === 'POST') {
+      const newDoc = mockState.addDoctor(data as any);
+      return {
+        success: true,
+        message: `Doctor ${newDoc.name} (${newDoc.specialty}) registered successfully`,
+        data: newDoc,
+      };
+    }
+    return {
+      success: true,
+      message: 'Doctors retrieved',
+      data: mockState.doctors,
+    };
+  }
+
+  const docStatusMatch = cleanUrl.match(/\/doctors\/(doc_[a-z0-9_]+)\/status$/);
+  if (docStatusMatch && (method === 'PATCH' || method === 'POST')) {
+    const body = (data || {}) as { status: any };
+    const updated = mockState.updateDoctorStatus(docStatusMatch[1], body.status);
+    return {
+      success: true,
+      message: 'Doctor duty status updated successfully',
+      data: updated,
+    };
+  }
+
+  // 2b. BLOOD CENTERS & STORAGE UNITS
+  if (cleanUrl === '/blood-centres' || cleanUrl === '/api/v1/blood-centres') {
+    if (method === 'POST') {
+      const newCenter = mockState.addBloodCenter(data as any);
+      return {
+        success: true,
+        message: `Blood institution ${newCenter.name} registered successfully`,
+        data: newCenter,
+      };
+    }
+    return {
+      success: true,
+      message: 'Blood centers retrieved',
+      data: mockState.bloodCenters,
+    };
+  }
+
+  // 2c. DISTRICT HEALTH ADMINISTRATORS (SUPER ADMIN EXCLUSIVE APPOINTMENTS)
+  if (cleanUrl === '/district-admins' || cleanUrl === '/api/v1/district-admins') {
+    if (method === 'POST') {
+      const newAdmin = mockState.provisionDistrictAdmin(data as any);
+      return {
+        success: true,
+        message: `District Administrator ${newAdmin.name} appointed for ${newAdmin.district} District jurisdiction`,
+        data: newAdmin,
+      };
+    }
+    return {
+      success: true,
+      message: 'District administrators retrieved',
+      data: mockState.districtAdmins,
+    };
+  }
+
+  const adminStatusMatch = cleanUrl.match(/\/district-admins\/(usr_dist_[a-z0-9_]+)\/status$/);
+  if (adminStatusMatch && (method === 'PATCH' || method === 'POST')) {
+    const body = (data || {}) as { status: any };
+    const updated = mockState.updateDistrictAdminStatus(adminStatusMatch[1], body.status);
+    return {
+      success: true,
+      message: 'District Administrator status updated',
+      data: updated,
+    };
+  }
+
+  // 2d. FACILITY OPERATIONS (FACILITY_OPERATIONS)
   if (cleanUrl.includes('/operations') || cleanUrl.includes('/facilities/fac_civil_01') || cleanUrl.includes('/facility-operations')) {
     const facId = 'fac_civil_01';
 

@@ -28,6 +28,9 @@ import {
   Sliders,
   Bell,
   ShieldAlert,
+  UserCheck,
+  Crown,
+  MapPin,
 } from 'lucide-react';
 
 export const TechnicalCenterPage: React.FC = () => {
@@ -60,14 +63,20 @@ export const TechnicalCenterPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header matching Patient UI standard */}
       <PageHeader
-        title="Technical Center"
-        subtitle="Platform status, core services, and operational health across the district healthcare grid."
+        title="State Apex Command & Website Owner Console"
+        subtitle="Supreme statutory authority across all 33 Gujarat districts • Public health infrastructure, AI systems, and CDHO jurisdictional commissioning."
         breadcrumbs={[
           { label: 'HealthConnect', to: '/' },
-          { label: 'Technical Center' },
+          { label: 'State Apex Command' },
         ]}
         actions={
           <div className="flex items-center gap-2">
+            <Link to="/super-admin/district-admins">
+              <Button size="sm" className="text-xs gap-1.5 bg-indigo-700 hover:bg-indigo-800 text-white font-semibold cursor-pointer">
+                <UserCheck className="h-3.5 w-3.5" />
+                District Admins
+              </Button>
+            </Link>
             <Button
               onClick={handleRefresh}
               variant="outline"
@@ -88,24 +97,30 @@ export const TechnicalCenterPage: React.FC = () => {
         }
       />
 
-      {/* Calm Status Strip (Patient Module Hero Language) */}
-      <div className="rounded-2xl bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 text-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-teal-700/50">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
-            <Server className="h-3.5 w-3.5" />
-            <span>Infrastructure Status</span>
+      {/* Website Owner Apex Banner */}
+      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-teal-950 to-indigo-950 text-white p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-teal-600/40">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-3 py-0.5 text-xs font-bold text-amber-300 border border-amber-400/40">
+              <Crown className="h-3.5 w-3.5 text-amber-300" />
+              <span>Website Owner Console</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>Gujarat State Health Grid</span>
+            </div>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">All Core Systems Operational</h2>
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight">All Statewide Systems & Facilities Active</h2>
           <p className="text-xs text-teal-100/80 max-w-xl">
-            6 microservices active • Real-time socket queues synced with Gandhinagar district hospitals.
+            6 core microservices active • 33 district health networks synchronized • Real-time socket queues connected across state civil hospitals.
           </p>
         </div>
 
-        <div className="rounded-xl bg-white/10 backdrop-blur-md border border-white/15 p-3.5 text-center shrink-0">
-          <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">Overall Uptime</span>
+        <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3.5 text-center shrink-0">
+          <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">State Platform Uptime</span>
           <span className="text-emerald-300 font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            99.98% Healthy
+            99.98% Operational
           </span>
         </div>
       </div>
@@ -214,10 +229,32 @@ export const TechnicalCenterPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Access to Operational Workspaces (Matching Patient Module card interactions) */}
+      {/* Quick Access to Operational Workspaces */}
       <div className="space-y-3">
-        <h3 className="text-base font-bold text-slate-900">Administrative Workspaces</h3>
+        <h3 className="text-base font-bold text-slate-900">Administrative & Jurisdictional Consoles</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link to="/super-admin/district-admins" className="group">
+            <Card className="p-5 border-indigo-200 bg-indigo-50/30 hover:border-indigo-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-800 group-hover:scale-105 transition-transform">
+                    <UserCheck className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                    Exclusive Authority
+                  </span>
+                </div>
+                <h4 className="font-bold text-sm text-slate-900">District Health Administrators</h4>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Appoint, commission, or suspend Chief District Health Officers (CDHOs) holding statutory command across all 33 Gujarat districts.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-indigo-700 flex items-center gap-1 mt-4 group-hover:translate-x-0.5 transition-transform">
+                Appoint & Manage CDHOs <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </Card>
+          </Link>
+
           <Link to="/super-admin/system-health" className="group">
             <Card className="p-5 border-slate-200 hover:border-teal-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
               <div>

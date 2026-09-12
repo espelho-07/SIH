@@ -41,6 +41,7 @@ import {
   Stethoscope,
   Settings,
   Radar,
+  UserCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -546,6 +547,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: 'Facilities',
             icon: Building2,
             color: 'text-cyan-600 bg-cyan-50',
+          },
+          {
+            to: '/super-admin/district-admins',
+            label: 'District Admins',
+            icon: UserCheck,
+            color: 'text-indigo-600 bg-indigo-50',
           },
           {
             to: '/super-admin/users',

@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { DEMO_USERS } from '@/mock/mockData';
 import { User, UserRole, StaffSubType } from '@/types/auth';
+import { Link } from 'react-router-dom';
 import {
   Users,
   Search,
@@ -21,6 +22,8 @@ import {
   Edit2,
   AlertTriangle,
   UserCheck,
+  ShieldAlert,
+  ArrowRight,
 } from 'lucide-react';
 
 export const UserManagementPage: React.FC = () => {
@@ -130,6 +133,23 @@ export const UserManagementPage: React.FC = () => {
           </p>
           <span className="text-xs text-slate-500">Registration, lab, pharmacy</span>
         </Card>
+      </div>
+
+      {/* Exclusive CDHO Provisioning Advisory */}
+      <div className="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-indigo-950">
+        <div className="flex items-center gap-2.5">
+          <ShieldAlert className="h-4 w-4 text-indigo-700 shrink-0" />
+          <span>
+            <strong>District Health Administrators (CDHOs)</strong> possess supreme territorial command and can ONLY be commissioned via the dedicated <strong>District Admins Console</strong>.
+          </span>
+        </div>
+        <Link to="/super-admin/district-admins">
+          <Button size="sm" variant="outline" className="text-[11px] h-7 px-2.5 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold gap-1 shrink-0 cursor-pointer">
+            <UserCheck className="h-3.5 w-3.5" />
+            <span>District Admins Console</span>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </Link>
       </div>
 
       {/* Search & Filter Toolbar */}
@@ -380,7 +400,6 @@ export const UserManagementPage: React.FC = () => {
                     <option value="DOCTOR">Doctor</option>
                     <option value="ASHA">ASHA Worker</option>
                     <option value="FACILITY_STAFF">Facility Staff</option>
-                    <option value="DISTRICT_ADMIN">District Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>

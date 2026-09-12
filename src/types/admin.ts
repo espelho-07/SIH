@@ -54,3 +54,55 @@ export interface AuditLog {
   status: 'SUCCESS' | 'DENIED' | 'ERROR';
   details?: string;
 }
+
+export interface DistrictAdminProfile {
+  id: string;
+  name: string;
+  designation: string; // e.g. "Chief District Health Officer (CDHO)" | "District Medical Officer (DMO)"
+  district: string;
+  state: string;
+  email: string;
+  phone: string;
+  appointedAt: string;
+  appointedBy: string; // "State Health Authority (Super Admin)"
+  status: 'ACTIVE' | 'ON_LEAVE' | 'SUSPENDED';
+  jurisdictionFacilitiesCount: number;
+  jurisdictionPopulation: number;
+  privileges: string[];
+}
+
+export interface DistrictDoctor {
+  id: string;
+  name: string;
+  qualification: string;
+  specialty: string;
+  facilityId: string;
+  facilityName: string;
+  status: 'ON_DUTY' | 'IN_OPD' | 'IN_SURGERY' | 'OFF_DUTY';
+  phone: string;
+  email: string;
+  opdSchedule: string;
+  patientsToday: number;
+  teleconsultEnabled: boolean;
+  avatar?: string;
+  district: string;
+  joinedDate?: string;
+}
+
+export interface BloodCenter {
+  id: string;
+  name: string;
+  licenseNo: string;
+  type: 'BLOOD_BANK' | 'STORAGE_UNIT';
+  totalCapacity: number;
+  currentStock: number;
+  phone: string;
+  location: string;
+  district: string;
+  facilityId?: string;
+  facilityName?: string;
+  componentSeparation: boolean;
+  emergencyHotline?: string;
+  lastInspectionDate?: string;
+}
+

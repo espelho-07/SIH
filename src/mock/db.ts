@@ -27,6 +27,9 @@ import {
   INITIAL_OPERATIONAL_ANNOUNCEMENTS,
   INITIAL_STAFF_DUTY,
   INITIAL_OPERATIONAL_ISSUES,
+  INITIAL_DISTRICT_ADMINS,
+  INITIAL_DISTRICT_DOCTORS,
+  INITIAL_BLOOD_CENTRES,
 } from './mockData';
 import { Facility, FacilityMatchRequest, FacilityMatchResult } from '@/types/facility';
 import { Token, LiveQueueState, Appointment, RegisteredPatient } from '@/types/queue';
@@ -35,7 +38,7 @@ import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord, 
 import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem, DispensingRecord } from '@/types/resources';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
 import { AiDemandIntelligenceSummary } from '@/types/ai';
-import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog } from '@/types/admin';
+import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog, DistrictAdminProfile, DistrictDoctor, BloodCenter } from '@/types/admin';
 import { User } from '@/types/auth';
 import {
   OperationalService,
@@ -87,6 +90,9 @@ class MockHealthcareState {
   operationalAnnouncements: OperationalAnnouncement[] = JSON.parse(JSON.stringify(INITIAL_OPERATIONAL_ANNOUNCEMENTS));
   staffDuty: StaffDutyItem[] = JSON.parse(JSON.stringify(INITIAL_STAFF_DUTY));
   operationalIssues: OperationalIssue[] = JSON.parse(JSON.stringify(INITIAL_OPERATIONAL_ISSUES));
+  doctors: DistrictDoctor[] = JSON.parse(JSON.stringify(INITIAL_DISTRICT_DOCTORS));
+  bloodCenters: BloodCenter[] = JSON.parse(JSON.stringify(INITIAL_BLOOD_CENTRES));
+  districtAdmins: DistrictAdminProfile[] = JSON.parse(JSON.stringify(INITIAL_DISTRICT_ADMINS));
 
   // Patient Registration & Duplicate Detection
   searchPatients(query: string): RegisteredPatient[] {
@@ -814,6 +820,218 @@ class MockHealthcareState {
 
   getStaffDuty(facilityId?: string): StaffDutyItem[] {
     return this.staffDuty;
+  }
+
+  // --- DISTRICT & STATE HEALTH INSTITUTION MANAGEMENT METHODS ---
+  addFacility(data: Partial<Facility>, actor: string = 'District Health Admin'): Facility {
+    const newFacility: Facility = {
+      id: `fac_${Date.now()}`,
+      name: data.name || 'Community Health Clinic',
+      type: data.type || 'CHC',
+      district: data.district || 'Gandhinagar',
+      state: data.state || 'Gujarat',
+      address: data.address || 'Civil Hospital Road',
+      pincode: data.pincode || '382024',
+      contactNumber: data.contactNumber || '+91 79 2322 0000',
+      emergencyNumber: data.emergencyNumber || '108',
+      totalBeds: data.totalBeds ?? 30,
+      availableBeds: data.availableBeds ?? 20,
+      icuBedsTotal: data.icuBedsTotal ?? 4,
+      icuBedsAvailable: data.icuBedsAvailable ?? 2,
+      oxygenAvailable: data.oxygenAvailable ?? true,
+      bloodBankAvailable: data.bloodBankAvailable ?? false,
+      ambulanceAvailable: data.ambulanceAvailable ?? true,
+      emergencyAvailable: data.emergencyAvailable ?? true,
+      isOpen: data.isOpen ?? true,
+      isVerified: data.isVerified ?? true,
+      currentWaitTimeMinutes: data.currentWaitTimeMinutes ?? 15,
+      departments: data.departments || [
+        { id: `dep_gm_${Date.now()}`, name: 'General Medicine', code: 'GEN', activeDoctors: 2, currentWaitMinutes: 15, opdOpen: true },
+        { id: `dep_ped_${Date.now()}`, name: 'Pediatrics', code: 'PED', activeDoctors: 1, currentWaitMinutes: 20, opdOpen: true },
+      ],
+      specialties: data.specialties && data.specialties.length > 0 ? data.specialties : ['General Medicine', 'Pediatrics'],
+      equipment: data.equipment || [],
+      coordinates: data.coordinates || { lat: 23.2156 + (Math.random() - 0.5) * 0.05, lng: 72.6369 + (Math.random() - 0.5) * 0.05 },
+      distanceKm: data.distanceKm || Math.round((Math.random() * 8 + 2) * 10) / 10,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    this.facilities.unshift(newFacility);
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: 'usr_dist_admin',
+      actorName: actor,
+      actorRole: 'DISTRICT_ADMIN',
+      action: 'ADD_HEALTHCARE_FACILITY',
+      resourceType: 'FACILITY',
+      resourceId: newFacility.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect District Portal',
+      status: 'SUCCESS',
+      details: `Added new government facility: ${newFacility.name} (${newFacility.type}) in ${newFacility.district}`,
+    });
+
+    return newFacility;
+  }
+
+  addDoctor(data: Partial<DistrictDoctor>, actor: string = 'District Health Admin'): DistrictDoctor {
+    const newDoc: DistrictDoctor = {
+      id: `doc_${Date.now()}`,
+      name: data.name || 'Dr. Medical Officer',
+      qualification: data.qualification || 'MBBS',
+      specialty: data.specialty || 'General Medicine',
+      facilityId: data.facilityId || (this.facilities[0] ? this.facilities[0].id : 'fac_civil_01'),
+      facilityName: data.facilityName || (this.facilities[0] ? this.facilities[0].name : 'Gandhinagar Civil Hospital'),
+      status: data.status || 'ON_DUTY',
+      phone: data.phone || '9876500000',
+      email: data.email || 'doctor@gujarat.health.gov.in',
+      opdSchedule: data.opdSchedule || '09:00 AM – 01:00 PM (Mon-Sat)',
+      patientsToday: 0,
+      teleconsultEnabled: data.teleconsultEnabled ?? true,
+      district: data.district || 'Gandhinagar',
+      joinedDate: new Date().toISOString().split('T')[0],
+      avatar: data.avatar || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
+    };
+
+    this.doctors.unshift(newDoc);
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: 'usr_dist_admin',
+      actorName: actor,
+      actorRole: 'DISTRICT_ADMIN',
+      action: 'REGISTER_DISTRICT_DOCTOR',
+      resourceType: 'DOCTOR',
+      resourceId: newDoc.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect District Portal',
+      status: 'SUCCESS',
+      details: `Registered ${newDoc.name} (${newDoc.specialty}) at ${newDoc.facilityName}`,
+    });
+
+    return newDoc;
+  }
+
+  updateDoctorStatus(doctorId: string, status: DistrictDoctor['status']): DistrictDoctor | null {
+    const doc = this.doctors.find((d) => d.id === doctorId);
+    if (doc) {
+      doc.status = status;
+    }
+    return doc || null;
+  }
+
+  addBloodCenter(data: Partial<BloodCenter>, actor: string = 'District Health Admin'): BloodCenter {
+    const newCenter: BloodCenter = {
+      id: `bc_${Date.now()}`,
+      name: data.name || 'District Blood Center',
+      licenseNo: data.licenseNo || `GJ-BB-${Math.floor(1000 + Math.random() * 9000)}`,
+      type: data.type || 'BLOOD_BANK',
+      totalCapacity: data.totalCapacity || 200,
+      currentStock: data.currentStock || 45,
+      phone: data.phone || '079-2322-0000',
+      location: data.location || 'Civil Hospital Complex',
+      district: data.district || 'Gandhinagar',
+      facilityId: data.facilityId,
+      facilityName: data.facilityName,
+      componentSeparation: data.componentSeparation ?? false,
+      emergencyHotline: data.emergencyHotline || '108',
+      lastInspectionDate: new Date().toISOString().split('T')[0],
+    };
+
+    this.bloodCenters.unshift(newCenter);
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: 'usr_dist_admin',
+      actorName: actor,
+      actorRole: 'DISTRICT_ADMIN',
+      action: 'PROVISION_BLOOD_CENTER',
+      resourceType: 'BLOOD_BANK',
+      resourceId: newCenter.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect District Portal',
+      status: 'SUCCESS',
+      details: `Provisioned blood institution: ${newCenter.name} (${newCenter.type}) in ${newCenter.district}`,
+    });
+
+    return newCenter;
+  }
+
+  provisionDistrictAdmin(data: Partial<DistrictAdminProfile>, actor: string = 'Super Admin (State Health Authority)'): DistrictAdminProfile {
+    const newAdmin: DistrictAdminProfile = {
+      id: `usr_dist_${Date.now()}`,
+      name: data.name || 'Dr. Appointed CDHO',
+      designation: data.designation || 'Chief District Health Officer (CDHO)',
+      district: data.district || 'Gandhinagar',
+      state: 'Gujarat',
+      email: data.email || `cdho.${(data.district || 'district').toLowerCase()}@gujarat.gov.in`,
+      phone: data.phone || '9825000000',
+      appointedAt: new Date().toISOString(),
+      appointedBy: actor,
+      status: data.status || 'ACTIVE',
+      jurisdictionFacilitiesCount: this.facilities.filter((f) => f.district.toLowerCase() === (data.district || '').toLowerCase()).length || 4,
+      jurisdictionPopulation: data.jurisdictionPopulation || 1500000,
+      privileges: data.privileges || ['FACILITY_MANAGEMENT', 'DOCTOR_DEPLOYMENT', 'BLOOD_BANK_GOVERNANCE', 'EMERGENCY_BROADCAST'],
+    };
+
+    this.districtAdmins.unshift(newAdmin);
+
+    // Register user account in users dictionary
+    this.users[newAdmin.id] = {
+      id: newAdmin.id,
+      name: newAdmin.name,
+      email: newAdmin.email,
+      phone: newAdmin.phone,
+      role: 'DISTRICT_ADMIN',
+      district: newAdmin.district,
+    };
+
+    // Immutable Audit Log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: 'usr_super_root',
+      actorName: actor,
+      actorRole: 'SUPER_ADMIN',
+      action: 'APPOINT_DISTRICT_HEALTH_OFFICER',
+      resourceType: 'USER_ROLE_ASSIGNMENT',
+      resourceId: newAdmin.id,
+      ipAddress: '127.0.0.1',
+      userAgent: 'HealthConnect State Apex Governance Console',
+      status: 'SUCCESS',
+      details: `State Health Authority appointed ${newAdmin.name} (${newAdmin.designation}) for ${newAdmin.district} District jurisdiction.`,
+    });
+
+    return newAdmin;
+  }
+
+  updateDistrictAdminStatus(adminId: string, status: DistrictAdminProfile['status']): DistrictAdminProfile | null {
+    const admin = this.districtAdmins.find((a) => a.id === adminId);
+    if (admin) {
+      admin.status = status;
+      this.auditLogs.unshift({
+        id: `log_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        actorId: 'usr_super_root',
+        actorName: 'Super Admin (State Health Authority)',
+        actorRole: 'SUPER_ADMIN',
+        action: 'UPDATE_DISTRICT_ADMIN_STATUS',
+        resourceType: 'USER_ROLE_ASSIGNMENT',
+        resourceId: admin.id,
+        ipAddress: '127.0.0.1',
+        userAgent: 'HealthConnect State Apex Governance Console',
+        status: 'SUCCESS',
+        details: `District administrator ${admin.name} status updated to ${status}.`,
+      });
+    }
+    return admin || null;
   }
 }
 

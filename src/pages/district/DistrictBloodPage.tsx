@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { useLocationContext } from '@/contexts/LocationContext';
-import { INITIAL_BLOOD_INVENTORY } from '@/mock/mockData';
+import { INITIAL_BLOOD_INVENTORY, INITIAL_BLOOD_CENTRES } from '@/mock/mockData';
+import { mockState } from '@/mock/db';
+import { BloodCenter } from '@/types/admin';
 import {
   Droplet,
   AlertTriangle,
@@ -15,61 +19,29 @@ import {
   Clock,
   ShieldCheck,
   Send,
+  Plus,
+  X,
 } from 'lucide-react';
-
-interface BloodCenter {
-  id: string;
-  name: string;
-  licenseNo: string;
-  type: 'BLOOD_BANK' | 'STORAGE_UNIT';
-  totalCapacity: number;
-  currentStock: number;
-  phone: string;
-  location: string;
-  componentSeparation: boolean;
-}
-
-const MOCK_BLOOD_CENTRES: BloodCenter[] = [
-  {
-    id: 'bc_01',
-    name: 'Gandhinagar Civil Hospital Blood Centre',
-    licenseNo: 'GJ-BB-0412',
-    type: 'BLOOD_BANK',
-    totalCapacity: 500,
-    currentStock: 112,
-    phone: '079-2322-1918',
-    location: 'Sector 12, Gandhinagar',
-    componentSeparation: true,
-  },
-  {
-    id: 'bc_02',
-    name: 'Indian Red Cross Society Regional Centre',
-    licenseNo: 'GJ-BB-0189',
-    type: 'BLOOD_BANK',
-    totalCapacity: 300,
-    currentStock: 68,
-    phone: '079-2324-4411',
-    location: 'Sector 21, Gandhinagar',
-    componentSeparation: true,
-  },
-  {
-    id: 'bc_03',
-    name: 'Kalol Sub-District Blood Storage Unit',
-    licenseNo: 'GJ-BSU-0092',
-    type: 'STORAGE_UNIT',
-    totalCapacity: 100,
-    currentStock: 24,
-    phone: '02764-222300',
-    location: 'Kalol SDH Campus',
-    componentSeparation: false,
-  },
-];
 
 export const DistrictBloodPage: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
+  const [bloodCentersList, setBloodCentersList] = useState<BloodCenter[]>(() => {
+    return mockState?.bloodCenters?.length ? mockState.bloodCenters : INITIAL_BLOOD_CENTRES;
+  });
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [showAddCenterModal, setShowAddCenterModal] = useState(false);
   const [broadcastSuccess, setBroadcastSuccess] = useState<string | null>(null);
   const [broadcastGroup, setBroadcastGroup] = useState('O-');
+
+  // Add Blood Center Form State
+  const [centerName, setCenterName] = useState('');
+  const [licenseNo, setLicenseNo] = useState('');
+  const [centerType, setCenterType] = useState<BloodCenter['type']>('BLOOD_BANK');
+  const [capacity, setCapacity] = useState('300');
+  const [currentStock, setCurrentStock] = useState('75');
+  const [centerPhone, setCenterPhone] = useState('');
+  const [location, setLocation] = useState('');
+  const [componentSeparation, setComponentSeparation] = useState(true);
 
   // Groups and counts
   const bloodGroups = [
@@ -98,24 +70,73 @@ export const DistrictBloodPage: React.FC = () => {
     }, 6000);
   };
 
+  const handleAddBloodCenter = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!centerName.trim()) return;
+
+    const newCenterData: Partial<BloodCenter> = {
+      name: centerName.trim(),
+      licenseNo: licenseNo.trim() || `GJ-BB-${Math.floor(Math.random() * 8999 + 1000)}`,
+      type: centerType,
+      totalCapacity: parseInt(capacity, 10) || 200,
+      currentStock: parseInt(currentStock, 10) || 50,
+      phone: centerPhone.trim() || '079-2322-0000',
+      location: location.trim() || `${selectedDistrict} District Headquarters`,
+      componentSeparation,
+    };
+
+    let created: BloodCenter;
+    if (mockState && typeof mockState.addBloodCenter === 'function') {
+      created = mockState.addBloodCenter(newCenterData);
+    } else {
+      created = {
+        ...newCenterData,
+        id: `bc_${Date.now()}`,
+      } as BloodCenter;
+    }
+
+    setBloodCentersList((prev) => [created, ...prev]);
+    setShowAddCenterModal(false);
+
+    // Reset
+    setCenterName('');
+    setLicenseNo('');
+    setCenterPhone('');
+    setLocation('');
+
+    setBroadcastSuccess(`Successfully registered ${created.name} (${created.licenseNo}) to District Blood Services.`);
+    setTimeout(() => setBroadcastSuccess(null), 5000);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="District Blood Bank & Components"
-        subtitle={`Monitor whole blood units, rare groups, and blood bank storage across ${selectedDistrict} District.`}
+        subtitle={`Monitor whole blood units, rare groups, and blood storage units across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Blood Bank' },
         ]}
         actions={
-          <Button
-            onClick={() => setShowBroadcastModal(true)}
-            size="sm"
-            className="gap-2 text-xs font-semibold bg-rose-700 hover:bg-rose-800 text-white"
-          >
-            <Radio className="h-4 w-4" />
-            <span>Broadcast Donor Alert</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowAddCenterModal(true)}
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs font-semibold cursor-pointer"
+            >
+              <Plus className="h-4 w-4 text-teal-700" />
+              <span>Add Blood Centre</span>
+            </Button>
+            <Button
+              onClick={() => setShowBroadcastModal(true)}
+              size="sm"
+              className="gap-2 text-xs font-semibold bg-rose-700 hover:bg-rose-800 text-white cursor-pointer"
+            >
+              <Radio className="h-4 w-4" />
+              <span>Broadcast Donor Alert</span>
+            </Button>
+          </div>
         }
       />
 
@@ -177,7 +198,7 @@ export const DistrictBloodPage: React.FC = () => {
               <Building2 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2">{MOCK_BLOOD_CENTRES.length} Centres</p>
+          <p className="text-2xl font-bold text-slate-900 mt-2">{bloodCentersList.length} Centres</p>
           <span className="text-[11px] text-sky-700 font-medium">Cold chain certified</span>
         </Card>
       </div>
@@ -237,7 +258,7 @@ export const DistrictBloodPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {MOCK_BLOOD_CENTRES.map((bc) => (
+          {bloodCentersList.map((bc) => (
             <div
               key={bc.id}
               className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors space-y-3 flex flex-col justify-between"
@@ -356,6 +377,140 @@ export const DistrictBloodPage: React.FC = () => {
             </form>
           </Card>
         </div>
+      )}
+
+      {/* ADD BLOOD CENTRE MODAL */}
+      {showAddCenterModal && (
+        <Dialog open={showAddCenterModal} onOpenChange={setShowAddCenterModal} maxWidth="lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Droplet className="h-5 w-5 text-rose-700" />
+              <span>Register Government Blood Centre / Storage Unit</span>
+            </DialogTitle>
+            <DialogDescription>
+              Add a certified blood bank or sub-district storage unit under {selectedDistrict} District Health Authority.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddBloodCenter}>
+            <DialogContent className="space-y-4 text-xs max-h-[70vh] overflow-y-auto pr-2">
+              {/* Row 1: Name & License */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Blood Centre / Bank Name *</label>
+                  <Input
+                    required
+                    placeholder="e.g. Mansa Sub-District Blood Storage Unit"
+                    value={centerName}
+                    onChange={(e) => setCenterName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Drug Controller License No.</label>
+                  <Input
+                    placeholder="e.g. GJ-BB-0582"
+                    value={licenseNo}
+                    onChange={(e) => setLicenseNo(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Type & Location */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Facility Level *</label>
+                  <select
+                    value={centerType}
+                    onChange={(e) => setCenterType(e.target.value as BloodCenter['type'])}
+                    className="flex min-h-[40px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                  >
+                    <option value="BLOOD_BANK">Full Blood Centre (Collection, Separation & Storage)</option>
+                    <option value="STORAGE_UNIT">Sub-District Blood Storage Unit (BSU)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Campus Location / Address *</label>
+                  <Input
+                    required
+                    placeholder="e.g. CHC Mansa Campus, Ground Floor"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Capacity & Contact */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Storage Capacity (Units) *</label>
+                  <Input
+                    type="number"
+                    min="10"
+                    required
+                    value={capacity}
+                    onChange={(e) => setCapacity(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Current Tested Stock</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={currentStock}
+                    onChange={(e) => setCurrentStock(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Emergency Phone Line *</label>
+                  <Input
+                    type="tel"
+                    required
+                    placeholder="e.g. 02763-270100"
+                    value={centerPhone}
+                    onChange={(e) => setCenterPhone(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Component separation */}
+              <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={componentSeparation}
+                  onChange={(e) => setComponentSeparation(e.target.checked)}
+                  className="rounded text-rose-700 focus:ring-rose-500 h-4 w-4"
+                />
+                <div>
+                  <span className="font-semibold text-slate-900 block">Component Separation Certified</span>
+                  <span className="text-[11px] text-slate-500">Separates Whole Blood into Packed Red Blood Cells (PRBC), Fresh Frozen Plasma (FFP), and Platelets</span>
+                </div>
+              </label>
+            </DialogContent>
+
+            <DialogFooter>
+              <Button
+                onClick={() => setShowAddCenterModal(false)}
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-rose-700 hover:bg-rose-800 text-white font-semibold cursor-pointer"
+              >
+                Register Blood Facility
+              </Button>
+            </DialogFooter>
+          </form>
+        </Dialog>
       )}
     </div>
   );

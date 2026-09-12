@@ -105,6 +105,7 @@ import { SuperAdminDashboard } from '@/pages/super-admin/SuperAdminDashboard';
 import { TechnicalCenterPage } from '@/pages/super-admin/TechnicalCenterPage';
 import { SystemHealthPage } from '@/pages/super-admin/SystemHealthPage';
 import { FacilityGovernancePage } from '@/pages/super-admin/FacilityGovernancePage';
+import { DistrictAdminsPage } from '@/pages/super-admin/DistrictAdminsPage';
 import { UserManagementPage } from '@/pages/super-admin/UserManagementPage';
 import { RolesPermissionsPage } from '@/pages/super-admin/RolesPermissionsPage';
 import { AiModelRegistryPage } from '@/pages/super-admin/AiModelRegistryPage';
@@ -1022,6 +1023,16 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
             <AppShell>
               <FacilityGovernancePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin/district-admins"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+            <AppShell>
+              <DistrictAdminsPage />
             </AppShell>
           </ProtectedRoute>
         }

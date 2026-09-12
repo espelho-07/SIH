@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
+import { Button } from '@/components/ui/Button';
 import {
   INITIAL_SYSTEM_HEALTH,
   INITIAL_FACILITIES,
@@ -22,24 +23,30 @@ import {
   BrainCircuit,
   ShieldCheck,
   Settings,
+  UserCheck,
+  ShieldAlert,
+  MapPin,
+  Crown,
 } from 'lucide-react';
 
 // Subviews
 import { OverviewTab } from './views/OverviewTab';
 import { SystemHealthTab } from './views/SystemHealthTab';
 import { FacilitiesTab } from './views/FacilitiesTab';
+import { DistrictAdminsTab } from './views/DistrictAdminsTab';
 import { UsersTab } from './views/UsersTab';
 import { RolesTab } from './views/RolesTab';
 import { AiModelsTab } from './views/AiModelsTab';
 import { AuditLogsTab } from './views/AuditLogsTab';
 import { SettingsTab } from './views/SettingsTab';
 
-type TabKey = 'OVERVIEW' | 'HEALTH' | 'FACILITIES' | 'USERS' | 'ROLES' | 'MODELS' | 'AUDIT' | 'SETTINGS';
+type TabKey = 'OVERVIEW' | 'HEALTH' | 'FACILITIES' | 'DISTRICT_ADMINS' | 'USERS' | 'ROLES' | 'MODELS' | 'AUDIT' | 'SETTINGS';
 
 const TAB_URL_MAP: Record<TabKey, string> = {
   OVERVIEW: '',
   HEALTH: 'system-health',
   FACILITIES: 'facilities',
+  DISTRICT_ADMINS: 'district-admins',
   USERS: 'users',
   ROLES: 'roles',
   MODELS: 'ai-models',
@@ -53,6 +60,9 @@ const URL_TAB_MAP: Record<string, TabKey> = {
   'system-health': 'HEALTH',
   health: 'HEALTH',
   facilities: 'FACILITIES',
+  'district-admins': 'DISTRICT_ADMINS',
+  'district-admin': 'DISTRICT_ADMINS',
+  cdho: 'DISTRICT_ADMINS',
   users: 'USERS',
   roles: 'ROLES',
   permissions: 'ROLES',
@@ -76,6 +86,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [permissions] = useState(INITIAL_PERMISSION_MATRIX);
   const [models, setModels] = useState(INITIAL_AI_MODELS);
   const [auditLogs, setAuditLogs] = useState(INITIAL_AUDIT_LOGS);
+  const [statewideDistrict, setStatewideDistrict] = useState<string>('ALL');
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDeploying, setIsDeploying] = useState<string | null>(null);
@@ -253,31 +264,82 @@ export const SuperAdminDashboard: React.FC = () => {
         )}
       </nav>
 
-      {/* Top Banner (HealthConnect Patient Design Language: Calm, Clinical, Reassuring) */}
-      <div className="rounded-3xl bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 text-white p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-teal-700/50">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
-            <Server className="h-3.5 w-3.5" />
-            <span>Operations Center</span>
+      {/* Top Banner (Real Superadmin / Website Owner State Apex Console) */}
+      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-teal-950 to-indigo-950 text-white p-6 sm:p-7 shadow-md flex flex-col gap-5 border border-teal-600/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-3 py-0.5 text-xs font-bold text-amber-300 border border-amber-400/40">
+                <Crown className="h-3.5 w-3.5 text-amber-300" />
+                <span>Website Owner Console</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>State Apex Health Authority</span>
+              </div>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              HealthConnect State Apex Command
+            </h1>
+            <p className="text-xs text-teal-100/80 max-w-2xl leading-relaxed">
+              Supreme platform governance, statewide healthcare facility oversight, and exclusive commissioning authority for Chief District Health Officers (CDHOs) across all 33 Gujarat districts.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">System Administration</h1>
-          <p className="text-xs text-teal-100/80 max-w-2xl">
-            Monitor system services, manage user access, and configure platform governance across the healthcare grid.
-          </p>
+
+          <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center min-w-[170px]">
+              <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">State Platform Grid</span>
+              <span className="text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 mt-1">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                33 Districts Synchronized
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3.5 text-center shrink-0">
-          <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">Platform Status</span>
-          <span className="text-emerald-300 font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            All systems operational
-          </span>
+        {/* Master Statewide District Jurisdiction Filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/10 bg-white/5 -mx-6 -mb-6 px-6 py-3.5 rounded-b-3xl">
+          <div className="flex items-center gap-2 text-xs font-bold text-teal-200">
+            <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
+            <span>Statewide District Command Filter:</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={statewideDistrict}
+              onChange={(e) => setStatewideDistrict(e.target.value)}
+              className="bg-slate-900/90 text-white border border-teal-400/40 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-teal-400 cursor-pointer shadow-inner"
+            >
+              <option value="ALL">All Gujarat Districts (Statewide View)</option>
+              <option value="Gandhinagar">Gandhinagar District</option>
+              <option value="Ahmedabad">Ahmedabad District</option>
+              <option value="Surat">Surat District</option>
+              <option value="Vadodara">Vadodara District</option>
+              <option value="Rajkot">Rajkot District</option>
+              <option value="Morbi">Morbi District</option>
+              <option value="Mehsana">Mehsana District</option>
+              <option value="Patan">Patan District</option>
+              <option value="Bhavnagar">Bhavnagar District</option>
+              <option value="Jamnagar">Jamnagar District</option>
+              <option value="Junagadh">Junagadh District</option>
+            </select>
+            {statewideDistrict !== 'ALL' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStatewideDistrict('ALL')}
+                className="text-[11px] h-7 px-2 border-teal-400/30 text-teal-200 hover:text-white cursor-pointer"
+              >
+                Reset to Statewide
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Navigation Tabs (8 Logical Modules) */}
+      {/* Navigation Tabs (9 Modules) */}
       <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as TabKey)}>
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 max-w-full">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 max-w-full">
           <TabsTrigger value="OVERVIEW" icon={<LayoutDashboard className="h-4 w-4" />}>
             Overview
           </TabsTrigger>
@@ -286,6 +348,9 @@ export const SuperAdminDashboard: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="FACILITIES" icon={<Building2 className="h-4 w-4" />}>
             Facilities
+          </TabsTrigger>
+          <TabsTrigger value="DISTRICT_ADMINS" icon={<UserCheck className="h-4 w-4 text-indigo-600" />}>
+            District Admins
           </TabsTrigger>
           <TabsTrigger value="USERS" icon={<Users className="h-4 w-4" />}>
             Users
@@ -330,12 +395,24 @@ export const SuperAdminDashboard: React.FC = () => {
         {/* 3. FACILITIES */}
         <TabsContent value="FACILITIES" className="pt-2">
           <FacilitiesTab
-            facilities={facilities}
+            facilities={
+              statewideDistrict === 'ALL'
+                ? facilities
+                : facilities.filter((f) => f.district.toLowerCase() === statewideDistrict.toLowerCase())
+            }
             onAddFacility={handleAddFacility}
           />
         </TabsContent>
 
-        {/* 4. USERS */}
+        {/* 4. DISTRICT ADMINS (EXCLUSIVE SUPER ADMIN APPOINTMENT) */}
+        <TabsContent value="DISTRICT_ADMINS" className="pt-2">
+          <DistrictAdminsTab
+            selectedDistrictFilter={statewideDistrict}
+            onDistrictFilterChange={setStatewideDistrict}
+          />
+        </TabsContent>
+
+        {/* 5. USERS */}
         <TabsContent value="USERS" className="pt-2">
           <UsersTab
             users={usersList}
@@ -343,7 +420,7 @@ export const SuperAdminDashboard: React.FC = () => {
           />
         </TabsContent>
 
-        {/* 5. PERMISSIONS */}
+        {/* 6. PERMISSIONS */}
         <TabsContent value="ROLES" className="pt-2">
           <RolesTab permissions={permissions} />
         </TabsContent>
