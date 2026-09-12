@@ -41,6 +41,66 @@
         }
       })();
     </script>
+
+    <!-- Immediate Google Translate Top Banner Suppression -->
+    <style>
+      .goog-te-banner-frame,
+      .goog-te-banner-frame.skiptranslate,
+      iframe.goog-te-banner-frame,
+      iframe.skiptranslate,
+      .skiptranslate,
+      body > .skiptranslate,
+      body > iframe.skiptranslate,
+      .goog-te-balloon-frame,
+      #goog-gt-tt,
+      .goog-te-spinner-pos,
+      [class*="VIpgJd"],
+      #google_translate_element {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+        width: 0px !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        left: -9999px !important;
+        top: -9999px !important;
+        pointer-events: none !important;
+      }
+      body {
+        top: 0px !important;
+        position: static !important;
+        margin-top: 0px !important;
+      }
+      html {
+        top: 0px !important;
+        margin-top: 0px !important;
+      }
+    </style>
+    <script>
+      (function() {
+        function hideGoogleTranslateBanner() {
+          var elements = document.querySelectorAll('iframe.skiptranslate, body > .skiptranslate, .goog-te-banner-frame, .VIpgJd-ZVi9od-OR9QNe-OZmScb');
+          for (var i = 0; i < elements.length; i++) {
+            elements[i].style.setProperty('display', 'none', 'important');
+            elements[i].style.setProperty('visibility', 'hidden', 'important');
+            elements[i].style.setProperty('height', '0px', 'important');
+          }
+          if (document.body && document.body.style.top && document.body.style.top !== '0px') {
+            document.body.style.setProperty('top', '0px', 'important');
+          }
+        }
+        if (window.MutationObserver) {
+          var observer = new MutationObserver(hideGoogleTranslateBanner);
+          observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+          });
+        }
+        window.addEventListener('load', hideGoogleTranslateBanner);
+      })();
+    </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-teal-100 selection:text-teal-900">
     <!-- Hidden Google Translate Element -->
@@ -51,7 +111,8 @@
           new window.google.translate.TranslateElement({
             pageLanguage: 'en',
             includedLanguages: 'en,gu,hi,mr,bn,ta,te,kn,pa,ur',
-            autoDisplay: false
+            autoDisplay: false,
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
           }, 'google_translate_element');
         }
       }

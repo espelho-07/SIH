@@ -108,20 +108,40 @@
   outline-offset: 2px;
 }
 
-/* Seamless Google Translate stealth styling */
+/* Seamless Google Translate stealth styling - complete removal of top header banner */
 .goog-te-banner-frame,
 .goog-te-banner-frame.skiptranslate,
 iframe.goog-te-banner-frame,
+iframe.skiptranslate,
+.skiptranslate,
+body > .skiptranslate,
+body > iframe.skiptranslate,
 .goog-te-balloon-frame,
 #goog-gt-tt,
-.goog-te-spinner-pos {
+.goog-te-spinner-pos,
+[class*="VIpgJd"],
+#google_translate_element {
   display: none !important;
   visibility: hidden !important;
+  height: 0px !important;
+  width: 0px !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  pointer-events: none !important;
+  clip: rect(0, 0, 0, 0) !important;
 }
 
 body {
   top: 0px !important;
   position: static !important;
+  margin-top: 0px !important;
+}
+
+html {
+  top: 0px !important;
+  margin-top: 0px !important;
 }
 
 .goog-tooltip,
@@ -133,9 +153,5 @@ body {
   background-color: transparent !important;
   border: none !important;
   box-shadow: none !important;
-}
-
-#google_translate_element {
-  display: none !important;
 }
 
