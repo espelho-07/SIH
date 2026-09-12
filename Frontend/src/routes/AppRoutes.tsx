@@ -187,6 +187,10 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/patient/token"
+        element={<Navigate to="/patient/tokens" replace />}
+      />
+      <Route
         path="/patient/appointments"
         element={
           <ProtectedRoute allowedRoles={['PATIENT']}>
@@ -195,6 +199,10 @@ export const AppRoutes: React.FC = () => {
             </AppShell>
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/patient/appointment"
+        element={<Navigate to="/patient/appointments" replace />}
       />
       <Route
         path="/patient/appointments/:id"
@@ -253,6 +261,14 @@ export const AppRoutes: React.FC = () => {
             </AppShell>
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/patient/teleconsultation"
+        element={<Navigate to="/patient/consultations" replace />}
+      />
+      <Route
+        path="/patient/teleconsultations"
+        element={<Navigate to="/patient/consultations" replace />}
       />
       <Route
         path="/patient/consultations/room"

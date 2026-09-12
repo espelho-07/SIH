@@ -6,6 +6,7 @@ import { AddFamilyMemberModal } from '@/components/patient/AddFamilyMemberModal'
 import { AssignPhoneModal } from '@/components/patient/AssignPhoneModal';
 import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import { FamilyMember } from '@/types/family';
+import { clinicalApi } from '@/api/clinicalApi';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
@@ -297,6 +298,44 @@ export const PatientProfile: React.FC = () => {
   const [isSwitchDropdownOpen, setIsSwitchDropdownOpen] = useState(false);
   const switchDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [familyRecords, setFamilyRecords] = useState<MockFamilyRecord[]>(MOCK_FAMILY_RECORDS);
+
+  useEffect(() => {
+    const patientId = activeMember?.id || user?.id || 'usr_pat_01';
+    clinicalApi.getPrescriptions(patientId).then((res) => {
+      if (res.data && res.data.length > 0) {
+        const liveRx: MockFamilyRecord[] = res.data.map((rx: any) => ({
+          id: rx.id,
+          memberId: activeMember?.id || 'mem_01',
+          memberName: rx.patientName || activeMember?.name || 'Rameshwar Sharma',
+          relation: activeMember?.relation || 'Self',
+          type: 'PRESCRIPTION',
+          title: `Prescription - ${rx.diagnosisSummary || 'General Consultation'}`,
+          facility: rx.facilityName || 'Gandhinagar Civil Hospital',
+          department: 'Outpatient Pharmacy',
+          doctor: rx.doctorName || 'Dr. Arvind Patel',
+          date: rx.issuedAt ? rx.issuedAt.split('T')[0] : '2026-09-12',
+          summary: `Prescription issued with ${rx.items?.length || 1} medications. Status: ${rx.status}`,
+          status: rx.status === 'DISPENSED' ? 'COMPLETED' : 'ACTIVE',
+          medications: rx.items?.map((it: any) => ({
+            name: it.medicineName || 'Medicine',
+            dosage: it.dosage || '1 Tab',
+            timing: it.frequency || 'Once daily',
+            duration: `${it.durationDays || 5} Days`,
+            instructions: it.instructions || 'After meals',
+          })) || [],
+          tags: ['E-Prescription', rx.status],
+          careContextId: `CC-${rx.id}`,
+        }));
+
+        setFamilyRecords((prev) => {
+          const ids = new Set(liveRx.map((r) => r.id));
+          return [...liveRx, ...prev.filter((p) => !ids.has(p.id))];
+        });
+      }
+    }).catch(console.warn);
+  }, [activeMember?.id, user?.id]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (switchDropdownRef.current && !switchDropdownRef.current.contains(event.target as Node)) {
@@ -313,13 +352,13 @@ export const PatientProfile: React.FC = () => {
   };
 
   // KPI category counts
-  const totalRecordsCount = MOCK_FAMILY_RECORDS.length;
-  const prescriptionCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'PRESCRIPTION').length;
-  const labCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'LAB_REPORT').length;
-  const opdCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'OPD_VISIT').length;
-  const vaccineCount = MOCK_FAMILY_RECORDS.filter((r) => r.type === 'VACCINATION').length;
+  const totalRecordsCount = familyRecords.length;
+  const prescriptionCount = familyRecords.filter((r) => r.type === 'PRESCRIPTION').length;
+  const labCount = familyRecords.filter((r) => r.type === 'LAB_REPORT').length;
+  const opdCount = familyRecords.filter((r) => r.type === 'OPD_VISIT').length;
+  const vaccineCount = familyRecords.filter((r) => r.type === 'VACCINATION').length;
 
-  const filteredRecords = MOCK_FAMILY_RECORDS.filter((rec) => {
+  const filteredRecords = familyRecords.filter((rec) => {
     const matchesMember =
       recordFilterMemberId === 'ALL' || rec.memberId === recordFilterMemberId;
     const matchesType =

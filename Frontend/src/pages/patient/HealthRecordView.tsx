@@ -45,9 +45,15 @@ export const HealthRecordView: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>('tl_01');
   const [prescriptions, setPrescriptions] = useState<Prescription[]>(INITIAL_PRESCRIPTIONS);
   const [diagnostics, setDiagnostics] = useState<DiagnosticOrder[]>(INITIAL_DIAGNOSTIC_ORDERS);
+  const [record, setRecord] = useState(INITIAL_HEALTH_RECORD);
 
   useEffect(() => {
     const patientId = activeMember?.id || user?.id || 'usr_pat_01';
+    
+    clinicalApi.getPatientHealthRecord(patientId).then((res) => {
+      if (res.data) setRecord(res.data);
+    }).catch(console.warn);
+
     clinicalApi.getPrescriptions(patientId).then((res) => {
       if (res.data && res.data.length > 0) setPrescriptions(res.data);
     }).catch(console.warn);
@@ -56,8 +62,6 @@ export const HealthRecordView: React.FC = () => {
       if (res.data && res.data.length > 0) setDiagnostics(res.data);
     }).catch(console.warn);
   }, [activeMember?.id, user?.id]);
-
-  const record = INITIAL_HEALTH_RECORD;
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
