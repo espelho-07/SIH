@@ -39,6 +39,7 @@ import {
   X,
   Check,
   Paperclip,
+  CalendarCheck2,
 } from 'lucide-react';
 
 interface VisitedDoctor {
@@ -221,6 +222,83 @@ const REASON_PRESETS = [
   'Routine Chronic Condition Review',
 ];
 
+export interface FixedCallRecord {
+  id: string;
+  tokenNumber: string;
+  doctor: VisitedDoctor;
+  patient: FamilyPatient;
+  requestType: 'INSTANT' | 'SCHEDULED';
+  scheduledDate: string;
+  scheduledTimeSlot: string;
+  reason: string;
+  urgency: 'ROUTINE' | 'PRIORITY' | 'URGENT';
+  symptomDetails: string;
+  attachedReports: boolean;
+  registeredAt: string;
+  status: 'FIXED' | 'CONFIRMED' | 'IN_QUEUE' | 'COMPLETED' | 'CANCELLED';
+}
+
+const DEFAULT_FIXED_CALLS: FixedCallRecord[] = [
+  {
+    id: 'call_req_9086',
+    tokenNumber: 'TC-REQ-2026-9086',
+    doctor: VISITED_DOCTORS[0], // Dr. Arvind Patel
+    patient: FAMILY_PATIENTS[0], // Rameshwar Sharma
+    requestType: 'SCHEDULED',
+    scheduledDate: 'Today (12 Sep)',
+    scheduledTimeSlot: '05:30 PM - 06:00 PM',
+    reason: 'Follow-up on Previous Prescription',
+    urgency: 'ROUTINE',
+    symptomDetails:
+      'Requesting follow-up consultation to review fasting blood sugar (148 mg/dL) and daily resting BP.',
+    attachedReports: true,
+    registeredAt: '03:15 PM',
+    status: 'FIXED',
+  },
+];
+
+const PAST_COMPLETED_CONSULTATIONS = [
+  {
+    id: 'TC-1001',
+    tokenNumber: 'TC-HIST-2026-1001',
+    date: '10 Sep 2026',
+    time: '10:30 AM',
+    doctorName: 'Dr. Arvind Patel',
+    specialty: 'Cardiologist & Physician',
+    hospital: 'Gandhinagar Civil Hospital',
+    duration: '12 mins 45 secs',
+    diagnosis: 'Type 2 Diabetes & Essential Hypertension Follow-up',
+    rxSummary: 'Tab. Telmisartan 40mg (1-0-0), Tab. Metformin 1000mg',
+    notes: 'Advised continuing Telmisartan 40mg. Blood sugar chart in target range.',
+  },
+  {
+    id: 'TC-1002',
+    tokenNumber: 'TC-HIST-2026-1002',
+    date: '22 Aug 2026',
+    time: '11:00 AM',
+    doctorName: 'Dr. Rajesh Mehta',
+    specialty: 'Emergency Medicine Specialist',
+    hospital: 'Gandhinagar Civil Hospital',
+    duration: '15 mins 20 secs',
+    diagnosis: 'Acute Asthmatic Cough & Wheezing',
+    rxSummary: 'Salbutamol Inhaler (2 puffs SOS)',
+    notes: 'Patient advised regular BP monitoring and lifestyle modification.',
+  },
+  {
+    id: 'TC-1003',
+    tokenNumber: 'TC-HIST-2026-1003',
+    date: '05 Aug 2026',
+    time: '02:30 PM',
+    doctorName: 'Dr. Priya Sharma',
+    specialty: 'Family Medicine',
+    hospital: 'Pethapur PHC Tele-clinic',
+    duration: '09 mins 10 secs',
+    diagnosis: 'Seasonal Viral Bronchitis',
+    rxSummary: 'Tab. Azithromycin 500mg, Syrup Levosalbutamol',
+    notes: 'Routine follow-up consultation. Completed prescribed antibiotic course.',
+  },
+];
+
 export const TeleconsultationRoom: React.FC = () => {
   const navigate = useNavigate();
 
@@ -250,6 +328,29 @@ export const TeleconsultationRoom: React.FC = () => {
   );
   const [urgencyLevel, setUrgencyLevel] = useState<'ROUTINE' | 'PRIORITY' | 'URGENT'>('ROUTINE');
   const [attachPastReports, setAttachPastReports] = useState<boolean>(true);
+
+  // Fixed / Scheduled Teleconsultation Calls
+  const [fixedCalls, setFixedCalls] = useState<FixedCallRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('healthconnect_fixed_calls');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load fixed calls', e);
+    }
+    return DEFAULT_FIXED_CALLS;
+  });
+
+  // Sync to localStorage whenever fixedCalls changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('healthconnect_fixed_calls', JSON.stringify(fixedCalls));
+    } catch (e) {
+      console.error('Failed to sync fixed calls', e);
+    }
+  }, [fixedCalls]);
 
   // Confirmed Token Details
   const [confirmedToken, setConfirmedToken] = useState<ConsultationRequestToken | null>(null);
@@ -319,6 +420,24 @@ export const TeleconsultationRoom: React.FC = () => {
       registeredAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
     };
 
+    const newFixedCall: FixedCallRecord = {
+      id: `call_${Date.now()}`,
+      tokenNumber: tokenNum,
+      doctor: requestDoctor,
+      patient: activePatient,
+      requestType,
+      scheduledDate: selectedDateOption,
+      scheduledTimeSlot: requestType === 'INSTANT' ? 'Immediate Live Queue (~2-5 mins)' : selectedTimeSlot,
+      reason: selectedReason,
+      urgency: urgencyLevel,
+      symptomDetails,
+      attachedReports: attachPastReports,
+      registeredAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+      status: 'FIXED',
+    };
+
+    setFixedCalls((prev) => [newFixedCall, ...prev]);
+
     // Save to localStorage for integration with doctor queue
     const existingRequests = JSON.parse(
       localStorage.getItem('teleconsultation_requests') || '[]'
@@ -332,6 +451,55 @@ export const TeleconsultationRoom: React.FC = () => {
     setSelectedDoctor(requestDoctor);
     setShowRequestModal(false);
     setCallStage('REQUEST_CONFIRMED');
+  };
+
+  // Start Call directly from a Fixed Call Record
+  const handleStartCallFromRecord = (call: FixedCallRecord) => {
+    setSelectedDoctor(call.doctor);
+    setSelectedPatientId(call.patient.id);
+    setConfirmedToken({
+      tokenNumber: call.tokenNumber,
+      doctor: call.doctor,
+      patient: call.patient,
+      requestType: call.requestType,
+      scheduledDate: call.scheduledDate,
+      scheduledTimeSlot: call.scheduledTimeSlot,
+      reason: call.reason,
+      urgency: call.urgency,
+      symptomDetails: call.symptomDetails,
+      attachedReports: call.attachedReports,
+      registeredAt: call.registeredAt,
+    });
+    setCallStage('CONNECTING');
+    setNotes(
+      `Teleconsultation with ${call.doctor.name} (${call.doctor.specialty}) for ${call.patient.name}. Reason: ${call.reason}.`
+    );
+    setTimeout(() => {
+      setCallStage('IN_CALL');
+    }, 2400);
+  };
+
+  // View pass voucher for a fixed call
+  const handleViewPassForRecord = (call: FixedCallRecord) => {
+    setConfirmedToken({
+      tokenNumber: call.tokenNumber,
+      doctor: call.doctor,
+      patient: call.patient,
+      requestType: call.requestType,
+      scheduledDate: call.scheduledDate,
+      scheduledTimeSlot: call.scheduledTimeSlot,
+      reason: call.reason,
+      urgency: call.urgency,
+      symptomDetails: call.symptomDetails,
+      attachedReports: call.attachedReports,
+      registeredAt: call.registeredAt,
+    });
+    setCallStage('REQUEST_CONFIRMED');
+  };
+
+  // Cancel a fixed call
+  const handleCancelFixedCall = (callId: string) => {
+    setFixedCalls((prev) => prev.filter((c) => c.id !== callId));
   };
 
   // Direct Immediate Call Bypass
@@ -435,7 +603,7 @@ export const TeleconsultationRoom: React.FC = () => {
         subtitle="Request a consultation and register your preferred time to talk with your doctor."
         breadcrumbs={[
           { label: 'Dashboard', to: '/patient' },
-          { label: 'Teleconsultation', to: '/patient/teleconsultation' },
+          { label: 'Teleconsultation', to: '/patient/consultations' },
           { label: 'Request Doctor Call' },
         ]}
         actions={
@@ -470,6 +638,146 @@ export const TeleconsultationRoom: React.FC = () => {
       {/* ================================================== */}
       {callStage === 'SELECT_DOCTOR' && (
         <div className="space-y-5">
+          {/* ================================================== */}
+          {/* RECENT CALL FIXED & UPCOMING APPOINTMENTS BANNER */}
+          {/* ================================================== */}
+          {fixedCalls.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-3.5 w-3.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+                  </span>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                      <span>Recent Call Fixed • Scheduled Consultations</span>
+                      <span className="rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-300">
+                        {fixedCalls.length} Active Slot
+                      </span>
+                    </h3>
+                  </div>
+                </div>
+                <span className="text-xs text-slate-500 font-medium">
+                  Confirmed appointment with government hospital specialist
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {fixedCalls.map((call) => (
+                  <Card
+                    key={call.id}
+                    className="border-2 border-emerald-400 bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-white shadow-sm hover:shadow-md transition-all overflow-hidden"
+                  >
+                    <CardContent className="p-4 sm:p-5">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        {/* Doctor Avatar & Identity */}
+                        <div className="flex items-start gap-3.5 min-w-0">
+                          <div
+                            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr ${call.doctor.avatarColor} text-white font-black text-lg shadow-sm relative`}
+                          >
+                            {call.doctor.initials}
+                            <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white bg-emerald-500 animate-pulse flex items-center justify-center">
+                              <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
+                            </span>
+                          </div>
+
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="rounded-full bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 tracking-wider uppercase shadow-2xs">
+                                ● RECENT CALL FIXED & CONFIRMED
+                              </span>
+                              <span className="font-mono text-xs font-bold text-teal-800 bg-teal-100/80 px-2 py-0.5 rounded-md border border-teal-200">
+                                Token: {call.tokenNumber}
+                              </span>
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                Registered at {call.registeredAt}
+                              </span>
+                            </div>
+
+                            <h4 className="text-base font-black text-slate-900 truncate">
+                              {call.doctor.name}
+                            </h4>
+
+                            <p className="text-xs font-bold text-teal-800 truncate">
+                              {call.doctor.specialty} • {call.doctor.hospital} ({call.doctor.roomNumber})
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 pt-0.5">
+                              <span className="flex items-center gap-1 font-semibold text-slate-800">
+                                <User className="h-3.5 w-3.5 text-teal-600" />
+                                Patient: <strong>{call.patient.name}</strong> ({call.patient.relation})
+                              </span>
+                              <span className="text-slate-400">•</span>
+                              <span className="text-slate-600">
+                                Reason: <strong>{call.reason}</strong>
+                              </span>
+                              {call.attachedReports && (
+                                <>
+                                  <span className="text-slate-400">•</span>
+                                  <span className="text-emerald-700 font-medium flex items-center gap-1">
+                                    <Check className="h-3 w-3" /> ABHA Records Attached
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Scheduled Time & Actions */}
+                        <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-stretch sm:items-center lg:items-end xl:items-center gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-emerald-100">
+                          {/* Time window box */}
+                          <div className="rounded-xl border border-emerald-200 bg-white/95 p-2.5 text-left sm:text-right lg:text-left xl:text-right min-w-[200px] shadow-2xs">
+                            <span className="text-[10px] uppercase font-black text-emerald-800 tracking-wider block">
+                              FIXED APPOINTMENT TIME
+                            </span>
+                            <strong className="text-sm font-black text-slate-900 block mt-0.5">
+                              {call.scheduledTimeSlot}
+                            </strong>
+                            <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 sm:justify-end lg:justify-start xl:justify-end mt-0.5">
+                              <Clock className="h-3 w-3 text-emerald-600" />
+                              {call.scheduledDate} • Slot Reserved
+                            </span>
+                          </div>
+
+                          {/* Quick Action buttons */}
+                          <div className="flex items-center gap-2">
+                            <Button
+                              onClick={() => handleStartCallFromRecord(call)}
+                              className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs gap-1.5 px-4 h-10 shadow-sm flex-1 sm:flex-initial cursor-pointer"
+                            >
+                              <Video className="h-4 w-4" />
+                              <span>Enter Live Room / Join Call</span>
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              onClick={() => handleViewPassForRecord(call)}
+                              className="text-xs h-10 px-3 text-slate-700 hover:bg-teal-50 border-slate-300 font-bold cursor-pointer"
+                              title="View Pass Voucher"
+                            >
+                              <FileText className="h-4 w-4 text-teal-700" />
+                              <span className="hidden sm:inline ml-1">Pass</span>
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              onClick={() => handleCancelFixedCall(call.id)}
+                              className="text-xs h-10 px-2.5 text-red-600 hover:bg-red-50 border-red-200 cursor-pointer"
+                              title="Cancel Booking"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Top Patient / Family Member Selector Strip */}
           <Card className="border-teal-200 bg-gradient-to-r from-teal-50/70 via-emerald-50/40 to-white shadow-xs">
             <CardContent className="p-4 sm:p-5 space-y-3">
@@ -679,6 +987,99 @@ export const TeleconsultationRoom: React.FC = () => {
               ))}
             </div>
           </div>
+
+          {/* Recent Completed Consultations / Call History Preview */}
+          <Card className="border-slate-200 bg-white shadow-2xs overflow-hidden">
+            <div className="bg-slate-50 p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-100/70 text-teal-800">
+                  <History className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900">
+                    Recent Consultation Call History
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Completed online teleconsultations and doctor notes on your ABHA record
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/patient/teleconsultation-history')}
+                className="text-xs font-bold text-teal-800 border-teal-300 hover:bg-teal-50 gap-1.5 h-8 cursor-pointer"
+              >
+                <span>View All History ({PAST_COMPLETED_CONSULTATIONS.length + 1})</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            <CardContent className="p-0 divide-y divide-slate-100">
+              {PAST_COMPLETED_CONSULTATIONS.map((hist) => (
+                <div
+                  key={hist.id}
+                  className="p-4 sm:p-4.5 hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-black text-xs border border-slate-200">
+                      {hist.doctorName.split(' ')[1]?.slice(0, 2) || 'DR'}
+                    </div>
+
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <strong className="text-xs font-black text-slate-900 truncate">
+                          {hist.doctorName}
+                        </strong>
+                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          ● Completed
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {hist.tokenNumber}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-teal-800 font-semibold truncate">
+                        {hist.specialty} • {hist.hospital}
+                      </p>
+
+                      <p className="text-[11px] text-slate-600">
+                        <strong>Diagnosis:</strong> {hist.diagnosis}
+                      </p>
+
+                      <p className="text-[10px] text-slate-500 truncate">
+                        <strong>Rx Summary:</strong> {hist.rxSummary}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-left sm:text-right shrink-0 space-y-1">
+                    <div className="text-xs font-bold text-slate-800 flex items-center sm:justify-end gap-1">
+                      <Calendar className="h-3 w-3 text-slate-400" />
+                      <span>{hist.date}</span>
+                      <span className="text-slate-400">•</span>
+                      <span>{hist.time}</span>
+                    </div>
+
+                    <p className="text-[10px] text-slate-500 font-mono">
+                      Duration: {hist.duration}
+                    </p>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate('/patient/records')}
+                      className="text-[10px] font-bold text-teal-700 hover:text-teal-900 h-6 px-2 -mr-2 cursor-pointer"
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      View ABHA Prescription
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -986,7 +1387,7 @@ export const TeleconsultationRoom: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
               <Button
                 onClick={handleStartCallFromToken}
-                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-black text-xs gap-1.5 px-6 min-h-[42px] shadow-xs cursor-pointer"
+                className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs gap-1.5 px-6 min-h-[42px] shadow-xs cursor-pointer"
               >
                 <Video className="h-4 w-4" />
                 <span>Enter Live Waiting Room / Start Call Now</span>
@@ -995,9 +1396,18 @@ export const TeleconsultationRoom: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => setCallStage('SELECT_DOCTOR')}
-                className="w-full sm:w-auto text-xs font-bold text-slate-700 min-h-[42px]"
+                className="w-full sm:w-auto text-xs font-bold text-slate-700 min-h-[42px] hover:bg-slate-50 cursor-pointer"
               >
-                Book Another Doctor / Back to Home
+                <span>View in My Fixed Calls / Back to Lobby</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => navigate('/patient/teleconsultation-history')}
+                className="w-full sm:w-auto text-xs font-bold text-teal-800 border-teal-200 min-h-[42px] hover:bg-teal-50 cursor-pointer"
+              >
+                <History className="h-4 w-4 text-teal-700 mr-1" />
+                <span>Consultation History</span>
               </Button>
             </div>
           </CardContent>
