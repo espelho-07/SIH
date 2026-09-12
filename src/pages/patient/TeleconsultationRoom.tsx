@@ -294,8 +294,8 @@ export const TeleconsultationRoom: React.FC = () => {
       doc.id === 'doc_vaghela'
         ? 'Eye Review & Diabetic Retina Follow-up'
         : doc.id === 'doc_sharma'
-        ? 'Bronchitis & Cough Follow-up'
-        : 'Follow-up on Previous Prescription'
+          ? 'Bronchitis & Cough Follow-up'
+          : 'Follow-up on Previous Prescription'
     );
     setShowRequestModal(true);
   };
@@ -502,11 +502,10 @@ export const TeleconsultationRoom: React.FC = () => {
                       key={p.id}
                       type="button"
                       onClick={() => setSelectedPatientId(p.id)}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? 'border-teal-400 bg-white ring-2 ring-teal-600/70 shadow-xs'
-                          : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-teal-200'
-                      }`}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${isSelected
+                        ? 'border-teal-400 bg-white ring-2 ring-teal-600/70 shadow-xs'
+                        : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-teal-200'
+                        }`}
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
@@ -568,11 +567,10 @@ export const TeleconsultationRoom: React.FC = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setDoctorFilter(tab.id as any)}
-                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                    doctorFilter === tab.id
-                      ? 'bg-teal-700 text-white shadow-2xs font-black'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${doctorFilter === tab.id
+                    ? 'bg-teal-700 text-white shadow-2xs font-black'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -595,11 +593,10 @@ export const TeleconsultationRoom: React.FC = () => {
                         >
                           {doc.initials}
                           <span
-                            className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
-                              doc.status === 'ONLINE'
-                                ? 'bg-emerald-500 animate-pulse'
-                                : 'bg-amber-500'
-                            }`}
+                            className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${doc.status === 'ONLINE'
+                              ? 'bg-emerald-500 animate-pulse'
+                              : 'bg-amber-500'
+                              }`}
                           />
                         </div>
 
@@ -618,11 +615,10 @@ export const TeleconsultationRoom: React.FC = () => {
                       </div>
 
                       <span
-                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 border ${
-                          doc.status === 'ONLINE'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                            : 'bg-amber-50 text-amber-800 border-amber-300'
-                        }`}
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 border ${doc.status === 'ONLINE'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          : 'bg-amber-50 text-amber-800 border-amber-300'
+                          }`}
                       >
                         {doc.status === 'ONLINE' ? '● Online' : '● In OPD'}
                       </span>
@@ -739,46 +735,12 @@ export const TeleconsultationRoom: React.FC = () => {
 
               {/* Consultation Timing Type: Instant vs Register Time Slot */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 block">
+                {/* <label className="text-xs font-bold text-slate-800 block">
                   1. Choose When You Want to Talk with the Doctor:
-                </label>
+                </label> */}
 
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRequestType('SCHEDULED')}
-                    className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
-                      requestType === 'SCHEDULED'
-                        ? 'bg-teal-50 border-teal-400 text-teal-900 ring-2 ring-teal-500/70 shadow-xs'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 font-black text-xs">
-                      <Calendar className="h-3.5 w-3.5 text-teal-700" />
-                      <span>Preferred Time Slot</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      Register your suitable date & time window
-                    </p>
-                  </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setRequestType('INSTANT')}
-                    className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
-                      requestType === 'INSTANT'
-                        ? 'bg-teal-50 border-teal-400 text-teal-900 ring-2 ring-teal-500/70 shadow-xs'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 font-black text-xs">
-                      <Sparkles className="h-3.5 w-3.5 text-teal-700" />
-                      <span>Instant Call (Queue)</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      Doctor rings you as soon as available (~2-5 mins)
-                    </p>
-                  </button>
                 </div>
               </div>
 
@@ -796,11 +758,10 @@ export const TeleconsultationRoom: React.FC = () => {
                           key={d}
                           type="button"
                           onClick={() => setSelectedDateOption(d)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                            selectedDateOption === d
-                              ? 'bg-teal-700 text-white border-teal-700 shadow-2xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                          }`}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${selectedDateOption === d
+                            ? 'bg-teal-700 text-white border-teal-700 shadow-2xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                            }`}
                         >
                           {d}
                         </button>
@@ -819,11 +780,10 @@ export const TeleconsultationRoom: React.FC = () => {
                           key={slot}
                           type="button"
                           onClick={() => setSelectedTimeSlot(slot)}
-                          className={`py-1.5 px-2 rounded-lg text-[11px] font-bold border transition-all text-center cursor-pointer ${
-                            selectedTimeSlot === slot
-                              ? 'bg-teal-700 text-white border-teal-700 shadow-2xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
-                          }`}
+                          className={`py-1.5 px-2 rounded-lg text-[11px] font-bold border transition-all text-center cursor-pointer ${selectedTimeSlot === slot
+                            ? 'bg-teal-700 text-white border-teal-700 shadow-2xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
+                            }`}
                         >
                           <Clock className="h-3 w-3 inline mr-1 text-teal-600" />
                           {slot}
@@ -837,7 +797,7 @@ export const TeleconsultationRoom: React.FC = () => {
               {/* Consultation Reason & Complaints */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-800 block">
-                  2. Reason for Consultation:
+                  1. Reason for Consultation:
                 </label>
 
                 <div className="flex flex-wrap gap-1.5">
@@ -846,11 +806,10 @@ export const TeleconsultationRoom: React.FC = () => {
                       key={reason}
                       type="button"
                       onClick={() => setSelectedReason(reason)}
-                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                        selectedReason === reason
-                          ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
-                          : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-                      }`}
+                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${selectedReason === reason
+                        ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                        }`}
                     >
                       {reason}
                     </button>
@@ -869,7 +828,7 @@ export const TeleconsultationRoom: React.FC = () => {
               {/* Urgency Level */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-800 block">
-                  3. Triage Urgency Level:
+                  2. Triage Urgency Level:
                 </label>
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   {[
@@ -881,11 +840,10 @@ export const TeleconsultationRoom: React.FC = () => {
                       key={lvl.id}
                       type="button"
                       onClick={() => setUrgencyLevel(lvl.id as any)}
-                      className={`p-2 rounded-xl border text-left cursor-pointer transition-all ${
-                        urgencyLevel === lvl.id
-                          ? 'bg-teal-50 border-teal-400 ring-2 ring-teal-500/70 font-bold'
-                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
+                      className={`p-2 rounded-xl border text-left cursor-pointer transition-all ${urgencyLevel === lvl.id
+                        ? 'bg-teal-50 border-teal-400 ring-2 ring-teal-500/70 font-bold'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
                     >
                       <p className="font-bold text-[11px] text-slate-900">{lvl.label}</p>
                       <p className="text-[9px] text-slate-400">{lvl.desc}</p>

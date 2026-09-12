@@ -141,7 +141,7 @@ const COMMON_RX_PRESETS: Omit<MedicineItem, 'id'>[] = [
   },
 ];
 
-// Categorized Diagnostic Tests for the Side Assistant
+// Categorized Diagnostic Tests for Copilot
 interface TestCategory {
   category: string;
   iconName: string;
@@ -584,8 +584,8 @@ export const PatientClinicalWorkspace: React.FC = () => {
   const [historyModalTab, setHistoryModalTab] = useState<'ALL' | 'VISITS' | 'MEDS' | 'LABS' | 'ADMISSIONS'>('ALL');
   const [historySearchQuery, setHistorySearchQuery] = useState('');
 
-  // State: Side Assistant Active Tab & View Mode
-  const [sideViewMode, setSideViewMode] = useState<'COPILOT' | 'QUICK_HISTORY'>('COPILOT');
+  // State: On-Demand Clinical Copilot Drawer (Hidden by default, shown ONLY after clicking button)
+  const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
   const [activeCopilotTab, setActiveCopilotTab] = useState<'BUNDLES' | 'REPORTS' | 'APPOINTMENT'>('BUNDLES');
 
   // Applied Bundle Flash Notification
@@ -599,7 +599,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
     'Angina Pectoris - Rule out CAD / Ischemia'
   );
 
-  // Today's Prescribed Medicines
+  // Today's Prescribed Medicines (Default 3)
   const [meds, setMeds] = useState<MedicineItem[]>([
     {
       id: 'med_01',
@@ -627,9 +627,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
     },
   ]);
 
-  // Custom Medicine Form
+  // Fast Inline Custom Medicine Adder States
   const [customMedName, setCustomMedName] = useState('');
-  const [customMedDosage, setCustomMedDosage] = useState('');
+  const [customMedDosage, setCustomMedDosage] = useState('1 Tab');
   const [customMedFreq, setCustomMedFreq] = useState('1-0-1');
   const [customMedDuration, setCustomMedDuration] = useState('5 Days');
   const [customMedTiming, setCustomMedTiming] = useState('After Food');
@@ -641,31 +641,21 @@ export const PatientClinicalWorkspace: React.FC = () => {
     'Fasting Blood Sugar (FBS)',
   ]);
 
-  // Scheduled Follow-Up Appointment States (Doctor Prescription Assistant)
+  // Scheduled Follow-Up Appointment States
   const [followUpDays, setFollowUpDays] = useState<number>(7);
   const [followUpMode, setFollowUpMode] = useState<'OPD' | 'TELECONSULT' | 'ASHA'>('OPD');
   const [followUpPurpose, setFollowUpPurpose] = useState<string>(
-    'Review ECG & Lipid Profile; check blood pressure and exertional tolerance.'
+    'Review ECG & Lipid Profile; check resting blood pressure and exertional tolerance.'
   );
-  const [customFollowUpDate, setCustomFollowUpDate] = useState<string>('');
 
   // Clinical Advice
   const [adviceText, setAdviceText] = useState(
-    'Strictly avoid strenuous physical exertion for 1 week. Low-salt, low-oil diet. Keep Sorbitrate accessible at all times. Return immediately if pain radiates to left arm or jaw.'
+    'Avoid strenuous physical exertion for 1 week. Low-salt, low-oil diet. Keep Sorbitrate accessible at all times.'
   );
 
   // ASHA Community Follow-Up Order State
-  const [prescribeAshaVisit, setPrescribeAshaVisit] = useState(true);
+  const [prescribeAshaVisit, setPrescribeAshaVisit] = useState(false);
   const [ashaPrescribedDays, setAshaPrescribedDays] = useState(3);
-  const [ashaInstructions, setAshaInstructions] = useState(
-    'Check resting BP and pulse. Verify morning Aspirin 75mg and Sorbitrate adherence. Alert PHC if chest tightness recurs or systolic > 145.'
-  );
-  const [ashaSelectedChecks, setAshaSelectedChecks] = useState<string[]>([
-    'Blood Pressure',
-    'Pulse Rate',
-    'Medication Compliance',
-  ]);
-  const [ashaPriority, setAshaPriority] = useState<'ROUTINE' | 'PRIORITY' | 'URGENT'>('PRIORITY');
 
   // Completion States
   const [isCompleted, setIsCompleted] = useState(false);
@@ -690,7 +680,6 @@ export const PatientClinicalWorkspace: React.FC = () => {
 
   // Calculate Next Appointment Target Date
   const getFollowUpDateString = () => {
-    if (customFollowUpDate) return customFollowUpDate;
     const date = new Date();
     date.setDate(date.getDate() + followUpDays);
     return date.toLocaleDateString('en-IN', {
@@ -698,15 +687,6 @@ export const PatientClinicalWorkspace: React.FC = () => {
       month: 'short',
       year: 'numeric',
     });
-  };
-
-  // Quick symptom adder
-  const handleAddSymptomPreset = (text: string) => {
-    if (!chiefComplaint.trim()) {
-      setChiefComplaint(text);
-    } else if (!chiefComplaint.includes(text)) {
-      setChiefComplaint(`${chiefComplaint}; ${text}`);
-    }
   };
 
   // Quick medicine adder from presets
@@ -721,7 +701,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
     setMeds([...meds, newMed]);
   };
 
-  // Add custom medicine
+  // Fast inline medicine adder
   const handleAddCustomMed = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customMedName.trim()) return;
@@ -739,7 +719,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
     ]);
 
     setCustomMedName('');
-    setCustomMedDosage('');
+    setCustomMedDosage('1 Tab');
   };
 
   const handleRemoveMed = (id: string) => {
@@ -754,37 +734,24 @@ export const PatientClinicalWorkspace: React.FC = () => {
     }
   };
 
-  const toggleAshaCheck = (check: string) => {
-    if (ashaSelectedChecks.includes(check)) {
-      setAshaSelectedChecks(ashaSelectedChecks.filter((c) => c !== check));
-    } else {
-      setAshaSelectedChecks([...ashaSelectedChecks, check]);
-    }
-  };
-
-  // Apply 1-Click Fast OPD Disease Bundle
+  // Apply 1-Click Fast OPD Disease Bundle from Copilot
   const handleApplyDiseaseBundle = (bundle: DiseaseBundle) => {
     setChiefComplaint(bundle.complaint);
     setDiagnosis(bundle.diagnosis);
 
-    // Map medicines
     const newMeds: MedicineItem[] = bundle.meds.map((m, idx) => ({
       id: `med_bundle_${Date.now()}_${idx}`,
       ...m,
     }));
     setMeds(newMeds);
-
-    // Tests
     setSelectedTests(bundle.tests);
-
-    // Advice & Follow up
     setAdviceText(bundle.advice);
     setFollowUpDays(bundle.followUpDays);
     setFollowUpMode(bundle.followUpMode);
     setFollowUpPurpose(bundle.followUpPurpose);
 
-    // Flash notification
-    setBundleAppliedMsg(`Applied "${bundle.name}" package! Prescriptions, tests, and follow-up loaded.`);
+    setBundleAppliedMsg(`Loaded "${bundle.name}"! Diagnosis, medicines, and tests configured.`);
+    setShowCopilotDrawer(false); // Auto close drawer after applying
     setTimeout(() => {
       setBundleAppliedMsg(null);
     }, 4000);
@@ -802,9 +769,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
         doctorName: 'Dr. Arvind Patel',
         doctorSpecialty: 'MD (Internal Medicine & Cardiology)',
         doctorFacility: 'Gandhinagar Civil Hospital',
-        doctorInstructions: ashaInstructions,
-        prescribedChecks: ashaSelectedChecks,
-        priority: ashaPriority,
+        doctorInstructions: adviceText,
+        prescribedChecks: ['Blood Pressure', 'Medication Compliance'],
+        priority: 'PRIORITY',
         purpose: `Doctor Prescribed: Follow-up for ${diagnosis || 'Angina Pectoris'}`,
       });
     }
@@ -853,9 +820,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-7xl mx-auto">
       {/* ================================================== */}
-      {/* TOP BAR: QUEUE STRIP & CALL NEXT SHORTCUT */}
+      {/* TOP BAR: QUEUE STRIP & QUICK ACTIONS */}
       {/* ================================================== */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs">
         <div className="flex items-center gap-2.5">
@@ -924,11 +891,11 @@ export const PatientClinicalWorkspace: React.FC = () => {
       </div>
 
       {/* ================================================== */}
-      {/* ACTIVE PATIENT HERO CARD: DEMOGRAPHICS + HISTORY BUTTON */}
+      {/* ACTIVE PATIENT CARD: DEMOGRAPHICS + BUTTONS */}
       {/* ================================================== */}
       <Card className="border-teal-200 bg-gradient-to-r from-teal-50/70 via-emerald-50/40 to-white shadow-xs">
         <CardContent className="p-4 sm:p-5 space-y-3.5">
-          {/* Top Row: Patient Info & PROMINENT HISTORY BUTTON */}
+          {/* Top Row: Patient Info & DEDICATED ACTION BUTTONS */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-teal-100 pb-3.5">
             <div className="flex items-start sm:items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-xs">
@@ -964,20 +931,31 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
             </div>
 
-            {/* Top Right Action Shortcuts with PROMINENT PATIENT HISTORY BUTTON */}
+            {/* BUTTONS: PATIENT HISTORY + ON-DEMAND COPILOT (SHOWS ONLY AFTER CLICKING) */}
             <div className="flex items-center gap-2 flex-wrap self-end lg:self-center">
-              {/* === THE REQUESTED DEDICATED PATIENT HISTORY BUTTON === */}
+              {/* === THE REQUESTED DEDICATED HISTORY BUTTON === */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowHistoryModal(true)}
-                className="gap-2 text-xs bg-white text-teal-800 border-teal-400 hover:bg-teal-50 font-black min-h-[38px] shadow-xs cursor-pointer ring-2 ring-teal-200/60"
+                className="gap-2 text-xs bg-white text-teal-800 border-teal-300 hover:bg-teal-50 font-bold min-h-[38px] shadow-2xs cursor-pointer"
               >
                 <FileText className="h-4 w-4 text-teal-700" />
-                <span>View Patient History</span>
+                <span>Patient History</span>
                 <span className="rounded-full bg-teal-100 text-teal-900 text-[10px] font-black px-1.5 py-0.5 border border-teal-300">
                   8 Records
                 </span>
+              </Button>
+
+              {/* === THE REQUESTED COPILOT & PRESETS BUTTON (SHOWN ONLY ON CLICK) === */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCopilotDrawer(true)}
+                className="gap-1.5 text-xs bg-teal-50 text-teal-900 border-teal-300 hover:bg-teal-100 font-black min-h-[38px] shadow-2xs cursor-pointer"
+              >
+                <Zap className="h-4 w-4 text-teal-700" />
+                <span>⚡ Clinical Copilot & Bundles</span>
               </Button>
 
               <Link to="/doctor/referrals">
@@ -995,7 +973,6 @@ export const PatientClinicalWorkspace: React.FC = () => {
 
           {/* Bottom Row: KEY VITALS STRIP */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-            {/* Blood Pressure */}
             <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 shadow-2xs flex items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-800">
                 <Heart className="h-4 w-4" />
@@ -1009,7 +986,6 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
             </div>
 
-            {/* Pulse */}
             <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 shadow-2xs flex items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
                 <Activity className="h-4 w-4" />
@@ -1023,7 +999,6 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
             </div>
 
-            {/* Blood Sugar */}
             <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-2.5 shadow-2xs flex items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800">
                 <Droplets className="h-4 w-4" />
@@ -1037,19 +1012,17 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
             </div>
 
-            {/* SpO2 */}
             <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 shadow-2xs flex items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-800">
                 <Activity className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">SpO2 (Room Air)</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">SpO2 (Air)</p>
                 <p className="text-sm font-black text-slate-900">98%</p>
                 <span className="text-[10px] font-bold text-emerald-700">● Optimal</span>
               </div>
             </div>
 
-            {/* Temperature & Allergies */}
             <div className="col-span-2 sm:col-span-1 rounded-xl border border-rose-200 bg-rose-50/40 p-2.5 shadow-2xs flex items-center gap-2.5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-800">
                 <ShieldAlert className="h-4 w-4" />
@@ -1057,14 +1030,14 @@ export const PatientClinicalWorkspace: React.FC = () => {
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-rose-700">Allergies Alert</p>
                 <p className="text-xs font-black text-rose-900 truncate">Penicillin, Sulfa</p>
-                <span className="text-[10px] font-bold text-rose-700">⚠ Do Not Prescribe</span>
+                <span className="text-[10px] font-bold text-rose-700">⚠ Avoid Penicillins</span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Dynamic Allergy Conflict Alert Banner */}
+      {/* Allergy Conflict Warning */}
       {allergyConflictMeds.length > 0 && (
         <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-4 flex items-center justify-between gap-3 shadow-xs animate-pulse">
           <div className="flex items-center gap-3">
@@ -1073,11 +1046,10 @@ export const PatientClinicalWorkspace: React.FC = () => {
             </div>
             <div>
               <h4 className="text-xs font-black text-rose-950 uppercase tracking-wide">
-                Critical Safety Warning: Allergy Contraindication Detected
+                Allergy Warning: Patient is Allergic to Penicillin!
               </h4>
               <p className="text-xs text-rose-800 mt-0.5">
-                Patient is allergic to Penicillin. You have added:{' '}
-                <strong>{allergyConflictMeds.map((m) => m.name).join(', ')}</strong>.
+                Added: <strong>{allergyConflictMeds.map((m) => m.name).join(', ')}</strong> may trigger severe allergic reaction.
               </p>
             </div>
           </div>
@@ -1088,12 +1060,12 @@ export const PatientClinicalWorkspace: React.FC = () => {
             }}
             className="bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold shrink-0"
           >
-            Remove Contraindicated Meds
+            Remove Contraindicated Drug
           </Button>
         </div>
       )}
 
-      {/* Bundle Applied Flash Notification */}
+      {/* Bundle Applied Alert */}
       {bundleAppliedMsg && (
         <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs font-bold text-emerald-900 flex items-center gap-2 shadow-xs transition-all">
           <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" />
@@ -1102,169 +1074,505 @@ export const PatientClinicalWorkspace: React.FC = () => {
       )}
 
       {/* ================================================== */}
-      {/* 2-COLUMN MAIN WORKSPACE: SIDE COPILOT (4) + TREATMENT (8) */}
+      {/* SIMPLIFIED, HIGH-SPEED TODAY'S TREATMENT & CLINICAL PLAN */}
       {/* ================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* ================================================== */}
-        {/* LEFT COLUMN: SIMPLIFIED DOCTOR CLINICAL ASSISTANT (4 COLS) */}
-        {/* ================================================== */}
-        <div className="lg:col-span-4 space-y-3">
-          <Card className="border-teal-200/90 bg-white shadow-2xs overflow-hidden">
-            {/* Side Header with View Switcher */}
-            <CardHeader className="p-3 pb-2 border-b border-slate-100 bg-gradient-to-r from-teal-50/70 to-slate-50 flex flex-col gap-2">
+      <Card className="border-teal-200 bg-white shadow-xs">
+        <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 bg-teal-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-teal-700 text-white shadow-xs">
+              <Stethoscope className="h-4 w-4" />
+            </div>
+            <div>
+              <CardTitle className="text-base font-black text-slate-900">
+                Today's Treatment & Clinical Plan
+              </CardTitle>
+              <p className="text-xs text-slate-500">
+                Fast prescription drafting with 1-click popular diagnosis, medicines, and investigations.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCopilotDrawer(true)}
+            className="text-xs bg-white text-teal-800 border-teal-300 hover:bg-teal-50 font-bold gap-1 self-start sm:self-center cursor-pointer shadow-2xs"
+          >
+            <Zap className="h-3.5 w-3.5 text-teal-700" />
+            <span>Open Clinical Bundles</span>
+          </Button>
+        </CardHeader>
+
+        <CardContent className="p-4 sm:p-6 space-y-5">
+          {/* ================================================== */}
+          {/* 1. PROVISIONAL / CONFIRMED DIAGNOSIS (SIMPLIFIED) */}
+          {/* ================================================== */}
+          <div className="space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+              <label className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                  1
+                </span>
+                <span>Provisional / Confirmed Diagnosis:</span>
+              </label>
+              <span className="text-[11px] text-slate-400">1-Tap popular diagnoses:</span>
+            </div>
+
+            {/* 1-Tap Diagnosis Chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {DIAGNOSIS_PRESETS.map((d, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setDiagnosis(d)}
+                  className={`text-[11px] font-semibold rounded-lg border px-2.5 py-1 transition-all cursor-pointer ${
+                    diagnosis === d
+                      ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
+                      : 'bg-slate-100 hover:bg-teal-50 text-slate-700 border-slate-200'
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+
+            {/* Diagnosis Input */}
+            <input
+              type="text"
+              value={diagnosis}
+              onChange={(e) => setDiagnosis(e.target.value)}
+              placeholder="Type medical diagnosis or click any chip above..."
+              className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-bold text-slate-900 shadow-2xs"
+            />
+          </div>
+
+          {/* ================================================== */}
+          {/* 2. PRESCRIPTION MEDICINES (Rx - SIMPLIFIED) */}
+          {/* ================================================== */}
+          <div className="space-y-3 border-t border-slate-200 pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+              <label className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                  2
+                </span>
+                <span>Prescription Medicines (Rx - {meds.length} Added):</span>
+              </label>
+              <span className="text-[11px] text-teal-800 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                1-Tap to Add Popular Medicine:
+              </span>
+            </div>
+
+            {/* 1-Click Popular Rx Chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {COMMON_RX_PRESETS.map((preset, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleAddRxPreset(preset)}
+                  className="text-[11px] font-semibold rounded-lg bg-teal-50/70 hover:bg-teal-100 text-teal-900 border border-teal-200 px-2.5 py-1 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Plus className="h-3 w-3 text-teal-700" />
+                  <span>{preset.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Compact Medicines Table */}
+            <div className="rounded-xl border border-slate-200 overflow-hidden bg-white shadow-2xs">
+              {meds.length === 0 ? (
+                <div className="p-6 text-center text-xs text-slate-400 italic">
+                  No medicines prescribed yet. Click any 1-tap chip above or add using the quick bar below.
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                    <tr>
+                      <th className="p-2.5 pl-3">#</th>
+                      <th className="p-2.5">Medicine & Strength</th>
+                      <th className="p-2.5">Timing (M-A-N)</th>
+                      <th className="p-2.5">Duration</th>
+                      <th className="p-2.5">Instructions</th>
+                      <th className="p-2.5 pr-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {meds.map((m, idx) => (
+                      <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-2.5 pl-3 font-mono font-bold text-teal-800">{idx + 1}</td>
+                        <td className="p-2.5 font-black text-slate-900">{m.name}</td>
+                        <td className="p-2.5">
+                          <span className="inline-block px-2 py-0.5 rounded-md bg-teal-100 font-mono text-teal-900 font-bold text-[11px]">
+                            {m.frequency}
+                          </span>
+                        </td>
+                        <td className="p-2.5 font-bold text-slate-700">{m.duration}</td>
+                        <td className="p-2.5 text-slate-600 text-[11px]">{m.timing}</td>
+                        <td className="p-2.5 pr-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMed(m.id)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="Remove medicine"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Fast 1-Line Custom Medicine Adder Bar */}
+            <form
+              onSubmit={handleAddCustomMed}
+              className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200"
+            >
+              <div className="sm:col-span-5">
+                <input
+                  type="text"
+                  placeholder="Medicine Name (e.g. Tab. Azithromycin 500mg)"
+                  value={customMedName}
+                  onChange={(e) => setCustomMedName(e.target.value)}
+                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <select
+                  value={customMedFreq}
+                  onChange={(e) => setCustomMedFreq(e.target.value)}
+                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-mono font-bold"
+                >
+                  <option value="1-0-1">1-0-1 (BD)</option>
+                  <option value="1-0-0">1-0-0 (OD Morn)</option>
+                  <option value="0-0-1">0-0-1 (OD Night)</option>
+                  <option value="1-1-1">1-1-1 (TDS)</option>
+                  <option value="SOS">SOS (As needed)</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <select
+                  value={customMedDuration}
+                  onChange={(e) => setCustomMedDuration(e.target.value)}
+                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                >
+                  <option value="3 Days">3 Days</option>
+                  <option value="5 Days">5 Days</option>
+                  <option value="7 Days">7 Days</option>
+                  <option value="15 Days">15 Days</option>
+                  <option value="30 Days">30 Days</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-3 flex items-center gap-1.5">
+                <select
+                  value={customMedTiming}
+                  onChange={(e) => setCustomMedTiming(e.target.value)}
+                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                >
+                  <option value="After Food">After Food</option>
+                  <option value="Before Breakfast">Before Breakfast</option>
+                  <option value="At Bedtime">At Bedtime</option>
+                </select>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  className="text-xs bg-teal-700 hover:bg-teal-800 text-white font-bold h-full min-h-[34px] px-3 shrink-0 cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Add
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* ================================================== */}
+          {/* 3. INVESTIGATIONS & CLINICAL ADVICE (COMPACT ROW) */}
+          {/* ================================================== */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4">
+            {/* Left: Diagnostic Tests */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-teal-700 text-white shadow-2xs">
-                    <Zap className="h-4 w-4" />
-                  </div>
+                <label className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                    3
+                  </span>
+                  <span>Diagnostic Tests ({selectedTests.length} Ordered):</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveCopilotTab('REPORTS');
+                    setShowCopilotDrawer(true);
+                  }}
+                  className="text-[11px] font-bold text-teal-700 hover:text-teal-900 cursor-pointer"
+                >
+                  + All Tests
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  '12-Lead ECG',
+                  'Complete Blood Count (CBC)',
+                  'Fasting Blood Sugar (FBS)',
+                  'HbA1c (Glycated Hb)',
+                  'Lipid Profile Full',
+                  'Serum Creatinine & Urea',
+                  'Chest X-Ray (PA View)',
+                  'Urine Routine & Micro',
+                ].map((test) => {
+                  const isSel = selectedTests.includes(test);
+                  return (
+                    <button
+                      key={test}
+                      type="button"
+                      onClick={() => toggleTest(test)}
+                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                        isSel
+                          ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {isSel ? '✓ ' : '+ '}
+                      {test}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right: Advice & Follow-Up */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                    4
+                  </span>
+                  <span>Follow-Up Appointment & Advice:</span>
+                </label>
+                <span className="text-[11px] font-bold text-teal-800">
+                  {getFollowUpDateString()} ({followUpMode})
+                </span>
+              </div>
+
+              {/* Follow-up Timeline Chips */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[3, 7, 14, 30].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setFollowUpDays(d)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border cursor-pointer ${
+                      followUpDays === d
+                        ? 'bg-teal-700 text-white border-teal-700'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    In {d < 7 ? `${d} Days` : d === 7 ? '1 Wk' : d === 14 ? '2 Wks' : '1 Mo'}
+                  </button>
+                ))}
+
+                <select
+                  value={followUpMode}
+                  onChange={(e) => setFollowUpMode(e.target.value as any)}
+                  className="text-[11px] font-bold p-1 rounded-lg border border-slate-200 bg-white"
+                >
+                  <option value="OPD">OPD (Room 4)</option>
+                  <option value="TELECONSULT">Teleconsult Video</option>
+                </select>
+              </div>
+
+              <textarea
+                rows={2}
+                value={adviceText}
+                onChange={(e) => setAdviceText(e.target.value)}
+                placeholder="Doctor advice, precautions..."
+                className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              />
+            </div>
+          </div>
+
+          {/* ================================================== */}
+          {/* PRIMARY ACTION BAR */}
+          {/* ================================================== */}
+          <div className="border-t border-slate-200 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            {isCompleted ? (
+              <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 bg-emerald-50 border border-emerald-300 p-3.5 rounded-2xl">
+                <div className="flex items-center gap-2 text-emerald-900">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0" />
                   <div>
-                    <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-800">
-                      Clinical Copilot & Rx Helper
-                    </CardTitle>
-                    <p className="text-[10px] text-slate-500 font-medium">
-                      Fast 1-click presets & appointment scheduler
+                    <strong className="text-sm font-black">Consultation Finished & Rx Issued!</strong>
+                    <p className="text-xs text-emerald-800">
+                      Prescription #{rxNumber} synced to ABHA Vault, Hospital Pharmacy & Follow-Up Calendar.
                     </p>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowHistoryModal(true)}
-                  className="text-[11px] font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 cursor-pointer bg-white px-2 py-1 rounded-md border border-teal-200"
-                  title="Open full patient history in modal"
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Button
+                    onClick={() => setShowRxModal(true)}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs bg-white text-emerald-900 border-emerald-300 hover:bg-emerald-100 font-bold gap-1 min-h-[38px]"
+                  >
+                    <Printer className="h-3.5 w-3.5 text-emerald-700" />
+                    <span>Print Rx Slip</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleCallNextPatient}
+                    variant="primary"
+                    size="sm"
+                    className="text-xs bg-teal-700 hover:bg-teal-800 text-white font-bold gap-1 min-h-[38px] shadow-xs"
+                  >
+                    <span>Call Next Patient</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Button
+                  onClick={handleCompleteConsultation}
+                  variant="primary"
+                  size="lg"
+                  className="w-full sm:flex-1 bg-teal-700 hover:bg-teal-800 text-white text-sm font-black min-h-[46px] rounded-xl shadow-xs gap-2 cursor-pointer"
                 >
-                  <Eye className="h-3 w-3" />
-                  <span>History</span>
-                </button>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Complete Consultation & Issue Prescription</span>
+                </Button>
+
+                <Link to="/doctor/referrals" className="w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full text-xs font-bold border-slate-300 hover:bg-slate-50 min-h-[46px] rounded-xl gap-1.5"
+                  >
+                    <GitBranch className="h-4 w-4 text-slate-600" />
+                    <span>Refer to Hospital</span>
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ================================================== */}
+      {/* ON-DEMAND CLINICAL COPILOT & DISEASE BUNDLES DRAWER */}
+      {/* (SHOWN ONLY AFTER CLICKING THE BUTTON - NOT BEFORE) */}
+      {/* ================================================== */}
+      {showCopilotDrawer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-900/50 backdrop-blur-xs">
+          <div className="relative w-full max-w-lg h-full bg-white shadow-2xl border-l border-slate-200 p-5 space-y-4 animate-in slide-in-from-right duration-200 overflow-y-auto flex flex-col">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-teal-700 text-white shadow-xs">
+                  <Zap className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">
+                    Clinical Copilot & Rx Helper
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    1-Click OPD Disease Bundles & Lab Orderer
+                  </p>
+                </div>
               </div>
 
-              {/* Copilot Sub-Tabs: Bundles vs Reports vs Appointment */}
-              <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-center text-[11px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => setActiveCopilotTab('BUNDLES')}
-                  className={`py-1.5 px-1 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    activeCopilotTab === 'BUNDLES'
-                      ? 'bg-teal-700 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Zap className="h-3 w-3" />
-                  <span>1-Click Rx</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => setShowCopilotDrawer(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveCopilotTab('REPORTS')}
-                  className={`py-1.5 px-1 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    activeCopilotTab === 'REPORTS'
-                      ? 'bg-teal-700 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <FlaskConical className="h-3 w-3" />
-                  <span>Reports ({selectedTests.length})</span>
-                </button>
+            {/* Sub-Tabs */}
+            <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl text-center text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveCopilotTab('BUNDLES')}
+                className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeCopilotTab === 'BUNDLES'
+                    ? 'bg-teal-700 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                ⚡ 1-Click Bundles
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveCopilotTab('APPOINTMENT')}
-                  className={`py-1.5 px-1 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    activeCopilotTab === 'APPOINTMENT'
-                      ? 'bg-teal-700 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Calendar className="h-3 w-3" />
-                  <span>Follow-Up</span>
-                </button>
-              </div>
-            </CardHeader>
+              <button
+                type="button"
+                onClick={() => setActiveCopilotTab('REPORTS')}
+                className={`py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeCopilotTab === 'REPORTS'
+                    ? 'bg-teal-700 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                🧪 All Lab Tests ({selectedTests.length})
+              </button>
+            </div>
 
-            <CardContent className="p-3 space-y-3 max-h-[640px] overflow-y-auto">
-              {/* ================================================== */}
-              {/* TAB 1: 1-CLICK FAST DISEASE & Rx BUNDLES */}
-              {/* ================================================== */}
+            {/* Drawer Body */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+              {/* BUNDLES */}
               {activeCopilotTab === 'BUNDLES' && (
                 <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-900 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3 text-teal-600" />
-                      Standard OPD Disease Regimens:
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">Click to populate</span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {FAST_DISEASE_BUNDLES.map((bundle) => {
-                      const isSelected = diagnosis === bundle.diagnosis;
-                      return (
-                        <div
-                          key={bundle.id}
-                          className={`rounded-xl border p-2.5 transition-all text-left space-y-1.5 ${
-                            isSelected
-                              ? 'border-teal-400 bg-teal-50/60 shadow-xs ring-1 ring-teal-300'
-                              : 'border-slate-200 bg-white hover:border-teal-200 hover:bg-slate-50/70 shadow-2xs'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-1.5">
-                            <div>
-                              <span className="text-[9px] font-extrabold text-teal-700 uppercase tracking-wide bg-teal-100/70 px-1.5 py-0.2 rounded">
-                                {bundle.badge}
-                              </span>
-                              <h4 className="text-xs font-black text-slate-900 mt-0.5">
-                                {bundle.name}
-                              </h4>
-                            </div>
-
-                            <Button
-                              size="sm"
-                              onClick={() => handleApplyDiseaseBundle(bundle)}
-                              className={`text-[10px] h-7 px-2.5 font-bold cursor-pointer shrink-0 ${
-                                isSelected
-                                  ? 'bg-teal-700 hover:bg-teal-800 text-white'
-                                  : 'bg-slate-100 hover:bg-teal-600 hover:text-white text-slate-700'
-                              }`}
-                            >
-                              {isSelected ? '✓ Loaded' : 'Apply Bundle'}
-                            </Button>
-                          </div>
-
-                          <p className="text-[11px] text-slate-600 line-clamp-1">
-                            <strong>Rx:</strong> {bundle.meds.map((m) => m.name.split(' ')[1] || m.name).join(', ')}
-                          </p>
-
-                          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-100">
-                            <span className="flex items-center gap-1 font-semibold text-slate-700">
-                              <FlaskConical className="h-3 w-3 text-teal-600" />
-                              {bundle.tests.length} Labs Ordered
-                            </span>
-                            <span className="flex items-center gap-1 font-semibold text-teal-700">
-                              <Calendar className="h-3 w-3" />
-                              In {bundle.followUpDays} Days ({bundle.followUpMode})
-                            </span>
-                          </div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                    Choose standard clinical treatment bundle:
+                  </span>
+                  {FAST_DISEASE_BUNDLES.map((bundle) => (
+                    <div
+                      key={bundle.id}
+                      className="rounded-xl border border-slate-200 bg-white p-3 space-y-2 hover:border-teal-300 transition-all shadow-2xs"
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <div>
+                          <span className="text-[9px] font-extrabold text-teal-700 uppercase tracking-wide bg-teal-50 px-1.5 py-0.2 rounded border border-teal-200">
+                            {bundle.badge}
+                          </span>
+                          <h4 className="text-xs font-black text-slate-900 mt-0.5">
+                            {bundle.name}
+                          </h4>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApplyDiseaseBundle(bundle)}
+                          className="text-[10px] h-7 px-3 bg-teal-700 hover:bg-teal-800 text-white font-bold cursor-pointer shrink-0"
+                        >
+                          Apply Bundle
+                        </Button>
+                      </div>
+
+                      <p className="text-[11px] text-slate-600">
+                        <strong>Rx:</strong> {bundle.meds.map((m) => m.name).join(', ')}
+                      </p>
+
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-100">
+                        <span>{bundle.tests.length} Labs Ordered</span>
+                        <span className="text-teal-700 font-bold">In {bundle.followUpDays} Days</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
-              {/* ================================================== */}
-              {/* TAB 2: SIMPLIFIED DIAGNOSTIC REPORTS ORDERER */}
-              {/* ================================================== */}
+              {/* ALL LAB TESTS */}
               {activeCopilotTab === 'REPORTS' && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-900">
-                      Order Diagnostic Investigations:
-                    </span>
-                    <span className="text-[11px] font-bold text-teal-800 bg-teal-100 px-2 py-0.5 rounded-full">
-                      {selectedTests.length} Selected
-                    </span>
-                  </div>
-
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                    Order diagnostic tests by department:
+                  </span>
                   {CATEGORIZED_TESTS.map((cat, idx) => (
                     <div
                       key={idx}
@@ -1286,7 +1594,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
                               className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all cursor-pointer ${
                                 isSel
                                   ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
-                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:text-teal-900'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
                               }`}
                             >
                               {isSel ? '✓ ' : '+ '}
@@ -1299,674 +1607,20 @@ export const PatientClinicalWorkspace: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
 
-              {/* ================================================== */}
-              {/* TAB 3: APPOINTMENT & FOLLOW-UP SCHEDULER */}
-              {/* ================================================== */}
-              {activeCopilotTab === 'APPOINTMENT' && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-900">
-                      Schedule Patient Follow-Up:
-                    </span>
-                    <span className="text-[10px] text-teal-700 font-bold">Auto-syncs to Rx</span>
-                  </div>
-
-                  {/* Follow-up Timeline Buttons */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">
-                      Target Follow-up Timeline:
-                    </label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {[3, 7, 14, 21, 30, 60].map((days) => (
-                        <button
-                          key={days}
-                          type="button"
-                          onClick={() => {
-                            setFollowUpDays(days);
-                            setCustomFollowUpDate('');
-                          }}
-                          className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                            followUpDays === days && !customFollowUpDate
-                              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
-                              : 'bg-white text-slate-700 border-slate-200 hover:border-teal-300'
-                          }`}
-                        >
-                          {days < 7 ? `${days} Days` : days === 7 ? '1 Week' : days === 14 ? '2 Weeks' : days === 21 ? '3 Weeks' : `${days / 30} Month`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Consultation Mode */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">
-                      Follow-up Consultation Mode:
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setFollowUpMode('OPD')}
-                        className={`p-2 rounded-xl text-xs font-bold border text-left flex items-center gap-2 cursor-pointer ${
-                          followUpMode === 'OPD'
-                            ? 'bg-teal-50 border-teal-400 text-teal-900 ring-1 ring-teal-300'
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        <Building2 className="h-4 w-4 text-teal-700 shrink-0" />
-                        <div>
-                          <p className="font-black text-xs">In-Person OPD</p>
-                          <p className="text-[10px] text-slate-400">Civil Hospital Room 4</p>
-                        </div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setFollowUpMode('TELECONSULT')}
-                        className={`p-2 rounded-xl text-xs font-bold border text-left flex items-center gap-2 cursor-pointer ${
-                          followUpMode === 'TELECONSULT'
-                            ? 'bg-teal-50 border-teal-400 text-teal-900 ring-1 ring-teal-300'
-                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        <Video className="h-4 w-4 text-teal-700 shrink-0" />
-                        <div>
-                          <p className="font-black text-xs">Teleconsult Video</p>
-                          <p className="text-[10px] text-slate-400">ABDM e-Hospital</p>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Follow-up Purpose */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">
-                      Clinical Goal / Reason for Next Visit:
-                    </label>
-                    <div className="flex flex-wrap gap-1">
-                      {[
-                        'Review Lab Reports',
-                        'Blood Pressure Check',
-                        'Blood Sugar Review',
-                        'Symptom Resolution Check',
-                        'Medicine Titration',
-                      ].map((p) => (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => setFollowUpPurpose(p)}
-                          className="text-[10px] font-semibold bg-slate-100 hover:bg-teal-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 cursor-pointer"
-                        >
-                          + {p}
-                        </button>
-                      ))}
-                    </div>
-
-                    <textarea
-                      rows={2}
-                      value={followUpPurpose}
-                      onChange={(e) => setFollowUpPurpose(e.target.value)}
-                      placeholder="e.g. Review ECG and lipid profile, evaluate chest discomfort..."
-                      className="w-full text-xs p-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                    />
-                  </div>
-
-                  {/* Scheduled Summary Card */}
-                  <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-3 text-xs space-y-1">
-                    <div className="flex items-center justify-between text-teal-900 font-black">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5 text-teal-700" />
-                        Next Visit: {getFollowUpDateString()}
-                      </span>
-                      <span className="text-[10px] font-extrabold uppercase bg-teal-200 px-1.5 py-0.2 rounded">
-                        {followUpMode}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-teal-800 line-clamp-2">
-                      <strong>Purpose:</strong> {followUpPurpose}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            {/* Drawer Footer */}
+            <div className="border-t border-slate-200 pt-3">
+              <Button
+                onClick={() => setShowCopilotDrawer(false)}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs"
+              >
+                Close Copilot
+              </Button>
+            </div>
+          </div>
         </div>
-
-        {/* ================================================== */}
-        {/* RIGHT COLUMN: TODAY'S CLINICAL TREATMENT & Rx (8 COLS) */}
-        {/* ================================================== */}
-        <div className="lg:col-span-8 space-y-4">
-          <Card className="border-teal-200 bg-white shadow-xs">
-            <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 bg-teal-50/40 flex flex-row items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-teal-700 text-white shadow-xs">
-                  <Stethoscope className="h-4 w-4" />
-                </div>
-                <div>
-                  <CardTitle className="text-base font-black text-slate-900">
-                    Today's Treatment & Clinical Plan
-                  </CardTitle>
-                  <p className="text-xs text-slate-500">
-                    Fill complaints, diagnosis, medications, and community follow-up in one simple view.
-                  </p>
-                </div>
-              </div>
-
-              <span className="rounded-full bg-teal-100 text-teal-900 text-[11px] font-bold px-2.5 py-0.5 border border-teal-300">
-                Step-by-Step Flow
-              </span>
-            </CardHeader>
-
-            <CardContent className="p-4 sm:p-6 space-y-5">
-              {/* ================================================== */}
-              {/* STEP 1: CHIEF COMPLAINTS (WITH 1-CLICK CHIPS) */}
-              {/* ================================================== */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
-                      1
-                    </span>
-                    <span>Chief Complaints & Symptoms:</span>
-                  </label>
-                  <span className="text-[11px] text-slate-400">Click chips to quickly append:</span>
-                </div>
-
-                {/* 1-Click Symptom Chips */}
-                <div className="flex flex-wrap gap-1.5">
-                  {SYMPTOM_PRESETS.map((sym, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => handleAddSymptomPreset(sym)}
-                      className="text-[11px] font-semibold rounded-lg bg-slate-100 hover:bg-teal-100 text-slate-700 hover:text-teal-900 border border-slate-200 px-2.5 py-1 transition-colors cursor-pointer"
-                    >
-                      + {sym}
-                    </button>
-                  ))}
-                </div>
-
-                <textarea
-                  rows={2}
-                  value={chiefComplaint}
-                  onChange={(e) => setChiefComplaint(e.target.value)}
-                  placeholder="e.g. Chest tightness on exertion, mild shortness of breath..."
-                  className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                />
-              </div>
-
-              {/* ================================================== */}
-              {/* STEP 2: CLINICAL DIAGNOSIS */}
-              {/* ================================================== */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
-                      2
-                    </span>
-                    <span>Provisional / Confirmed Diagnosis:</span>
-                  </label>
-                  <span className="text-[11px] text-slate-400">Popular diagnoses:</span>
-                </div>
-
-                {/* 1-Click Diagnosis Chips */}
-                <div className="flex flex-wrap gap-1.5">
-                  {DIAGNOSIS_PRESETS.map((d, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setDiagnosis(d)}
-                      className={`text-[11px] font-semibold rounded-lg border px-2.5 py-1 transition-all cursor-pointer ${
-                        diagnosis === d
-                          ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
-                          : 'bg-slate-100 hover:bg-teal-50 text-slate-700 border-slate-200'
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-
-                <input
-                  type="text"
-                  value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
-                  placeholder="Enter medical diagnosis..."
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-semibold text-slate-900"
-                />
-              </div>
-
-              {/* ================================================== */}
-              {/* STEP 3: PRESCRIBED MEDICATIONS (Rx) */}
-              {/* ================================================== */}
-              <div className="space-y-3 border-t border-slate-200 pt-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
-                      3
-                    </span>
-                    <span>Prescription Medicines (Rx - {meds.length} Added):</span>
-                  </label>
-                  <span className="text-[11px] text-teal-800 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
-                    1-Click Popular Rx Shortcuts:
-                  </span>
-                </div>
-
-                {/* 1-Click Common Rx Chips */}
-                <div className="flex flex-wrap gap-1.5">
-                  {COMMON_RX_PRESETS.map((preset, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => handleAddRxPreset(preset)}
-                      className="text-[11px] font-semibold rounded-lg bg-teal-50/70 hover:bg-teal-100 text-teal-900 border border-teal-200 px-2.5 py-1 transition-colors cursor-pointer flex items-center gap-1"
-                    >
-                      <Plus className="h-3 w-3 text-teal-700" />
-                      <span>{preset.name}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Medicines List Table */}
-                <div className="rounded-xl border border-slate-200 overflow-hidden bg-white shadow-2xs">
-                  {meds.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-slate-500">
-                      No medicines prescribed yet. Click any preset chip above or use the side assistant to add.
-                    </div>
-                  ) : (
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
-                        <tr>
-                          <th className="p-2.5 pl-3">Medicine & Strength</th>
-                          <th className="p-2.5">Timing (M-A-N)</th>
-                          <th className="p-2.5">Duration</th>
-                          <th className="p-2.5">Instructions</th>
-                          <th className="p-2.5 pr-3 text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {meds.map((m, idx) => (
-                          <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="p-2.5 pl-3 font-bold text-slate-900">
-                              <span className="text-teal-700 mr-1.5 font-mono">{idx + 1}.</span>
-                              {m.name}
-                            </td>
-                            <td className="p-2.5">
-                              <span className="inline-block px-2 py-0.5 rounded-md bg-teal-100 font-mono text-teal-900 font-bold text-[11px]">
-                                {m.frequency}
-                              </span>
-                            </td>
-                            <td className="p-2.5 font-semibold text-slate-700">{m.duration}</td>
-                            <td className="p-2.5 text-slate-600 text-[11px]">{m.timing}</td>
-                            <td className="p-2.5 pr-3 text-right">
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveMed(m.id)}
-                                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                                title="Remove medicine"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {/* Custom Medicine Adder Form */}
-                <form
-                  onSubmit={handleAddCustomMed}
-                  className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200"
-                >
-                  <div className="sm:col-span-4">
-                    <input
-                      type="text"
-                      placeholder="Medicine Name (e.g. Tab. Azithromycin)"
-                      value={customMedName}
-                      onChange={(e) => setCustomMedName(e.target.value)}
-                      className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <input
-                      type="text"
-                      placeholder="Dose (500mg)"
-                      value={customMedDosage}
-                      onChange={(e) => setCustomMedDosage(e.target.value)}
-                      className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <select
-                      value={customMedFreq}
-                      onChange={(e) => setCustomMedFreq(e.target.value)}
-                      className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-mono"
-                    >
-                      <option value="1-0-1">1-0-1 (BD)</option>
-                      <option value="1-0-0">1-0-0 (OD Morn)</option>
-                      <option value="0-0-1">0-0-1 (OD Night)</option>
-                      <option value="1-1-1">1-1-1 (TDS)</option>
-                      <option value="SOS">SOS (As needed)</option>
-                    </select>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <select
-                      value={customMedDuration}
-                      onChange={(e) => setCustomMedDuration(e.target.value)}
-                      className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                    >
-                      <option value="3 Days">3 Days</option>
-                      <option value="5 Days">5 Days</option>
-                      <option value="7 Days">7 Days</option>
-                      <option value="15 Days">15 Days</option>
-                      <option value="30 Days">30 Days</option>
-                    </select>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="sm"
-                      className="w-full text-xs bg-teal-700 hover:bg-teal-800 text-white font-bold h-full min-h-[34px]"
-                    >
-                      <Plus className="h-3.5 w-3.5 mr-1" />
-                      Add Rx
-                    </Button>
-                  </div>
-                </form>
-              </div>
-
-              {/* ================================================== */}
-              {/* STEP 4: DIAGNOSTIC TESTS & CLINICAL ADVICE */}
-              {/* ================================================== */}
-              <div className="space-y-3 border-t border-slate-200 pt-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
-                      4
-                    </span>
-                    <span>Diagnostic Lab Tests & Investigations ({selectedTests.length} Ordered):</span>
-                  </label>
-                  <span className="text-[11px] text-teal-800 font-bold">Use side helper to add more</span>
-                </div>
-
-                {/* Selected Tests Tags */}
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedTests.length === 0 ? (
-                    <span className="text-xs text-slate-400 italic">No lab tests ordered for this encounter.</span>
-                  ) : (
-                    selectedTests.map((test) => (
-                      <span
-                        key={test}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold bg-teal-100 text-teal-900 border border-teal-300 px-2.5 py-1 rounded-lg shadow-2xs"
-                      >
-                        <FlaskConical className="h-3 w-3 text-teal-700" />
-                        <span>{test}</span>
-                        <button
-                          type="button"
-                          onClick={() => toggleTest(test)}
-                          className="text-teal-700 hover:text-rose-600 ml-0.5 cursor-pointer"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))
-                  )}
-                </div>
-
-                {/* Doctor Clinical Advice & Diet */}
-                <div className="pt-2 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-800">
-                      Dietary & Lifestyle Advice:
-                    </label>
-                    <span className="text-[11px] text-slate-400">Quick suggestions:</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {ADVICE_PRESETS.map((adv, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => {
-                          if (!adviceText.includes(adv.slice(0, 15))) {
-                            setAdviceText(`${adviceText} ${adv}`);
-                          }
-                        }}
-                        className="text-[10px] font-semibold rounded-lg bg-slate-100 hover:bg-teal-50 text-slate-600 border border-slate-200 px-2 py-0.5 cursor-pointer"
-                      >
-                        + {adv.slice(0, 30)}...
-                      </button>
-                    ))}
-                  </div>
-
-                  <textarea
-                    rows={2}
-                    value={adviceText}
-                    onChange={(e) => setAdviceText(e.target.value)}
-                    placeholder="Diet, sleep, exercise, and precautions..."
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* ================================================== */}
-              {/* STEP 5: SCHEDULED APPOINTMENT & ASHA HOME VISIT */}
-              {/* ================================================== */}
-              <div className="space-y-3 border-t border-slate-200 pt-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
-                      5
-                    </span>
-                    <span>Follow-Up Appointment & Community Care:</span>
-                  </label>
-                  <span className="text-[11px] font-bold text-teal-800">Synced with OPD Calendar</span>
-                </div>
-
-                {/* Follow Up Appointment Display Banner */}
-                <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <strong className="text-sm font-black text-slate-900">
-                          Next Follow-Up: {getFollowUpDateString()}
-                        </strong>
-                        <span className="rounded-full bg-teal-200/80 px-2 py-0.5 text-[10px] font-extrabold text-teal-900 uppercase">
-                          {followUpMode === 'OPD' ? '🏥 In-Person OPD' : followUpMode === 'TELECONSULT' ? '💻 Teleconsultation' : '🏡 ASHA Visit'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-0.5">
-                        <strong>Purpose:</strong> {followUpPurpose}
-                      </p>
-                    </div>
-                  </div>
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setActiveCopilotTab('APPOINTMENT')}
-                    className="text-xs bg-white text-teal-800 border-teal-300 font-bold shrink-0 self-end sm:self-center"
-                  >
-                    Adjust Date / Mode
-                  </Button>
-                </div>
-
-                {/* ASHA Community Follow-Up Visit Accordion */}
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-xl bg-teal-100 text-teal-800">
-                        <Home className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h3 className="text-xs font-bold text-slate-900">
-                          Prescribe Village ASHA Worker Follow-up Visit
-                        </h3>
-                        <p className="text-[11px] text-slate-600">
-                          Frontline home monitoring for vitals & medication compliance.
-                        </p>
-                      </div>
-                    </div>
-
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={prescribeAshaVisit}
-                        onChange={(e) => setPrescribeAshaVisit(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-700"></div>
-                    </label>
-                  </div>
-
-                  {prescribeAshaVisit && (
-                    <div className="space-y-3 pt-1 border-t border-slate-200 text-xs">
-                      {/* Interval */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span className="font-bold text-slate-700">Schedule Visit In:</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {[1, 2, 3, 5, 7, 14].map((days) => (
-                            <button
-                              key={days}
-                              type="button"
-                              onClick={() => setAshaPrescribedDays(days)}
-                              className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                                ashaPrescribedDays === days
-                                  ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
-                                  : 'bg-white text-slate-700 border-slate-200 hover:border-teal-400'
-                              }`}
-                            >
-                              In {days} {days === 1 ? 'Day' : 'Days'}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Prescribed Checks */}
-                      <div>
-                        <span className="font-bold text-slate-700 block mb-1.5">
-                          Checks to Perform at Citizen's Home:
-                        </span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {[
-                            'Blood Pressure',
-                            'Pulse Rate',
-                            'Blood Sugar',
-                            'SpO2 Check',
-                            'Medication Compliance',
-                            'Diet Advice',
-                          ].map((chk) => {
-                            const isSel = ashaSelectedChecks.includes(chk);
-                            return (
-                              <button
-                                key={chk}
-                                type="button"
-                                onClick={() => toggleAshaCheck(chk)}
-                                className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                                  isSel
-                                    ? 'bg-teal-700 text-white border-teal-700 font-bold'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                                }`}
-                              >
-                                {isSel ? '✓ ' : '+ '}
-                                {chk}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Instructions */}
-                      <div>
-                        <span className="font-bold text-slate-700 block mb-1">
-                          Doctor Instructions for ASHA:
-                        </span>
-                        <input
-                          type="text"
-                          value={ashaInstructions}
-                          onChange={(e) => setAshaInstructions(e.target.value)}
-                          placeholder="e.g. Check resting BP, verify morning Aspirin 75mg adherence..."
-                          className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* ================================================== */}
-              {/* PRIMARY ACTION BUTTONS */}
-              {/* ================================================== */}
-              <div className="border-t border-slate-200 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                {isCompleted ? (
-                  <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 bg-emerald-50 border border-emerald-300 p-3.5 rounded-2xl">
-                    <div className="flex items-center gap-2 text-emerald-900">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0" />
-                      <div>
-                        <strong className="text-sm font-black">Consultation Finished & Rx Issued!</strong>
-                        <p className="text-xs text-emerald-800">
-                          Prescription #{rxNumber} synced to ABHA Vault, Hospital Pharmacy & OPD Follow-Up Calendar.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <Button
-                        onClick={() => setShowRxModal(true)}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs bg-white text-emerald-900 border-emerald-300 hover:bg-emerald-100 font-bold gap-1 min-h-[38px]"
-                      >
-                        <Printer className="h-3.5 w-3.5 text-emerald-700" />
-                        <span>Print Rx Slip</span>
-                      </Button>
-
-                      <Button
-                        onClick={handleCallNextPatient}
-                        variant="primary"
-                        size="sm"
-                        className="text-xs bg-teal-700 hover:bg-teal-800 text-white font-bold gap-1 min-h-[38px] shadow-xs"
-                      >
-                        <span>Call Next Patient</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <Button
-                      onClick={handleCompleteConsultation}
-                      variant="primary"
-                      size="lg"
-                      className="w-full sm:flex-1 bg-teal-700 hover:bg-teal-800 text-white text-sm font-black min-h-[46px] rounded-xl shadow-xs gap-2 cursor-pointer"
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      <span>Complete Consultation & Issue Prescription</span>
-                    </Button>
-
-                    <Link to="/doctor/referrals" className="w-full sm:w-auto">
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="w-full text-xs font-bold border-slate-300 hover:bg-slate-50 min-h-[46px] rounded-xl gap-1.5"
-                      >
-                        <GitBranch className="h-4 w-4 text-slate-600" />
-                        <span>Refer to Hospital</span>
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      )}
 
       {/* ================================================== */}
       {/* COMPREHENSIVE PATIENT HISTORY MODAL (ABHA EHR RECORDS) */}
@@ -2389,11 +2043,6 @@ export const PatientClinicalWorkspace: React.FC = () => {
                     • Date: {getFollowUpDateString()} ({followUpMode})
                   </p>
                   <p className="text-[11px] text-slate-600 mt-0.5">{followUpPurpose}</p>
-                  {prescribeAshaVisit && (
-                    <p className="text-[11px] font-bold text-teal-800 mt-1">
-                      • ASHA Home Visit scheduled in {ashaPrescribedDays} days ({calculateTargetDate('2026-03-11', ashaPrescribedDays)}).
-                    </p>
-                  )}
                 </div>
               </div>
 
@@ -2449,3 +2098,5 @@ export const PatientClinicalWorkspace: React.FC = () => {
     </div>
   );
 };
+
+export default PatientClinicalWorkspace;
