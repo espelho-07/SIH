@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AddFamilyMemberModal } from '@/components/patient/AddFamilyMemberModal';
@@ -23,6 +23,8 @@ import {
   Heart,
   Droplet,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Pill,
   Clock,
   Sparkles,
@@ -289,6 +291,19 @@ export const PatientProfile: React.FC = () => {
   const [viewingRecord, setViewingRecord] = useState<MockFamilyRecord | null>(null);
   const [showQrFullscreen, setShowQrFullscreen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showOtherMembers, setShowOtherMembers] = useState(false);
+  const [isSwitchDropdownOpen, setIsSwitchDropdownOpen] = useState(false);
+  const switchDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (switchDropdownRef.current && !switchDropdownRef.current.contains(event.target as Node)) {
+        setIsSwitchDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -425,235 +440,505 @@ export const PatientProfile: React.FC = () => {
       </div>
 
       {/* ================================================== */}
-      {/* TAB 1: MEMBERS DIRECTORY */}
+      {/* TAB 1: MEMBERS DIRECTORY — SIMPLIFIED (ACTIVE CARD + EXPANDABLE OTHERS) */}
       {/* ================================================== */}
-      {activeTab === 'members' && (
-        <div className="space-y-6">
+      {activeTab === 'members' && (() => {
+        const otherMembers = members.filter((m) => m.id !== activeMember.id);
+        const isActiveSelf = activeMember.relation === 'SELF';
+        const activeHasPersonalPhone = activeMember.hasOwnPhone || activeMember.phoneType === 'PERSONAL';
+        const activeDisplayPhone = activeMember.personalPhone || (activeMember.phone !== '9876543210' ? activeMember.phone : null);
 
-          {/* Members Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {members.map((member) => {
-              const isActive = member.id === activeMember.id;
-              const isSelf = member.relation === 'SELF';
-              const hasPersonalPhone = member.hasOwnPhone || member.phoneType === 'PERSONAL';
-              const memberDisplayPhone = member.personalPhone || (member.phone !== '9876543210' ? member.phone : null);
+        return (
+          <div className="space-y-5">
+            {/* Top Bar: Active Status & Quick Dropdown Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wider">
+                    Currently Active Patient Profile
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  OPD tokens, teleconsultations, and lab reports currently apply to this family member.
+                </p>
+              </div>
 
-              return (
-                <div
-                  key={member.id}
-                  className={`rounded-2xl border transition-all p-5 relative overflow-hidden bg-white ${
-                    isActive
-                      ? 'border-teal-600 shadow-md ring-2 ring-teal-500/20'
-                      : 'border-slate-200 hover:border-slate-300 hover:shadow-xs'
-                  }`}
+              <div className="flex items-center gap-2.5 self-start sm:self-auto relative" ref={switchDropdownRef}>
+                {/* Dropdown Switcher Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsSwitchDropdownOpen(!isSwitchDropdownOpen)}
+                  className="flex items-center gap-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-950 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                  title="Click to switch active family member profile"
                 >
-                  {/* Top Bar inside card */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {/* Avatar initial */}
-                      <div
-                        className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold text-base shadow-xs shrink-0 ${
-                          member.gender === 'F'
-                            ? 'bg-pink-100 text-pink-700 border border-pink-200'
-                            : member.gender === 'M'
-                            ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                            : 'bg-teal-100 text-teal-700 border border-teal-200'
-                        }`}
-                      >
-                        {member.name.slice(0, 2).toUpperCase()}
-                      </div>
+                  <Users className="h-4 w-4 text-teal-700" />
+                  <span>Switch Profile ({members.length})</span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 text-teal-700 transition-transform duration-200 ${
+                      isSwitchDropdownOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
 
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-sm font-bold text-slate-900 sm:text-base">
-                            {member.name}
-                          </h3>
-                          {isActive && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-teal-100 border border-teal-300 px-2 py-0.5 text-[10px] font-bold text-teal-800">
-                              <Check className="h-3 w-3" /> Active Now
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5 flex-wrap">
-                          <span className="font-semibold text-slate-700">
-                            {member.relationLabel}
-                          </span>
-                          <span>•</span>
-                          <span>{member.age} yrs ({member.gender === 'F' ? 'Female' : member.gender === 'M' ? 'Male' : 'Other'})</span>
-                          <span>•</span>
-                          <span className="inline-flex items-center gap-0.5 font-bold text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded">
-                            <Droplet className="h-3 w-3" /> {member.bloodGroup}
-                          </span>
-                        </div>
-                      </div>
+                {/* Dropdown Menu */}
+                {isSwitchDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-30 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5">
+                      Select Active Patient
+                    </p>
+                    <div className="space-y-1">
+                      {members.map((m) => {
+                        const isCur = m.id === activeMember.id;
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveMemberId(m.id);
+                              setIsSwitchDropdownOpen(false);
+                              showToast(`Switched active profile to ${m.name}`);
+                            }}
+                            className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all cursor-pointer ${
+                              isCur
+                                ? 'bg-teal-50 border border-teal-200 text-teal-950 font-bold'
+                                : 'hover:bg-slate-50 text-slate-700 font-medium'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div
+                                className={`h-7 w-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                                  m.gender === 'F'
+                                    ? 'bg-pink-100 text-pink-700'
+                                    : m.gender === 'M'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-teal-100 text-teal-700'
+                                }`}
+                              >
+                                {m.name.slice(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold leading-tight text-slate-900">{m.name}</p>
+                                <p className="text-[10px] text-slate-500">{m.relationLabel}</p>
+                              </div>
+                            </div>
+                            {isCur ? (
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-teal-700 bg-teal-100/70 px-2 py-0.5 rounded-full">
+                                <Check className="h-3 w-3" /> Active
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-semibold text-slate-400">
+                                Switch
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
-
-                    {/* Relation Badge */}
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                        isSelf
-                          ? 'bg-slate-900 text-white'
-                          : 'bg-slate-100 text-slate-700 border border-slate-200'
-                      }`}
-                    >
-                      {member.relation}
-                    </span>
-                  </div>
-
-                  {/* ABHA details */}
-                  <div className="mt-4 rounded-xl bg-slate-50 p-3 border border-slate-100 space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-slate-400">
-                        ABHA Health ID
-                      </span>
-                      <span className="font-mono font-bold text-teal-900">
-                        {member.abhaId}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-slate-400">
-                        ABHA Address
-                      </span>
-                      <span className="font-mono text-slate-600 text-[11px]">
-                        {member.abhaAddress || `${member.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@abdm`}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Chronic Conditions Tag */}
-                  {member.chronicConditions && member.chronicConditions.length > 0 && (
-                    <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        Care Tags:
-                      </span>
-                      {member.chronicConditions.map((cond, i) => (
-                        <span
-                          key={i}
-                          className="rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
-                        >
-                          {cond}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Phone Linkage Box */}
-                  <div className="mt-3 rounded-xl p-3 border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/70 border-slate-200">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                        <Smartphone className="h-3.5 w-3.5 text-slate-500" />
-                        {hasPersonalPhone && memberDisplayPhone ? (
-                          <span className="text-emerald-700 font-bold flex items-center gap-1">
-                            Personal: +91 {memberDisplayPhone}
-                            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
-                              Decoupled
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-slate-700 font-medium">
-                            Shared Mobile (+91 98765 43210)
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500">
-                        {hasPersonalPhone && memberDisplayPhone
-                          ? 'Independent OTP verification & personal login active'
-                          : 'Receives hospital SMS & OTPs on primary household phone'}
-                      </p>
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAssigningMember(member)}
-                      className="text-xs h-7 px-2.5 rounded-lg border-teal-600 text-teal-700 hover:bg-teal-50 font-semibold cursor-pointer shrink-0"
-                    >
-                      {hasPersonalPhone && memberDisplayPhone ? 'Change Phone' : 'Assign Personal Phone'}
-                    </Button>
-                  </div>
-
-                  {/* Actions Footer */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {!isActive ? (
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            setActiveMemberId(member.id);
-                            showToast(`Switched active profile to ${member.name}`);
-                          }}
-                          className="text-xs h-8 px-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer"
-                        >
-                          Switch to this Profile
-                        </Button>
-                      ) : (
-                        <span className="text-xs font-bold text-teal-700 flex items-center gap-1 px-2 py-1 bg-teal-50 rounded-lg">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Currently Active Profile
-                        </span>
-                      )}
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAbhaMember(member);
-                          setActiveTab('abha');
-                        }}
-                        className="text-xs h-8 px-2.5 text-slate-600 hover:text-slate-900 cursor-pointer"
-                      >
-                        <QrCode className="h-3.5 w-3.5 mr-1 text-slate-500" />
-                        View ABHA
-                      </Button>
-                    </div>
-
-                    {!isSelf && (
+                    <div className="mt-2 pt-2 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={() => {
-                          if (
-                            window.confirm(
-                              `Are you sure you want to remove ${member.name} from this family account? Their ABHA health record will remain intact in ABDM.`
-                            )
-                          ) {
-                            removeMember(member.id);
-                            showToast(`Removed ${member.name} from family account`);
-                          }
+                          setIsSwitchDropdownOpen(false);
+                          setIsAddModalOpen(true);
                         }}
-                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
-                        title="Remove member"
+                        className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-teal-700 hover:bg-teal-50 rounded-xl cursor-pointer transition-colors"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <UserPlus className="h-3.5 w-3.5" /> + Add Another Member
                       </button>
-                    )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ONLY CURRENTLY ACTIVE MEMBER IN CARD FORMAT */}
+            <div className="rounded-2xl border-2 border-teal-600 bg-white p-5 sm:p-6 shadow-md ring-4 ring-teal-500/10 relative overflow-hidden">
+              {/* Card Top */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3.5 sm:gap-4">
+                  <div
+                    className={`h-13 w-13 sm:h-14 sm:w-14 rounded-2xl flex items-center justify-center font-black text-lg shadow-sm shrink-0 ${
+                      activeMember.gender === 'F'
+                        ? 'bg-pink-100 text-pink-700 border-2 border-pink-200'
+                        : activeMember.gender === 'M'
+                        ? 'bg-blue-100 text-blue-700 border-2 border-blue-200'
+                        : 'bg-teal-100 text-teal-700 border-2 border-teal-200'
+                    }`}
+                  >
+                    {activeMember.name.slice(0, 2).toUpperCase()}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base sm:text-lg font-black text-slate-900">
+                        {activeMember.name}
+                      </h3>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-teal-100 border border-teal-300 px-2.5 py-0.5 text-[11px] font-bold text-teal-800">
+                        <Check className="h-3.5 w-3.5 text-teal-700" /> Active Now
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
+                      <span className="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                        {activeMember.relationLabel}
+                      </span>
+                      <span>•</span>
+                      <span>{activeMember.age} yrs ({activeMember.gender === 'F' ? 'Female' : activeMember.gender === 'M' ? 'Male' : 'Other'})</span>
+                      <span>•</span>
+                      <span className="inline-flex items-center gap-0.5 font-bold text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md">
+                        <Droplet className="h-3 w-3" /> {activeMember.bloodGroup}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
 
-            {/* Quick Add Member Card */}
-            <button
-              type="button"
-              onClick={() => setIsAddModalOpen(true)}
-              className="rounded-2xl border-2 border-dashed border-slate-300 hover:border-teal-500 p-8 flex flex-col items-center justify-center gap-3 text-center bg-slate-50/50 hover:bg-teal-50/30 transition-all cursor-pointer group"
-            >
-              <div className="h-12 w-12 rounded-2xl bg-white group-hover:bg-teal-600 group-hover:text-white text-teal-700 border border-slate-200 group-hover:border-teal-600 flex items-center justify-center transition-all shadow-xs">
-                <UserPlus className="h-6 w-6" />
+                <span
+                  className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shrink-0 ${
+                    isActiveSelf
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  {activeMember.relation}
+                </span>
               </div>
-              <div>
-                <h4 className="text-sm font-bold text-slate-800 group-hover:text-teal-900">
-                  + Add Another Family Member
-                </h4>
-                <p className="text-xs text-slate-500 max-w-xs mt-1">
-                  Add children, spouse, or elderly parents under this mobile number. Instant digital ABHA ID will be generated.
-                </p>
+
+              {/* ABHA Details */}
+              <div className="mt-5 rounded-2xl bg-teal-50/60 p-4 border border-teal-100 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-teal-600" /> ABHA Health ID
+                  </span>
+                  <span className="font-mono font-black text-sm text-teal-950">
+                    {activeMember.abhaId}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-teal-100/70">
+                  <span className="text-xs font-medium text-slate-400">
+                    ABHA Address
+                  </span>
+                  <span className="font-mono text-slate-700 font-semibold text-xs">
+                    {activeMember.abhaAddress || `${activeMember.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@abdm`}
+                  </span>
+                </div>
               </div>
-            </button>
+
+              {/* Care Tags / Chronic Conditions */}
+              {activeMember.chronicConditions && activeMember.chronicConditions.length > 0 && (
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-slate-500 font-semibold">
+                    Care Tags:
+                  </span>
+                  {activeMember.chronicConditions.map((cond, i) => (
+                    <span
+                      key={i}
+                      className="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800 shadow-2xs"
+                    >
+                      {cond}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Phone Linkage Box */}
+              <div className="mt-4 rounded-2xl p-3.5 sm:p-4 border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/80 border-slate-200">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                    <Smartphone className="h-4 w-4 text-slate-500" />
+                    {activeHasPersonalPhone && activeDisplayPhone ? (
+                      <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                        Personal Mobile: +91 {activeDisplayPhone}
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.2 rounded font-bold">
+                          Decoupled
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-slate-800 font-bold">
+                        Shared Mobile (+91 98765 43210)
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {activeHasPersonalPhone && activeDisplayPhone
+                      ? 'Independent OTP verification & personal login active'
+                      : 'Receives hospital SMS & OTPs on primary household phone'}
+                  </p>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAssigningMember(activeMember)}
+                  className="text-xs h-8 px-3 rounded-xl border-teal-600 text-teal-700 hover:bg-teal-50 font-bold cursor-pointer shrink-0"
+                >
+                  {activeHasPersonalPhone && activeDisplayPhone ? 'Change Phone' : 'Assign Personal Phone'}
+                </Button>
+              </div>
+
+              {/* Card Footer Actions */}
+              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-teal-700 flex items-center gap-1 px-2.5 py-1 bg-teal-50 border border-teal-200/80 rounded-xl">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-700" /> Currently Active Profile
+                  </span>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedAbhaMember(activeMember);
+                      setActiveTab('abha');
+                    }}
+                    className="text-xs h-8 px-3 text-slate-700 hover:text-slate-900 cursor-pointer font-semibold"
+                  >
+                    <QrCode className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                    View ABHA
+                  </Button>
+                </div>
+
+                {!isActiveSelf && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Are you sure you want to remove ${activeMember.name} from this family account? Their ABHA health record will remain intact in ABDM.`
+                        )
+                      ) {
+                        removeMember(activeMember.id);
+                        showToast(`Removed ${activeMember.name} from family account`);
+                      }
+                    }}
+                    className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer flex items-center gap-1 text-xs"
+                    title="Remove member"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Remove Member</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* EXPANDABLE SECTION: OTHER HOUSEHOLD MEMBERS */}
+            {otherMembers.length > 0 && (
+              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+                {/* Clickable Header Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowOtherMembers(!showOtherMembers)}
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-slate-50/70 hover:bg-teal-50/40 transition-all text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-teal-100/70 border border-teal-200 flex items-center justify-center text-teal-800 font-black shadow-2xs group-hover:scale-105 transition-transform">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-teal-900 transition-colors">
+                          Other Household Members ({otherMembers.length})
+                        </h4>
+                        <span className="text-[10px] font-bold bg-slate-200/80 text-slate-700 px-2 py-0.5 rounded-full">
+                          {showOtherMembers ? 'Click to hide' : 'Click to view & switch'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                        {showOtherMembers
+                          ? 'Click "Switch to this Profile" on any member to make them active'
+                          : otherMembers.map((m) => `${m.name} (${m.relationLabel.split(' ')[0]})`).join(' • ')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-teal-700 bg-white border border-slate-200 group-hover:border-teal-300 px-3.5 py-2 rounded-xl shadow-2xs transition-all shrink-0">
+                    <span>{showOtherMembers ? 'Hide Members' : 'Show All Members'}</span>
+                    {showOtherMembers ? (
+                      <ChevronUp className="h-4 w-4 text-teal-700" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-teal-700" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Expanded Grid showing other members on click */}
+                {showOtherMembers && (
+                  <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50/30 space-y-4 animate-in fade-in duration-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {otherMembers.map((member) => {
+                        const isMemSelf = member.relation === 'SELF';
+                        const memHasPersonalPhone = member.hasOwnPhone || member.phoneType === 'PERSONAL';
+                        const memDisplayPhone = member.personalPhone || (member.phone !== '9876543210' ? member.phone : null);
+
+                        return (
+                          <div
+                            key={member.id}
+                            className="rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs p-5 transition-all relative flex flex-col justify-between"
+                          >
+                            <div>
+                              {/* Top Bar */}
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={`h-11 w-11 rounded-2xl flex items-center justify-center font-bold text-sm shadow-xs shrink-0 ${
+                                      member.gender === 'F'
+                                        ? 'bg-pink-100 text-pink-700 border border-pink-200'
+                                        : member.gender === 'M'
+                                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                        : 'bg-teal-100 text-teal-700 border border-teal-200'
+                                    }`}
+                                  >
+                                    {member.name.slice(0, 2).toUpperCase()}
+                                  </div>
+
+                                  <div>
+                                    <h4 className="text-sm font-bold text-slate-900">
+                                      {member.name}
+                                    </h4>
+                                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5 flex-wrap">
+                                      <span className="font-semibold text-slate-700">
+                                        {member.relationLabel}
+                                      </span>
+                                      <span>•</span>
+                                      <span>{member.age} yrs</span>
+                                      <span>•</span>
+                                      <span className="inline-flex items-center gap-0.5 font-bold text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded">
+                                        <Droplet className="h-3 w-3" /> {member.bloodGroup}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                  {member.relation}
+                                </span>
+                              </div>
+
+                              {/* ABHA details */}
+                              <div className="mt-3.5 rounded-xl bg-slate-50 p-2.5 border border-slate-100 text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] text-slate-400 font-medium">ABHA ID</span>
+                                  <span className="font-mono font-bold text-teal-900">{member.abhaId}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] text-slate-400 font-medium">ABHA Address</span>
+                                  <span className="font-mono text-slate-600 text-[11px]">
+                                    {member.abhaAddress || `${member.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@abdm`}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Care Tags */}
+                              {member.chronicConditions && member.chronicConditions.length > 0 && (
+                                <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
+                                  {member.chronicConditions.map((cond, i) => (
+                                    <span
+                                      key={i}
+                                      className="rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+                                    >
+                                      {cond}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Phone Linkage */}
+                              <div className="mt-3 text-xs text-slate-600 flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                                <span className="flex items-center gap-1 text-[11px] text-slate-500">
+                                  <Smartphone className="h-3.5 w-3.5" />
+                                  {memHasPersonalPhone && memDisplayPhone ? `+91 ${memDisplayPhone}` : 'Shared Mobile'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setAssigningMember(member)}
+                                  className="text-[11px] text-teal-700 font-semibold hover:underline cursor-pointer"
+                                >
+                                  {memHasPersonalPhone && memDisplayPhone ? 'Change Phone' : 'Assign Phone'}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Actions Footer */}
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMemberId(member.id);
+                                    showToast(`Switched active profile to ${member.name}`);
+                                  }}
+                                  className="text-xs h-8 px-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer shadow-2xs"
+                                >
+                                  Switch to this Profile
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedAbhaMember(member);
+                                    setActiveTab('abha');
+                                  }}
+                                  className="text-xs h-8 px-2.5 text-slate-600 hover:text-slate-900 cursor-pointer"
+                                >
+                                  <QrCode className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                                  ABHA
+                                </Button>
+                              </div>
+
+                              {!isMemSelf && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (
+                                      window.confirm(
+                                        `Are you sure you want to remove ${member.name} from this family account? Their ABHA health record will remain intact in ABDM.`
+                                      )
+                                    ) {
+                                      removeMember(member.id);
+                                      showToast(`Removed ${member.name} from family account`);
+                                    }
+                                  }}
+                                  className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                  title="Remove member"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Quick Add Member Card */}
+                      <button
+                        type="button"
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="rounded-2xl border-2 border-dashed border-slate-300 hover:border-teal-500 p-6 flex flex-col items-center justify-center gap-2 text-center bg-white hover:bg-teal-50/30 transition-all cursor-pointer group"
+                      >
+                        <div className="h-10 w-10 rounded-xl bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-teal-700 flex items-center justify-center transition-all shadow-xs">
+                          <UserPlus className="h-5 w-5" />
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-800 group-hover:text-teal-900">
+                          + Add Another Family Member
+                        </h4>
+                        <p className="text-[11px] text-slate-500 max-w-xs">
+                          Add dependent under this mobile number. Instant digital ABHA ID will be generated.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ================================================== */}
       {/* TAB 2: DIGITAL ABHA CARD (ABDM) */}
