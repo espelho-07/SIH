@@ -24,6 +24,8 @@ export interface LiveHospitalCaseSheetProps {
   departmentId: string;
   priority: PriorityLevel;
   currentStep: number;
+  doctorName?: string;
+  roomNumber?: string;
 }
 
 const DEPARTMENTS: Record<string, { name: string; room: string; doctor: string; code: string }> = {
@@ -52,8 +54,12 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
   emergencyRelation = 'Attendant',
   departmentId,
   priority,
+  doctorName,
+  roomNumber,
 }) => {
   const dept = DEPARTMENTS[departmentId] || DEPARTMENTS.dep_med;
+  const attendingDoctor = doctorName || dept.doctor;
+  const attendingRoom = roomNumber || dept.room;
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-IN', {
     day: '2-digit',
@@ -216,7 +222,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
                 {dept.name}
               </h4>
               <p className="text-xs text-slate-700 font-semibold mt-0.5">
-                ROOM: <strong className="font-black text-slate-950">{dept.room}</strong> • ATTENDING: <strong className="font-bold">{dept.doctor.toUpperCase()}</strong>
+                ROOM: <strong className="font-black text-slate-950">{attendingRoom}</strong> • ATTENDING: <strong className="font-bold">{attendingDoctor.toUpperCase()}</strong>
               </p>
             </div>
 
@@ -237,7 +243,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
           <div className="border border-slate-300 rounded-lg overflow-hidden">
             <div className="bg-slate-100 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between text-[10px] font-bold text-slate-700 uppercase">
               <span>PHYSICIAN EXAMINATION & VITALS RECORD</span>
-              <span className="text-slate-500 font-mono">OPD BLOCK B</span>
+              <span className="text-slate-600 font-mono text-[9px]">CONSULTANT: {attendingDoctor.toUpperCase()}</span>
             </div>
 
             {/* Vitals Box */}
@@ -333,7 +339,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
               </span>
               <div className="w-36 border-b border-slate-700 mb-0.5" />
               <span className="font-bold text-slate-800 block text-[9px] uppercase tracking-wider">
-                MEDICAL OFFICER SIGN & STAMP
+                {attendingDoctor.toUpperCase()} (SIGN & STAMP)
               </span>
             </div>
           </div>

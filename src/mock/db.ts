@@ -583,7 +583,10 @@ class MockHealthcareState {
     patientGender: 'M' | 'F' | 'Other' = 'M',
     patientId: string = 'usr_pat_01',
     referralId?: string,
-    referralCode?: string
+    referralCode?: string,
+    doctorId?: string,
+    doctorName?: string,
+    roomNumber?: string
   ): Token {
     const facility = this.facilities.find((f) => f.id === facilityId) || this.facilities[0];
     const dept = facility.departments.find((d) => d.id === departmentId) || facility.departments[0];
@@ -602,7 +605,9 @@ class MockHealthcareState {
       facilityName: facility.name,
       departmentId: dept.id,
       departmentName: dept.name,
-      roomNumber: 'Room 4',
+      doctorId: doctorId || 'doc_01',
+      doctorName: doctorName || 'Dr. Arvind Patel',
+      roomNumber: roomNumber || 'Room 4',
       status: 'WAITING',
       priority,
       positionInQueue: this.liveQueue.tokens.filter((t) => t.status === 'WAITING').length + 1,

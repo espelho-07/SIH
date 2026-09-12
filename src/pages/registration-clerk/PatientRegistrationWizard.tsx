@@ -24,7 +24,141 @@ import {
   Building2,
   HeartHandshake,
   Calendar,
+  Stethoscope,
 } from 'lucide-react';
+
+export interface ClinicDoctor {
+  id: string;
+  name: string;
+  qualification: string;
+  specialty: string;
+  departmentId: string;
+  roomNumber: string;
+  status: 'ON_DUTY' | 'IN_OPD' | 'IN_SURGERY' | 'ON_LEAVE';
+  opdSchedule: string;
+}
+
+export const CLINIC_DOCTORS: ClinicDoctor[] = [
+  // General Medicine
+  {
+    id: 'doc_01',
+    name: 'Dr. Arvind Patel',
+    qualification: 'MD (Medicine), DM (Cardio)',
+    specialty: 'General Medicine & Cardiology',
+    departmentId: 'dep_med',
+    roomNumber: 'Room 4',
+    status: 'IN_OPD',
+    opdSchedule: '09:00 AM – 02:00 PM',
+  },
+  {
+    id: 'doc_med_02',
+    name: 'Dr. Rameshwar Sharma',
+    qualification: 'MBBS, MD (Internal Medicine)',
+    specialty: 'General Medicine',
+    departmentId: 'dep_med',
+    roomNumber: 'Room 3',
+    status: 'ON_DUTY',
+    opdSchedule: '09:00 AM – 01:00 PM',
+  },
+  {
+    id: 'doc_05',
+    name: 'Dr. Anjali Mehta',
+    qualification: 'MBBS, MD (Pulmonology)',
+    specialty: 'Chest & Respiratory Medicine',
+    departmentId: 'dep_med',
+    roomNumber: 'Room 4B',
+    status: 'ON_DUTY',
+    opdSchedule: '10:00 AM – 02:00 PM',
+  },
+
+  // Cardiology
+  {
+    id: 'doc_01_cardio',
+    name: 'Dr. Arvind Patel',
+    qualification: 'MD, DM (Cardiology)',
+    specialty: 'Interventional Cardiology',
+    departmentId: 'dep_cardio',
+    roomNumber: 'Room 6',
+    status: 'IN_OPD',
+    opdSchedule: '09:00 AM – 01:00 PM',
+  },
+  {
+    id: 'doc_04_cardio',
+    name: 'Dr. Rajesh Solanki',
+    qualification: 'MS, MCh (Cardio-Thoracic)',
+    specialty: 'Cardiac Surgery & Telemetry',
+    departmentId: 'dep_cardio',
+    roomNumber: 'Room 6B',
+    status: 'ON_DUTY',
+    opdSchedule: '11:00 AM – 03:00 PM',
+  },
+
+  // Orthopedics
+  {
+    id: 'doc_ortho_01',
+    name: 'Dr. Rajesh Mehta',
+    qualification: 'MBBS, MS (Orthopedics)',
+    specialty: 'Trauma & Joint Replacement',
+    departmentId: 'dep_ortho',
+    roomNumber: 'Room 8',
+    status: 'IN_OPD',
+    opdSchedule: '09:00 AM – 01:00 PM',
+  },
+  {
+    id: 'doc_ortho_02',
+    name: 'Dr. Amit Dave',
+    qualification: 'MBBS, D.Ortho',
+    specialty: 'Spine & Fracture Clinic',
+    departmentId: 'dep_ortho',
+    roomNumber: 'Room 9',
+    status: 'ON_DUTY',
+    opdSchedule: '10:00 AM – 02:00 PM',
+  },
+
+  // Pediatrics
+  {
+    id: 'doc_peds_01',
+    name: 'Dr. Sneha Desai',
+    qualification: 'MBBS, DCH, MD (Pediatrics)',
+    specialty: 'Child Health & Neonatology',
+    departmentId: 'dep_peds',
+    roomNumber: 'Room 2',
+    status: 'IN_OPD',
+    opdSchedule: '09:00 AM – 02:00 PM',
+  },
+  {
+    id: 'doc_03_peds',
+    name: 'Dr. Meena Parmar',
+    qualification: 'MBBS, MD (Pediatrics)',
+    specialty: 'Immunization & Child Clinic',
+    departmentId: 'dep_peds',
+    roomNumber: 'Room 2B',
+    status: 'ON_DUTY',
+    opdSchedule: '10:00 AM – 03:00 PM',
+  },
+
+  // Gynecology
+  {
+    id: 'doc_gyn_01',
+    name: 'Dr. Bhavna Joshi',
+    qualification: 'MBBS, MS (Obstetrics & Gyn)',
+    specialty: 'Antenatal Care & High Risk Obs',
+    departmentId: 'dep_gyn',
+    roomNumber: 'Room 5',
+    status: 'IN_OPD',
+    opdSchedule: '09:00 AM – 02:00 PM',
+  },
+  {
+    id: 'doc_02_gyn',
+    name: 'Dr. Neha Vaghela',
+    qualification: 'MBBS, DGO (Obstetrics & Gyn)',
+    specialty: 'Gynecological Oncology & USG',
+    departmentId: 'dep_gyn',
+    roomNumber: 'Room 5B',
+    status: 'ON_DUTY',
+    opdSchedule: '10:00 AM – 02:00 PM',
+  },
+];
 
 export const PatientRegistrationWizard: React.FC = () => {
   const navigate = useNavigate();
@@ -52,8 +186,38 @@ export const PatientRegistrationWizard: React.FC = () => {
 
   // Step 3: OPD Visit Setup
   const [departmentId, setDepartmentId] = useState('dep_med');
+  const [assignedDoctorId, setAssignedDoctorId] = useState('doc_01');
+  const [assignedDoctorName, setAssignedDoctorName] = useState('Dr. Arvind Patel');
+  const [assignedRoomNumber, setAssignedRoomNumber] = useState('Room 4');
   const [priority, setPriority] = useState<PriorityLevel>('ROUTINE');
   const [autoIssueToken, setAutoIssueToken] = useState(true);
+
+  const availableDoctorsForDept = CLINIC_DOCTORS.filter(
+    (d) => d.departmentId === departmentId
+  );
+
+  const selectedDoctorObj =
+    CLINIC_DOCTORS.find((d) => d.id === assignedDoctorId) ||
+    availableDoctorsForDept[0];
+
+  const handleDepartmentChange = (newDeptId: string) => {
+    setDepartmentId(newDeptId);
+    const deptDocs = CLINIC_DOCTORS.filter((d) => d.departmentId === newDeptId);
+    if (deptDocs.length > 0) {
+      setAssignedDoctorId(deptDocs[0].id);
+      setAssignedDoctorName(deptDocs[0].name);
+      setAssignedRoomNumber(deptDocs[0].roomNumber);
+    }
+  };
+
+  const handleDoctorChange = (doctorId: string) => {
+    const doc = CLINIC_DOCTORS.find((d) => d.id === doctorId);
+    if (doc) {
+      setAssignedDoctorId(doc.id);
+      setAssignedDoctorName(doc.name);
+      setAssignedRoomNumber(doc.roomNumber);
+    }
+  };
 
   // Duplicate Detection State
   const [duplicatePatient, setDuplicatePatient] = useState<RegisteredPatient | null>(null);
@@ -155,6 +319,9 @@ export const PatientRegistrationWizard: React.FC = () => {
           facilityId: 'fac_civil_01',
           departmentId,
           priority,
+          doctorId: assignedDoctorId,
+          doctorName: assignedDoctorName,
+          roomNumber: assignedRoomNumber,
         });
 
         if (tokenRes.data) {
@@ -162,6 +329,9 @@ export const PatientRegistrationWizard: React.FC = () => {
           t.departmentName = deptNames[departmentId] || 'General Medicine OPD';
           t.patientAge = registered.age;
           t.patientGender = registered.gender;
+          t.doctorId = assignedDoctorId;
+          t.doctorName = assignedDoctorName;
+          t.roomNumber = assignedRoomNumber;
           setCreatedToken(t);
           setSlipModalOpen(true);
         }
@@ -188,6 +358,10 @@ export const PatientRegistrationWizard: React.FC = () => {
     setAddress('');
     setEmergencyName('');
     setEmergencyPhone('');
+    setDepartmentId('dep_med');
+    setAssignedDoctorId('doc_01');
+    setAssignedDoctorName('Dr. Arvind Patel');
+    setAssignedRoomNumber('Room 4');
     setDuplicatePatient(null);
     setDismissDuplicate(false);
     setCreatedToken(null);
@@ -613,15 +787,69 @@ export const PatientRegistrationWizard: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Target OPD Department / Clinic</label>
                   <select
                     value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
+                    onChange={(e) => handleDepartmentChange(e.target.value)}
                     className="w-full h-10 rounded-xl border border-slate-300 bg-white shadow-2xs px-3 text-xs text-slate-900 font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-600"
                   >
-                    <option value="dep_med">General Medicine OPD (Room 4 � Dr. Arvind Patel)</option>
-                    <option value="dep_cardio">Cardiology Clinic (Room 6 � Dr. Arvind Patel)</option>
-                    <option value="dep_ortho">Orthopedics Clinic (Room 8 � Dr. Rajesh Mehta)</option>
-                    <option value="dep_peds">Pediatrics & Immunization (Room 2 � Dr. Sneha Desai)</option>
-                    <option value="dep_gyn">Gynecology & ANC (Room 5 � Dr. Bhavna Joshi)</option>
+                    <option value="dep_med">General Medicine OPD</option>
+                    <option value="dep_cardio">Cardiology Clinic</option>
+                    <option value="dep_ortho">Orthopedics Clinic</option>
+                    <option value="dep_peds">Pediatrics & Immunization</option>
+                    <option value="dep_gyn">Gynecology & ANC</option>
                   </select>
+                </div>
+
+                {/* Doctor Assignment Selection */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                      <Stethoscope className="h-3.5 w-3.5 text-teal-700" />
+                      Assign Consulting Doctor <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[11px] text-teal-700 font-medium">
+                      {availableDoctorsForDept.length} Available in Department
+                    </span>
+                  </div>
+
+                  <select
+                    value={assignedDoctorId}
+                    onChange={(e) => handleDoctorChange(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-slate-300 bg-white shadow-2xs px-3 text-xs text-slate-900 font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-600"
+                  >
+                    {availableDoctorsForDept.map((doc) => (
+                      <option key={doc.id} value={doc.id}>
+                        {doc.name} — {doc.roomNumber} ({doc.qualification}) [{doc.status === 'IN_OPD' ? '🟢 In Consultation' : doc.status === 'ON_DUTY' ? '🔵 On Duty' : doc.status}]
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Selected Doctor Active Badge / Info Card */}
+                  {selectedDoctorObj && (
+                    <div className="p-3 bg-teal-50/70 rounded-xl border border-teal-200 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-9 w-9 rounded-xl bg-teal-100 text-teal-900 font-bold flex items-center justify-center shrink-0 text-xs">
+                          {selectedDoctorObj.name.replace('Dr. ', '').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 flex items-center gap-2">
+                            <span>{selectedDoctorObj.name}</span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white text-teal-800 font-bold border border-teal-200">
+                              {selectedDoctorObj.roomNumber}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            {selectedDoctorObj.specialty} • {selectedDoctorObj.opdSchedule}
+                          </div>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                        selectedDoctorObj.status === 'IN_OPD'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          : 'bg-teal-100 text-teal-800 border border-teal-200'
+                      }`}>
+                        {selectedDoctorObj.status === 'IN_OPD' ? '🟢 In OPD' : '🔵 On Duty'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Priority Selection */}
@@ -678,7 +906,10 @@ export const PatientRegistrationWizard: React.FC = () => {
                   </p>
                   <p className="text-slate-600">
                     Phone: <span className="font-mono font-medium text-slate-900">+91 {phone}</span>
-                    {abhaId && <span className="ml-2 text-teal-800 font-bold">� ABHA: {abhaId}</span>}
+                    {abhaId && <span className="ml-2 text-teal-800 font-bold">• ABHA: {abhaId}</span>}
+                  </p>
+                  <p className="text-slate-600">
+                    Assigned Doctor: <span className="font-bold text-teal-900">{assignedDoctorName}</span> ({assignedRoomNumber})
                   </p>
                 </div>
 
@@ -716,7 +947,7 @@ export const PatientRegistrationWizard: React.FC = () => {
                 Registration Completed for {successPatient.name}
               </h4>
               <p className="text-[11px] text-teal-800">
-                Patient ID: {successPatient.id} � Registered successfully in hospital directory.
+                Patient ID: {successPatient.id} • Registered successfully in hospital directory.
               </p>
             </div>
             <div className="flex gap-2">
@@ -760,6 +991,8 @@ export const PatientRegistrationWizard: React.FC = () => {
             departmentId={departmentId}
             priority={priority}
             currentStep={step}
+            doctorName={assignedDoctorName}
+            roomNumber={assignedRoomNumber}
           />
         </div>
       </div>
@@ -770,6 +1003,7 @@ export const PatientRegistrationWizard: React.FC = () => {
         onClose={() => setSlipModalOpen(false)}
         token={createdToken}
         hospitalName={selectedFacility}
+        roomNumber={assignedRoomNumber}
       />
     </div>
   );

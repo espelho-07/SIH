@@ -22,6 +22,9 @@ export const tokenApi = {
     facilityId: string;
     departmentId: string;
     priority?: 'ROUTINE' | 'URGENT' | 'EMERGENCY';
+    doctorId?: string;
+    doctorName?: string;
+    roomNumber?: string;
   }) => apiRequest<Token>('/tokens', 'POST', data),
 
   getById: (tokenId: string) =>

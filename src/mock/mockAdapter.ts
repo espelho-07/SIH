@@ -449,12 +449,30 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   if (cleanUrl.includes('/tokens') && method === 'POST') {
-    const body = (data || {}) as { patientName?: string; patientPhone?: string; facilityId?: string; departmentId?: string };
+    const body = (data || {}) as {
+      patientName?: string;
+      patientPhone?: string;
+      facilityId?: string;
+      departmentId?: string;
+      priority?: 'ROUTINE' | 'URGENT' | 'EMERGENCY';
+      doctorId?: string;
+      doctorName?: string;
+      roomNumber?: string;
+    };
     const token = mockState.generateToken(
       body.patientName || 'Rameshwar Sharma',
       body.patientPhone || '9876543210',
       body.facilityId || 'fac_civil_01',
-      body.departmentId || 'dep_med'
+      body.departmentId || 'dep_med',
+      body.priority || 'ROUTINE',
+      45,
+      'M',
+      'usr_pat_01',
+      undefined,
+      undefined,
+      body.doctorId,
+      body.doctorName,
+      body.roomNumber
     );
     return {
       success: true,
