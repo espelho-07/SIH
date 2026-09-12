@@ -268,45 +268,6 @@ export const NearbyMedicalStores: React.FC = () => {
       />
 
       {/* ================================================== */}
-      {/* SPOTLIGHT BANNER: JAN AUSHADHI TOP PRIORITY */}
-      {/* ================================================== */}
-      <div className="rounded-2xl border border-teal-300 bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-900 p-4 sm:p-5 text-white shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-amber-400 text-slate-950 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider">
-                ★ TOP PRIORITY RECOMMENDATION
-              </span>
-              <span className="text-xs text-teal-200 flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                Govt. Certified Generics
-              </span>
-            </div>
-            <h2 className="text-base sm:text-lg font-black tracking-tight">
-              Pradhan Mantri Bhartiya Janaushadhi Kendras (PMBJP)
-            </h2>
-            <p className="text-xs text-teal-100 max-w-2xl leading-relaxed">
-              Same WHO-GMP quality medicines at <strong>up to 70% to 80% lower prices</strong> compared to branded private pharmacy equivalents. Live stock streaming active across Gandhinagar Kendra network.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedFilter('JAN_AUSHADHI');
-                setSortBy('JAN_AUSHADHI_FIRST');
-              }}
-              className="bg-white text-teal-950 hover:bg-teal-50 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-            >
-              <Building2 className="h-4 w-4 text-teal-700" />
-              <span>Show Jan Aushadhi Only</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ================================================== */}
       {/* SEARCH, FILTERS & ACTIVE PRESCRIPTION BUTTON */}
       {/* ================================================== */}
       <Card className="border-slate-200 bg-white shadow-2xs">
