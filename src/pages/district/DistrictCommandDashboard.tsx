@@ -24,6 +24,7 @@ import {
   AlertOctagon,
   Activity,
   ArrowRight,
+  Radar,
 } from 'lucide-react';
 
 export const DistrictCommandDashboard: React.FC = () => {
@@ -54,6 +55,12 @@ export const DistrictCommandDashboard: React.FC = () => {
         ]}
         actions={
           <div className="flex items-center gap-2">
+            <Link to="/district/resource-intelligence">
+              <Button size="sm" className="gap-1.5 text-xs font-semibold bg-teal-700 hover:bg-teal-800 text-white">
+                <Radar className="h-4 w-4" />
+                <span>Resource Intelligence</span>
+              </Button>
+            </Link>
             <Link to="/district/alerts">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs font-semibold">
                 <AlertOctagon className="h-4 w-4 text-amber-600" />

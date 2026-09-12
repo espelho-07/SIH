@@ -4,6 +4,7 @@ import { User, UserRole, StaffSubType } from '@/types/auth';
 import { FacilityMatchRequest } from '@/types/facility';
 import { CreateReferralRequest } from '@/types/referral';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
+import { IntelligenceService } from '@/services/intelligenceService';
 
 // Intercepts mock requests and returns structured ApiResponse format
 export async function handleMockRequest(url: string, method: string = 'GET', data?: unknown): Promise<ApiResponse<unknown> | null> {
@@ -761,6 +762,97 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   // 8. AI & DISTRICT DEMAND INTELLIGENCE
+  if (cleanUrl.includes('/district/intelligence/summary')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    const timeRange = (queryParams.get('timeRange') as any) || 'TODAY';
+    return {
+      success: true,
+      message: 'District health resource intelligence summary retrieved',
+      data: IntelligenceService.getDistrictSummary(district, timeRange),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/areas')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Area & village healthcare intelligence profiles retrieved',
+      data: IntelligenceService.getAreaProfiles(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/facilities')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Facility capacity & service gap profiles retrieved',
+      data: IntelligenceService.getFacilityGapProfiles(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/specialist-gaps')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Specialist shortage intelligence retrieved',
+      data: IntelligenceService.getSpecialistGaps(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/equipment-gaps')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Equipment gap intelligence retrieved',
+      data: IntelligenceService.getEquipmentGaps(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/medicine-shortages')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Medicine shortage intelligence retrieved',
+      data: IntelligenceService.getMedicineShortages(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/diagnostic-gaps')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Diagnostic service gap intelligence retrieved',
+      data: IntelligenceService.getDiagnosticGaps(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/recommendations')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Evidence-backed capacity planning recommendations retrieved',
+      data: IntelligenceService.getRecommendations(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/query') && method === 'POST') {
+    const body = (data || {}) as { query?: string; district?: string };
+    const answer = IntelligenceService.queryDistrictIntelligence(body.query || '', body.district || 'Gandhinagar');
+    return {
+      success: true,
+      message: 'Grounded intelligence query executed successfully',
+      data: answer,
+    };
+  }
+
   if (cleanUrl.includes('/ai/dashboard') || cleanUrl.includes('/disease-trends') || cleanUrl.includes('/outbreak-alerts')) {
     return {
       success: true,

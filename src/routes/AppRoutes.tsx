@@ -98,6 +98,7 @@ import { DiseaseTrends } from '@/pages/district/DiseaseTrends';
 import { AiDemandIntelligence } from '@/pages/district/AiDemandIntelligence';
 import { DistrictAlertsPage } from '@/pages/district/DistrictAlertsPage';
 import { DistrictReportsPage } from '@/pages/district/DistrictReportsPage';
+import { DistrictResourceIntelligencePage } from '@/pages/district/DistrictResourceIntelligencePage';
 
 // Super Admin Pages
 import { SuperAdminDashboard } from '@/pages/super-admin/SuperAdminDashboard';
@@ -949,6 +950,20 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/district/resource-intelligence"
+        element={
+          <ProtectedRoute allowedRoles={['DISTRICT_ADMIN', 'SUPER_ADMIN']}>
+            <AppShell>
+              <DistrictResourceIntelligencePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/district/intelligence"
+        element={<Navigate to="/district/resource-intelligence" replace />}
+      />
+      <Route
         path="/district/reports"
         element={
           <ProtectedRoute allowedRoles={['DISTRICT_ADMIN']}>
@@ -961,6 +976,8 @@ export const AppRoutes: React.FC = () => {
 
       {/* District Admin Aliases (/district-admin/* -> /district/*) */}
       <Route path="/district-admin" element={<Navigate to="/district" replace />} />
+      <Route path="/district-admin/resource-intelligence" element={<Navigate to="/district/resource-intelligence" replace />} />
+      <Route path="/district-admin/intelligence" element={<Navigate to="/district/resource-intelligence" replace />} />
       <Route path="/district-admin/facilities" element={<Navigate to="/district/facilities" replace />} />
       <Route path="/district-admin/facilities/:id" element={<Navigate to="/district/facilities/:id" replace />} />
       <Route path="/district-admin/doctors" element={<Navigate to="/district/doctors" replace />} />

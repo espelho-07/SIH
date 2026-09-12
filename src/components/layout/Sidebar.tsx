@@ -40,6 +40,7 @@ import {
   ListTodo,
   Stethoscope,
   Settings,
+  Radar,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -486,6 +487,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           },
 
           // 4. Public Health & Insights
+          {
+            to: '/district/resource-intelligence',
+            label: 'Resource Intelligence',
+            icon: Radar,
+            color: 'text-teal-700 bg-teal-50',
+            section: 'Public Health & Insights',
+          },
           {
             to: '/district/map',
             label: 'District Map',

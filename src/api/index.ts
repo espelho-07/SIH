@@ -9,3 +9,4 @@ export * from './ashaApi';
 export * from './aiApi';
 export * from './adminApi';
 export * from './operationsApi';
+export * from './intelligenceApi';
