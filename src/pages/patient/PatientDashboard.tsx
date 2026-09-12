@@ -10,6 +10,7 @@ import {
   INITIAL_REFERRALS,
 } from '@/mock/mockData';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Ticket,
   Building2,
@@ -30,6 +31,7 @@ import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher'
 export const PatientDashboard: React.FC = () => {
   const { user } = useAuth();
   const { activeMember } = useFamily();
+  const { t } = useTranslation();
 
   const activeToken =
     INITIAL_LIVE_QUEUE.tokens.find(
@@ -56,10 +58,10 @@ export const PatientDashboard: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-bold tracking-tight text-white sm:text-base">
-                  Ayushman Bharat Citizen Health Portal
+                  {t('patient.portalTitle', 'Ayushman Bharat Citizen Health Portal')}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-teal-700/80 border border-teal-500/50 px-2 py-0.5 text-[10px] font-semibold text-teal-100">
-                  <CheckCircle2 className="h-3 w-3 text-emerald-400" /> ABHA Verified
+                  <CheckCircle2 className="h-3 w-3 text-emerald-400" /> {t('patient.abhaVerified', 'ABHA Verified')}
                 </span>
               </div>
               <p className="text-xs text-teal-200/90 mt-0.5 font-mono">
@@ -75,7 +77,7 @@ export const PatientDashboard: React.FC = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>OPD Active Today</span>
+              <span>{t('patient.opdActiveToday', 'OPD Active Today')}</span>
             </div>
           </div>
         </div>
@@ -108,7 +110,7 @@ export const PatientDashboard: React.FC = () => {
               </div>
 
               <span className="text-sm font-semibold">
-                My Token
+                {t('patient.myToken', 'My Token')}
               </span>
 
             </div>
@@ -133,7 +135,7 @@ export const PatientDashboard: React.FC = () => {
               <div className="sm:min-w-[95px]">
 
                 <p className="text-[11px] font-medium text-slate-500">
-                  Your Token
+                  {t('patient.yourToken', 'Your Token')}
                 </p>
 
                 <p className="mt-0.5 text-3xl font-bold tracking-tight text-teal-800">
@@ -150,7 +152,7 @@ export const PatientDashboard: React.FC = () => {
                 <div>
 
                   <p className="text-[10px] font-medium text-slate-400">
-                    Now Serving
+                    {t('patient.nowServing', 'Now Serving')}
                   </p>
 
                   <p className="mt-1 text-base font-semibold text-slate-900">
@@ -163,7 +165,7 @@ export const PatientDashboard: React.FC = () => {
                 <div>
 
                   <p className="text-[10px] font-medium text-slate-400">
-                    Before You
+                    {t('patient.beforeYou', 'Before You')}
                   </p>
 
                   <p className="mt-1 text-base font-semibold text-slate-900">
@@ -176,7 +178,7 @@ export const PatientDashboard: React.FC = () => {
                 <div>
 
                   <p className="text-[10px] font-medium text-slate-400">
-                    Wait Time
+                    {t('patient.waitTime', 'Wait Time')}
                   </p>
 
                   <p className="mt-1 text-base font-semibold text-amber-600">
@@ -197,7 +199,7 @@ export const PatientDashboard: React.FC = () => {
               <div className="mb-2 flex items-center justify-between">
 
                 <span className="text-[10px] text-slate-400">
-                  Your turn is getting closer
+                  {t('patient.turnCloser', 'Your turn is getting closer')}
                 </span>
 
                 <span className="text-[10px] font-medium text-teal-700">
@@ -230,7 +232,7 @@ export const PatientDashboard: React.FC = () => {
                   size="sm"
                   className="h-7 text-xs px-2.5 rounded-lg border-teal-600 text-teal-700 hover:bg-teal-50 font-semibold cursor-pointer gap-1"
                 >
-                  View Live Queue & History
+                  {t('patient.viewQueueHistory', 'View Live Queue & History')}
                   <ArrowRight className="h-3 w-3" />
                 </Button>
               </Link>
@@ -263,11 +265,11 @@ export const PatientDashboard: React.FC = () => {
                 <div>
 
                   <h3 className="text-sm font-semibold text-slate-900">
-                    My Referral
+                    {t('patient.myReferral', 'My Referral')}
                   </h3>
 
                   <p className="text-[10px] text-slate-400">
-                    Your referred visit
+                    {t('patient.referredVisit', 'Your referred visit')}
                   </p>
 
                 </div>
@@ -287,7 +289,7 @@ export const PatientDashboard: React.FC = () => {
   <div>
 
     <p className="text-[10px] font-medium text-slate-400">
-      Hospital
+      {t('patient.hospital', 'Hospital')}
     </p>
 
     <p className="mt-0.5 text-sm font-semibold text-slate-900">
@@ -302,7 +304,7 @@ export const PatientDashboard: React.FC = () => {
     <div>
 
       <p className="text-[10px] font-medium text-slate-400">
-        Doctor For
+        {t('patient.doctorFor', 'Doctor For')}
       </p>
 
       <p className="mt-0.5 text-xs font-medium text-slate-800">
@@ -315,7 +317,7 @@ export const PatientDashboard: React.FC = () => {
     <div>
 
       <p className="text-[10px] font-medium text-slate-400">
-        Visit Time
+        {t('patient.visitTime', 'Visit Time')}
       </p>
 
       <p className="mt-0.5 text-xs font-medium text-teal-700">
@@ -339,10 +341,10 @@ export const PatientDashboard: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full gap-1.5 text-xs"
+                className="w-full gap-1.5 text-xs font-semibold cursor-pointer"
               >
 
-                View Referral
+                {t('patient.viewReferral', 'View Referral')}
 
                 <ArrowRight className="h-3.5 w-3.5" />
 
@@ -369,20 +371,20 @@ export const PatientDashboard: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                  <Sparkles className="h-3 w-3 text-amber-300" /> PMBJP Jan Aushadhi Priority
+                  <Sparkles className="h-3 w-3 text-amber-300" /> {t('patient.janAushadhiPriority', 'PMBJP Jan Aushadhi Priority')}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-                  <Percent className="h-3 w-3 text-amber-700" /> Up to 80% Generic Savings
+                  <Percent className="h-3 w-3 text-amber-700" /> {t('patient.genericSavings', 'Up to 80% Generic Savings')}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
-                  ● Open Stores Only
+                  ● {t('patient.openStoresOnly', 'Open Stores Only')}
                 </span>
               </div>
               <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
-                Find Medicines & Nearby Pharmacies
+                {t('patient.findMedicinesTitle', 'Find Medicines & Nearby Pharmacies')}
               </h3>
               <p className="mt-0.5 text-xs text-slate-600 max-w-xl">
-                Find currently open Jan Aushadhi Kendras and pharmacies near you, check medicine stock, and call chemists directly.
+                {t('patient.findMedicinesSubtitle', 'Find currently open Jan Aushadhi Kendras and pharmacies near you, check medicine stock, and call chemists directly.')}
               </p>
             </div>
           </div>
@@ -395,7 +397,7 @@ export const PatientDashboard: React.FC = () => {
                 className="w-full sm:w-auto gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs font-bold text-xs h-10 px-4 cursor-pointer"
               >
                 <Pill className="h-4 w-4" />
-                Find Medical Stores
+                {t('patient.findMedicalStores', 'Find Medical Stores')}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </Link>
@@ -417,11 +419,11 @@ export const PatientDashboard: React.FC = () => {
           <div>
 
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">
-              Hospitals Near You
+              {t('patient.hospitalsNearYou', 'Hospitals Near You')}
             </h2>
 
             <p className="mt-1 text-xs text-slate-500">
-              Check hospital location and availability
+              {t('patient.checkAvailability', 'Check hospital location and availability')}
             </p>
 
           </div>
@@ -434,12 +436,12 @@ export const PatientDashboard: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              className="w-full gap-1.5 bg-teal-700 text-xs hover:bg-teal-800 sm:w-auto"
+              className="w-full gap-1.5 bg-teal-700 text-xs hover:bg-teal-800 sm:w-auto font-semibold cursor-pointer"
             >
 
               <Building2 className="h-3.5 w-3.5" />
 
-              Find Hospital
+              {t('patient.findHospital', 'Find Hospital')}
 
               <ArrowRight className="h-3.5 w-3.5" />
 
@@ -499,13 +501,13 @@ export const PatientDashboard: React.FC = () => {
                   {facility.isOpen ? (
 
                     <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
-                      Open
+                      {t('status.open', 'Open')}
                     </span>
 
                   ) : (
 
                     <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500">
-                      Closed
+                      {t('status.closed', 'Closed')}
                     </span>
 
                   )}
@@ -525,7 +527,7 @@ export const PatientDashboard: React.FC = () => {
                       <strong className="font-semibold text-slate-900">
                         {facility.availableBeds}
                       </strong>{' '}
-                      beds
+                      {t('patient.beds', 'beds')}
                     </span>
 
                   </div>
@@ -536,7 +538,7 @@ export const PatientDashboard: React.FC = () => {
                     <strong className="font-semibold">
                       {facility.icuBedsAvailable}
                     </strong>{' '}
-                    ICU
+                    {t('patient.icu', 'ICU')}
 
                   </span>
 
@@ -553,10 +555,10 @@ export const PatientDashboard: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 w-full text-xs"
+                    className="h-8 w-full text-xs font-semibold cursor-pointer"
                   >
 
-                    View Hospital
+                    {t('patient.viewHospital', 'View Hospital')}
 
                   </Button>
 

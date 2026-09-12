@@ -48,14 +48,26 @@ export const triggerGoogleTranslate = (langCode: string) => {
   // 1. Set Google Translate cookies
   try {
     const host = window.location.hostname;
+    // CRITICAL: Set cookies without domain attribute so it works on localhost and all subdomains
     if (targetLang === 'en') {
       document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
       document.cookie = 'googtrans=/en/en; path=/;';
-      document.cookie = `googtrans=/en/en; path=/; domain=${host};`;
+      document.cookie = 'googtrans=/auto/en; path=/;';
     } else {
       document.cookie = `googtrans=/en/${targetLang}; path=/;`;
-      document.cookie = `googtrans=/en/${targetLang}; path=/; domain=${host};`;
+      document.cookie = `googtrans=/auto/${targetLang}; path=/;`;
+    }
+
+    // Also set with domain only if domain has a dot (e.g. production domains)
+    if (host && host.includes('.')) {
+      if (targetLang === 'en') {
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
+        document.cookie = `googtrans=/en/en; path=/; domain=${host};`;
+        document.cookie = `googtrans=/auto/en; path=/; domain=${host};`;
+      } else {
+        document.cookie = `googtrans=/en/${targetLang}; path=/; domain=${host};`;
+        document.cookie = `googtrans=/auto/${targetLang}; path=/; domain=${host};`;
+      }
     }
   } catch (e) {
     console.warn('Could not set googtrans cookie', e);
@@ -79,10 +91,16 @@ export const triggerGoogleTranslate = (langCode: string) => {
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
-      if (applyToSelect() || attempts > 10) {
+      if (applyToSelect()) {
         clearInterval(interval);
+      } else if (attempts >= 8) {
+        clearInterval(interval);
+        // Fallback: If combo isn't mounted yet, reload so the googtrans cookie automatically translates the whole DOM!
+        if (targetLang !== 'en') {
+          window.location.reload();
+        }
       }
-    }, 250);
+    }, 200);
   }
 };
 
