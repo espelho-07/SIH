@@ -38,6 +38,16 @@ import {
   QrCode,
   Building2,
   Phone,
+  Video,
+  Search,
+  Filter,
+  RefreshCw,
+  Eye,
+  Download,
+  Info,
+  ChevronRight,
+  Zap,
+  FlaskConical,
 } from 'lucide-react';
 import { createDoctorPrescribedVisit, calculateTargetDate } from '@/lib/ashaVisitStore';
 
@@ -54,7 +64,7 @@ const SYMPTOM_PRESETS = [
 ];
 
 const DIAGNOSIS_PRESETS = [
-  'Angina Pectoris - Rule out Ischemia',
+  'Angina Pectoris - Rule out CAD / Ischemia',
   'Acute Viral Upper Respiratory Infection (URTI)',
   'Acute Acid Peptic Disease (GERD / Gastritis)',
   'Essential Stage 1 Hypertension',
@@ -131,15 +141,282 @@ const COMMON_RX_PRESETS: Omit<MedicineItem, 'id'>[] = [
   },
 ];
 
-const LAB_TEST_PRESETS = [
-  'Complete Blood Count (CBC)',
-  'Fasting Blood Sugar (FBS)',
-  'HbA1c (Glycated Hb)',
-  '12-Lead ECG',
-  'Lipid Profile Full',
-  'Serum Creatinine & Urea',
-  'Urine Routine & Micro',
-  'Chest X-Ray (PA View)',
+// Categorized Diagnostic Tests for the Side Assistant
+interface TestCategory {
+  category: string;
+  iconName: string;
+  tests: string[];
+}
+
+const CATEGORIZED_TESTS: TestCategory[] = [
+  {
+    category: 'Biochemistry & Sugar',
+    iconName: 'Droplets',
+    tests: [
+      'Fasting Blood Sugar (FBS)',
+      'Postprandial Blood Sugar (PPBS)',
+      'HbA1c (Glycated Hb)',
+      'Lipid Profile Full',
+      'Liver Function Test (LFT)',
+      'Kidney Function Test (KFT / Creatinine)',
+      'Serum Electrolytes (Na+, K+)',
+      'Serum Uric Acid',
+    ],
+  },
+  {
+    category: 'Hematology & Blood',
+    iconName: 'Activity',
+    tests: [
+      'Complete Blood Count (CBC)',
+      'ESR (Sedimentation Rate)',
+      'Blood Group & Rh Typing',
+      'Peripheral Smear for MP',
+      'Serum Ferritin',
+    ],
+  },
+  {
+    category: 'Cardiology & Vitals',
+    iconName: 'Heart',
+    tests: [
+      '12-Lead ECG',
+      '2D Echocardiography',
+      'Troponin-I (Cardiac Biomarker)',
+      'Serum CPK-MB',
+    ],
+  },
+  {
+    category: 'Radiology & Imaging',
+    iconName: 'Sparkles',
+    tests: [
+      'Chest X-Ray (PA View)',
+      'Ultrasound Abdomen (USG)',
+      'X-Ray Both Knees (Standing AP/Lat)',
+      'CT Head / Brain Plain',
+    ],
+  },
+  {
+    category: 'Urine & Renal',
+    iconName: 'FlaskConical',
+    tests: [
+      'Urine Routine & Micro',
+      'Urine Microalbumin',
+      'Urine Culture & Sensitivity',
+    ],
+  },
+];
+
+// 1-Click Fast Disease & Prescription Bundles
+interface DiseaseBundle {
+  id: string;
+  name: string;
+  badge: string;
+  complaint: string;
+  diagnosis: string;
+  meds: Omit<MedicineItem, 'id'>[];
+  tests: string[];
+  advice: string;
+  followUpDays: number;
+  followUpMode: 'OPD' | 'TELECONSULT' | 'ASHA';
+  followUpPurpose: string;
+}
+
+const FAST_DISEASE_BUNDLES: DiseaseBundle[] = [
+  {
+    id: 'bundle_angina',
+    name: 'Angina / Chest Pain Workup',
+    badge: 'Cardiac Triage',
+    complaint: 'Retrosternal chest heaviness on exertion over 3 days, relieved with rest.',
+    diagnosis: 'Angina Pectoris - Rule out CAD / Ischemia',
+    meds: [
+      {
+        name: 'Tab. Sorbitrate 5mg (Sublingual)',
+        dosage: '5 mg',
+        frequency: 'SOS',
+        duration: '15 Days',
+        timing: 'Keep under tongue if chest pain occurs',
+      },
+      {
+        name: 'Tab. Aspirin 75mg Gastro-resistant',
+        dosage: '75 mg',
+        frequency: '1-0-0',
+        duration: '30 Days',
+        timing: 'Morning after breakfast',
+      },
+      {
+        name: 'Tab. Pantoprazole 40mg',
+        dosage: '40 mg',
+        frequency: '1-0-0',
+        duration: '10 Days',
+        timing: 'Before breakfast',
+      },
+      {
+        name: 'Tab. Atorvastatin 20mg',
+        dosage: '20 mg',
+        frequency: '0-0-1',
+        duration: '30 Days',
+        timing: 'Night after dinner',
+      },
+    ],
+    tests: ['12-Lead ECG', 'Lipid Profile Full', 'Troponin-I (Cardiac Biomarker)'],
+    advice: 'Strictly avoid strenuous physical exertion. Low-salt, low-oil diet. Keep Sorbitrate in pocket at all times. Return immediately if pain radiates to left arm or jaw.',
+    followUpDays: 3,
+    followUpMode: 'OPD',
+    followUpPurpose: 'Review ECG & Lipid Profile; evaluate exertion tolerance',
+  },
+  {
+    id: 'bundle_htn',
+    name: 'Stage 1 Hypertension Routine',
+    badge: 'Cardiovascular',
+    complaint: 'Occasional morning occipital headache and dizziness for 1 week.',
+    diagnosis: 'Essential Stage 1 Hypertension',
+    meds: [
+      {
+        name: 'Tab. Telmisartan 40mg',
+        dosage: '40 mg',
+        frequency: '1-0-0',
+        duration: '30 Days',
+        timing: 'Morning after breakfast',
+      },
+      {
+        name: 'Tab. Amlodipine 5mg',
+        dosage: '5 mg',
+        frequency: '0-0-1',
+        duration: '30 Days',
+        timing: 'Night after food',
+      },
+    ],
+    tests: ['Kidney Function Test (KFT / Creatinine)', 'Urine Routine & Micro', '12-Lead ECG', 'Lipid Profile Full'],
+    advice: 'Strict low sodium diet (< 5g salt/day). Avoid pickles, papad, processed salty foods. 30 mins brisk walking daily. Record resting BP morning and evening.',
+    followUpDays: 14,
+    followUpMode: 'OPD',
+    followUpPurpose: 'BP monitoring titration and renal function check',
+  },
+  {
+    id: 'bundle_diabetes',
+    name: 'Type 2 Diabetes Mellitus Review',
+    badge: 'Endocrinology',
+    complaint: 'Increased thirst, nocturia, and persistent generalized fatigue for 2 weeks.',
+    diagnosis: 'Type 2 Diabetes Mellitus - Sub-optimally Controlled',
+    meds: [
+      {
+        name: 'Tab. Metformin 500mg SR',
+        dosage: '500 mg',
+        frequency: '1-0-1',
+        duration: '30 Days',
+        timing: 'With / After meals',
+      },
+      {
+        name: 'Tab. Glimepiride 1mg',
+        dosage: '1 mg',
+        frequency: '1-0-0',
+        duration: '30 Days',
+        timing: '15 mins before breakfast',
+      },
+      {
+        name: 'Tab. Pantoprazole 40mg',
+        dosage: '40 mg',
+        frequency: '1-0-0',
+        duration: '15 Days',
+        timing: 'Before breakfast',
+      },
+    ],
+    tests: ['Fasting Blood Sugar (FBS)', 'Postprandial Blood Sugar (PPBS)', 'HbA1c (Glycated Hb)', 'Kidney Function Test (KFT / Creatinine)'],
+    advice: 'Strict diabetic diet. Avoid sweets, potatoes, white rice. Small frequent meals every 3-4 hours. Inspect feet daily for cuts or sores.',
+    followUpDays: 14,
+    followUpMode: 'TELECONSULT',
+    followUpPurpose: 'Fasting & PPBS blood sugar review; HbA1c review',
+  },
+  {
+    id: 'bundle_urti',
+    name: 'Acute Viral URTI / Bronchitis',
+    badge: 'Respiratory',
+    complaint: 'Dry persistent cough, sore throat, mild fever, and nasal congestion for 3 days.',
+    diagnosis: 'Acute Viral Upper Respiratory Infection (URTI)',
+    meds: [
+      {
+        name: 'Tab. Paracetamol 650mg',
+        dosage: '650 mg',
+        frequency: '1-0-1',
+        duration: '3 Days',
+        timing: 'After Food',
+      },
+      {
+        name: 'Tab. Cetirizine 10mg',
+        dosage: '10 mg',
+        frequency: '0-0-1',
+        duration: '5 Days',
+        timing: 'Night at Bedtime',
+      },
+      {
+        name: 'Tab. Azithromycin 500mg',
+        dosage: '500 mg',
+        frequency: '1-0-0',
+        duration: '3 Days',
+        timing: '1 hr before meal',
+      },
+    ],
+    tests: ['Complete Blood Count (CBC)'],
+    advice: 'Warm saline gargles 3 times daily. Steam inhalation twice a day. Drink plenty of warm water and soups. Rest adequately.',
+    followUpDays: 3,
+    followUpMode: 'TELECONSULT',
+    followUpPurpose: 'Symptom resolution and fever clearance check',
+  },
+  {
+    id: 'bundle_gerd',
+    name: 'Acute Acid Peptic Disease (GERD)',
+    badge: 'Gastroenterology',
+    complaint: 'Severe retrosternal and epigastric burning sensation, sour belching after meals.',
+    diagnosis: 'Acute Acid Peptic Disease (GERD / Gastritis)',
+    meds: [
+      {
+        name: 'Tab. Pantoprazole 40mg',
+        dosage: '40 mg',
+        frequency: '1-0-0',
+        duration: '14 Days',
+        timing: '30 mins before breakfast',
+      },
+      {
+        name: 'Tab. Domperidone 10mg',
+        dosage: '10 mg',
+        frequency: '1-0-1',
+        duration: '7 Days',
+        timing: 'Before meals',
+      },
+    ],
+    tests: ['Complete Blood Count (CBC)', 'Ultrasound Abdomen (USG)'],
+    advice: 'Avoid spicy, deep-fried, acidic, and outside food. Avoid lying down immediately after meals. Elevate head of bed.',
+    followUpDays: 7,
+    followUpMode: 'OPD',
+    followUpPurpose: 'Check relief from epigastric distress',
+  },
+  {
+    id: 'bundle_oa',
+    name: 'Bilateral Knee Osteoarthritis',
+    badge: 'Orthopedics',
+    complaint: 'Bilateral knee joint pain and morning stiffness worsening with climbing stairs.',
+    diagnosis: 'Bilateral Knee Osteoarthritis (Grade 2)',
+    meds: [
+      {
+        name: 'Tab. Paracetamol 650mg',
+        dosage: '650 mg',
+        frequency: '1-0-1',
+        duration: '7 Days',
+        timing: 'After Food (SOS)',
+      },
+      {
+        name: 'Tab. Calcium Carbonate + Vitamin D3',
+        dosage: '500mg + 250IU',
+        frequency: '0-1-0',
+        duration: '30 Days',
+        timing: 'Afternoon with milk',
+      },
+    ],
+    tests: ['X-Ray Both Knees (Standing AP/Lat)', 'Serum Uric Acid'],
+    advice: 'Avoid sitting on the floor or squatting. Use western commode. Quadriceps exercises twice daily. Maintain healthy weight.',
+    followUpDays: 30,
+    followUpMode: 'OPD',
+    followUpPurpose: 'Mobility assessment and joint pain relief check',
+  },
 ];
 
 const ADVICE_PRESETS = [
@@ -151,13 +428,129 @@ const ADVICE_PRESETS = [
   'Return immediately if chest pain or shortness of breath occurs.',
 ];
 
+// Rich Mock Data for Patient History Modal
+const HISTORICAL_LAB_REPORTS = [
+  {
+    id: 'lab_h_01',
+    date: '2026-02-14',
+    testName: 'HbA1c (Glycated Hemoglobin)',
+    value: '7.4 %',
+    normalRange: '< 5.7 % (Normal), 5.7 - 6.4 % (Pre-diabetic)',
+    status: 'ELEVATED',
+    facility: 'Gandhinagar Civil Hospital Central Lab',
+    summary: 'Sub-optimally controlled glycemic control over past 90 days. Metformin titration recommended.',
+  },
+  {
+    id: 'lab_h_02',
+    date: '2026-02-14',
+    testName: 'Fasting Blood Sugar (FBS)',
+    value: '148 mg/dL',
+    normalRange: '70 - 99 mg/dL',
+    status: 'ELEVATED',
+    facility: 'Gandhinagar Civil Hospital Central Lab',
+    summary: 'Elevated fasting blood glucose. Advise dietary compliance.',
+  },
+  {
+    id: 'lab_h_03',
+    date: '2026-02-14',
+    testName: 'Lipid Profile - Total Cholesterol',
+    value: '198 mg/dL',
+    normalRange: '< 200 mg/dL (Desirable)',
+    status: 'BORDERLINE',
+    facility: 'Gandhinagar Civil Hospital Central Lab',
+    summary: 'Borderline elevation. LDL: 124 mg/dL, HDL: 42 mg/dL, Triglycerides: 165 mg/dL.',
+  },
+  {
+    id: 'lab_h_04',
+    date: '2026-02-14',
+    testName: 'Serum Creatinine & Blood Urea',
+    value: '0.92 mg/dL',
+    normalRange: '0.7 - 1.2 mg/dL',
+    status: 'NORMAL',
+    facility: 'Gandhinagar Civil Hospital Central Lab',
+    summary: 'Renal function intact. eGFR > 90 mL/min/1.73m2.',
+  },
+  {
+    id: 'lab_h_05',
+    date: '2026-01-10',
+    testName: '12-Lead Electrocardiogram (ECG)',
+    value: 'Normal Sinus Rhythm',
+    normalRange: 'Rate 60-100 bpm, No acute ST-T changes',
+    status: 'NORMAL',
+    facility: 'Gandhinagar Civil Cardiology Wing',
+    summary: 'Rate: 72 bpm, Normal axis, no pathological Q waves, no acute ischemia seen at rest.',
+  },
+  {
+    id: 'lab_h_06',
+    date: '2025-12-18',
+    testName: 'Chest X-Ray (PA View)',
+    value: 'Clear Lung Fields',
+    normalRange: 'Normal cardiothoracic ratio, clear CPA',
+    status: 'NORMAL',
+    facility: 'Pethapur CHC Radiology',
+    summary: 'Bilateral lung fields clear. Costophrenic angles sharp. CTR normal.',
+  },
+];
+
+const HISTORICAL_ENCOUNTERS = [
+  {
+    id: 'enc_h_01',
+    date: '2026-03-01T10:30:00Z',
+    doctorName: 'Dr. Arvind Patel',
+    specialty: 'MD (Internal Medicine & Cardiology)',
+    facility: 'Gandhinagar Civil Hospital • OPD Room 4',
+    diagnosis: 'Type 2 Diabetes Mellitus with Essential Hypertension',
+    complaint: 'Routine follow-up for blood pressure and diabetes management.',
+    vitals: 'BP: 128/82 mmHg • Pulse: 74 bpm • SpO2: 98% • Weight: 68 kg',
+    notes: 'Patient compliant with Telmisartan. Blood sugar slightly elevated. Advised morning brisk walk and diet control.',
+    prescriptions: ['Tab. Metformin 1000mg SR (1-0-1)', 'Tab. Telmisartan 40mg (1-0-0)', 'Tab. Atorvastatin 10mg (0-0-1)'],
+  },
+  {
+    id: 'enc_h_02',
+    date: '2026-01-20T14:20:00Z',
+    doctorName: 'Dr. Neha Vaghela',
+    specialty: 'MS (Ophthalmology)',
+    facility: 'Gandhinagar Civil Hospital • Eye OPD',
+    diagnosis: 'Diabetic Retinopathy Screening',
+    complaint: 'Annual diabetic eye examination on referral from PHC.',
+    vitals: 'Vision: 6/6 bilateral with corrective glasses',
+    notes: 'Dilated fundus examination completed. Clear media. No evidence of diabetic microaneurysms or macular edema.',
+    prescriptions: ['Carboxymethylcellulose 0.5% Eye Drops (1 drop TDS)'],
+  },
+  {
+    id: 'enc_h_03',
+    date: '2025-12-15T09:45:00Z',
+    doctorName: 'Dr. Priya Sharma',
+    specialty: 'General Physician',
+    facility: 'Pethapur Primary Health Centre (PHC)',
+    diagnosis: 'Acute Bacterial Bronchitis & Mild Dehydration',
+    complaint: 'Persistent productive cough, fever 101F, and weakness for 4 days.',
+    vitals: 'BP: 122/80 mmHg • Pulse: 88 bpm • SpO2: 96% • Temp: 100.8°F',
+    notes: 'Scattered rhonchi heard in right lower zone. Sputum clear. Started on oral antibiotics and bronchodilator.',
+    prescriptions: ['Tab. Azithromycin 500mg (1-0-0)', 'Tab. Paracetamol 650mg (1-0-1)', 'Syrup Ambroxol + Levosalbutamol (2 tsp TDS)'],
+  },
+];
+
+const HISTORICAL_ADMISSIONS = [
+  {
+    id: 'adm_h_01',
+    admitDate: '2025-11-04',
+    dischargeDate: '2025-11-07',
+    facility: 'Gandhinagar Civil Hospital',
+    ward: 'Male Medical Ward - Bed 14',
+    doctor: 'Dr. Arvind Patel',
+    diagnosis: 'Acute Asthmatic Bronchitis with Mild Hypoxia',
+    summary: 'Admitted with dyspnea (SpO2 93% on room air). Treated with nebulization, IV hydrocortisone, and supplemental O2. Discharged hemodynamically stable.',
+  },
+];
+
 export const PatientClinicalWorkspace: React.FC = () => {
   const { id: routePatientId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
   // Queue Tokens
   const queueTokens = INITIAL_LIVE_QUEUE.tokens;
-  
+
   // Find currently selected token or fallback to first
   const activeToken =
     queueTokens.find((t) => t.patientId === routePatientId) ||
@@ -186,15 +579,21 @@ export const PatientClinicalWorkspace: React.FC = () => {
     tokenNumber: activeToken.tokenNumber,
   };
 
-  // Left Sidebar Tab for Patient History
-  const [historyTab, setHistoryTab] = useState<'VISITS' | 'MEDS' | 'LABS'>('VISITS');
+  // State: Patient History Modal
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyModalTab, setHistoryModalTab] = useState<'ALL' | 'VISITS' | 'MEDS' | 'LABS' | 'ADMISSIONS'>('ALL');
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+
+  // State: Side Assistant Active Tab & View Mode
+  const [sideViewMode, setSideViewMode] = useState<'COPILOT' | 'QUICK_HISTORY'>('COPILOT');
+  const [activeCopilotTab, setActiveCopilotTab] = useState<'BUNDLES' | 'REPORTS' | 'APPOINTMENT'>('BUNDLES');
+
+  // Applied Bundle Flash Notification
+  const [bundleAppliedMsg, setBundleAppliedMsg] = useState<string | null>(null);
 
   // Today's Clinical Consultation States
   const [chiefComplaint, setChiefComplaint] = useState(
     'Patient reports retrosternal chest heaviness on exertion over the past 3 days.'
-  );
-  const [examNotes, setExamNotes] = useState(
-    'Pulse 74/min regular, BP 128/82 mmHg. Chest: Clear bilateral, no added sounds. S1 S2 heard normal.'
   );
   const [diagnosis, setDiagnosis] = useState(
     'Angina Pectoris - Rule out CAD / Ischemia'
@@ -228,19 +627,27 @@ export const PatientClinicalWorkspace: React.FC = () => {
     },
   ]);
 
-  // New Medicine Custom Form
+  // Custom Medicine Form
   const [customMedName, setCustomMedName] = useState('');
   const [customMedDosage, setCustomMedDosage] = useState('');
   const [customMedFreq, setCustomMedFreq] = useState('1-0-1');
   const [customMedDuration, setCustomMedDuration] = useState('5 Days');
   const [customMedTiming, setCustomMedTiming] = useState('After Food');
 
-  // Selected Lab Tests
+  // Selected Diagnostic Reports / Lab Tests
   const [selectedTests, setSelectedTests] = useState<string[]>([
     '12-Lead ECG',
     'Lipid Profile Full',
     'Fasting Blood Sugar (FBS)',
   ]);
+
+  // Scheduled Follow-Up Appointment States (Doctor Prescription Assistant)
+  const [followUpDays, setFollowUpDays] = useState<number>(7);
+  const [followUpMode, setFollowUpMode] = useState<'OPD' | 'TELECONSULT' | 'ASHA'>('OPD');
+  const [followUpPurpose, setFollowUpPurpose] = useState<string>(
+    'Review ECG & Lipid Profile; check blood pressure and exertional tolerance.'
+  );
+  const [customFollowUpDate, setCustomFollowUpDate] = useState<string>('');
 
   // Clinical Advice
   const [adviceText, setAdviceText] = useState(
@@ -265,6 +672,34 @@ export const PatientClinicalWorkspace: React.FC = () => {
   const [showRxModal, setShowRxModal] = useState(false);
   const [rxNumber] = useState(`RX-2026-0311-${Math.floor(1000 + Math.random() * 9000)}`);
 
+  // Allergy Conflict Detection
+  const hasPenicillinAllergy = patient.allergies?.some((a) =>
+    a.toLowerCase().includes('penicillin')
+  );
+  const allergyConflictMeds = meds.filter((m) => {
+    const lower = m.name.toLowerCase();
+    return (
+      (hasPenicillinAllergy &&
+        (lower.includes('penicillin') ||
+          lower.includes('amoxicillin') ||
+          lower.includes('ampicillin') ||
+          lower.includes('augmentin'))) ||
+      lower.includes('sulfa')
+    );
+  });
+
+  // Calculate Next Appointment Target Date
+  const getFollowUpDateString = () => {
+    if (customFollowUpDate) return customFollowUpDate;
+    const date = new Date();
+    date.setDate(date.getDate() + followUpDays);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
   // Quick symptom adder
   const handleAddSymptomPreset = (text: string) => {
     if (!chiefComplaint.trim()) {
@@ -277,7 +712,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
   // Quick medicine adder from presets
   const handleAddRxPreset = (item: Omit<MedicineItem, 'id'>) => {
     if (meds.some((m) => m.name.toLowerCase().includes(item.name.toLowerCase().slice(0, 10)))) {
-      return; // Already added
+      return;
     }
     const newMed: MedicineItem = {
       id: `med_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
@@ -327,6 +762,34 @@ export const PatientClinicalWorkspace: React.FC = () => {
     }
   };
 
+  // Apply 1-Click Fast OPD Disease Bundle
+  const handleApplyDiseaseBundle = (bundle: DiseaseBundle) => {
+    setChiefComplaint(bundle.complaint);
+    setDiagnosis(bundle.diagnosis);
+
+    // Map medicines
+    const newMeds: MedicineItem[] = bundle.meds.map((m, idx) => ({
+      id: `med_bundle_${Date.now()}_${idx}`,
+      ...m,
+    }));
+    setMeds(newMeds);
+
+    // Tests
+    setSelectedTests(bundle.tests);
+
+    // Advice & Follow up
+    setAdviceText(bundle.advice);
+    setFollowUpDays(bundle.followUpDays);
+    setFollowUpMode(bundle.followUpMode);
+    setFollowUpPurpose(bundle.followUpPurpose);
+
+    // Flash notification
+    setBundleAppliedMsg(`Applied "${bundle.name}" package! Prescriptions, tests, and follow-up loaded.`);
+    setTimeout(() => {
+      setBundleAppliedMsg(null);
+    }, 4000);
+  };
+
   const handleCompleteConsultation = () => {
     if (prescribeAshaVisit) {
       createDoctorPrescribedVisit({
@@ -360,6 +823,34 @@ export const PatientClinicalWorkspace: React.FC = () => {
       navigate(`/doctor/patients/${nextToken.patientId}`);
     }
   };
+
+  // Filtered Patient History Items for Modal
+  const filterQuery = historySearchQuery.toLowerCase().trim();
+
+  const filteredEncounters = HISTORICAL_ENCOUNTERS.filter(
+    (e) =>
+      !filterQuery ||
+      e.diagnosis.toLowerCase().includes(filterQuery) ||
+      e.doctorName.toLowerCase().includes(filterQuery) ||
+      e.notes.toLowerCase().includes(filterQuery) ||
+      e.facility.toLowerCase().includes(filterQuery)
+  );
+
+  const filteredLabs = HISTORICAL_LAB_REPORTS.filter(
+    (l) =>
+      !filterQuery ||
+      l.testName.toLowerCase().includes(filterQuery) ||
+      l.summary.toLowerCase().includes(filterQuery) ||
+      l.value.toLowerCase().includes(filterQuery)
+  );
+
+  const filteredAdmissions = HISTORICAL_ADMISSIONS.filter(
+    (a) =>
+      !filterQuery ||
+      a.diagnosis.toLowerCase().includes(filterQuery) ||
+      a.facility.toLowerCase().includes(filterQuery) ||
+      a.summary.toLowerCase().includes(filterQuery)
+  );
 
   return (
     <div className="space-y-4">
@@ -410,7 +901,11 @@ export const PatientClinicalWorkspace: React.FC = () => {
                       : 'bg-slate-100 text-slate-700 hover:bg-teal-50 hover:text-teal-900 border border-slate-200'
                   }`}
                 >
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${isCurrent ? 'bg-teal-900 text-teal-100' : 'bg-slate-200 text-slate-700'}`}>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
+                      isCurrent ? 'bg-teal-900 text-teal-100' : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
                     {t.tokenNumber}
                   </span>
                   <span className="max-w-[110px] truncate">{t.patientName.split(' ')[0]}</span>
@@ -429,11 +924,11 @@ export const PatientClinicalWorkspace: React.FC = () => {
       </div>
 
       {/* ================================================== */}
-      {/* ACTIVE PATIENT HERO CARD: DEMOGRAPHICS + VITALS BAR */}
+      {/* ACTIVE PATIENT HERO CARD: DEMOGRAPHICS + HISTORY BUTTON */}
       {/* ================================================== */}
       <Card className="border-teal-200 bg-gradient-to-r from-teal-50/70 via-emerald-50/40 to-white shadow-xs">
         <CardContent className="p-4 sm:p-5 space-y-3.5">
-          {/* Top Row: Patient Info & Fast Referral Action */}
+          {/* Top Row: Patient Info & PROMINENT HISTORY BUTTON */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-teal-100 pb-3.5">
             <div className="flex items-start sm:items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-xs">
@@ -455,7 +950,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-2">
-                  <span><strong>{patient.age}</strong> Yrs • <strong>{patient.gender}</strong></span>
+                  <span>
+                    <strong>{patient.age}</strong> Yrs • <strong>{patient.gender}</strong>
+                  </span>
                   <span>•</span>
                   <span className="flex items-center gap-1 font-mono">
                     <Phone className="h-3 w-3 text-slate-400" />
@@ -467,22 +964,36 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
             </div>
 
-            {/* Top Right Action Shortcuts */}
-            <div className="flex items-center gap-2 self-end lg:self-center">
+            {/* Top Right Action Shortcuts with PROMINENT PATIENT HISTORY BUTTON */}
+            <div className="flex items-center gap-2 flex-wrap self-end lg:self-center">
+              {/* === THE REQUESTED DEDICATED PATIENT HISTORY BUTTON === */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowHistoryModal(true)}
+                className="gap-2 text-xs bg-white text-teal-800 border-teal-400 hover:bg-teal-50 font-black min-h-[38px] shadow-xs cursor-pointer ring-2 ring-teal-200/60"
+              >
+                <FileText className="h-4 w-4 text-teal-700" />
+                <span>View Patient History</span>
+                <span className="rounded-full bg-teal-100 text-teal-900 text-[10px] font-black px-1.5 py-0.5 border border-teal-300">
+                  8 Records
+                </span>
+              </Button>
+
               <Link to="/doctor/referrals">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 text-xs bg-white text-teal-900 border-teal-300 hover:bg-teal-50 font-bold min-h-[38px] shadow-2xs"
+                  className="gap-1.5 text-xs bg-white text-slate-700 border-slate-300 hover:bg-slate-50 font-bold min-h-[38px] shadow-2xs"
                 >
-                  <GitBranch className="h-3.5 w-3.5 text-teal-700" />
-                  <span>Refer to Specialist</span>
+                  <GitBranch className="h-3.5 w-3.5 text-slate-500" />
+                  <span>Refer</span>
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Bottom Row: KEY VITALS STRIP (Always Visible - No Tabs Required) */}
+          {/* Bottom Row: KEY VITALS STRIP */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
             {/* Blood Pressure */}
             <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 shadow-2xs flex items-center gap-2.5">
@@ -491,7 +1002,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">BP (Resting)</p>
-                <p className="text-sm font-black text-slate-900">128 / 82 <span className="text-[10px] font-normal text-slate-500">mmHg</span></p>
+                <p className="text-sm font-black text-slate-900">
+                  128 / 82 <span className="text-[10px] font-normal text-slate-500">mmHg</span>
+                </p>
                 <span className="text-[10px] font-bold text-emerald-700">● Normal</span>
               </div>
             </div>
@@ -503,7 +1016,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pulse Rate</p>
-                <p className="text-sm font-black text-slate-900">74 <span className="text-[10px] font-normal text-slate-500">bpm</span></p>
+                <p className="text-sm font-black text-slate-900">
+                  74 <span className="text-[10px] font-normal text-slate-500">bpm</span>
+                </p>
                 <span className="text-[10px] font-bold text-emerald-700">● Regular</span>
               </div>
             </div>
@@ -515,7 +1030,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Blood Sugar (F)</p>
-                <p className="text-sm font-black text-amber-900">148 <span className="text-[10px] font-normal text-amber-700">mg/dL</span></p>
+                <p className="text-sm font-black text-amber-900">
+                  148 <span className="text-[10px] font-normal text-amber-700">mg/dL</span>
+                </p>
                 <span className="text-[10px] font-bold text-amber-800">▲ Mild High</span>
               </div>
             </div>
@@ -547,154 +1064,377 @@ export const PatientClinicalWorkspace: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Dynamic Allergy Conflict Alert Banner */}
+      {allergyConflictMeds.length > 0 && (
+        <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-4 flex items-center justify-between gap-3 shadow-xs animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-rose-600 text-white shadow-xs">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-rose-950 uppercase tracking-wide">
+                Critical Safety Warning: Allergy Contraindication Detected
+              </h4>
+              <p className="text-xs text-rose-800 mt-0.5">
+                Patient is allergic to Penicillin. You have added:{' '}
+                <strong>{allergyConflictMeds.map((m) => m.name).join(', ')}</strong>.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              allergyConflictMeds.forEach((m) => handleRemoveMed(m.id));
+            }}
+            className="bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold shrink-0"
+          >
+            Remove Contraindicated Meds
+          </Button>
+        </div>
+      )}
+
+      {/* Bundle Applied Flash Notification */}
+      {bundleAppliedMsg && (
+        <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs font-bold text-emerald-900 flex items-center gap-2 shadow-xs transition-all">
+          <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" />
+          <span>{bundleAppliedMsg}</span>
+        </div>
+      )}
+
       {/* ================================================== */}
-      {/* 2-COLUMN MAIN WORKSPACE: HISTORY (4) + TREATMENT (8) */}
+      {/* 2-COLUMN MAIN WORKSPACE: SIDE COPILOT (4) + TREATMENT (8) */}
       {/* ================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* ========================================== */}
-        {/* LEFT COLUMN: PATIENT MEDICAL RECORD & HISTORY (4 COLS) */}
-        {/* ========================================== */}
+        {/* ================================================== */}
+        {/* LEFT COLUMN: SIMPLIFIED DOCTOR CLINICAL ASSISTANT (4 COLS) */}
+        {/* ================================================== */}
         <div className="lg:col-span-4 space-y-3">
-          <Card className="border-slate-200 bg-white shadow-2xs">
-            <CardHeader className="p-3.5 pb-2 border-b border-slate-100 flex flex-row items-center justify-between">
-              <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-teal-700" />
-                <span>Patient Health History</span>
-              </CardTitle>
-              <div className="flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-bold">
+          <Card className="border-teal-200/90 bg-white shadow-2xs overflow-hidden">
+            {/* Side Header with View Switcher */}
+            <CardHeader className="p-3 pb-2 border-b border-slate-100 bg-gradient-to-r from-teal-50/70 to-slate-50 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-teal-700 text-white shadow-2xs">
+                    <Zap className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-800">
+                      Clinical Copilot & Rx Helper
+                    </CardTitle>
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      Fast 1-click presets & appointment scheduler
+                    </p>
+                  </div>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setHistoryTab('VISITS')}
-                  className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
-                    historyTab === 'VISITS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
-                  }`}
+                  onClick={() => setShowHistoryModal(true)}
+                  className="text-[11px] font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 cursor-pointer bg-white px-2 py-1 rounded-md border border-teal-200"
+                  title="Open full patient history in modal"
                 >
-                  Visits
+                  <Eye className="h-3 w-3" />
+                  <span>History</span>
                 </button>
+              </div>
+
+              {/* Copilot Sub-Tabs: Bundles vs Reports vs Appointment */}
+              <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-center text-[11px] font-bold">
                 <button
                   type="button"
-                  onClick={() => setHistoryTab('MEDS')}
-                  className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
-                    historyTab === 'MEDS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  onClick={() => setActiveCopilotTab('BUNDLES')}
+                  className={`py-1.5 px-1 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    activeCopilotTab === 'BUNDLES'
+                      ? 'bg-teal-700 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Past Rx
+                  <Zap className="h-3 w-3" />
+                  <span>1-Click Rx</span>
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => setHistoryTab('LABS')}
-                  className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
-                    historyTab === 'LABS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  onClick={() => setActiveCopilotTab('REPORTS')}
+                  className={`py-1.5 px-1 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    activeCopilotTab === 'REPORTS'
+                      ? 'bg-teal-700 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Labs
+                  <FlaskConical className="h-3 w-3" />
+                  <span>Reports ({selectedTests.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveCopilotTab('APPOINTMENT')}
+                  className={`py-1.5 px-1 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    activeCopilotTab === 'APPOINTMENT'
+                      ? 'bg-teal-700 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Calendar className="h-3 w-3" />
+                  <span>Follow-Up</span>
                 </button>
               </div>
             </CardHeader>
 
-            <CardContent className="p-3.5 space-y-3 max-h-[560px] overflow-y-auto">
-              {/* Chronic Conditions Box */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Known Chronic Conditions:
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {patient.chronicConditions?.map((c, i) => (
-                    <span
-                      key={i}
-                      className="rounded-md bg-white border border-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-800 shadow-2xs"
-                    >
-                      {c}
+            <CardContent className="p-3 space-y-3 max-h-[640px] overflow-y-auto">
+              {/* ================================================== */}
+              {/* TAB 1: 1-CLICK FAST DISEASE & Rx BUNDLES */}
+              {/* ================================================== */}
+              {activeCopilotTab === 'BUNDLES' && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-900 flex items-center gap-1">
+                      <Sparkles className="h-3 w-3 text-teal-600" />
+                      Standard OPD Disease Regimens:
                     </span>
-                  ))}
-                </div>
-              </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Click to populate</span>
+                  </div>
 
-              {/* TAB 1: PAST VISITS TIMELINE */}
-              {historyTab === 'VISITS' && (
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Previous Doctor Encounters:
-                  </span>
-                  {patient.timeline.slice(0, 4).map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-xl border border-slate-200 p-2.5 bg-white space-y-1 hover:border-teal-300 transition-colors shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className="text-xs font-bold text-slate-900">{item.title}</h4>
-                        <span className="text-[10px] font-medium text-slate-400">{formatDate(item.date)}</span>
-                      </div>
-                      <p className="text-[11px] text-slate-600 leading-relaxed">{item.summary}</p>
-                      {item.doctorName && (
-                        <span className="text-[10px] font-semibold text-teal-700 block">
-                          Dr. {item.doctorName}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                  <div className="space-y-2">
+                    {FAST_DISEASE_BUNDLES.map((bundle) => {
+                      const isSelected = diagnosis === bundle.diagnosis;
+                      return (
+                        <div
+                          key={bundle.id}
+                          className={`rounded-xl border p-2.5 transition-all text-left space-y-1.5 ${
+                            isSelected
+                              ? 'border-teal-400 bg-teal-50/60 shadow-xs ring-1 ring-teal-300'
+                              : 'border-slate-200 bg-white hover:border-teal-200 hover:bg-slate-50/70 shadow-2xs'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-1.5">
+                            <div>
+                              <span className="text-[9px] font-extrabold text-teal-700 uppercase tracking-wide bg-teal-100/70 px-1.5 py-0.2 rounded">
+                                {bundle.badge}
+                              </span>
+                              <h4 className="text-xs font-black text-slate-900 mt-0.5">
+                                {bundle.name}
+                              </h4>
+                            </div>
 
-              {/* TAB 2: PAST PRESCRIPTIONS */}
-              {historyTab === 'MEDS' && (
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Past Prescribed Medicines:
-                  </span>
-                  {INITIAL_PRESCRIPTIONS.map((rx) => (
-                    <div
-                      key={rx.id}
-                      className="rounded-xl border border-slate-200 p-2.5 bg-white space-y-2 shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900">{rx.diagnosisSummary}</span>
-                        <StatusBadge status={rx.status} />
-                      </div>
-                      <div className="space-y-1 border-t border-slate-100 pt-1.5">
-                        {rx.items.map((it) => (
-                          <div key={it.id} className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-slate-800">{it.medicineName}</span>
-                            <span className="text-[11px] text-slate-500 font-mono">{it.frequency}</span>
+                            <Button
+                              size="sm"
+                              onClick={() => handleApplyDiseaseBundle(bundle)}
+                              className={`text-[10px] h-7 px-2.5 font-bold cursor-pointer shrink-0 ${
+                                isSelected
+                                  ? 'bg-teal-700 hover:bg-teal-800 text-white'
+                                  : 'bg-slate-100 hover:bg-teal-600 hover:text-white text-slate-700'
+                              }`}
+                            >
+                              {isSelected ? '✓ Loaded' : 'Apply Bundle'}
+                            </Button>
                           </div>
-                        ))}
+
+                          <p className="text-[11px] text-slate-600 line-clamp-1">
+                            <strong>Rx:</strong> {bundle.meds.map((m) => m.name.split(' ')[1] || m.name).join(', ')}
+                          </p>
+
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-100">
+                            <span className="flex items-center gap-1 font-semibold text-slate-700">
+                              <FlaskConical className="h-3 w-3 text-teal-600" />
+                              {bundle.tests.length} Labs Ordered
+                            </span>
+                            <span className="flex items-center gap-1 font-semibold text-teal-700">
+                              <Calendar className="h-3 w-3" />
+                              In {bundle.followUpDays} Days ({bundle.followUpMode})
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ================================================== */}
+              {/* TAB 2: SIMPLIFIED DIAGNOSTIC REPORTS ORDERER */}
+              {/* ================================================== */}
+              {activeCopilotTab === 'REPORTS' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-900">
+                      Order Diagnostic Investigations:
+                    </span>
+                    <span className="text-[11px] font-bold text-teal-800 bg-teal-100 px-2 py-0.5 rounded-full">
+                      {selectedTests.length} Selected
+                    </span>
+                  </div>
+
+                  {CATEGORIZED_TESTS.map((cat, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 space-y-1.5"
+                    >
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                        <Activity className="h-3.5 w-3.5 text-teal-700" />
+                        <span>{cat.category}</span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1">
+                        {cat.tests.map((test) => {
+                          const isSel = selectedTests.includes(test);
+                          return (
+                            <button
+                              key={test}
+                              type="button"
+                              onClick={() => toggleTest(test)}
+                              className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                                isSel
+                                  ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50 hover:text-teal-900'
+                              }`}
+                            >
+                              {isSel ? '✓ ' : '+ '}
+                              {test}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* TAB 3: PAST LAB TESTS */}
-              {historyTab === 'LABS' && (
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Diagnostic Test Reports:
-                  </span>
-                  {INITIAL_DIAGNOSTIC_ORDERS.map((lab) => (
-                    <div
-                      key={lab.id}
-                      className="rounded-xl border border-slate-200 p-2.5 bg-white space-y-1.5 shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900">{lab.testName}</span>
-                        <StatusBadge status={lab.status} />
-                      </div>
-                      {lab.resultSummary && (
-                        <p className="text-[11px] font-medium text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                          {lab.resultSummary}
-                        </p>
-                      )}
+              {/* ================================================== */}
+              {/* TAB 3: APPOINTMENT & FOLLOW-UP SCHEDULER */}
+              {/* ================================================== */}
+              {activeCopilotTab === 'APPOINTMENT' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-900">
+                      Schedule Patient Follow-Up:
+                    </span>
+                    <span className="text-[10px] text-teal-700 font-bold">Auto-syncs to Rx</span>
+                  </div>
+
+                  {/* Follow-up Timeline Buttons */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">
+                      Target Follow-up Timeline:
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[3, 7, 14, 21, 30, 60].map((days) => (
+                        <button
+                          key={days}
+                          type="button"
+                          onClick={() => {
+                            setFollowUpDays(days);
+                            setCustomFollowUpDate('');
+                          }}
+                          className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            followUpDays === days && !customFollowUpDate
+                              ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-teal-300'
+                          }`}
+                        >
+                          {days < 7 ? `${days} Days` : days === 7 ? '1 Week' : days === 14 ? '2 Weeks' : days === 21 ? '3 Weeks' : `${days / 30} Month`}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Consultation Mode */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">
+                      Follow-up Consultation Mode:
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setFollowUpMode('OPD')}
+                        className={`p-2 rounded-xl text-xs font-bold border text-left flex items-center gap-2 cursor-pointer ${
+                          followUpMode === 'OPD'
+                            ? 'bg-teal-50 border-teal-400 text-teal-900 ring-1 ring-teal-300'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Building2 className="h-4 w-4 text-teal-700 shrink-0" />
+                        <div>
+                          <p className="font-black text-xs">In-Person OPD</p>
+                          <p className="text-[10px] text-slate-400">Civil Hospital Room 4</p>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setFollowUpMode('TELECONSULT')}
+                        className={`p-2 rounded-xl text-xs font-bold border text-left flex items-center gap-2 cursor-pointer ${
+                          followUpMode === 'TELECONSULT'
+                            ? 'bg-teal-50 border-teal-400 text-teal-900 ring-1 ring-teal-300'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Video className="h-4 w-4 text-teal-700 shrink-0" />
+                        <div>
+                          <p className="font-black text-xs">Teleconsult Video</p>
+                          <p className="text-[10px] text-slate-400">ABDM e-Hospital</p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Follow-up Purpose */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">
+                      Clinical Goal / Reason for Next Visit:
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {[
+                        'Review Lab Reports',
+                        'Blood Pressure Check',
+                        'Blood Sugar Review',
+                        'Symptom Resolution Check',
+                        'Medicine Titration',
+                      ].map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setFollowUpPurpose(p)}
+                          className="text-[10px] font-semibold bg-slate-100 hover:bg-teal-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 cursor-pointer"
+                        >
+                          + {p}
+                        </button>
+                      ))}
+                    </div>
+
+                    <textarea
+                      rows={2}
+                      value={followUpPurpose}
+                      onChange={(e) => setFollowUpPurpose(e.target.value)}
+                      placeholder="e.g. Review ECG and lipid profile, evaluate chest discomfort..."
+                      className="w-full text-xs p-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                    />
+                  </div>
+
+                  {/* Scheduled Summary Card */}
+                  <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-3 text-xs space-y-1">
+                    <div className="flex items-center justify-between text-teal-900 font-black">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5 text-teal-700" />
+                        Next Visit: {getFollowUpDateString()}
+                      </span>
+                      <span className="text-[10px] font-extrabold uppercase bg-teal-200 px-1.5 py-0.2 rounded">
+                        {followUpMode}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-teal-800 line-clamp-2">
+                      <strong>Purpose:</strong> {followUpPurpose}
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* ========================================== */}
+        {/* ================================================== */}
         {/* RIGHT COLUMN: TODAY'S CLINICAL TREATMENT & Rx (8 COLS) */}
-        {/* ========================================== */}
+        {/* ================================================== */}
         <div className="lg:col-span-8 space-y-4">
           <Card className="border-teal-200 bg-white shadow-xs">
             <CardHeader className="p-4 sm:p-5 pb-3 border-b border-slate-100 bg-teal-50/40 flex flex-row items-center justify-between">
@@ -724,7 +1464,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">1</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                      1
+                    </span>
                     <span>Chief Complaints & Symptoms:</span>
                   </label>
                   <span className="text-[11px] text-slate-400">Click chips to quickly append:</span>
@@ -759,7 +1501,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">2</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                      2
+                    </span>
                     <span>Provisional / Confirmed Diagnosis:</span>
                   </label>
                   <span className="text-[11px] text-slate-400">Popular diagnoses:</span>
@@ -798,7 +1542,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
               <div className="space-y-3 border-t border-slate-200 pt-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">3</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                      3
+                    </span>
                     <span>Prescription Medicines (Rx - {meds.length} Added):</span>
                   </label>
                   <span className="text-[11px] text-teal-800 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
@@ -825,7 +1571,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 <div className="rounded-xl border border-slate-200 overflow-hidden bg-white shadow-2xs">
                   {meds.length === 0 ? (
                     <div className="p-6 text-center text-xs text-slate-500">
-                      No medicines prescribed yet. Click any preset chip above or use the form below to add.
+                      No medicines prescribed yet. Click any preset chip above or use the side assistant to add.
                     </div>
                   ) : (
                     <table className="w-full text-left text-xs">
@@ -870,7 +1616,10 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 </div>
 
                 {/* Custom Medicine Adder Form */}
-                <form onSubmit={handleAddCustomMed} className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                <form
+                  onSubmit={handleAddCustomMed}
+                  className="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200"
+                >
                   <div className="sm:col-span-4">
                     <input
                       type="text"
@@ -935,31 +1684,36 @@ export const PatientClinicalWorkspace: React.FC = () => {
               <div className="space-y-3 border-t border-slate-200 pt-4">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">4</span>
-                    <span>Diagnostic Lab Tests & Investigation:</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                      4
+                    </span>
+                    <span>Diagnostic Lab Tests & Investigations ({selectedTests.length} Ordered):</span>
                   </label>
-                  <span className="text-[11px] text-slate-400">Select tests to order:</span>
+                  <span className="text-[11px] text-teal-800 font-bold">Use side helper to add more</span>
                 </div>
 
+                {/* Selected Tests Tags */}
                 <div className="flex flex-wrap gap-1.5">
-                  {LAB_TEST_PRESETS.map((test, i) => {
-                    const isSel = selectedTests.includes(test);
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => toggleTest(test)}
-                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                          isSel
-                            ? 'bg-teal-100 text-teal-900 border-teal-300 font-bold'
-                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                        }`}
+                  {selectedTests.length === 0 ? (
+                    <span className="text-xs text-slate-400 italic">No lab tests ordered for this encounter.</span>
+                  ) : (
+                    selectedTests.map((test) => (
+                      <span
+                        key={test}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold bg-teal-100 text-teal-900 border border-teal-300 px-2.5 py-1 rounded-lg shadow-2xs"
                       >
-                        {isSel ? '✓ ' : '+ '}
-                        {test}
-                      </button>
-                    );
-                  })}
+                        <FlaskConical className="h-3 w-3 text-teal-700" />
+                        <span>{test}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleTest(test)}
+                          className="text-teal-700 hover:text-rose-600 ml-0.5 cursor-pointer"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))
+                  )}
                 </div>
 
                 {/* Doctor Clinical Advice & Diet */}
@@ -999,109 +1753,151 @@ export const PatientClinicalWorkspace: React.FC = () => {
               </div>
 
               {/* ================================================== */}
-              {/* STEP 5: PRESCRIBE ASHA HOME VISIT (STREAMLINED) */}
+              {/* STEP 5: SCHEDULED APPOINTMENT & ASHA HOME VISIT */}
               {/* ================================================== */}
-              <div className="rounded-2xl border border-teal-200 bg-teal-50/50 p-4 space-y-3">
+              <div className="space-y-3 border-t border-slate-200 pt-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-xl bg-teal-100 text-teal-800">
-                      <Home className="h-4 w-4" />
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[11px] font-bold text-white">
+                      5
+                    </span>
+                    <span>Follow-Up Appointment & Community Care:</span>
+                  </label>
+                  <span className="text-[11px] font-bold text-teal-800">Synced with OPD Calendar</span>
+                </div>
+
+                {/* Follow Up Appointment Display Banner */}
+                <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
+                      <Calendar className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-slate-900">
-                        Prescribe Village ASHA Worker Follow-up Visit
-                      </h3>
-                      <p className="text-[11px] text-slate-600">
-                        Frontline home monitoring for vitals & medication compliance.
+                      <div className="flex items-center gap-2">
+                        <strong className="text-sm font-black text-slate-900">
+                          Next Follow-Up: {getFollowUpDateString()}
+                        </strong>
+                        <span className="rounded-full bg-teal-200/80 px-2 py-0.5 text-[10px] font-extrabold text-teal-900 uppercase">
+                          {followUpMode === 'OPD' ? '🏥 In-Person OPD' : followUpMode === 'TELECONSULT' ? '💻 Teleconsultation' : '🏡 ASHA Visit'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        <strong>Purpose:</strong> {followUpPurpose}
                       </p>
                     </div>
                   </div>
 
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={prescribeAshaVisit}
-                      onChange={(e) => setPrescribeAshaVisit(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-700"></div>
-                  </label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setActiveCopilotTab('APPOINTMENT')}
+                    className="text-xs bg-white text-teal-800 border-teal-300 font-bold shrink-0 self-end sm:self-center"
+                  >
+                    Adjust Date / Mode
+                  </Button>
                 </div>
 
-                {prescribeAshaVisit && (
-                  <div className="space-y-3 pt-1 border-t border-teal-100 text-xs">
-                    {/* Interval */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <span className="font-bold text-slate-700">
-                        Schedule Visit In:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[1, 2, 3, 5, 7, 14].map((days) => (
-                          <button
-                            key={days}
-                            type="button"
-                            onClick={() => setAshaPrescribedDays(days)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                              ashaPrescribedDays === days
-                                ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
-                                : 'bg-white text-slate-700 border-slate-200 hover:border-teal-400'
-                            }`}
-                          >
-                            In {days} {days === 1 ? 'Day' : 'Days'}
-                          </button>
-                        ))}
+                {/* ASHA Community Follow-Up Visit Accordion */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-xl bg-teal-100 text-teal-800">
+                        <Home className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-bold text-slate-900">
+                          Prescribe Village ASHA Worker Follow-up Visit
+                        </h3>
+                        <p className="text-[11px] text-slate-600">
+                          Frontline home monitoring for vitals & medication compliance.
+                        </p>
                       </div>
                     </div>
 
-                    {/* Prescribed Checks */}
-                    <div>
-                      <span className="font-bold text-slate-700 block mb-1.5">
-                        Checks to Perform at Citizen's Home:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          'Blood Pressure',
-                          'Pulse Rate',
-                          'Blood Sugar',
-                          'SpO2 Check',
-                          'Medication Compliance',
-                          'Diet Advice',
-                        ].map((chk) => {
-                          const isSel = ashaSelectedChecks.includes(chk);
-                          return (
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={prescribeAshaVisit}
+                        onChange={(e) => setPrescribeAshaVisit(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-700"></div>
+                    </label>
+                  </div>
+
+                  {prescribeAshaVisit && (
+                    <div className="space-y-3 pt-1 border-t border-slate-200 text-xs">
+                      {/* Interval */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span className="font-bold text-slate-700">Schedule Visit In:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[1, 2, 3, 5, 7, 14].map((days) => (
                             <button
-                              key={chk}
+                              key={days}
                               type="button"
-                              onClick={() => toggleAshaCheck(chk)}
-                              className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                                isSel
-                                  ? 'bg-teal-700 text-white border-teal-700 font-bold'
-                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              onClick={() => setAshaPrescribedDays(days)}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                                ashaPrescribedDays === days
+                                  ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:border-teal-400'
                               }`}
                             >
-                              {isSel ? '✓ ' : '+ '}
-                              {chk}
+                              In {days} {days === 1 ? 'Day' : 'Days'}
                             </button>
-                          );
-                        })}
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Prescribed Checks */}
+                      <div>
+                        <span className="font-bold text-slate-700 block mb-1.5">
+                          Checks to Perform at Citizen's Home:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            'Blood Pressure',
+                            'Pulse Rate',
+                            'Blood Sugar',
+                            'SpO2 Check',
+                            'Medication Compliance',
+                            'Diet Advice',
+                          ].map((chk) => {
+                            const isSel = ashaSelectedChecks.includes(chk);
+                            return (
+                              <button
+                                key={chk}
+                                type="button"
+                                onClick={() => toggleAshaCheck(chk)}
+                                className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                                  isSel
+                                    ? 'bg-teal-700 text-white border-teal-700 font-bold'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                {isSel ? '✓ ' : '+ '}
+                                {chk}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Instructions */}
+                      <div>
+                        <span className="font-bold text-slate-700 block mb-1">
+                          Doctor Instructions for ASHA:
+                        </span>
+                        <input
+                          type="text"
+                          value={ashaInstructions}
+                          onChange={(e) => setAshaInstructions(e.target.value)}
+                          placeholder="e.g. Check resting BP, verify morning Aspirin 75mg adherence..."
+                          className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                        />
                       </div>
                     </div>
-
-                    {/* Instructions */}
-                    <div>
-                      <span className="font-bold text-slate-700 block mb-1">
-                        Doctor Instructions for ASHA:
-                      </span>
-                      <input
-                        type="text"
-                        value={ashaInstructions}
-                        onChange={(e) => setAshaInstructions(e.target.value)}
-                        placeholder="e.g. Check resting BP, verify morning Aspirin 75mg adherence..."
-                        className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                      />
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* ================================================== */}
@@ -1115,7 +1911,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
                       <div>
                         <strong className="text-sm font-black">Consultation Finished & Rx Issued!</strong>
                         <p className="text-xs text-emerald-800">
-                          Prescription #{rxNumber} synced to ABHA Vault and Hospital Pharmacy.
+                          Prescription #{rxNumber} synced to ABHA Vault, Hospital Pharmacy & OPD Follow-Up Calendar.
                         </p>
                       </div>
                     </div>
@@ -1171,6 +1967,317 @@ export const PatientClinicalWorkspace: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* ================================================== */}
+      {/* COMPREHENSIVE PATIENT HISTORY MODAL (ABHA EHR RECORDS) */}
+      {/* ================================================== */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+          <div className="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl border border-slate-200 p-5 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-black text-slate-900">
+                      Longitudinal Patient Health History (ABHA EHR)
+                    </h3>
+                    <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 border border-emerald-300">
+                      ● Verified Records
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {patient.name} ({patient.age}Y • {patient.gender}) • ABHA ID: <span className="font-mono font-bold text-slate-700">{patient.abhaId}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowHistoryModal(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Critical Allergies & Chronic Conditions Header Ribbon */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-2.5 flex items-center gap-2.5">
+                <ShieldAlert className="h-4 w-4 text-rose-700 shrink-0" />
+                <div className="text-xs">
+                  <span className="font-bold text-rose-900 block">Critical Allergies:</span>
+                  <span className="font-black text-rose-800">
+                    {patient.allergies?.join(', ') || 'No known drug allergies'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-2.5 flex items-center gap-2.5">
+                <Activity className="h-4 w-4 text-teal-700 shrink-0" />
+                <div className="text-xs">
+                  <span className="font-bold text-teal-900 block">Known Chronic Conditions:</span>
+                  <span className="font-black text-teal-800">
+                    {patient.chronicConditions?.join(' • ') || 'None recorded'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Bar & Category Filter Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+              <div className="relative flex-1">
+                <Search className="h-4 w-4 absolute left-3 top-2.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search past diagnoses, lab reports, doctor notes, medicines..."
+                  value={historySearchQuery}
+                  onChange={(e) => setHistorySearchQuery(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-slate-50/60"
+                />
+              </div>
+
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 text-xs font-bold">
+                {[
+                  { id: 'ALL', label: 'All (8)' },
+                  { id: 'VISITS', label: `Visits (${filteredEncounters.length})` },
+                  { id: 'LABS', label: `Lab & Diagnostics (${filteredLabs.length})` },
+                  { id: 'MEDS', label: 'Past Prescriptions' },
+                  { id: 'ADMISSIONS', label: 'Admissions' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setHistoryModalTab(tab.id as any)}
+                    className={`px-2.5 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                      historyModalTab === tab.id
+                        ? 'bg-teal-700 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Body: Scrollable Records List */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+              {/* ENCOUNTERS / VISITS */}
+              {(historyModalTab === 'ALL' || historyModalTab === 'VISITS') && (
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                    Doctor Encounters & Outpatient Consultations:
+                  </span>
+                  {filteredEncounters.map((enc) => (
+                    <div
+                      key={enc.id}
+                      className="rounded-xl border border-slate-200 p-3.5 bg-white space-y-2 hover:border-teal-300 transition-all shadow-2xs"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-slate-900">{enc.diagnosis}</span>
+                            <span className="rounded-md bg-teal-50 text-teal-800 text-[10px] font-bold px-1.5 py-0.2 border border-teal-200">
+                              OPD Visit
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500">{enc.facility}</p>
+                        </div>
+                        <div className="text-left sm:text-right">
+                          <span className="text-xs font-bold text-teal-800">{enc.doctorName}</span>
+                          <p className="text-[10px] text-slate-400">{formatDate(enc.date)}</p>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-700 leading-relaxed">
+                        <strong className="text-slate-900">Clinical Notes:</strong> {enc.notes}
+                      </p>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-100 text-[11px]">
+                        <span className="font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                          {enc.vitals}
+                        </span>
+
+                        <div className="flex flex-wrap gap-1">
+                          {enc.prescriptions.map((p, idx) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-semibold bg-teal-50 text-teal-900 px-2 py-0.5 rounded border border-teal-200"
+                            >
+                              💊 {p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* DIAGNOSTIC LAB & IMAGING REPORTS */}
+              {(historyModalTab === 'ALL' || historyModalTab === 'LABS') && (
+                <div className="space-y-2 pt-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                    Diagnostic Lab & Radiology Investigations:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {filteredLabs.map((lab) => (
+                      <div
+                        key={lab.id}
+                        className="rounded-xl border border-slate-200 p-3 bg-white space-y-2 shadow-2xs hover:border-teal-300 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-1">
+                          <div>
+                            <h4 className="text-xs font-black text-slate-900">{lab.testName}</h4>
+                            <p className="text-[10px] text-slate-400">{lab.date} • {lab.facility}</p>
+                          </div>
+                          <span
+                            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
+                              lab.status === 'NORMAL'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : lab.status === 'ELEVATED'
+                                ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                            }`}
+                          >
+                            {lab.status}
+                          </span>
+                        </div>
+
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-baseline justify-between">
+                          <div>
+                            <span className="text-[10px] text-slate-400 block">Observed Value</span>
+                            <span className="text-sm font-black text-slate-900">{lab.value}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] text-slate-400 block">Reference</span>
+                            <span className="text-[10px] font-medium text-slate-600">{lab.normalRange}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-slate-600 leading-normal">{lab.summary}</p>
+
+                        <div className="flex items-center justify-end pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!selectedTests.includes(lab.testName)) {
+                                setSelectedTests([...selectedTests, lab.testName]);
+                              }
+                            }}
+                            className="text-[10px] font-bold text-teal-700 hover:text-teal-900 bg-teal-50 px-2 py-1 rounded border border-teal-200 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Plus className="h-3 w-3" />
+                            <span>Order in Today's Rx</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* PAST PRESCRIPTIONS */}
+              {(historyModalTab === 'ALL' || historyModalTab === 'MEDS') && (
+                <div className="space-y-2 pt-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                    Past Prescriptions & Medication Regimens:
+                  </span>
+                  {INITIAL_PRESCRIPTIONS.map((rx) => (
+                    <div
+                      key={rx.id}
+                      className="rounded-xl border border-slate-200 p-3 bg-white space-y-2 shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                        <div>
+                          <span className="text-xs font-bold text-slate-900">{rx.diagnosisSummary}</span>
+                          <p className="text-[10px] text-slate-400">Prescribed by {rx.doctorName} • {formatDate(rx.issuedAt)}</p>
+                        </div>
+                        <StatusBadge status={rx.status} />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {rx.items.map((it) => (
+                          <div
+                            key={it.id}
+                            className="flex items-center justify-between text-xs p-1.5 rounded-lg bg-slate-50 border border-slate-100"
+                          >
+                            <div>
+                              <strong className="text-slate-900">{it.medicineName}</strong>
+                              <span className="text-[11px] text-slate-500 ml-2 font-mono">{it.frequency}</span>
+                              <span className="text-[11px] text-slate-500 ml-2">({it.duration})</span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleAddRxPreset({
+                                  name: it.medicineName,
+                                  dosage: it.dosage,
+                                  frequency: it.frequency.slice(0, 5),
+                                  duration: it.duration,
+                                  timing: it.instructions || 'After food',
+                                });
+                              }}
+                              className="text-[10px] font-bold text-teal-700 hover:text-teal-900 bg-white px-2 py-0.5 rounded border border-teal-200 cursor-pointer flex items-center gap-1 shadow-2xs"
+                            >
+                              <Plus className="h-3 w-3" />
+                              <span>Re-Prescribe</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* HOSPITAL ADMISSIONS */}
+              {(historyModalTab === 'ALL' || historyModalTab === 'ADMISSIONS') && (
+                <div className="space-y-2 pt-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                    Inpatient Admissions & Discharge Summaries:
+                  </span>
+                  {filteredAdmissions.map((adm) => (
+                    <div
+                      key={adm.id}
+                      className="rounded-xl border border-slate-200 p-3 bg-white space-y-2 shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                        <div>
+                          <strong className="text-xs font-black text-slate-900">{adm.diagnosis}</strong>
+                          <p className="text-[10px] text-slate-500">{adm.facility} • {adm.ward}</p>
+                        </div>
+                        <span className="text-[11px] font-bold text-slate-600 font-mono">
+                          {adm.admitDate} to {adm.dischargeDate}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-700 leading-relaxed">{adm.summary}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-xs">
+              <span className="text-slate-500">
+                Data securely retrieved from Government of Gujarat ABDM Health Locker.
+              </span>
+              <Button
+                onClick={() => setShowHistoryModal(false)}
+                className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs"
+              >
+                Done / Close History
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================================================== */}
       {/* OFFICIAL PRINTABLE PRESCRIPTION SLIP MODAL */}
@@ -1261,26 +2368,39 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 </table>
               </div>
 
-              {/* Investigations & Advice */}
+              {/* Investigations & Follow-Up Appointment */}
               <div className="grid grid-cols-2 gap-3 text-xs border-t border-slate-200 pt-3">
                 <div>
                   <span className="font-bold text-slate-900 block mb-1">Investigations Ordered:</span>
                   <ul className="list-disc list-inside text-[11px] text-slate-700 space-y-0.5">
-                    {selectedTests.map((t, i) => (
-                      <li key={i}>{t}</li>
-                    ))}
+                    {selectedTests.length === 0 ? (
+                      <li className="text-slate-400">None</li>
+                    ) : (
+                      selectedTests.map((t, i) => <li key={i}>{t}</li>)
+                    )}
                   </ul>
                 </div>
 
                 <div>
-                  <span className="font-bold text-slate-900 block mb-1">Advice & Follow-up:</span>
-                  <p className="text-[11px] text-slate-700 leading-relaxed">{adviceText}</p>
+                  <span className="font-bold text-slate-900 block mb-1">
+                    Scheduled Follow-Up:
+                  </span>
+                  <p className="text-[11px] font-black text-teal-900">
+                    • Date: {getFollowUpDateString()} ({followUpMode})
+                  </p>
+                  <p className="text-[11px] text-slate-600 mt-0.5">{followUpPurpose}</p>
                   {prescribeAshaVisit && (
                     <p className="text-[11px] font-bold text-teal-800 mt-1">
                       • ASHA Home Visit scheduled in {ashaPrescribedDays} days ({calculateTargetDate('2026-03-11', ashaPrescribedDays)}).
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Advice */}
+              <div className="border-t border-slate-200 pt-2 text-xs">
+                <span className="font-bold text-slate-900 block mb-1">Advice & Precautions:</span>
+                <p className="text-[11px] text-slate-700 leading-relaxed">{adviceText}</p>
               </div>
 
               {/* Footer Sign & QR Code */}
