@@ -48,25 +48,18 @@ export const triggerGoogleTranslate = (langCode: string) => {
   // 1. Set Google Translate cookies
   try {
     const host = window.location.hostname;
-    // CRITICAL: Set cookies without domain attribute so it works on localhost and all subdomains
     if (targetLang === 'en') {
       document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      document.cookie = 'googtrans=/en/en; path=/;';
-      document.cookie = 'googtrans=/auto/en; path=/;';
+      document.cookie = 'googtrans=; Max-Age=-99999999; path=/;';
+      if (host && host.includes('.')) {
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${host};`;
+      }
     } else {
       document.cookie = `googtrans=/en/${targetLang}; path=/;`;
-      document.cookie = `googtrans=/auto/${targetLang}; path=/;`;
-    }
-
-    // Also set with domain only if domain has a dot (e.g. production domains)
-    if (host && host.includes('.')) {
-      if (targetLang === 'en') {
-        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
-        document.cookie = `googtrans=/en/en; path=/; domain=${host};`;
-        document.cookie = `googtrans=/auto/en; path=/; domain=${host};`;
-      } else {
+      if (host && host.includes('.')) {
         document.cookie = `googtrans=/en/${targetLang}; path=/; domain=${host};`;
-        document.cookie = `googtrans=/auto/${targetLang}; path=/; domain=${host};`;
+        document.cookie = `googtrans=/en/${targetLang}; path=/; domain=.${host};`;
       }
     }
   } catch (e) {
@@ -77,10 +70,24 @@ export const triggerGoogleTranslate = (langCode: string) => {
   const applyToSelect = () => {
     const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
     if (select) {
-      if (select.value !== targetLang) {
-        select.value = targetLang;
-        select.dispatchEvent(new Event('change'));
+      const desiredVal = targetLang === 'en' ? '' : targetLang;
+      let matchedIndex = -1;
+
+      for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === desiredVal) {
+          matchedIndex = i;
+          break;
+        }
       }
+
+      if (matchedIndex !== -1) {
+        select.selectedIndex = matchedIndex;
+      } else if (targetLang === 'en') {
+        select.selectedIndex = 0;
+      }
+
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      select.dispatchEvent(new Event('input', { bubbles: true }));
       return true;
     }
     return false;
