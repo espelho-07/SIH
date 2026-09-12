@@ -109,15 +109,12 @@ import { RolesPermissionsPage } from '@/pages/super-admin/RolesPermissionsPage';
 import { AiModelRegistryPage } from '@/pages/super-admin/AiModelRegistryPage';
 import { AuditLogsPage } from '@/pages/super-admin/AuditLogsPage';
 import { SuperAdminSettingsPage } from '@/pages/super-admin/SuperAdminSettingsPage';
-import { AllRolesDemoShowcase } from '@/pages/demo/AllRolesDemoShowcase';
 
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public Landing, Demo & Authentication */}
+      {/* Public Landing & Authentication */}
       <Route path="/" element={<LandingPage />} />
-      <Route path="/demo" element={<AllRolesDemoShowcase />} />
-      <Route path="/wireframes" element={<AllRolesDemoShowcase />} />
       <Route path="/login" element={<Login />} />
       <Route path="/patient/login" element={<Login />} />
       <Route path="/403" element={<Unauthorized />} />
