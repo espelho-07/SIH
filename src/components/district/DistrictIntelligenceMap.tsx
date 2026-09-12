@@ -34,7 +34,9 @@ export const DistrictIntelligenceMap: React.FC<DistrictIntelligenceMapProps> = (
       mapInstanceRef.current = null;
     }
 
-    const tileUrl = import.meta.env.VITE_MAP_TILE_URL || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const tileUrl =
+      import.meta.env.VITE_MAP_TILE_URL ||
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
     // Center on Gandhinagar District
     const map = L.map(mapContainerRef.current, {
@@ -45,8 +47,10 @@ export const DistrictIntelligenceMap: React.FC<DistrictIntelligenceMapProps> = (
     });
 
     L.tileLayer(tileUrl, {
-      attribution: '&copy; OpenStreetMap contributors | HealthConnect GIS',
-      maxZoom: 18,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
     }).addTo(map);
 
     const layerGroup = L.layerGroup().addTo(map);

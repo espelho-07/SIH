@@ -41,6 +41,211 @@ const POPULAR_MEDICINES = [
   'ORS Sachet',
 ];
 
+interface MedicalStoresMapProps {
+  stores: MedicalStore[];
+  selectedStoreId: string | null;
+  onSelectStore: (store: MedicalStore) => void;
+  resetBoundsTrigger?: number;
+}
+
+const MedicalStoresMap: React.FC<MedicalStoresMapProps> = ({
+  stores,
+  selectedStoreId,
+  onSelectStore,
+  resetBoundsTrigger,
+}) => {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const layerGroupRef = useRef<L.LayerGroup | null>(null);
+  const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
+
+  // Initialize Leaflet Map once on mount
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    // Fast, reliable CartoDB Voyager tiles (never blocked by CORS or tile access policy)
+    const tileUrl =
+      import.meta.env.VITE_MAP_TILE_URL ||
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+    const map = L.map(mapContainerRef.current, {
+      center: [23.2268, 72.6515], // Gandhinagar center
+      zoom: 13,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
+
+    L.tileLayer(tileUrl, {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(map);
+
+    const layerGroup = L.layerGroup().addTo(map);
+    layerGroupRef.current = layerGroup;
+    mapInstanceRef.current = map;
+
+    // Force size invalidation in case of parent layout or flex transitions
+    const t1 = setTimeout(() => {
+      map.invalidateSize();
+    }, 60);
+
+    const t2 = setTimeout(() => {
+      map.invalidateSize();
+      if (stores.length > 0) {
+        try {
+          const bounds = L.latLngBounds(
+            stores.map((s) => [s.coordinates.lat, s.coordinates.lng])
+          );
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+        } catch (e) {
+          // ignore
+        }
+      }
+    }, 250);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      map.remove();
+      mapInstanceRef.current = null;
+      layerGroupRef.current = null;
+      markersMapRef.current.clear();
+    };
+  }, []);
+
+  // Window resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle manual reset bounds trigger from parent
+  useEffect(() => {
+    if (!resetBoundsTrigger || !mapInstanceRef.current || stores.length === 0) return;
+    try {
+      const bounds = L.latLngBounds(
+        stores.map((s) => [s.coordinates.lat, s.coordinates.lng])
+      );
+      mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    } catch (e) {
+      // ignore
+    }
+  }, [resetBoundsTrigger, stores]);
+
+  // Update Markers whenever stores or selectedStoreId changes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const layerGroup = layerGroupRef.current;
+    if (!map || !layerGroup) return;
+
+    layerGroup.clearLayers();
+    markersMapRef.current.clear();
+
+    if (stores.length === 0) return;
+
+    const latLngs: [number, number][] = [];
+
+    stores.forEach((store) => {
+      const isGovt = store.isJanAushadhi;
+      const isSelected = store.id === selectedStoreId;
+      const markerBg = isSelected ? '#0f766e' : isGovt ? '#0d9488' : '#2563eb';
+
+      latLngs.push([store.coordinates.lat, store.coordinates.lng]);
+
+      const customIcon = L.divIcon({
+        className: 'custom-medical-pin',
+        html: `
+          <div style="
+            background: ${markerBg};
+            color: white;
+            padding: ${isSelected ? '6px 12px' : '5px 10px'};
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            border: ${isSelected ? '2.5px solid #f59e0b' : '2px solid white'};
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transform: ${isSelected ? 'scale(1.12)' : 'scale(1)'};
+            transition: all 0.2s ease;
+            cursor: pointer;
+          ">
+            <span>${isGovt ? '🏛️ PMBJP' : '💊 Pharmacy'}</span>
+            <span>(${store.distanceKm}km)</span>
+          </div>
+        `,
+        iconSize: [115, 30],
+        iconAnchor: [57, 15],
+      });
+
+      const marker = L.marker([store.coordinates.lat, store.coordinates.lng], {
+        icon: customIcon,
+      }).addTo(layerGroup);
+
+      marker.bindPopup(`
+        <div style="font-family: system-ui, -apple-system, sans-serif; padding: 4px; min-width: 220px; max-width: 260px;">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+            <span style="background: ${isGovt ? '#ccfbf1' : '#dbeafe'}; color: ${isGovt ? '#0f766e' : '#1e40af'}; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
+              ${isGovt ? '🏛️ Jan Aushadhi (Govt)' : '💊 Private Pharmacy'}
+            </span>
+            <span style="font-size: 10px; font-weight: 700; color: #059669;">● Open Now</span>
+          </div>
+          <strong style="font-size: 13px; color: #0f172a; display: block; line-height: 1.3; margin-bottom: 2px;">${store.name}</strong>
+          <span style="font-size: 11px; color: #64748b; display: block; margin-bottom: 6px;">📍 ${store.area} • ${store.distanceKm} km away</span>
+          <p style="font-size: 11px; margin: 0 0 8px 0; font-weight: 700; color: #059669;">
+            Timings: ${store.timings}
+          </p>
+          <div style="display: flex; gap: 6px;">
+            <a href="tel:${store.phone}" style="flex: 1; text-align: center; background: #0f766e; color: white; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700;">
+              📞 Call
+            </a>
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.fullAddress}`)}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: #f1f5f9; color: #334155; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700; border: 1px solid #cbd5e1;">
+              🗺️ Route
+            </a>
+          </div>
+        </div>
+      `);
+
+      marker.on('click', () => {
+        onSelectStore(store);
+      });
+
+      markersMapRef.current.set(store.id, marker);
+    });
+  }, [stores, selectedStoreId]);
+
+  // When selectedStoreId changes, fly to it and open popup
+  useEffect(() => {
+    if (!selectedStoreId || !mapInstanceRef.current) return;
+    const store = stores.find((s) => s.id === selectedStoreId);
+    if (store) {
+      mapInstanceRef.current.flyTo([store.coordinates.lat, store.coordinates.lng], 15, {
+        duration: 0.8,
+      });
+      const marker = markersMapRef.current.get(store.id);
+      if (marker) {
+        marker.openPopup();
+      }
+    }
+  }, [selectedStoreId, stores]);
+
+  return (
+    <div
+      ref={mapContainerRef}
+      className="h-[420px] sm:h-[520px] w-full min-h-[420px] relative z-0 bg-slate-100"
+    />
+  );
+};
+
 export const NearbyMedicalStores: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'JAN_AUSHADHI' | '24X7'>('ALL');
@@ -200,214 +405,15 @@ export const NearbyMedicalStores: React.FC = () => {
     return result;
   }, [searchQuery, selectedFilter, activePrescriptionFilter, activeRxMedicines]);
 
-  // Leaflet Map Reference
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const layerGroupRef = useRef<L.LayerGroup | null>(null);
-  const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
+  // Reset bounds counter to trigger map fitting
+  const [resetBoundsTrigger, setResetBoundsTrigger] = useState(0);
 
-  // Initialize Leaflet Map once
-  useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
-    if ((mapContainerRef.current as any)._leaflet_id) {
-      delete (mapContainerRef.current as any)._leaflet_id;
-    }
-
-    const tileUrl =
-      import.meta.env.VITE_MAP_TILE_URL ||
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-    const map = L.map(mapContainerRef.current, {
-      center: [23.2268, 72.6515], // Gandhinagar center
-      zoom: 13,
-      zoomControl: true,
-      scrollWheelZoom: true,
-    });
-
-    L.tileLayer(tileUrl, {
-      attribution: '&copy; OpenStreetMap | Sanjeevani Network',
-      maxZoom: 18,
-    }).addTo(map);
-
-    const layerGroup = L.layerGroup().addTo(map);
-    layerGroupRef.current = layerGroup;
-    mapInstanceRef.current = map;
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-      layerGroupRef.current = null;
-      markersMapRef.current.clear();
-    };
-  }, []);
-
-  // Update Markers whenever filteredStores or selectedStoreId changes
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    const layerGroup = layerGroupRef.current;
-    if (!map || !layerGroup) return;
-
-    layerGroup.clearLayers();
-    markersMapRef.current.clear();
-
-    if (filteredStores.length === 0) return;
-
-    const latLngs: [number, number][] = [];
-
-    filteredStores.forEach((store) => {
-      const isGovt = store.isJanAushadhi;
-      const isSelected = store.id === selectedStoreId;
-      const markerBg = isSelected
-        ? '#0f766e'
-        : isGovt
-        ? '#0d9488'
-        : '#2563eb';
-
-      latLngs.push([store.coordinates.lat, store.coordinates.lng]);
-
-      const customIcon = L.divIcon({
-        className: 'custom-medical-pin',
-        html: `
-          <div style="
-            background: ${markerBg};
-            color: white;
-            padding: ${isSelected ? '6px 12px' : '5px 10px'};
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 800;
-            white-space: nowrap;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-            border: ${isSelected ? '2.5px solid #f59e0b' : '2px solid white'};
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transform: ${isSelected ? 'scale(1.12)' : 'scale(1)'};
-            transition: all 0.2s ease;
-            cursor: pointer;
-          ">
-            <span>${isGovt ? '🏛️ PMBJP' : '💊 Pharmacy'}</span>
-            <span>(${store.distanceKm}km)</span>
-          </div>
-        `,
-        iconSize: [115, 30],
-        iconAnchor: [57, 15],
-      });
-
-      const marker = L.marker([store.coordinates.lat, store.coordinates.lng], {
-        icon: customIcon,
-      }).addTo(layerGroup);
-
-      marker.bindPopup(`
-        <div style="font-family: system-ui, -apple-system, sans-serif; padding: 4px; min-width: 220px; max-width: 260px;">
-          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-            <span style="background: ${isGovt ? '#ccfbf1' : '#dbeafe'}; color: ${isGovt ? '#0f766e' : '#1e40af'}; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
-              ${isGovt ? '🏛️ Jan Aushadhi (Govt)' : '💊 Private Pharmacy'}
-            </span>
-            <span style="font-size: 10px; font-weight: 700; color: #059669;">● Open Now</span>
-          </div>
-          <strong style="font-size: 13px; color: #0f172a; display: block; line-height: 1.3; margin-bottom: 2px;">${store.name}</strong>
-          <span style="font-size: 11px; color: #64748b; display: block; margin-bottom: 6px;">📍 ${store.area} • ${store.distanceKm} km away</span>
-          <p style="font-size: 11px; margin: 0 0 8px 0; font-weight: 700; color: #059669;">
-            Timings: ${store.timings}
-          </p>
-          <div style="display: flex; gap: 6px;">
-            <a href="tel:${store.phone}" style="flex: 1; text-align: center; background: #0f766e; color: white; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700;">
-              📞 Call
-            </a>
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.fullAddress}`)}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: #f1f5f9; color: #334155; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700; border: 1px solid #cbd5e1;">
-              🗺️ Route
-            </a>
-          </div>
-        </div>
-      `);
-
-      marker.on('click', () => {
-        setSelectedStoreId(store.id);
-      });
-
-      markersMapRef.current.set(store.id, marker);
-    });
-
-    if (latLngs.length > 0 && viewMode === 'MAP') {
-      try {
-        const bounds = L.latLngBounds(latLngs);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-      } catch (err) {
-        // ignore
-      }
-    }
-  }, [filteredStores, selectedStoreId, viewMode]);
-
-  // When switching to MAP view -> invalidate map size and fit bounds
-  useEffect(() => {
-    if (viewMode === 'MAP') {
-      const t1 = setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 50);
-
-      const t2 = setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-          if (filteredStores.length > 0) {
-            try {
-              const bounds = L.latLngBounds(
-                filteredStores.map((s) => [s.coordinates.lat, s.coordinates.lng])
-              );
-              mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-            } catch (err) {
-              // ignore
-            }
-          }
-        }
-      }, 200);
-
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-      };
-    }
-  }, [viewMode, filteredStores]);
-
-  // Window resize handler
-  useEffect(() => {
-    const handleResize = () => {
-      if (viewMode === 'MAP' && mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [viewMode]);
+  const handleResetMapBounds = () => {
+    setResetBoundsTrigger((prev) => prev + 1);
+  };
 
   const handleLocateStore = (store: MedicalStore) => {
     setSelectedStoreId(store.id);
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([store.coordinates.lat, store.coordinates.lng], 15, {
-        duration: 0.8,
-      });
-      const marker = markersMapRef.current.get(store.id);
-      if (marker) {
-        marker.openPopup();
-      }
-    }
-  };
-
-  const handleResetMapBounds = () => {
-    if (mapInstanceRef.current && filteredStores.length > 0) {
-      const bounds = L.latLngBounds(
-        filteredStores.map((s) => [s.coordinates.lat, s.coordinates.lng])
-      );
-      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-    }
   };
 
   // Handle Reservation Submit
@@ -616,44 +622,50 @@ export const NearbyMedicalStores: React.FC = () => {
       {/* ================================================== */}
       {/* VIEW MODE 1: MAP VIEW */}
       {/* ================================================== */}
-      <div className={viewMode === 'MAP' ? 'block space-y-4' : 'hidden'}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Main Map Card */}
-          <div className="lg:col-span-7">
-            <Card className="border-slate-200 overflow-hidden shadow-xs sticky top-4">
-              <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4 text-teal-700" />
-                    <span>Map View: Open Medical Stores</span>
-                  </span>
-                  <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800">
-                    {filteredStores.length} stores
-                  </span>
-                </div>
+      {viewMode === 'MAP' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {/* Main Map Card */}
+            <div className="lg:col-span-7">
+              <Card className="border-slate-200 overflow-hidden shadow-xs sticky top-4">
+                <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4 text-teal-700" />
+                      <span>Map View: Open Medical Stores</span>
+                    </span>
+                    <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800">
+                      {filteredStores.length} stores
+                    </span>
+                  </div>
 
-                <div className="flex items-center gap-3 text-[11px]">
-                  <span className="flex items-center gap-1 font-bold text-teal-800">
-                    <span className="h-2.5 w-2.5 rounded-full bg-teal-700" />
-                    Jan Aushadhi (Govt)
-                  </span>
-                  <span className="flex items-center gap-1 font-bold text-blue-800">
-                    <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                    Private Pharmacy
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleResetMapBounds}
-                    className="ml-1 text-[11px] font-bold text-teal-700 hover:text-teal-900 underline cursor-pointer"
-                    title="Reset map view to show all stores"
-                  >
-                    Fit All
-                  </button>
+                  <div className="flex items-center gap-3 text-[11px]">
+                    <span className="flex items-center gap-1 font-bold text-teal-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-teal-700" />
+                      Jan Aushadhi (Govt)
+                    </span>
+                    <span className="flex items-center gap-1 font-bold text-blue-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                      Private Pharmacy
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleResetMapBounds}
+                      className="ml-1 text-[11px] font-bold text-teal-700 hover:text-teal-900 underline cursor-pointer"
+                      title="Reset map view to show all stores"
+                    >
+                      Fit All
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div ref={mapContainerRef} className="h-[420px] sm:h-[520px] w-full" />
-            </Card>
-          </div>
+                <MedicalStoresMap
+                  stores={filteredStores}
+                  selectedStoreId={selectedStoreId}
+                  onSelectStore={handleLocateStore}
+                  resetBoundsTrigger={resetBoundsTrigger}
+                />
+              </Card>
+            </div>
 
           {/* Interactive Stores Sidebar */}
           <div className="lg:col-span-5 space-y-3">
@@ -792,6 +804,7 @@ export const NearbyMedicalStores: React.FC = () => {
           </div>
         </div>
       </div>
+    )}
 
       {/* ================================================== */}
       {/* VIEW MODE 2: LIST VIEW OF OPEN STORES */}

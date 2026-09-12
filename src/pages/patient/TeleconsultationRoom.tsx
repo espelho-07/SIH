@@ -33,6 +33,8 @@ import {
   Calendar,
   Pill,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Heart,
   Activity,
   Award,
@@ -371,6 +373,9 @@ export const TeleconsultationRoom: React.FC = () => {
     'ALL' | 'RECENT' | 'ONLINE' | 'SPECIALISTS'
   >('ALL');
   const [searchDoctorQuery, setSearchDoctorQuery] = useState('');
+
+  // Collapsible Call History Preview State
+  const [isHistoryCollapsed, setIsHistoryCollapsed] = useState<boolean>(true);
 
   // Call duration counter
   const [callDuration, setCallDuration] = useState<number>(0);
@@ -1126,97 +1131,123 @@ export const TeleconsultationRoom: React.FC = () => {
             </div>
           </div>
 
-          {/* Recent Completed Consultations / Call History Preview */}
+          {/* Recent Completed Consultations / Call History Preview (Collapsible) */}
           <Card className="border-slate-200 bg-white shadow-2xs overflow-hidden">
-            <div className="bg-slate-50 p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div
+              onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
+              className="bg-slate-50 p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-slate-100/80 transition-colors select-none"
+            >
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-100/70 text-teal-800">
                   <History className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900">
-                    Recent Consultation Call History
-                  </h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-black text-slate-900">
+                      Recent Consultation Call History
+                    </h4>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                      {PAST_COMPLETED_CONSULTATIONS.length} Consultations
+                    </span>
+                  </div>
                   <p className="text-[11px] text-slate-500">
                     Completed online teleconsultations and doctor notes on your ABHA record
                   </p>
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/patient/teleconsultation-history')}
-                className="text-xs font-bold text-teal-800 border-teal-300 hover:bg-teal-50 gap-1.5 h-8 cursor-pointer"
-              >
-                <span>View All History ({PAST_COMPLETED_CONSULTATIONS.length + 1})</span>
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/patient/teleconsultation-history')}
+                  className="text-xs font-bold text-teal-800 border-teal-300 hover:bg-teal-50 gap-1.5 h-8 cursor-pointer"
+                >
+                  <span>View All History ({PAST_COMPLETED_CONSULTATIONS.length + 1})</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
+                  className="text-xs font-bold text-slate-700 hover:bg-slate-200/70 gap-1 h-8 px-2.5 cursor-pointer"
+                >
+                  <span>{isHistoryCollapsed ? 'Show Details' : 'Hide Details'}</span>
+                  {isHistoryCollapsed ? (
+                    <ChevronDown className="h-4 w-4 text-slate-500" />
+                  ) : (
+                    <ChevronUp className="h-4 w-4 text-slate-500" />
+                  )}
+                </Button>
+              </div>
             </div>
 
-            <CardContent className="p-0 divide-y divide-slate-100">
-              {PAST_COMPLETED_CONSULTATIONS.map((hist) => (
-                <div
-                  key={hist.id}
-                  className="p-4 sm:p-4.5 hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-                >
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-black text-xs border border-slate-200">
-                      {hist.doctorName.split(' ')[1]?.slice(0, 2) || 'DR'}
-                    </div>
-
-                    <div className="min-w-0 space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <strong className="text-xs font-black text-slate-900 truncate">
-                          {hist.doctorName}
-                        </strong>
-                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                          ● Completed
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          {hist.tokenNumber}
-                        </span>
+            {!isHistoryCollapsed && (
+              <CardContent className="p-0 divide-y divide-slate-100 animate-in fade-in duration-200">
+                {PAST_COMPLETED_CONSULTATIONS.map((hist) => (
+                  <div
+                    key={hist.id}
+                    className="p-4 sm:p-4.5 hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 font-black text-xs border border-slate-200">
+                        {hist.doctorName.split(' ')[1]?.slice(0, 2) || 'DR'}
                       </div>
 
-                      <p className="text-[11px] text-teal-800 font-semibold truncate">
-                        {hist.specialty} • {hist.hospital}
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <strong className="text-xs font-black text-slate-900 truncate">
+                            {hist.doctorName}
+                          </strong>
+                          <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            ● Completed
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {hist.tokenNumber}
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] text-teal-800 font-semibold truncate">
+                          {hist.specialty} • {hist.hospital}
+                        </p>
+
+                        <p className="text-[11px] text-slate-600">
+                          <strong>Diagnosis:</strong> {hist.diagnosis}
+                        </p>
+
+                        <p className="text-[10px] text-slate-500 truncate">
+                          <strong>Rx Summary:</strong> {hist.rxSummary}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-left sm:text-right shrink-0 space-y-1">
+                      <div className="text-xs font-bold text-slate-800 flex items-center sm:justify-end gap-1">
+                        <Calendar className="h-3 w-3 text-slate-400" />
+                        <span>{hist.date}</span>
+                        <span className="text-slate-400">•</span>
+                        <span>{hist.time}</span>
+                      </div>
+
+                      <p className="text-[10px] text-slate-500 font-mono">
+                        Duration: {hist.duration}
                       </p>
 
-                      <p className="text-[11px] text-slate-600">
-                        <strong>Diagnosis:</strong> {hist.diagnosis}
-                      </p>
-
-                      <p className="text-[10px] text-slate-500 truncate">
-                        <strong>Rx Summary:</strong> {hist.rxSummary}
-                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate('/patient/records')}
+                        className="text-[10px] font-bold text-teal-700 hover:text-teal-900 h-6 px-2 -mr-2 cursor-pointer"
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        View ABHA Prescription
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="text-left sm:text-right shrink-0 space-y-1">
-                    <div className="text-xs font-bold text-slate-800 flex items-center sm:justify-end gap-1">
-                      <Calendar className="h-3 w-3 text-slate-400" />
-                      <span>{hist.date}</span>
-                      <span className="text-slate-400">•</span>
-                      <span>{hist.time}</span>
-                    </div>
-
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      Duration: {hist.duration}
-                    </p>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate('/patient/records')}
-                      className="text-[10px] font-bold text-teal-700 hover:text-teal-900 h-6 px-2 -mr-2 cursor-pointer"
-                    >
-                      <FileText className="h-3 w-3 mr-1" />
-                      View ABHA Prescription
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
+                ))}
+              </CardContent>
+            )}
           </Card>
         </div>
       )}
