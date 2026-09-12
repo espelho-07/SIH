@@ -4,6 +4,7 @@ import { useConnection } from '@/contexts/ConnectionContext';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import {
   LayoutDashboard,
   Building2,
@@ -612,6 +613,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
+        {/* Mobile Patient Profile Switcher in Sidebar Drawer */}
+        {role === 'PATIENT' && (
+          <div className="md:hidden px-3 pt-3 pb-2 border-b border-slate-100 bg-slate-50/50">
+            <FamilyMemberSwitcher variant="sidebar" />
+          </div>
+        )}
+
         {/* ---------------------------------------------
             OFFLINE MODE BANNER
         --------------------------------------------- */}

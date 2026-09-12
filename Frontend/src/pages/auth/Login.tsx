@@ -404,15 +404,15 @@ export const Login: React.FC = () => {
         {/* =================================================
             1-CLICK INSTANT ROLE LOGIN BAR (DIRECT ACCESS)
         ================================================= */}
-        <div className="rounded-2xl border-2 border-teal-600/30 bg-white p-5 shadow-lg shadow-teal-900/5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100">
+        <div className="rounded-2xl border-2 border-teal-600/30 bg-white p-3.5 sm:p-5 shadow-lg shadow-teal-900/5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-600 text-white shadow-sm">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-sm">
                 <Zap className="h-4 w-4 fill-current" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                  1-Click Role Direct Login
+                <h2 className="text-sm font-black text-slate-900 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span>1-Click Role Direct Login</span>
                   <span className="rounded-full bg-teal-100 text-teal-800 border border-teal-300 px-2 py-0.5 text-[10px] font-bold">
                     No Typing Needed
                   </span>
@@ -422,14 +422,14 @@ export const Login: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="text-xs text-slate-400 flex items-center gap-1.5 self-start sm:self-auto">
+            <div className="text-xs text-slate-400 flex items-center gap-1.5 self-start sm:self-auto shrink-0">
               <Lock className="h-3.5 w-3.5 text-teal-600" />
               <span>Full Auth Enabled</span>
             </div>
           </div>
 
           {/* 9 ROLES GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
             {QUICK_ROLES.map((roleItem) => {
               const IconComp = roleItem.icon;
               const isLoggingThis = activeLoggingRole === roleItem.id;
@@ -440,19 +440,19 @@ export const Login: React.FC = () => {
                   type="button"
                   disabled={isLoading}
                   onClick={() => handleDirectRoleLogin(roleItem)}
-                  className={`group relative flex items-start gap-3 rounded-xl border p-3 text-left transition-all duration-150 ${roleItem.bgClass} ${roleItem.borderClass} ${roleItem.hoverClass} disabled:opacity-50 disabled:pointer-events-none cursor-pointer`}
+                  className={`group relative flex items-start gap-2.5 sm:gap-3 rounded-xl border p-2.5 sm:p-3 text-left transition-all duration-150 ${roleItem.bgClass} ${roleItem.borderClass} ${roleItem.hoverClass} disabled:opacity-50 disabled:pointer-events-none cursor-pointer`}
                 >
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm transition-transform group-hover:scale-105 ${roleItem.iconBgClass}`}
+                    className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl shadow-sm transition-transform group-hover:scale-105 ${roleItem.iconBgClass}`}
                   >
                     {isLoggingThis ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                     ) : (
-                      <IconComp className="h-5 w-5" />
+                      <IconComp className="h-4 w-4 sm:h-5 sm:w-5" />
                     )}
                   </div>
 
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 pr-3">
                     <div className="flex items-center justify-between gap-1 mb-0.5">
                       <span className="text-xs font-black text-slate-900 group-hover:text-teal-900 truncate">
                         {roleItem.name}

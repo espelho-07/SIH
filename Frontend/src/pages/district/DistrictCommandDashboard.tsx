@@ -74,7 +74,7 @@ export const DistrictCommandDashboard: React.FC = () => {
       />
 
       {/* Top Welcome & Operational Status Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-900 to-teal-800 text-white p-5 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-900 to-teal-800 text-white p-4 sm:p-5 rounded-2xl shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-teal-200">

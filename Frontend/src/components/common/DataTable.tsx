@@ -25,6 +25,7 @@ interface DataTableProps<T> {
   renderMobileCard?: (item: T) => React.ReactNode;
   onRowClick?: (item: T) => void;
   className?: string;
+  disableMobileCards?: boolean;
 }
 
 export function DataTable<T>({
@@ -39,6 +40,7 @@ export function DataTable<T>({
   renderMobileCard,
   onRowClick,
   className,
+  disableMobileCards = false,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -84,21 +86,80 @@ export function DataTable<T>({
     return <EmptyState title={emptyTitle} description={emptyDescription} className="my-6" />;
   }
 
+  // Identify primary header, status/badge, action column for fallback mobile card
+  const primaryCol = columns[0];
+  const lastCol = columns[columns.length - 1];
+  const isLastColAction =
+    lastCol &&
+    (lastCol.header === 'Actions' ||
+      lastCol.header === 'Action' ||
+      lastCol.header === '' ||
+      lastCol.key.toLowerCase().includes('action'));
+  const bodyCols = columns.filter((col, idx) => {
+    if (idx === 0) return false;
+    if (isLastColAction && idx === columns.length - 1) return false;
+    return !col.mobileHidden;
+  });
+
   return (
     <div className={cn('w-full space-y-4', className)}>
       {/* 1. Mobile Cards View (Hidden on desktop md+) */}
-      {renderMobileCard && (
+      {!disableMobileCards && (
         <div className="md:hidden space-y-3">
           {paginatedData.map((item) => (
-            <div key={keyExtractor(item)} onClick={() => onRowClick?.(item)}>
-              {renderMobileCard(item)}
+            <div
+              key={keyExtractor(item)}
+              onClick={() => onRowClick?.(item)}
+              className={cn(
+                'rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3 transition-all',
+                onRowClick && 'cursor-pointer active:scale-[0.99]'
+              )}
+            >
+              {renderMobileCard ? (
+                renderMobileCard(item)
+              ) : (
+                <>
+                  {/* Card Header Row */}
+                  {primaryCol && (
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                      <div className="font-semibold text-slate-900 text-sm">
+                        {primaryCol.render ? primaryCol.render(item) : String((item as Record<string, unknown>)[primaryCol.key] ?? '—')}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key-Value Details */}
+                  <div className="space-y-2 text-xs">
+                    {bodyCols.map((col) => (
+                      <div key={col.key} className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500 font-medium shrink-0">{col.header}:</span>
+                        <span className="text-slate-800 text-right truncate font-medium">
+                          {col.render ? col.render(item) : String((item as Record<string, unknown>)[col.key] ?? '—')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actions Row if present */}
+                  {isLastColAction && (
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                      {lastCol.render ? lastCol.render(item) : null}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* 2. Desktop Full Data Table (Hidden on mobile if renderMobileCard provided) */}
-      <div className={cn('overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs', renderMobileCard && 'hidden md:block')}>
+      {/* 2. Desktop Full Data Table (Hidden on mobile if mobile cards enabled) */}
+      <div
+        className={cn(
+          'overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs',
+          !disableMobileCards && 'hidden md:block'
+        )}
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="border-b border-slate-200 bg-slate-50/80 text-xs uppercase font-semibold text-slate-500 tracking-wider">
@@ -144,8 +205,8 @@ export function DataTable<T>({
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 pt-2 text-xs text-slate-500">
-          <div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-slate-500">
+          <div className="text-center sm:text-left">
             Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} entries
           </div>
           <div className="flex items-center gap-2">

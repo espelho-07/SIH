@@ -128,10 +128,10 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md md:hidden shadow-lg select-none"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md md:hidden shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]"
       aria-label="Mobile Navigation"
     >
-      <div className="flex h-16 items-center justify-around px-2">
+      <div className="flex h-16 items-center justify-around px-1 sm:px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -141,13 +141,15 @@ export const MobileBottomNav: React.FC = () => {
               end={item.to.split('/').length <= 2}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center justify-center flex-1 h-full min-h-[44px] transition-colors',
+                  'flex flex-col items-center justify-center flex-1 h-full min-h-[44px] px-0.5 transition-colors',
                   isActive ? 'text-teal-800 font-bold' : 'text-slate-500 hover:text-slate-800'
                 )
               }
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+              <Icon className="h-5 w-5 shrink-0" />
+              <span className="text-[9.5px] sm:text-[10px] mt-0.5 tracking-tight truncate max-w-[60px] text-center leading-tight">
+                {item.label}
+              </span>
             </NavLink>
           );
         })}

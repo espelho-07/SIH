@@ -60,7 +60,7 @@ export const PatientDashboard: React.FC = () => {
       {/* CITIZEN HEALTH BAR / ABHA IDENTITY */}
       {/* ================================================== */}
 
-      <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-5 text-white shadow-xs">
+      <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-4 sm:p-5 text-white shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700/80 border border-teal-500/40 text-white shadow-xs">
@@ -373,7 +373,7 @@ export const PatientDashboard: React.FC = () => {
       {/* ================================================== */}
       {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT BANNER */}
       {/* ================================================== */}
-      <div className="relative overflow-hidden rounded-2xl border border-teal-300 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-5 text-white shadow-md">
+      <div className="relative overflow-hidden rounded-2xl border border-teal-300 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-4 sm:p-5 text-white shadow-md">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white shadow-sm">

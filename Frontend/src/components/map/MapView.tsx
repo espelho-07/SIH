@@ -134,7 +134,7 @@ export const MapView: React.FC<MapViewProps> = ({
   }, [facilities, selectedFacilityId, onSelectFacility, showHeatmap]);
 
   return (
-    <div className={cn('relative w-full h-[380px] sm:h-[480px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100', className)}>
+    <div className={cn('relative w-full h-[260px] sm:h-[380px] md:h-[480px] rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100', className)}>
       <div ref={mapContainerRef} className="w-full h-full" />
     </div>
   );

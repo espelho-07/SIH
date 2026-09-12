@@ -239,7 +239,7 @@ export const FacilityDiscovery: React.FC = () => {
         <Card className="overflow-hidden border-slate-200 shadow-sm">
           <MapView
             facilities={filteredFacilities}
-            className="h-[450px]"
+            className="h-[280px] sm:h-[380px] md:h-[450px]"
           />
         </Card>
       )}
@@ -388,7 +388,7 @@ export const FacilityDiscovery: React.FC = () => {
                       SIMPLE DETAILS
                   ========================== */}
 
-                  <div className="flex items-center gap-5 lg:flex-1">
+                  <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-5 lg:flex-1 py-1">
 
                     {/* Beds */}
 

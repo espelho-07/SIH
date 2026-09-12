@@ -79,7 +79,9 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                 Public Healthcare Access & Care Continuity
               </span>
             </div>
-            <span className="font-bold text-base text-slate-900 sm:hidden">HealthConnect</span>
+            <span className="font-bold text-sm sm:text-base text-slate-900 sm:hidden truncate max-w-[110px]">
+              HealthConnect
+            </span>
           </Link>
         </div>
 
@@ -106,22 +108,24 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
         </button>
 
         {/* Right Controls: Status, Mobile Location, Language, Role Switcher, Emergency SOS, Profile */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Patient Direct Family Member Switcher (Anywhere in patient portal) */}
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {/* Patient Direct Family Member Switcher (Hidden on narrow mobile to prevent header blowout, visible sm+) */}
           {role === 'PATIENT' && (
-            <FamilyMemberSwitcher variant="navbar" />
+            <div className="hidden sm:block">
+              <FamilyMemberSwitcher variant="navbar" />
+            </div>
           )}
 
           {/* Mobile Location Switcher Button */}
           <button
             type="button"
             onClick={openLocationModal}
-            className="md:hidden flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 min-h-[38px] cursor-pointer"
+            className="md:hidden flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 min-h-[38px] cursor-pointer"
             title={`Current Location: ${selectedDistrict}`}
             aria-label="Change Location"
           >
             <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
-            <span className="truncate max-w-[65px]">{selectedDistrict}</span>
+            <span className="truncate max-w-[45px] sm:max-w-[65px] text-[11px] sm:text-xs">{selectedDistrict}</span>
           </button>
 
           {/* Language Switcher */}
