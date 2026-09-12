@@ -5,6 +5,8 @@ import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import {
+  HeartPulse,
+  X,
   LayoutDashboard,
   Building2,
   Ticket,
@@ -624,7 +626,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* MOBILE BACKDROP */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-16 bottom-0 z-30 bg-slate-900/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs md:hidden transition-opacity duration-200"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -633,19 +635,45 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* SIDEBAR */}
       <aside
         className={cn(
-          `fixed top-16 bottom-0 left-0 z-30
-          w-64 h-[calc(100vh-4rem)]
+          `fixed inset-y-0 left-0 z-50
+          w-72 max-w-[85vw]
           border-r border-slate-200
           bg-white
-          shadow-[4px_0_24px_rgba(15,23,42,0.04)]
-          transition-transform duration-200
-          ease-in-out
-          md:sticky md:top-16
+          shadow-2xl
+          transition-transform duration-300
+          ease-out
+          md:static md:top-16 md:bottom-auto
+          md:w-64 md:h-[calc(100vh-4rem)]
+          md:shadow-[4px_0_24px_rgba(15,23,42,0.04)]
           md:shrink-0 md:translate-x-0
+          md:sticky md:z-20
           flex flex-col`,
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
+        {/* MOBILE DRAWER HEADER */}
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200 md:hidden bg-slate-50/90 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-700 text-white shadow-2xs">
+              <HeartPulse className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-slate-900 leading-tight">HealthConnect</p>
+              <p className="text-[10px] font-semibold text-teal-700 uppercase tracking-wide">
+                {role === 'FACILITY_STAFF' && staffSubType ? staffSubType.replace('_', ' ') : role?.replace('_', ' ')}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors cursor-pointer"
+            aria-label="Close navigation"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
         {/* ---------------------------------------------
             OFFLINE MODE BANNER
         --------------------------------------------- */}
@@ -673,7 +701,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* ---------------------------------------------
             NAVIGATION
         --------------------------------------------- */}
-        <div className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="flex-1 overflow-y-auto px-3 py-3 pb-28 md:pb-6 overscroll-contain">
           {!navItems[0]?.section && (
             <div className="mb-2 px-2.5">
               <div className="flex items-center gap-2">

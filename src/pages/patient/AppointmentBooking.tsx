@@ -602,95 +602,171 @@ export const AppointmentBooking: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
-                    <tr>
-                      <th className="p-3.5 pl-4">Token / ID</th>
-                      <th className="p-3.5">Hospital Name</th>
-                      <th className="p-3.5">Patient Name</th>
-                      <th className="p-3.5">Disease / Problem</th>
-                      <th className="p-3.5">Date & Time</th>
-                      <th className="p-3.5">Status</th>
-                      <th className="p-3.5 pr-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredAppointments.map((apt) => (
-                      <tr key={apt.id} className="hover:bg-teal-50/40 transition-colors">
-                        {/* Token / ID */}
-                        <td className="p-3.5 pl-4">
-                          <span className="font-mono font-black text-xs text-teal-900 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200 block w-fit">
+              <div>
+                {/* Mobile Screen Cards View (Visible on Mobile Only) */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                  {filteredAppointments.map((apt) => (
+                    <div key={apt.id} className="p-4 space-y-3 hover:bg-slate-50/60 transition-colors">
+                      {/* Top Bar: Token & Status */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-xs text-teal-900 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200">
                             {apt.tokenNumber}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                          <span className="text-[10px] text-slate-400 font-mono">
                             {apt.id}
                           </span>
-                        </td>
-
-                        {/* Hospital */}
-                        <td className="p-3.5">
-                          <strong className="font-black text-slate-900 block truncate max-w-[180px]">
-                            {apt.hospitalName}
-                          </strong>
-                          <span className="text-[10px] text-slate-500 block truncate max-w-[180px]">
-                            {apt.department} • {apt.room}
-                          </span>
-                        </td>
-
-                        {/* Patient Name */}
-                        <td className="p-3.5 font-bold text-slate-900 whitespace-nowrap">
-                          {apt.patientName}
-                        </td>
-
-                        {/* Disease / Problem */}
-                        <td className="p-3.5 text-slate-700 font-medium">
-                          <span className="block truncate max-w-[160px] font-semibold text-teal-950">
-                            {apt.disease}
-                          </span>
-                        </td>
-
-                        {/* Date & Time */}
-                        <td className="p-3.5 whitespace-nowrap">
-                          <strong className="text-slate-900 block font-bold">{apt.date}</strong>
-                          <span className="text-[11px] text-slate-500 font-mono">{apt.timeSlot}</span>
-                        </td>
-
-                        {/* Status */}
-                        <td className="p-3.5 whitespace-nowrap">
-                          <span
-                            className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
-                              apt.status === 'CONFIRMED'
-                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                : apt.status === 'COMPLETED'
-                                ? 'bg-blue-100 text-blue-800 border-blue-300'
-                                : 'bg-rose-100 text-rose-800 border-rose-300'
-                            }`}
-                          >
-                            {apt.status === 'CONFIRMED'
-                              ? '● Confirmed'
+                        </div>
+                        <span
+                          className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                            apt.status === 'CONFIRMED'
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                               : apt.status === 'COMPLETED'
-                              ? '✓ Completed'
-                              : '✕ Cancelled'}
-                          </span>
-                        </td>
+                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                              : 'bg-rose-100 text-rose-800 border-rose-300'
+                          }`}
+                        >
+                          {apt.status === 'CONFIRMED'
+                            ? '● Confirmed'
+                            : apt.status === 'COMPLETED'
+                            ? '✓ Completed'
+                            : '✕ Cancelled'}
+                        </span>
+                      </div>
 
-                        {/* ACTION: THE VIEW BUTTON (SHOWS ALL DETAILS) */}
-                        <td className="p-3.5 pr-4 text-right whitespace-nowrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedAppointment(apt)}
-                            className="text-xs bg-white text-teal-800 border-teal-300 hover:bg-teal-50 font-bold gap-1.5 h-8 px-3 rounded-xl cursor-pointer shadow-2xs"
-                          >
-                            <Eye className="h-3.5 w-3.5 text-teal-700" />
-                            <span>View Details</span>
-                          </Button>
-                        </td>
+                      {/* Hospital & Department */}
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 leading-snug">
+                          {apt.hospitalName}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                          {apt.department} • {apt.room}
+                        </p>
+                      </div>
+
+                      {/* Patient & Problem */}
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Patient</span>
+                          <span className="font-bold text-slate-800 truncate block">{apt.patientName}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Disease</span>
+                          <span className="font-bold text-teal-900 truncate block">{apt.disease}</span>
+                        </div>
+                      </div>
+
+                      {/* Date, Time & Action Button */}
+                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                        <div className="text-[11px] text-slate-600 font-medium flex items-center gap-1.5">
+                          <CalendarDays className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+                          <span>{apt.date} • {apt.timeSlot}</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedAppointment(apt)}
+                          className="text-xs bg-white text-teal-800 border-teal-300 hover:bg-teal-50 font-bold gap-1 h-8 px-3 rounded-xl cursor-pointer shadow-2xs"
+                        >
+                          <Eye className="h-3 w-3 text-teal-700" />
+                          <span>View Details</span>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop & Tablet Table View (Hidden on Mobile) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="p-3.5 pl-4">Token / ID</th>
+                        <th className="p-3.5">Hospital Name</th>
+                        <th className="p-3.5">Patient Name</th>
+                        <th className="p-3.5">Disease / Problem</th>
+                        <th className="p-3.5">Date & Time</th>
+                        <th className="p-3.5">Status</th>
+                        <th className="p-3.5 pr-4 text-right">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredAppointments.map((apt) => (
+                        <tr key={apt.id} className="hover:bg-teal-50/40 transition-colors">
+                          {/* Token / ID */}
+                          <td className="p-3.5 pl-4">
+                            <span className="font-mono font-black text-xs text-teal-900 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200 block w-fit">
+                              {apt.tokenNumber}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                              {apt.id}
+                            </span>
+                          </td>
+
+                          {/* Hospital */}
+                          <td className="p-3.5">
+                            <strong className="font-black text-slate-900 block truncate max-w-[180px]">
+                              {apt.hospitalName}
+                            </strong>
+                            <span className="text-[10px] text-slate-500 block truncate max-w-[180px]">
+                              {apt.department} • {apt.room}
+                            </span>
+                          </td>
+
+                          {/* Patient Name */}
+                          <td className="p-3.5 font-bold text-slate-900 whitespace-nowrap">
+                            {apt.patientName}
+                          </td>
+
+                          {/* Disease / Problem */}
+                          <td className="p-3.5 text-slate-700 font-medium">
+                            <span className="block truncate max-w-[160px] font-semibold text-teal-950">
+                              {apt.disease}
+                            </span>
+                          </td>
+
+                          {/* Date & Time */}
+                          <td className="p-3.5 whitespace-nowrap">
+                            <strong className="text-slate-900 block font-bold">{apt.date}</strong>
+                            <span className="text-[11px] text-slate-500 font-mono">{apt.timeSlot}</span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="p-3.5 whitespace-nowrap">
+                            <span
+                              className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${
+                                apt.status === 'CONFIRMED'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                  : apt.status === 'COMPLETED'
+                                  ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                  : 'bg-rose-100 text-rose-800 border-rose-300'
+                              }`}
+                            >
+                              {apt.status === 'CONFIRMED'
+                                ? '● Confirmed'
+                                : apt.status === 'COMPLETED'
+                                ? '✓ Completed'
+                                : '✕ Cancelled'}
+                            </span>
+                          </td>
+
+                          {/* ACTION: THE VIEW BUTTON (SHOWS ALL DETAILS) */}
+                          <td className="p-3.5 pr-4 text-right whitespace-nowrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedAppointment(apt)}
+                              className="text-xs bg-white text-teal-800 border-teal-300 hover:bg-teal-50 font-bold gap-1.5 h-8 px-3 rounded-xl cursor-pointer shadow-2xs"
+                            >
+                              <Eye className="h-3.5 w-3.5 text-teal-700" />
+                              <span>View Details</span>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

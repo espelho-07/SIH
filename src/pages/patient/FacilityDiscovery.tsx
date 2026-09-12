@@ -630,10 +630,10 @@ export const FacilityDiscovery: React.FC = () => {
                   </div>
 
                   {/* LAST TWO BUTTONS: GET DETAILS & TOKEN */}
-                  <div className="flex items-center gap-2.5 sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2.5 sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <Link
                       to={`/patient/facilities/${facility.id}`}
-                      className="flex-1 sm:flex-initial"
+                      className="w-full sm:w-auto"
                     >
                       <Button
                         variant="outline"
@@ -646,7 +646,7 @@ export const FacilityDiscovery: React.FC = () => {
 
                     <Link
                       to={`/patient/tokens?facilityId=${facility.id}`}
-                      className="flex-1 sm:flex-initial"
+                      className="w-full sm:w-auto"
                     >
                       <Button
                         variant="primary"
