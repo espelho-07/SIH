@@ -3,18 +3,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { supportedLanguages, changeAppLanguage } from '@/locales/i18n';
 import { useTranslation } from 'react-i18next';
-import { UserRole, StaffSubType } from '@/types/auth';
 import {
   HeartPulse,
   Globe,
   MapPin,
   ChevronDown,
-  UserCheck,
-  Shield,
-  Stethoscope,
-  Users,
-  Building2,
-  Sliders,
   Menu,
   X,
   Search,
@@ -27,13 +20,12 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
   onToggleSidebar,
   isSidebarOpen,
 }) => {
-  const { user, role, staffSubType, logout, quickSwitchRole } = useAuth();
+  const { user, role, staffSubType, logout } = useAuth();
   const { selectedDistrict, selectedFacility, openLocationModal } = useLocationContext();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [activeLang, setActiveLang] = useState(
     localStorage.getItem('healthconnect_language') || i18n.language || 'en'
   );
@@ -47,22 +39,6 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
     window.addEventListener('healthconnect-language-change', handleLangChange);
     return () => window.removeEventListener('healthconnect-language-change', handleLangChange);
   }, []);
-
-  const handleRoleSwitch = (newRole: UserRole, subType?: StaffSubType) => {
-    quickSwitchRole(newRole, subType);
-    setRoleMenuOpen(false);
-    if (newRole === 'PATIENT') navigate('/patient');
-    else if (newRole === 'ASHA') navigate('/asha');
-    else if (newRole === 'DOCTOR') navigate('/doctor');
-    else if (newRole === 'FACILITY_STAFF') {
-      if (subType === 'PHARMACIST') navigate('/pharmacist');
-      else if (subType === 'LAB_TECHNICIAN') navigate('/lab');
-      else if (subType === 'REGISTRATION_CLERK') navigate('/registration-desk');
-      else navigate('/facility-operations');
-    }
-    else if (newRole === 'DISTRICT_ADMIN') navigate('/district');
-    else if (newRole === 'SUPER_ADMIN') navigate('/super-admin');
-  };
 
   const currentLang = supportedLanguages.find((l) => l.code === activeLang) || supportedLanguages[0];
 
@@ -187,94 +163,6 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                     );
                   })}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Role Quick-Switcher Dropdown for SIH Judges / Demonstrators */}
-          <div className="relative">
-            <button
-              onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg bg-teal-50 border border-teal-200 px-2.5 py-1.5 text-xs font-bold text-teal-900 hover:bg-teal-100 min-h-[38px] transition-colors"
-              title="Quick switch role for live demonstration"
-            >
-              <Sliders className="h-3.5 w-3.5 text-teal-700" />
-              <span className="hidden md:inline">
-                Role: {role === 'FACILITY_STAFF' && staffSubType ? staffSubType : role}
-              </span>
-              <ChevronDown className="h-3 w-3 text-teal-700" />
-            </button>
-
-            {roleMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white p-2 shadow-2xl border border-slate-200 z-50 animate-in fade-in-50 duration-100 space-y-1">
-                <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                  Select Role to Demonstrate
-                </div>
-                <button
-                  onClick={() => handleRoleSwitch('PATIENT')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px]"
-                >
-                  <Users className="h-4 w-4 text-teal-600" />
-                  <span>1. Patient / Citizen</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('ASHA')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px]"
-                >
-                  <UserCheck className="h-4 w-4 text-emerald-600" />
-                  <span>2. ASHA / ANM / CHO</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('DOCTOR')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px]"
-                >
-                  <Stethoscope className="h-4 w-4 text-sky-600" />
-                  <span>3. Doctor / Specialist</span>
-                </button>
-                <div className="px-3 pt-2 text-[10px] font-bold uppercase text-slate-400">Facility Staff Subtypes</div>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'REGISTRATION_CLERK')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>4a. Registration Clerk</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'PHARMACIST')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>4b. Pharmacist</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'LAB_TECHNICIAN')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>4c. Lab Technician</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'FACILITY_OPERATIONS')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>4d. Facility Operations</span>
-                </button>
-                <div className="border-t border-slate-100 my-1" />
-                <button
-                  onClick={() => handleRoleSwitch('DISTRICT_ADMIN')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px]"
-                >
-                  <Shield className="h-4 w-4 text-indigo-600" />
-                  <span>5. District Health Admin</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('SUPER_ADMIN')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px]"
-                >
-                  <Shield className="h-4 w-4 text-red-600" />
-                  <span>6. Super Admin (Tech)</span>
-                </button>
               </div>
             )}
           </div>
