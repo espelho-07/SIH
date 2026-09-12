@@ -74,21 +74,21 @@ export const DistrictCommandDashboard: React.FC = () => {
       />
 
       {/* Top Welcome & Operational Status Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-900 to-teal-800 text-white p-5 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-[#1B365D] to-[#2B6CB0] text-white p-5 rounded-2xl shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-teal-200">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9CCBEA]">
               District Health Operations
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-teal-800/80 border border-teal-600 px-2 py-0.5 text-[10px] font-medium text-teal-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/15 border border-white/25 px-2 py-0.5 text-[10px] font-medium text-[#E1EFF8]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#6CAEDE]" />
               Live Telemetry Connected
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
             {selectedDistrict} District Operations
           </h1>
-          <p className="text-xs text-teal-100/90">
+          <p className="text-xs text-[#E1EFF8]/90">
             Administrator: <strong>{user?.name || 'Dr. Meenakshi Sundaram'}</strong> (Chief District Health Officer)
           </p>
         </div>

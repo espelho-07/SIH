@@ -254,22 +254,22 @@ export const SuperAdminDashboard: React.FC = () => {
       </nav>
 
       {/* Top Banner (HealthConnect Patient Design Language: Calm, Clinical, Reassuring) */}
-      <div className="rounded-3xl bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 text-white p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-teal-700/50">
+      <div className="rounded-3xl bg-gradient-to-r from-[#1B365D] via-[#20548A] to-[#2B6CB0] text-white p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[#4792CE]/40">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-0.5 text-xs font-semibold text-[#E1EFF8] border border-white/25">
             <Server className="h-3.5 w-3.5" />
             <span>Operations Center</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">System Administration</h1>
-          <p className="text-xs text-teal-100/80 max-w-2xl">
+          <p className="text-xs text-[#E1EFF8]/90 max-w-2xl">
             Monitor system services, manage user access, and configure platform governance across the healthcare grid.
           </p>
         </div>
 
         <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3.5 text-center shrink-0">
-          <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">Platform Status</span>
-          <span className="text-emerald-300 font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[10px] uppercase font-bold text-[#9CCBEA] block tracking-wider">Platform Status</span>
+          <span className="text-[#E1EFF8] font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
+            <span className="h-2 w-2 rounded-full bg-[#6CAEDE] animate-pulse" />
             All systems operational
           </span>
         </div>

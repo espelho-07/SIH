@@ -105,7 +105,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           className="hidden md:flex items-center gap-2 rounded-full bg-slate-100/90 hover:bg-slate-200/80 px-3 py-1.5 text-xs text-slate-700 border border-slate-200 shadow-2xs transition-all cursor-pointer group"
           title={t('navbar.locationTitle', 'Click to change your hospital or district location')}
         >
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-50 group-hover:bg-teal-100 text-teal-700 transition-colors">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E1EFFA] group-hover:bg-[#C6E0F2] text-[#2B6CB0] transition-colors">
             <MapPin className="h-3 w-3" />
           </div>
           <div className="flex items-center gap-1.5 font-medium">
@@ -115,7 +115,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
               {selectedFacility.split('&')[0].trim()}
             </span>
           </div>
-          <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200/60 ml-0.5 group-hover:bg-teal-700 group-hover:text-white transition-colors">
+          <span className="text-[10px] font-semibold text-[#2B6CB0] bg-[#E1EFFA] px-1.5 py-0.5 rounded border border-[#C6E0F2] ml-0.5 group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
             {t('navbar.changeLocation', 'Change')}
           </span>
         </button>
@@ -135,7 +135,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
             title={`${selectedDistrict} - ${t('navbar.changeLocation', 'Change')}`}
             aria-label={t('navbar.changeLocation', 'Change Location')}
           >
-            <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+            <MapPin className="h-3.5 w-3.5 text-[#2B6CB0] shrink-0" />
             <span className="truncate max-w-[65px]">{selectedDistrict}</span>
           </button>
 
@@ -147,7 +147,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
               aria-label={t('navbar.switchLanguage', 'Switch Language')}
               title={t('navbar.switchLanguage', 'Switch Language')}
             >
-              <Globe className="h-3.5 w-3.5 text-teal-700" />
+              <Globe className="h-3.5 w-3.5 text-[#2B6CB0]" />
               <span className="font-bold text-slate-900">{currentLang.nativeName}</span>
               <ChevronDown className="h-3 w-3 text-slate-400 transition-transform duration-200" />
             </button>
@@ -169,12 +169,12 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                           setLangMenuOpen(false);
                         }}
                         className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium min-h-[38px] transition-colors cursor-pointer ${isSelected
-                          ? 'bg-teal-50 text-teal-900 font-bold'
+                          ? 'bg-[#E1EFFA] text-[#1D6394] font-bold'
                           : 'text-slate-700 hover:bg-slate-50'
                           }`}
                       >
                         <span className="text-sm">{lang.nativeName}</span>
-                        <span className={`text-[10px] uppercase ${isSelected ? 'text-teal-700 font-bold' : 'text-slate-400'}`}>
+                        <span className={`text-[10px] uppercase ${isSelected ? 'text-[#2B6CB0] font-bold' : 'text-slate-400'}`}>
                           {lang.name}
                         </span>
                       </button>
@@ -189,14 +189,14 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           {/* User Profile & Logout */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white font-bold text-xs uppercase shadow-2xs">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#2B6CB0] text-white font-bold text-xs uppercase shadow-2xs">
                 {user?.name ? user.name.slice(0, 2) : 'HC'}
               </div>
               <div className="hidden lg:block text-left min-w-0">
                 <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]" title={user?.name}>
                   {user?.name || t('navbar.authorizedUser', 'Authorized User')}
                 </p>
-                <span className="text-[10px] font-semibold text-teal-800 bg-teal-50 px-1 py-0.5 rounded border border-teal-200/60 uppercase leading-none inline-block mt-0.5">
+                <span className="text-[10px] font-semibold text-[#1D6394] bg-[#E1EFFA] px-1.5 py-0.5 rounded border border-[#C6E0F2] uppercase leading-none inline-block mt-0.5">
                   {role === 'FACILITY_STAFF' && staffSubType
                     ? t(`staffSubTypes.${staffSubType}` as any, staffSubType.replace('_', ' '))
                     : role

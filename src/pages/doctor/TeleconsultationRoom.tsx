@@ -441,13 +441,13 @@ export const TeleconsultationRoom: React.FC = () => {
 
         {/* Live Incoming Status Banner */}
         {callingCount > 0 && (
-          <div className="rounded-2xl border border-emerald-300 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-4 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="rounded-2xl border border-[#9CCBEA] bg-gradient-to-r from-[#1B365D] via-[#20548A] to-[#2B6CB0] p-4 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-white">
-                <PhoneIncoming className="h-5 w-5 text-emerald-300 animate-bounce" />
+              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 border border-white/25 text-white">
+                <PhoneIncoming className="h-5 w-5 text-[#9CCBEA] animate-bounce" />
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6CAEDE] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#4792CE]"></span>
                 </span>
               </div>
               <div>
@@ -455,11 +455,11 @@ export const TeleconsultationRoom: React.FC = () => {
                   <h3 className="text-sm font-bold text-white sm:text-base">
                     {callingCount} Patient(s) Currently Ringing Live
                   </h3>
-                  <span className="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.5 text-[10px] font-extrabold text-emerald-200 uppercase">
+                  <span className="rounded-full bg-white/20 border border-white/30 px-2 py-0.5 text-[10px] font-extrabold text-[#E1EFF8] uppercase">
                     Direct Video Request
                   </span>
                 </div>
-                <p className="text-xs text-teal-200/90 mt-0.5">
+                <p className="text-xs text-[#E1EFF8]/90 mt-0.5">
                   Patients are waiting on video bridge. You can pick and accept any patient below based on priority triage.
                 </p>
               </div>
@@ -790,15 +790,15 @@ export const TeleconsultationRoom: React.FC = () => {
   if (callState === 'SUMMARY' && activePatient) {
     return (
       <div className="max-w-2xl mx-auto space-y-6 py-8 font-sans">
-        <Card className="border-emerald-200 bg-white shadow-md rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-teal-800 to-emerald-800 p-6 text-white text-center">
+        <Card className="border-[#C6E0F2] bg-white shadow-md rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-[#1B365D] to-[#2B6CB0] p-6 text-white text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white mb-3 shadow-xs">
-              <CheckCircle2 className="h-8 w-8 text-emerald-300" />
+              <CheckCircle2 className="h-8 w-8 text-[#9CCBEA]" />
             </div>
             <h2 className="text-xl font-black tracking-tight">
               Consultation Successfully Completed
             </h2>
-            <p className="text-xs text-teal-100/90 mt-1">
+            <p className="text-xs text-[#E1EFF8]/90 mt-1">
               Encrypted encounter with <strong>{activePatient.name}</strong> has been logged to their ABHA Health Record.
             </p>
           </div>

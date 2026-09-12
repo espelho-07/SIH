@@ -29,11 +29,11 @@ export const DoctorDashboard: React.FC = () => {
     <div className="space-y-5">
 
       {/* Welcome Section */}
-      <div className="rounded-2xl bg-gradient-to-r from-teal-900 to-slate-900 p-4 sm:p-5 text-white shadow-sm">
+      <div className="rounded-2xl bg-gradient-to-r from-[#1B365D] to-[#24578E] p-4 sm:p-5 text-white shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
           <div>
-            <p className="text-xs font-medium text-teal-300 mb-1">
+            <p className="text-xs font-medium text-[#9CCBEA] mb-1">
               Doctor Dashboard
             </p>
 
@@ -41,7 +41,7 @@ export const DoctorDashboard: React.FC = () => {
               Welcome, {user?.name || 'Dr. Arvind Patel'} 👋
             </h1>
 
-            <p className="text-xs text-teal-100/80 mt-1.5">
+            <p className="text-xs text-[#E1EFF8]/90 mt-1.5">
               General Medicine • Room 4
             </p>
           </div>
@@ -49,7 +49,7 @@ export const DoctorDashboard: React.FC = () => {
           <Link to="/doctor/queue">
             <Button
               size="md"
-              className="bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-2 shadow-md w-full sm:w-auto"
+              className="bg-[#2B6CB0] hover:bg-[#20548A] text-white font-semibold gap-2 shadow-md w-full sm:w-auto cursor-pointer"
             >
               <Ticket className="h-4 w-4" />
               View Patient Queue

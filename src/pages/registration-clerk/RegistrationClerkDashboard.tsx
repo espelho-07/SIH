@@ -121,11 +121,11 @@ export const RegistrationClerkDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Hero Welcome Banner - Clean Green Theme */}
-      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Hero Welcome Banner - Medical Steel Blue Theme */}
+      <div className="rounded-2xl border border-[#C6E0F2] bg-[#F0F6FA] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-teal-100 text-teal-900 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-300">
+            <span className="bg-[#E1EFFA] text-[#1D6394] text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-[#C6E0F2]">
               Counter 1 • OPD Front Desk
             </span>
             <span className="text-xs text-slate-500">Gandhinagar Civil Hospital</span>
@@ -139,14 +139,14 @@ export const RegistrationClerkDashboard: React.FC = () => {
         {/* Quick Search Shortcut */}
         <div className="flex items-center gap-2.5 shrink-0">
           <Link to="/registration-clerk/register">
-            <Button className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer">
-              <UserPlus className="h-4 w-4 text-teal-200" />
+            <Button className="bg-[#2B6CB0] hover:bg-[#20548A] text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer">
+              <UserPlus className="h-4 w-4 text-[#C6E0F2]" />
               Register New Citizen
             </Button>
           </Link>
           <Link to="/registration-clerk/patients">
-            <Button className="bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-2xs">
-              <Search className="h-4 w-4 text-teal-700" />
+            <Button className="bg-white hover:bg-[#F0F6FA] text-[#1D6394] border border-[#C6E0F2] font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-2xs">
+              <Search className="h-4 w-4 text-[#2B6CB0]" />
               Search Directory
             </Button>
           </Link>
@@ -158,38 +158,38 @@ export const RegistrationClerkDashboard: React.FC = () => {
         <Card className="p-4 border-slate-200 hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase">Today's Appointments</span>
-            <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#E1EFFA] text-[#2B6CB0] flex items-center justify-center">
               <CalendarCheck2 className="h-4 w-4" />
             </div>
           </div>
           <p className="text-3xl font-black text-slate-900 mt-2">{appointments.length}</p>
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-xs font-bold text-teal-700">{checkedInAppointments.length} Checked In</span>
-            <span className="text-xs text-slate-400">� {pendingAppointments.length} Pending</span>
+            <span className="text-xs font-bold text-[#2B6CB0]">{checkedInAppointments.length} Checked In</span>
+            <span className="text-xs text-slate-400">• {pendingAppointments.length} Pending</span>
           </div>
         </Card>
 
         <Card className="p-4 border-slate-200 hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase">Tokens in Queue</span>
-            <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#E1EFFA] text-[#2B6CB0] flex items-center justify-center">
               <Ticket className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-3xl font-black text-teal-700 mt-2">{waitingTokens.length}</p>
+          <p className="text-3xl font-black text-[#2B6CB0] mt-2">{waitingTokens.length}</p>
           <span className="text-xs text-slate-500 mt-1 block">General Medicine OPD</span>
         </Card>
 
         <Card className="p-4 border-slate-200 hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase">Active Counter</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#E1EFFA] text-[#1D6394] flex items-center justify-center">
               <Building2 className="h-4 w-4" />
             </div>
           </div>
           <p className="text-3xl font-black text-slate-900 mt-2">Counter 1</p>
-          <span className="text-xs text-emerald-700 font-semibold mt-1 block flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="text-xs text-[#1D6394] font-semibold mt-1 block flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-[#2B6CB0] animate-pulse"></span>
             Online & Ready
           </span>
         </Card>

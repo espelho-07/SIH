@@ -10,10 +10,10 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const Badge: React.FC<BadgeProps> = ({ className, variant = 'default', children, ...props }) => {
   const variants = {
     default: 'bg-slate-100 text-slate-800 border-slate-200',
-    success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    success: 'bg-[#E1EFFA] text-[#1D6394] border-[#C6E0F2]',
     warning: 'bg-amber-50 text-amber-800 border-amber-200',
     destructive: 'bg-rose-50 text-rose-800 border-rose-200 font-semibold',
-    info: 'bg-cyan-50 text-cyan-800 border-cyan-200',
+    info: 'bg-[#F0F6FA] text-[#2B6CB0] border-[#C6E0F2]',
     outline: 'border-slate-300 text-slate-700 bg-transparent',
   };
 

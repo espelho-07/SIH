@@ -50,8 +50,8 @@ export const AshaDashboard: React.FC = () => {
       <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[11px] font-bold text-teal-800">
-              <Activity className="h-3 w-3 text-teal-600" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E1EFFA] border border-[#C6E0F2] px-2.5 py-0.5 text-[11px] font-bold text-[#1D6394]">
+              <Activity className="h-3 w-3 text-[#2B6CB0]" />
               ASHA Frontline Console
             </span>
             <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
@@ -72,8 +72,8 @@ export const AshaDashboard: React.FC = () => {
         <div className="flex items-center gap-3 self-start md:self-center shrink-0 flex-wrap">
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
             {isOnline ? (
-              <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="flex items-center gap-1.5 text-xs font-bold text-[#1D6394]">
+                <span className="h-2 w-2 rounded-full bg-[#2B6CB0] animate-pulse" />
                 Online
               </span>
             ) : (
@@ -89,7 +89,7 @@ export const AshaDashboard: React.FC = () => {
           </div>
 
           <Link to="/asha/patients/new">
-            <Button size="sm" className="bg-teal-700 hover:bg-teal-800 text-white text-xs gap-1.5 rounded-xl cursor-pointer shadow-xs">
+            <Button size="sm" className="bg-[#2B6CB0] hover:bg-[#20548A] text-white text-xs gap-1.5 rounded-xl cursor-pointer shadow-xs">
               <UserPlus className="h-3.5 w-3.5" />
               <span>+ Register Citizen</span>
             </Button>

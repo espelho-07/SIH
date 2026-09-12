@@ -471,15 +471,15 @@ export const TeleconsultationRoom: React.FC = () => {
       {callStage === 'SELECT_DOCTOR' && (
         <div className="space-y-5">
           {/* Top Patient / Family Member Selector Strip */}
-          <Card className="border-teal-200 bg-gradient-to-r from-teal-50/70 via-emerald-50/40 to-white shadow-xs">
+          <Card className="border-[#C6E0F2] bg-gradient-to-r from-[#F0F6FA] via-white to-[#F4F8FA] shadow-xs">
             <CardContent className="p-4 sm:p-5 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-teal-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2EDF3] pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-2xs">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2B6CB0] text-white shadow-2xs">
                     <User className="h-5 w-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800 block">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1D6394] block">
                       Consultation Patient Profile
                     </span>
                     <h2 className="text-base font-black text-slate-900">
@@ -901,14 +901,14 @@ export const TeleconsultationRoom: React.FC = () => {
       {/* STAGE: REQUEST CONFIRMED & QUEUE TOKEN VOUCHER */}
       {/* ================================================== */}
       {callStage === 'REQUEST_CONFIRMED' && confirmedToken && (
-        <Card className="border-teal-200 bg-white shadow-lg overflow-hidden max-w-2xl mx-auto animate-in fade-in duration-150">
-          <div className="bg-gradient-to-r from-teal-700 to-teal-800 p-5 text-white flex items-center justify-between">
+        <Card className="border-[#C6E0F2] bg-white shadow-lg overflow-hidden max-w-2xl mx-auto animate-in fade-in duration-150">
+          <div className="bg-gradient-to-r from-[#1B365D] to-[#2B6CB0] p-5 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white shadow-2xs">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-teal-200 tracking-wider">
+                <span className="text-[10px] uppercase font-bold text-[#9CCBEA] tracking-wider">
                   Request Confirmed & Registered
                 </span>
                 <h3 className="text-base font-black">
@@ -917,7 +917,7 @@ export const TeleconsultationRoom: React.FC = () => {
               </div>
             </div>
 
-            <span className="rounded-full bg-emerald-400 text-emerald-950 font-black text-[10px] px-2.5 py-0.5">
+            <span className="rounded-full bg-[#E1EFFA] text-[#1D6394] font-black text-[10px] px-2.5 py-0.5 border border-[#C6E0F2]">
               ● Registered
             </span>
           </div>

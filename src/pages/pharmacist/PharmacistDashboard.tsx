@@ -81,12 +81,12 @@ export const PharmacistDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-in fade-in-50 duration-200">
-      {/* 1. Header Banner - Clean Green Theme */}
-      <div className="rounded-2xl border border-teal-200 bg-teal-50/70 p-5 sm:p-6 shadow-xs relative overflow-hidden">
+      {/* 1. Header Banner - Medical Steel Blue Theme */}
+      <div className="rounded-2xl border border-[#C6E0F2] bg-[#F0F6FA] p-5 sm:p-6 shadow-xs relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 rounded-full bg-teal-100 border border-teal-300 px-3 py-0.5 text-xs font-bold text-teal-900">
-              <Pill className="h-3.5 w-3.5 text-teal-700" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#E1EFFA] border border-[#C6E0F2] px-3 py-0.5 text-xs font-bold text-[#1D6394]">
+              <Pill className="h-3.5 w-3.5 text-[#2B6CB0]" />
               <span>Outpatient Pharmacy Dispensing Station</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
@@ -101,16 +101,16 @@ export const PharmacistDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <Button
               onClick={() => navigate('/pharmacist/prescriptions')}
-              className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl shadow-xs cursor-pointer"
+              className="bg-[#2B6CB0] hover:bg-[#20548A] text-white font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl shadow-xs cursor-pointer"
             >
-              <Clock className="h-4 w-4 mr-2 text-teal-200" />
+              <Clock className="h-4 w-4 mr-2 text-[#C6E0F2]" />
               View Dispense Queue ({pendingPrescriptions.length})
             </Button>
             <Button
               onClick={() => navigate('/pharmacist/stock')}
-              className="bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl cursor-pointer shadow-2xs"
+              className="bg-white hover:bg-[#F0F6FA] text-[#1D6394] border border-[#C6E0F2] font-bold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl cursor-pointer shadow-2xs"
             >
-              <Package className="h-4 w-4 mr-2 text-teal-700" />
+              <Package className="h-4 w-4 mr-2 text-[#2B6CB0]" />
               Stock Inventory
             </Button>
           </div>

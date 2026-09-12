@@ -747,12 +747,12 @@ export const PatientClinicalWorkspace: React.FC = () => {
       {/* ================================================== */}
       {/* ACTIVE PATIENT CARD: DEMOGRAPHICS + BUTTONS */}
       {/* ================================================== */}
-      <Card className="border-teal-200 bg-gradient-to-r from-teal-50/70 via-emerald-50/40 to-white shadow-xs">
+      <Card className="border-[#C6E0F2] bg-gradient-to-r from-[#F0F6FA] via-white to-[#F4F8FA] shadow-xs">
         <CardContent className="p-4 sm:p-5 space-y-3.5">
           {/* Top Row: Patient Info & DEDICATED ACTION BUTTONS */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-teal-100 pb-3.5">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[#E2EDF3] pb-3.5">
             <div className="flex items-start sm:items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-xs">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2B6CB0] text-white shadow-xs">
                 <span className="text-sm font-black font-mono">{patient.tokenNumber}</span>
               </div>
 
@@ -761,8 +761,8 @@ export const PatientClinicalWorkspace: React.FC = () => {
                   <h2 className="text-lg sm:text-xl font-black text-slate-900">
                     {patient.name}
                   </h2>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-300">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#E1EFFA] px-2.5 py-0.5 text-[11px] font-bold text-[#1D6394] border border-[#C6E0F2]">
+                    <CheckCircle2 className="h-3 w-3 text-[#2B6CB0]" />
                     ABHA: {patient.abhaId}
                   </span>
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
@@ -792,11 +792,11 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate(`/doctor/patients/${patient.patientId || 'usr_pat_01'}/history`)}
-                className="gap-2 text-xs bg-white text-teal-800 border-teal-300 hover:bg-teal-50 font-bold min-h-[38px] shadow-2xs cursor-pointer"
+                className="gap-2 text-xs bg-white text-[#1D6394] border-[#C6E0F2] hover:bg-[#F0F6FA] font-bold min-h-[38px] shadow-2xs cursor-pointer"
               >
-                <FileText className="h-4 w-4 text-teal-700" />
+                <FileText className="h-4 w-4 text-[#2B6CB0]" />
                 <span>Patient History</span>
-                <span className="rounded-full bg-teal-100 text-teal-900 text-[10px] font-black px-1.5 py-0.5 border border-teal-300">
+                <span className="rounded-full bg-[#E1EFFA] text-[#1D6394] text-[10px] font-black px-1.5 py-0.5 border border-[#C6E0F2]">
                   8 Records
                 </span>
               </Button>
