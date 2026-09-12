@@ -350,12 +350,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               color: 'text-indigo-600 bg-indigo-50',
             },
             {
-              to: '/facility-operations/resources',
-              label: 'Capacity & Beds',
-              icon: Bed,
-              color: 'text-blue-600 bg-blue-50',
-            },
-            {
               to: '/facility-operations/alerts',
               label: 'Operational Alerts',
               icon: AlertOctagon,

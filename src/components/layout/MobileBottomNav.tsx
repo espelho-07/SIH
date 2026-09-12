@@ -89,7 +89,7 @@ export const MobileBottomNav: React.FC = () => {
             { to: '/facility-operations/services', label: 'Services', icon: Activity },
             { to: '/facility-operations/queues', label: 'Queues', icon: Clock },
             { to: '/facility-operations/referrals', label: 'Transfers', icon: GitBranch },
-            { to: '/facility-operations/resources', label: 'Capacity', icon: Building2 },
+            { to: '/facility-operations/staff-leave', label: 'Leaves', icon: Calendar },
           ];
         }
         return [

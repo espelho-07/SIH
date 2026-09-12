@@ -79,7 +79,6 @@ import { ServicesOperationsPage } from '@/pages/facility-operations/ServicesOper
 import { StaffLeaveOperationsPage } from '@/pages/facility-operations/StaffLeaveOperationsPage';
 import { QueuesOperationsPage } from '@/pages/facility-operations/QueuesOperationsPage';
 import { ReferralOperationsPage } from '@/pages/facility-operations/ReferralOperationsPage';
-import { ResourceOperationsPage } from '@/pages/facility-operations/ResourceOperationsPage';
 import { AlertsCenterPage } from '@/pages/facility-operations/AlertsCenterPage';
 
 // District Admin Pages
@@ -829,9 +828,7 @@ export const AppRoutes: React.FC = () => {
         path="/facility-operations/resources"
         element={
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <ResourceOperationsPage />
-            </AppShell>
+            <Navigate to="/facility-operations" replace />
           </ProtectedRoute>
         }
       />

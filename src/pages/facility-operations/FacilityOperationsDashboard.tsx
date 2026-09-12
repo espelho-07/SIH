@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  BedDouble,
   Truck,
   ArrowRight,
   Megaphone,
@@ -261,7 +260,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
       )}
 
       {/* Real-time Telemetry Pulse Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Waiting Queue */}
         <Link to="/facility-operations/queues" className="group">
           <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
@@ -288,35 +287,8 @@ export const FacilityOperationsDashboard: React.FC = () => {
           </Card>
         </Link>
 
-        {/* Bed Capacity */}
-        <Link to="/facility-operations/resources" className="group">
-          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bed Capacity</span>
-              <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                <BedDouble className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="mt-2">
-              <p className="text-2xl sm:text-3xl font-black text-slate-900">
-                {summary?.telemetry.bedsAvailable || 0} <span className="text-sm font-semibold text-slate-400">/ {summary?.telemetry.bedsTotal || 0}</span>
-              </p>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-xs font-semibold text-emerald-700">
-                  {summary?.telemetry.icuAvailable || 0} ICU Free
-                </span>
-                <span className="text-[11px] text-slate-400">• {(Math.round(((summary?.telemetry.bedsOccupied || 0) / (summary?.telemetry.bedsTotal || 1)) * 100))}% full</span>
-              </div>
-            </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
-              <span>Inspect wards</span>
-              <ChevronRight className="h-3 w-3" />
-            </div>
-          </Card>
-        </Link>
-
         {/* Ambulances Ready */}
-        <Link to="/facility-operations/resources" className="group">
+        <Link to="/facility-operations/referrals" className="group">
           <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ambulances</span>
