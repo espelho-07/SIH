@@ -22,6 +22,7 @@ import {
   FlaskConical,
   QrCode,
   FileCheck,
+  User,
 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
@@ -35,7 +36,7 @@ export const MobileBottomNav: React.FC = () => {
           { to: '/patient/facilities', label: 'Hospitals', icon: Building2 },
           { to: '/patient/tokens', label: 'Token', icon: Ticket },
           { to: '/patient/records', label: 'Records', icon: FileText },
-          { to: '/patient/referrals', label: 'Referrals', icon: GitBranch },
+          { to: '/patient/profile', label: 'Profile', icon: User },
         ];
 
       case 'ASHA':
