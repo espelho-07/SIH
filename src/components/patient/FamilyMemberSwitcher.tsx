@@ -101,26 +101,26 @@ export const FamilyMemberSwitcher: React.FC<{
             </button>
           </div>
         ) : variant === 'banner' ? (
-          /* VARIANT 3: BANNER (Liquid Glass) */
+          /* VARIANT 3: BANNER */
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2.5 rounded-2xl bg-white/70 hover:bg-white/95 border border-white/80 hover:border-emerald-300/80 backdrop-blur-md px-3 py-1.5 text-xs text-slate-800 shadow-2xs transition-all cursor-pointer group"
+            className="flex items-center gap-2 rounded-xl bg-teal-800/80 hover:bg-teal-700/90 border border-teal-500/50 px-3 py-1.5 text-xs text-white shadow-xs transition-all cursor-pointer group"
             title="Switch family member profile"
           >
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold text-[10px] uppercase shadow-2xs">
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-600 text-white font-bold text-[10px] uppercase">
               {activeMember.name.slice(0, 2)}
             </div>
             <div className="text-left">
-              <span className="text-[10px] text-slate-500 block leading-none font-medium">
-                Active Profile
+              <span className="text-[10px] text-teal-200 block leading-none">
+                Active Patient Profile
               </span>
-              <span className="font-bold text-xs text-slate-800 flex items-center gap-1.5 mt-0.5 group-hover:text-emerald-700 transition-colors">
-                {activeMember.name} <span className="text-[10px] font-medium text-slate-500">({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel.split(' ')[0]})</span>
+              <span className="font-bold text-xs text-white flex items-center gap-1.5 mt-0.5">
+                {activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel.split(' ')[0]})
               </span>
             </div>
             <ChevronDown
-              className={`h-3.5 w-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${
+              className={`h-3.5 w-3.5 text-teal-300 transition-transform duration-200 ${
                 isOpen ? 'rotate-180' : ''
               }`}
             />
