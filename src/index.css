@@ -9,21 +9,24 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 173 80% 28%; /* #0f766e - Deep clinical teal */
+    --primary: 187 100% 28%; /* #00838f - NextCare Vibrant Medical Cyan-Teal */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215 16% 47%;
-    --accent: 199 89% 48%; /* #0ea5e9 - Medical blue */
-    --accent-foreground: 222 47% 11%;
+    --accent: 8 72% 58%; /* #de5a49 - NextCare Signature Warm Coral / Terracotta */
+    --accent-foreground: 0 0% 100%;
+    --navy: 216 55% 24%; /* #1b365d - NextCare Deep Navy */
+    --navy-dark: 218 54% 19%; /* #162d4a - NextCare Utility Navy */
+    --ice-bg: 191 43% 96%; /* #f0f8fa - NextCare Soft Ice-Blue */
     --destructive: 0 84% 60%; /* #ef4444 - Clinical emergency */
     --destructive-foreground: 210 40% 98%;
     --warning: 38 92% 50%; /* #f59e0b - Alert amber */
     --success: 152 76% 36%; /* #059669 - Positive state */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 173 80% 28%;
+    --ring: 187 100% 28%;
     --radius: 0.5rem;
   }
 

@@ -17,21 +17,14 @@ import {
   GitBranch,
   ArrowRight,
   MapPin,
-  Clock,
   ShieldCheck,
   CheckCircle2,
-  Users,
   Pill,
   Sparkles,
-  Percent,
-  Search,
-  Phone,
-  MessageCircle,
-  Navigation,
-  X,
-  ExternalLink,
-  Bed,
   Mic,
+  HeartPulse,
+  Users,
+  Clock3,
 } from 'lucide-react';
 import { useFamily } from '@/contexts/FamilyContext';
 import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
@@ -48,365 +41,317 @@ export const PatientDashboard: React.FC = () => {
     ) || INITIAL_LIVE_QUEUE.tokens[3];
 
   const activeReferral = INITIAL_REFERRALS[0];
-
   const nearbyFacilities = INITIAL_FACILITIES.slice(0, 3);
 
-  // Voice & Facility Assistant Modal State
   const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
-  const [activeModalTab, setActiveModalTab] = useState<'ASSISTANT' | 'STORES'>('ASSISTANT');
+  const [activeModalTab, setActiveModalTab] = useState<
+    'ASSISTANT' | 'STORES'
+  >('ASSISTANT');
 
   return (
-    <div className="space-y-7 font-sans">
+    <div className="min-h-full space-y-8 bg-[#F7F4ED] px-1 pb-8 font-sans text-[#29332F]">
 
       {/* ================================================== */}
-      {/* CITIZEN HEALTH BAR / ABHA IDENTITY */}
+      {/* WELCOME / HEALTH IDENTITY */}
       {/* ================================================== */}
 
-      <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-5 text-white shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700/80 border border-teal-500/40 text-white shadow-xs">
-              <ShieldCheck className="h-6 w-6 text-teal-200" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-[#E5DED2] bg-[#FFFDF8] px-6 py-6 shadow-[0_18px_45px_rgba(82,122,104,0.08)] sm:px-8">
+        <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#DDEDF2] opacity-70 blur-3xl" />
+        <div className="absolute -bottom-24 left-1/3 h-48 w-48 rounded-full bg-[#F6DED2] opacity-60 blur-3xl" />
+        <div className="absolute right-1/3 top-1/2 h-24 w-24 rounded-full bg-[#E2F0E8] opacity-70 blur-2xl" />
+
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] bg-[#E2F0E8] text-[#527A68] shadow-sm">
+              <HeartPulse className="h-7 w-7" />
             </div>
+
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold tracking-tight text-white sm:text-base">
-                  {t('patient.portalTitle', 'Ayushman Bharat Citizen Health Portal')}
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#789084]">
+                  Your health space
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-teal-700/80 border border-teal-500/50 px-2 py-0.5 text-[10px] font-semibold text-teal-100">
-                  <CheckCircle2 className="h-3 w-3 text-emerald-400" /> {t('patient.abhaVerified', 'ABHA Verified')}
+
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#F0E7D8] px-2.5 py-1 text-[10px] font-bold text-[#92704E]">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {t('patient.abhaVerified', 'ABHA Verified')}
                 </span>
               </div>
-              <p className="text-xs text-teal-200/90 mt-0.5 font-mono">
-                ABHA ID: {activeMember.abhaId} • Active: {activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})
+
+              <h1 className="text-xl font-bold tracking-tight text-[#29332F] sm:text-2xl">
+                {t(
+                  'patient.portalTitle',
+                  'Ayushman Bharat Citizen Health Portal'
+                )}
+              </h1>
+
+              <p className="mt-1 text-xs text-[#71807A]">
+                ABHA ID: {activeMember.abhaId}
+                <span className="mx-2 text-[#C7CEC9]">•</span>
+                Active: {activeMember.name} (
+                {activeMember.relation === 'SELF'
+                  ? 'Self'
+                  : activeMember.relationLabel}
+                )
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          <div className="flex flex-wrap items-center gap-3">
             <FamilyMemberSwitcher variant="banner" />
-            <div className="flex items-center gap-1.5 rounded-xl bg-teal-800/80 border border-teal-600/40 px-3 py-1.5 text-xs text-teal-100">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+
+            <div className="flex items-center gap-2 rounded-2xl border border-[#D9E5DE] bg-[#F4F8F5] px-4 py-2.5 text-xs font-semibold text-[#527A68]">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#A8CDB8] opacity-70" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#78A890]" />
               </span>
-              <span>{t('patient.opdActiveToday', 'OPD Active Today')}</span>
+              {t('patient.opdActiveToday', 'OPD Active Today')}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
 
       {/* ================================================== */}
-      {/* TOKEN + REFERRAL */}
+      {/* HEALTH SNAPSHOT */}
       {/* ================================================== */}
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-5">
 
+        {/* TOKEN - MAIN FOCUS */}
 
-        {/* ================================================== */}
-        {/* MY TOKEN */}
-        {/* ================================================== */}
+        <Card className="group relative overflow-hidden rounded-[2rem] border-[#E5DED2] bg-[#FFFDF8] shadow-[0_15px_35px_rgba(82,122,104,0.07)] lg:col-span-3">
+          <CardContent className="p-0">
 
-        <Card className="overflow-hidden border-teal-200 bg-white shadow-sm lg:col-span-3">
+            <div className="relative overflow-hidden bg-[#EAF3ED] px-6 pb-7 pt-6 sm:px-7">
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#DDEDF2] opacity-70 blur-2xl" />
 
-          {/* Header */}
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#6C8A7B]">
+                    Your queue
+                  </p>
+                  <h2 className="mt-1 text-lg font-bold text-[#29332F]">
+                    {t('patient.myToken', 'My Token')}
+                  </h2>
+                </div>
 
-          <div className="flex items-center justify-between bg-teal-700 px-5 py-3.5 text-white">
-
-            <div className="flex items-center gap-2">
-
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-600">
-
-                <Ticket className="h-4 w-4" />
-
+                <StatusBadge
+                  status="WAITING"
+                  className="border-[#C5DACC] bg-[#FFFDF8] text-[10px] text-[#527A68]"
+                />
               </div>
 
-              <span className="text-sm font-semibold">
-                {t('patient.myToken', 'My Token')}
-              </span>
+              <div className="relative mt-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[11px] font-medium text-[#71807A]">
+                    {t('patient.yourToken', 'Your Token')}
+                  </p>
 
+                  <p className="mt-1 text-5xl font-black tracking-[-0.05em] text-[#527A68] sm:text-6xl">
+                    {activeToken.tokenNumber}
+                  </p>
+
+                  <div className="mt-3 flex items-center gap-2 text-xs text-[#71807A]">
+                    <Building2 className="h-3.5 w-3.5 text-[#78A890]" />
+                    {activeToken.facilityName}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/70 bg-[#FFFDF8]/80 px-4 py-3 backdrop-blur-sm">
+                  <p className="text-[10px] font-medium text-[#8A948F]">
+                    {t('patient.turnCloser', 'Your turn is getting closer')}
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-[#527A68]">
+                    45%
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <StatusBadge
-              status="WAITING"
-              className="border-teal-600 bg-teal-800 text-[10px] text-white"
-            />
-
-          </div>
-
-
-          <CardContent className="p-5">
-
-            {/* Main Token Information */}
-
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-
-
-              {/* Token */}
-
-              <div className="sm:min-w-[95px]">
-
-                <p className="text-[11px] font-medium text-slate-500">
-                  {t('patient.yourToken', 'Your Token')}
+            <div className="grid grid-cols-3 divide-x divide-[#ECE7DE] px-5 py-5 sm:px-7">
+              <div className="pr-3">
+                <p className="text-[10px] font-medium text-[#929B96]">
+                  {t('patient.nowServing', 'Now Serving')}
                 </p>
-
-                <p className="mt-0.5 text-3xl font-bold tracking-tight text-teal-800">
-                  {activeToken.tokenNumber}
+                <p className="mt-1 text-lg font-bold text-[#29332F]">
+                  {INITIAL_LIVE_QUEUE.currentTokenNumber}
                 </p>
-
               </div>
 
-
-              {/* Information */}
-
-              <div className="grid flex-1 grid-cols-3 gap-3 border-t border-slate-100 pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-
-                <div>
-
-                  <p className="text-[10px] font-medium text-slate-400">
-                    {t('patient.nowServing', 'Now Serving')}
-                  </p>
-
-                  <p className="mt-1 text-base font-semibold text-slate-900">
-                    {INITIAL_LIVE_QUEUE.currentTokenNumber}
-                  </p>
-
-                </div>
-
-
-                <div>
-
-                  <p className="text-[10px] font-medium text-slate-400">
-                    {t('patient.beforeYou', 'Before You')}
-                  </p>
-
-                  <p className="mt-1 text-base font-semibold text-slate-900">
-                    7
-                  </p>
-
-                </div>
-
-
-                <div>
-
-                  <p className="text-[10px] font-medium text-slate-400">
-                    {t('patient.waitTime', 'Wait Time')}
-                  </p>
-
-                  <p className="mt-1 text-base font-semibold text-amber-600">
-                    {activeToken.estimatedWaitMinutes} min
-                  </p>
-
-                </div>
-
+              <div className="px-3">
+                <p className="text-[10px] font-medium text-[#929B96]">
+                  {t('patient.beforeYou', 'Before You')}
+                </p>
+                <p className="mt-1 text-lg font-bold text-[#29332F]">
+                  7
+                </p>
               </div>
 
+              <div className="pl-3">
+                <p className="text-[10px] font-medium text-[#929B96]">
+                  {t('patient.waitTime', 'Wait Time')}
+                </p>
+                <p className="mt-1 text-lg font-bold text-[#A86F55]">
+                  {activeToken.estimatedWaitMinutes} min
+                </p>
+              </div>
             </div>
 
-
-            {/* Progress */}
-
-            <div className="mt-5">
-
-              <div className="mb-2 flex items-center justify-between">
-
-                <span className="text-[10px] text-slate-400">
-                  {t('patient.turnCloser', 'Your turn is getting closer')}
-                </span>
-
-                <span className="text-[10px] font-medium text-teal-700">
-                  45%
-                </span>
-
+            <div className="px-5 pb-5 sm:px-7">
+              <div className="h-2 overflow-hidden rounded-full bg-[#E9EEE9]">
+                <div className="h-full w-[45%] rounded-full bg-gradient-to-r from-[#8BB69F] to-[#527A68]" />
               </div>
 
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-
-                <div className="h-full w-[45%] rounded-full bg-teal-600" />
-
-              </div>
-
-            </div>
-
-
-            {/* Hospital & View Live Queue Link */}
-            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100 pt-4">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-3.5 w-3.5 text-teal-700" />
-                <span className="text-xs font-medium text-slate-600">
-                  {activeToken.facilityName}
-                </span>
-              </div>
-
-              <Link to="/patient/tokens">
+              <Link to="/patient/tokens" className="mt-4 block">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs px-2.5 rounded-lg border-teal-600 text-teal-700 hover:bg-teal-50 font-semibold cursor-pointer gap-1"
+                  className="h-9 w-full gap-1.5 rounded-xl border-[#BCD1C4] text-xs font-bold text-[#527A68] hover:bg-[#F1F7F3] cursor-pointer"
                 >
-                  {t('patient.viewQueueHistory', 'View Live Queue & History')}
-                  <ArrowRight className="h-3 w-3" />
+                  {t(
+                    'patient.viewQueueHistory',
+                    'View Live Queue & History'
+                  )}
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>
             </div>
           </CardContent>
-
         </Card>
 
 
-        {/* ================================================== */}
-        {/* MY REFERRAL */}
-        {/* ================================================== */}
+        {/* REFERRAL */}
 
-        <Card className="border-slate-200 bg-white shadow-sm lg:col-span-2">
+        <Card className="rounded-[2rem] border-[#E5DED2] bg-[#FFFDF8] shadow-[0_15px_35px_rgba(82,122,104,0.07)] lg:col-span-2">
+          <CardContent className="flex h-full flex-col p-6">
 
-          <CardContent className="p-5">
-
-            {/* Header */}
-
-            <div className="mb-4 flex items-center justify-between">
-
-              <div className="flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
-
-                  <GitBranch className="h-4 w-4 text-amber-600" />
-
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F6DED2]">
+                  <GitBranch className="h-5 w-5 text-[#A86F55]" />
                 </div>
 
                 <div>
-
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    {t('patient.myReferral', 'My Referral')}
-                  </h3>
-
-                  <p className="text-[10px] text-slate-400">
-                    {t('patient.referredVisit', 'Your referred visit')}
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#A88A7A]">
+                    Care journey
                   </p>
-
+                  <h2 className="mt-0.5 text-base font-bold text-[#29332F]">
+                    {t('patient.myReferral', 'My Referral')}
+                  </h2>
                 </div>
-
               </div>
 
-              <PriorityBadge
-                priority={activeReferral.priority}
-              />
-
+              <PriorityBadge priority={activeReferral.priority} />
             </div>
 
+            <div className="mt-6 flex-1 rounded-[1.5rem] bg-[#FBF3ED] p-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#A88A7A]">
+                {t('patient.hospital', 'Hospital')}
+              </p>
 
-            {/* Referral Details */}
-<div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <p className="mt-1 text-lg font-bold text-[#29332F]">
+                {activeReferral.toFacilityName}
+              </p>
 
-  <div>
+              <div className="mt-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-[#EBDDD4] pb-3">
+                  <div>
+                    <p className="text-[10px] text-[#929B96]">
+                      {t('patient.doctorFor', 'Doctor For')}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-[#45534C]">
+                      {activeReferral.toSpecialty}
+                    </p>
+                  </div>
 
-    <p className="text-[10px] font-medium text-slate-400">
-      {t('patient.hospital', 'Hospital')}
-    </p>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFFDF8]">
+                    <HeartPulse className="h-4 w-4 text-[#A86F55]" />
+                  </div>
+                </div>
 
-    <p className="mt-0.5 text-sm font-semibold text-slate-900">
-      {activeReferral.toFacilityName}
-    </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-[#929B96]">
+                      {t('patient.visitTime', 'Visit Time')}
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-[#527A68]">
+                      {activeReferral.appointmentSlot || 'Not fixed yet'}
+                    </p>
+                  </div>
 
-  </div>
+                  <Clock3 className="h-5 w-5 text-[#78A890]" />
+                </div>
+              </div>
+            </div>
 
-
-  <div className="grid grid-cols-2 gap-4">
-
-    <div>
-
-      <p className="text-[10px] font-medium text-slate-400">
-        {t('patient.doctorFor', 'Doctor For')}
-      </p>
-
-      <p className="mt-0.5 text-xs font-medium text-slate-800">
-        {activeReferral.toSpecialty}
-      </p>
-
-    </div>
-
-
-    <div>
-
-      <p className="text-[10px] font-medium text-slate-400">
-        {t('patient.visitTime', 'Visit Time')}
-      </p>
-
-      <p className="mt-0.5 text-xs font-medium text-teal-700">
-        {activeReferral.appointmentSlot || 'Not fixed yet'}
-      </p>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-            {/* View Referral */}
-
-            <Link
-              to="/patient/referrals"
-              className="mt-4 block"
-            >
-
+            <Link to="/patient/referrals" className="mt-4 block">
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full gap-1.5 text-xs font-semibold cursor-pointer"
+                className="h-9 w-full gap-1.5 rounded-xl border-[#D9B7A5] text-xs font-bold text-[#9A684F] hover:bg-[#FCF1EB] cursor-pointer"
               >
-
                 {t('patient.viewReferral', 'View Referral')}
-
                 <ArrowRight className="h-3.5 w-3.5" />
-
               </Button>
-
             </Link>
-
           </CardContent>
-
         </Card>
-
-      </div>
+      </section>
 
 
       {/* ================================================== */}
-      {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT BANNER */}
+      {/* AI ASSISTANT - FEATURE CARD */}
       {/* ================================================== */}
-      <div className="relative overflow-hidden rounded-2xl border border-teal-300 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-5 text-white shadow-md">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white shadow-sm">
-              <Mic className="h-6 w-6 text-teal-300" />
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-              </span>
+
+      <section className="relative overflow-hidden rounded-[2.25rem] border border-[#BFD7CA] bg-[#E7F1EA] p-6 shadow-[0_18px_45px_rgba(82,122,104,0.08)] sm:p-8">
+        <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#DDEDF2] opacity-80 blur-3xl" />
+        <div className="absolute -bottom-20 left-1/4 h-48 w-48 rounded-full bg-[#F6DED2] opacity-80 blur-3xl" />
+
+        <div className="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
+
+          <div className="flex items-start gap-5">
+            <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.5rem] bg-[#FFFDF8] text-[#527A68] shadow-md">
+              <Mic className="h-7 w-7" />
+              <span className="absolute -bottom-1 -right-1 flex h-4 w-4 rounded-full border-2 border-[#E7F1EA] bg-[#78A890]" />
             </div>
+
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 rounded-md bg-teal-700/80 border border-teal-500/50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-100">
-                  <Sparkles className="h-3 w-3 text-teal-300" /> AI Voice Triage
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#527A68] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white">
+                  <Sparkles className="h-3 w-3" />
+                  AI Voice Triage
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+
+                <span className="rounded-full bg-[#FFFDF8]/80 px-3 py-1 text-[10px] font-bold text-[#527A68]">
                   Gujarati • Hindi • English
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-teal-100">
-                  ● Real-Time Doctor & Bed Match
+              </div>
+
+              <h2 className="mt-3 max-w-2xl text-2xl font-black tracking-tight text-[#29332F] sm:text-3xl">
+                Tell Sanjeevani what you need.
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66736D]">
+                “Tamare kem hospital javu che?” — Speak or tap your symptom
+                and find the right hospital, doctor and available beds.
+              </p>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#527A68]">
+                <span className="rounded-full bg-[#D6E9DD] px-3 py-1.5">
+                  ✓ Doctor match
+                </span>
+                <span className="rounded-full bg-[#DDEDF2] px-3 py-1.5 text-[#5E8794]">
+                  ✓ Bed availability
+                </span>
+                <span className="rounded-full bg-[#F6DED2] px-3 py-1.5 text-[#A86F55]">
+                  ✓ Nearby hospitals
                 </span>
               </div>
-              <h3 className="mt-1 text-base font-extrabold text-white sm:text-lg tracking-tight">
-                "Tamare kem hospital javu che?" — Speak with Sanjeevani Assistant
-              </h3>
-              <p className="mt-0.5 text-xs text-teal-200/90 max-w-xl">
-                Tell your symptom (fracture, fever, chest pain, delivery) in voice or tap. Assistant directly finds the best hospital with on-duty doctors and available beds.
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap">
+          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
             <Button
               onClick={() => {
                 setActiveModalTab('ASSISTANT');
@@ -414,9 +359,9 @@ export const PatientDashboard: React.FC = () => {
               }}
               variant="primary"
               size="sm"
-              className="w-full sm:w-auto gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm font-extrabold text-xs h-10 px-4 rounded-xl cursor-pointer"
+              className="h-11 min-w-[190px] gap-2 rounded-2xl bg-[#527A68] px-5 text-xs font-extrabold text-white shadow-md shadow-[#527A68]/15 hover:bg-[#456957] cursor-pointer"
             >
-              <Mic className="h-4 w-4 text-emerald-100 animate-pulse" />
+              <Mic className="h-4 w-4" />
               <span>🎙️ Ask Assistant (બોલો)</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
@@ -428,14 +373,16 @@ export const PatientDashboard: React.FC = () => {
               }}
               variant="outline"
               size="sm"
-              className="w-full sm:w-auto gap-1.5 bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold text-xs h-10 px-3.5 rounded-xl cursor-pointer"
+              className="h-11 min-w-[190px] gap-2 rounded-2xl border-[#B9D0C1] bg-[#FFFDF8]/70 px-5 text-xs font-bold text-[#527A68] hover:bg-[#F7FBF8] cursor-pointer"
             >
-              <Pill className="h-3.5 w-3.5 text-emerald-300" />
-              <span>{t('patient.findMedicalStores', 'Medical Stores')}</span>
+              <Pill className="h-3.5 w-3.5" />
+              <span>
+                {t('patient.findMedicalStores', 'Medical Stores')}
+              </span>
             </Button>
           </div>
         </div>
-      </div>
+      </section>
 
 
       {/* ================================================== */}
@@ -443,178 +390,152 @@ export const PatientDashboard: React.FC = () => {
       {/* ================================================== */}
 
       <section>
-
-        {/* Section Header */}
-
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-8 rounded-full bg-[#78A890]" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#789084]">
+                Healthcare around you
+              </span>
+            </div>
 
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-[#29332F]">
               {t('patient.hospitalsNearYou', 'Hospitals Near You')}
             </h2>
 
-            <p className="mt-1 text-xs text-slate-500">
-              {t('patient.checkAvailability', 'Check hospital location and availability')}
+            <p className="mt-1 text-sm text-[#71807A]">
+              {t(
+                'patient.checkAvailability',
+                'Check hospital location and availability'
+              )}
             </p>
-
           </div>
 
-
-          {/* Find Hospital */}
-
           <Link to="/patient/facilities">
-
             <Button
               variant="primary"
               size="sm"
-              className="w-full gap-1.5 bg-teal-700 text-xs hover:bg-teal-800 sm:w-auto font-semibold cursor-pointer"
+              className="w-full gap-1.5 rounded-2xl bg-[#527A68] px-4 text-xs font-bold text-white hover:bg-[#456957] sm:w-auto cursor-pointer"
             >
-
               <Building2 className="h-3.5 w-3.5" />
-
               {t('patient.findHospital', 'Find Hospital')}
-
               <ArrowRight className="h-3.5 w-3.5" />
-
             </Button>
-
           </Link>
-
         </div>
 
 
-        {/* Map + Hospital List */}
-
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.5fr_1fr]">
 
           {/* MAP */}
 
-          <div className="overflow-hidden rounded-2xl lg:col-span-2">
-
-            <MapView facilities={INITIAL_FACILITIES} />
-
+          <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-[#E5DED2] bg-[#FFFDF8] p-2 shadow-[0_15px_35px_rgba(82,122,104,0.07)]">
+            <div className="h-full min-h-[404px] overflow-hidden rounded-[1.5rem]">
+              <MapView facilities={INITIAL_FACILITIES} />
+            </div>
           </div>
 
 
-          {/* HOSPITALS */}
+          {/* HOSPITAL LIST */}
 
           <div className="space-y-3">
-
-            {nearbyFacilities.map((facility) => (
-
+            {nearbyFacilities.map((facility, index) => (
               <Card
                 key={facility.id}
-                className="border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="group rounded-[1.5rem] border-[#E5DED2] bg-[#FFFDF8] p-5 shadow-[0_10px_25px_rgba(82,122,104,0.05)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_30px_rgba(82,122,104,0.10)]"
               >
+                <div className="flex items-start gap-3">
 
-                {/* Hospital Header */}
+                  <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                      index === 0
+                        ? 'bg-[#E2F0E8] text-[#527A68]'
+                        : index === 1
+                        ? 'bg-[#DDEDF2] text-[#5E8794]'
+                        : 'bg-[#F6DED2] text-[#A86F55]'
+                    }`}
+                  >
+                    <Building2 className="h-5 w-5" />
+                  </div>
 
-                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-sm font-bold text-[#29332F]">
+                          {facility.name}
+                        </h3>
 
-                  <div className="min-w-0">
+                        <div className="mt-1 flex items-center gap-1 text-[11px] text-[#71807A]">
+                          <MapPin className="h-3 w-3 text-[#78A890]" />
+                          {facility.distanceKm} km away
+                        </div>
+                      </div>
 
-                    <h3 className="truncate text-sm font-semibold text-slate-900">
-                      {facility.name}
-                    </h3>
-
-                    <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
-
-                      <MapPin className="h-3 w-3" />
-
-                      {facility.distanceKm} km away
-
+                      {facility.isOpen ? (
+                        <span className="shrink-0 rounded-full bg-[#E2F0E8] px-2.5 py-1 text-[10px] font-bold text-[#5F9077]">
+                          {t('status.open', 'Open')}
+                        </span>
+                      ) : (
+                        <span className="shrink-0 rounded-full bg-[#F0ECE6] px-2.5 py-1 text-[10px] font-bold text-[#7A847F]">
+                          {t('status.closed', 'Closed')}
+                        </span>
+                      )}
                     </div>
 
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <div className="rounded-xl bg-[#F3F6F1] px-3 py-2">
+                        <p className="text-[9px] font-medium uppercase tracking-wide text-[#929B96]">
+                          {t('patient.beds', 'Beds')}
+                        </p>
+                        <p className="mt-0.5 text-sm font-bold text-[#29332F]">
+                          {facility.availableBeds}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-[#FCF0EE] px-3 py-2">
+                        <p className="text-[9px] font-medium uppercase tracking-wide text-[#A98B87]">
+                          {t('patient.icu', 'ICU')}
+                        </p>
+                        <p className="mt-0.5 text-sm font-bold text-[#AD625C]">
+                          {facility.icuBedsAvailable}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/patient/facilities/${facility.id}`}
+                      className="mt-3 block"
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-full rounded-xl border-[#C8D8CE] text-xs font-bold text-[#527A68] hover:bg-[#F1F7F3] cursor-pointer"
+                      >
+                        {t(
+                          'patient.viewHospital',
+                          'View Hospital'
+                        )}
+                        <ArrowRight className="ml-1.5 h-3 w-3" />
+                      </Button>
+                    </Link>
                   </div>
-
-
-                  {facility.isOpen ? (
-
-                    <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
-                      {t('status.open', 'Open')}
-                    </span>
-
-                  ) : (
-
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500">
-                      {t('status.closed', 'Closed')}
-                    </span>
-
-                  )}
-
                 </div>
-
-
-                {/* Availability */}
-
-                <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-
-                  <div className="flex items-center gap-1.5">
-
-                    <Building2 className="h-3.5 w-3.5 text-teal-700" />
-
-                    <span className="text-[11px] text-slate-600">
-                      <strong className="font-semibold text-slate-900">
-                        {facility.availableBeds}
-                      </strong>{' '}
-                      {t('patient.beds', 'beds')}
-                    </span>
-
-                  </div>
-
-
-                  <span className="text-[11px] text-red-700">
-
-                    <strong className="font-semibold">
-                      {facility.icuBedsAvailable}
-                    </strong>{' '}
-                    {t('patient.icu', 'ICU')}
-
-                  </span>
-
-                </div>
-
-
-                {/* View Hospital */}
-
-                <Link
-                  to={`/patient/facilities/${facility.id}`}
-                  className="mt-3 block"
-                >
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-full text-xs font-semibold cursor-pointer"
-                  >
-
-                    {t('patient.viewHospital', 'View Hospital')}
-
-                  </Button>
-
-                </Link>
-
               </Card>
-
             ))}
-
           </div>
-
         </div>
-
       </section>
 
+
       {/* ================================================== */}
-      {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT MODAL */}
+      {/* MODAL */}
       {/* ================================================== */}
+
       <SmartHospitalAssistantModal
         isOpen={isFacilityModalOpen}
         onClose={() => setIsFacilityModalOpen(false)}
         defaultTab={activeModalTab}
       />
-
     </div>
   );
 };
