@@ -80,15 +80,15 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           </button>
 
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm group-hover:bg-teal-800 transition-colors">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2B6CB0] text-white shadow-sm group-hover:bg-[#20548A] transition-colors">
               <HeartPulse className="h-6 w-6" />
             </div>
             <div className="text-left hidden sm:block">
               <span className="block text-base font-extrabold tracking-tight text-slate-900 leading-tight">
                 HEALTHCONNECT
               </span>
-              <span className="block text-[11px] font-medium text-teal-800 leading-none">
-                Public Healthcare Access & Care Continuity
+              <span className="block text-[11px] font-medium text-slate-500 leading-none">
+                {t('navbar.brandSubtitle', 'Public Healthcare Access & Care Continuity')}
               </span>
             </div>
             <span className="font-bold text-base text-slate-900 sm:hidden">HealthConnect</span>
@@ -286,14 +286,14 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
               className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition-colors group cursor-pointer"
               title="Manage Profile & Settings"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white font-bold text-xs uppercase shadow-2xs group-hover:bg-teal-700 transition-colors">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#2B6CB0] text-white font-bold text-xs uppercase shadow-2xs group-hover:bg-[#20548A] transition-colors">
                 {user?.name ? user.name.slice(0, 2) : 'HC'}
               </div>
               <div className="hidden lg:block text-left min-w-0">
-                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px] group-hover:text-teal-900" title={user?.name}>
+                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px] group-hover:text-[#1D6394]" title={user?.name}>
                   {user?.name || 'Authorized User'}
                 </p>
-                <span className="text-[10px] font-semibold text-teal-800 bg-teal-50 px-1 py-0.5 rounded border border-teal-200/60 uppercase leading-none inline-block mt-0.5">
+                <span className="text-[10px] font-semibold text-[#1D6394] bg-[#E1EFFA] px-1 py-0.5 rounded border border-[#C6E0F2] uppercase leading-none inline-block mt-0.5">
                   {role === 'FACILITY_STAFF' && staffSubType ? staffSubType.replace('_', ' ') : role?.replace('_', ' ')}
                 </span>
               </div>

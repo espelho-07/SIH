@@ -709,9 +709,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     end={item.to.split('/').length <= 2}
                     className={({ isActive }) =>
                       cn(
-                        `group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-200`,
+                        `group relative flex items-center justify-between rounded-2xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-200`,
                         isActive
-                          ? `bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-800 font-semibold shadow-xs`
+                          ? `bg-[#E1EFFA] text-[#1D6394] font-bold shadow-xs`
                           : `text-slate-600 hover:bg-slate-50 hover:text-slate-900`
                       )
                     }
@@ -720,7 +720,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <>
                       {/* Active Left Indicator */}
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 rounded-r-full bg-gradient-to-b from-teal-500 to-cyan-500" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 rounded-r-full bg-[#1D6394]" />
                       )}
 
                       <div className="flex min-w-0 items-center gap-3">
@@ -729,14 +729,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           className={cn(
                             `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200`,
                             isActive
-                              ? 'bg-white shadow-xs text-teal-600'
+                              ? 'bg-white shadow-xs text-[#1D6394]'
                               : item.color || 'bg-slate-50 text-slate-500'
                           )}
                         >
                           <Icon
                             className={cn(
                               'h-[18px] w-[18px]',
-                              isActive ? 'text-teal-600' : ''
+                              isActive ? 'text-[#1D6394]' : ''
                             )}
                           />
                         </div>

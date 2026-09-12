@@ -250,7 +250,7 @@ export const Login: React.FC = () => {
                   </form>
                 ) : (
                   <form onSubmit={handleVerifyOtp} className="space-y-4">
-                    <div className="rounded-xl bg-teal-50 border border-teal-200 p-3.5 text-xs text-teal-900 flex items-center justify-between">
+                    <div className="rounded-xl bg-[#E8F2FA] border border-[#C6E0F2] p-3.5 text-xs text-[#1D6394] flex items-center justify-between">
                       <span>OTP dispatched to +91 {phone}</span>
                       <button
                         type="button"
@@ -259,7 +259,7 @@ export const Login: React.FC = () => {
                           setOtp('');
                           setOtpError('');
                         }}
-                        className="text-teal-700 font-bold underline hover:text-teal-900"
+                        className="text-[#2B6CB0] font-bold underline hover:text-[#1B365D]"
                       >
                         Change
                       </button>
@@ -319,7 +319,7 @@ export const Login: React.FC = () => {
                         setStaffSubType('PHARMACIST');
                       }
                     }}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
                   >
                     <option value="ASHA">ASHA / ANM / CHO (Frontline)</option>
                     <option value="DOCTOR">Doctor / Medical Specialist</option>
@@ -342,7 +342,7 @@ export const Login: React.FC = () => {
                         setStaffSubType(subtype);
                         setDemoCredentials('FACILITY_STAFF', subtype);
                       }}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
                     >
                       <option value="REGISTRATION_CLERK">Registration Clerk (Counter & Tokens)</option>
                       <option value="PHARMACIST">Pharmacist (Dispensing & Stock)</option>
@@ -387,7 +387,7 @@ export const Login: React.FC = () => {
                 </Button>
 
                 {/* QUICK DEMO ACCESS */}
-                <div className="mt-6 pt-5 border-t border-slate-200">
+                <div className="mt-6 pt-5 border-t border-[#E2EDF3]">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -397,7 +397,7 @@ export const Login: React.FC = () => {
                         Select a role to auto-fill credentials
                       </p>
                     </div>
-                    <span className="rounded-full bg-teal-50 border border-teal-200 px-2.5 py-1 text-[10px] font-bold text-teal-700">
+                    <span className="rounded-full bg-[#E1EFFA] border border-[#C6E0F2] px-2.5 py-1 text-[10px] font-bold text-[#1D6394]">
                       DEMO
                     </span>
                   </div>
@@ -407,13 +407,13 @@ export const Login: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setDemoCredentials('DOCTOR')}
-                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:bg-sky-50 hover:shadow-sm"
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-[#2B6CB0] hover:bg-[#E1EFFA] hover:shadow-sm"
                     >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 group-hover:bg-sky-200 transition-colors">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E1EFFA] text-[#1D6394] group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
                         <Stethoscope className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 group-hover:text-sky-700 truncate">Doctor</p>
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">Doctor</p>
                         <p className="text-[10px] text-slate-400 truncate">Medical</p>
                       </div>
                     </button>
@@ -422,13 +422,13 @@ export const Login: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setDemoCredentials('ASHA')}
-                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-sm"
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-[#2B6CB0] hover:bg-[#E8F2FA] hover:shadow-sm"
                     >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-200 transition-colors">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E1EFFA] text-[#2B6CB0] group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
                         <UsersRound className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 truncate">ASHA</p>
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">ASHA</p>
                         <p className="text-[10px] text-slate-400 truncate">Frontline</p>
                       </div>
                     </button>
@@ -482,13 +482,13 @@ export const Login: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setDemoCredentials('FACILITY_STAFF', 'FACILITY_OPERATIONS')}
-                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50 hover:shadow-sm"
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-[#2B6CB0] hover:bg-[#E8F2FA] hover:shadow-sm"
                     >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-600 group-hover:bg-teal-200 transition-colors">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E1EFFA] text-[#1D6394] group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
                         <Activity className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 group-hover:text-teal-700 truncate">Facility Ops</p>
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">Facility Ops</p>
                         <p className="text-[10px] text-slate-400 truncate">Operations</p>
                       </div>
                     </button>
