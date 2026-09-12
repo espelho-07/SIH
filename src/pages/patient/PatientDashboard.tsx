@@ -63,39 +63,41 @@ export const PatientDashboard: React.FC = () => {
       <div className="pointer-events-none absolute bottom-20 left-10 -z-10 h-72 w-72 rounded-full bg-emerald-100/35 blur-3xl" />
 
       {/* ================================================== */}
-      {/* CITIZEN HEALTH BAR / ABHA IDENTITY (Liquid Light Green) */}
+      {/* CITIZEN HEALTH BAR / ABHA IDENTITY (Liquid Glass) */}
       {/* ================================================== */}
-      <div className="relative overflow-hidden rounded-3xl border border-emerald-300/60 bg-gradient-to-r from-emerald-500/90 via-teal-600/90 to-emerald-600/95 p-5 text-white shadow-lg backdrop-blur-md">
-        {/* Ambient Liquid Aura Highlights */}
-        <div className="pointer-events-none absolute -top-12 -left-12 h-44 w-44 rounded-full bg-emerald-300/30 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-teal-300/30 blur-2xl" />
+      <div className="relative overflow-hidden rounded-3xl border border-white/80 bg-white/60 p-5 shadow-[0_8px_32px_0_rgba(16,185,129,0.10),0_2px_8px_0_rgba(0,0,0,0.04)] backdrop-blur-2xl transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/80 before:via-emerald-50/30 before:to-teal-50/20 before:pointer-events-none before:rounded-3xl">
+        {/* Liquid Aura Fluid Blobs */}
+        <div className="pointer-events-none absolute -top-14 -left-14 h-48 w-48 rounded-full bg-emerald-300/40 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-14 -right-14 h-52 w-52 rounded-full bg-teal-300/35 blur-3xl" />
+        <div className="pointer-events-none absolute top-1/2 left-1/3 -translate-y-1/2 h-28 w-60 rounded-full bg-emerald-200/25 blur-2xl" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/20 border border-white/30 text-white shadow-sm backdrop-blur-md">
-              <ShieldCheck className="h-6 w-6 text-emerald-100" />
+            {/* Glossy 3D Shield Emblem */}
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-md shadow-emerald-500/25 border border-white/60">
+              <ShieldCheck className="h-6 w-6 text-white drop-shadow-xs" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold tracking-tight text-white sm:text-base drop-shadow-xs">
+                <span className="text-sm font-extrabold tracking-tight text-slate-900 sm:text-base">
                   {t('patient.portalTitle', 'Ayushman Bharat Citizen Health Portal')}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm px-2.5 py-0.5 text-[10px] font-bold text-white shadow-2xs">
-                  <CheckCircle2 className="h-3 w-3 text-emerald-200" /> {t('patient.abhaVerified', 'ABHA Verified')}
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 shadow-2xs">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-600" /> {t('patient.abhaVerified', 'ABHA Verified')}
                 </span>
               </div>
-              <p className="text-xs text-emerald-100/90 mt-0.5 font-mono">
-                ABHA ID: {activeMember.abhaId} • Active: {activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})
+              <p className="text-xs text-slate-600 mt-0.5 font-mono">
+                ABHA ID: <strong className="font-semibold text-slate-800 tracking-wide">{activeMember.abhaId}</strong> • Active: <strong className="font-bold text-emerald-800">{activeMember.name}</strong> <span className="text-slate-500 font-sans">({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})</span>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
             <FamilyMemberSwitcher variant="banner" />
-            <div className="flex items-center gap-1.5 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-md px-3 py-1.5 text-xs font-semibold text-white shadow-2xs">
+            <div className="flex items-center gap-1.5 rounded-2xl bg-white/70 border border-emerald-300/60 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-emerald-800 shadow-2xs">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-300"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span>{t('patient.opdActiveToday', 'OPD Active Today')}</span>
             </div>
