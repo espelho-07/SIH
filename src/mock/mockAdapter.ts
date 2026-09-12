@@ -513,7 +513,7 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   // 5. REFERRALS
-  if (cleanUrl === '/api/v1/referrals' && method === 'GET') {
+  if ((cleanUrl === '/referrals' || cleanUrl === '/api/v1/referrals' || cleanUrl.endsWith('/referrals')) && method === 'GET') {
     return {
       success: true,
       message: 'Referrals retrieved',
@@ -522,7 +522,7 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
-  if (cleanUrl === '/api/v1/referrals' && method === 'POST') {
+  if ((cleanUrl === '/referrals' || cleanUrl === '/api/v1/referrals' || cleanUrl.endsWith('/referrals')) && method === 'POST') {
     const created = mockState.createReferral(data as CreateReferralRequest);
     return {
       success: true,
