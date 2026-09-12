@@ -679,7 +679,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* ---------------------------------------------
             NAVIGATION
         --------------------------------------------- */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-thin">
+        <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-2 scrollbar-thin">
           {!navItems[0]?.section && (
             <div className="mb-1 px-2.5">
               <div className="flex items-center gap-2">
@@ -691,7 +691,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const showSection =
@@ -704,7 +704,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <div
                       className={cn(
                         'px-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400',
-                        index > 0 ? 'pt-3 pb-1' : 'pb-1'
+                        index > 0 ? 'pt-2.5 pb-1' : 'pb-1'
                       )}
                     >
                       {item.section}
@@ -716,19 +716,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     end={item.to.split('/').length <= 2}
                     className={({ isActive }) =>
                       cn(
-                        'group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs sm:text-sm font-medium transition-all duration-150',
+                        'group flex items-center justify-between rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-150',
                         isActive
-                          ? 'bg-teal-50 text-teal-900 font-semibold border border-teal-200/80 shadow-2xs'
+                          ? 'bg-teal-50/90 text-teal-900 font-semibold border border-teal-200/80 shadow-2xs'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       )
                     }
                   >
                   {({ isActive }) => (
                     <>
-                      <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
                         <Icon
                           className={cn(
-                            'h-[18px] w-[18px] shrink-0 transition-colors',
+                            'h-[17px] w-[17px] shrink-0 transition-colors',
                             isActive
                               ? 'text-teal-700'
                               : 'text-slate-400 group-hover:text-slate-700'
@@ -736,10 +736,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         />
                         <span className="truncate">{item.label}</span>
                       </div>
-
-                      {isActive && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-teal-600 shrink-0" />
-                      )}
 
                       {item.badge !== undefined && (
                         <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">
@@ -755,37 +751,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </nav>
         </div>
 
-        {/* Sidebar Bottom Help & Helpline Card */}
-        <div className="shrink-0 p-3 border-t border-slate-100 bg-slate-50/60">
+        {/* Sidebar Bottom Help & Helpline Card (Compact & Never Clipped) */}
+        <div className="shrink-0 p-2.5 border-t border-slate-100 bg-slate-50/70">
           {role === 'PATIENT' ? (
-            <div className="rounded-2xl border border-sky-200/70 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/40 p-3 shadow-2xs">
+            <div className="rounded-xl border border-sky-200/80 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/50 p-2.5 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-900">
-                  24x7 Emergency Care
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                  </span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-800">
+                    24x7 Emergency
+                  </span>
+                </div>
+                <span className="text-[9.5px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/50">
+                  Toll-Free
                 </span>
-                <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
               </div>
-              <p className="mt-1 text-[11px] text-slate-600 leading-snug">
-                Free ambulance & medical advice
-              </p>
-              <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
                 <a
                   href="tel:108"
-                  className="flex items-center justify-center gap-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-1.5 transition-colors shadow-2xs"
+                  className="flex items-center justify-center gap-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold py-1.5 transition-colors shadow-2xs"
                 >
                   <Phone className="h-3 w-3" />
-                  108 Ambulance
+                  108 Amb
                 </a>
                 <a
                   href="tel:104"
-                  className="flex items-center justify-center gap-1 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold py-1.5 transition-colors shadow-2xs"
+                  className="flex items-center justify-center gap-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold py-1.5 transition-colors shadow-2xs"
                 >
-                  104 Helpline
+                  104 Advice
                 </a>
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-white p-2.5 flex items-center justify-between text-[11px]">
+            <div className="rounded-xl border border-slate-200 bg-white p-2 flex items-center justify-between text-[11px]">
               <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 <span>Sync Active</span>
