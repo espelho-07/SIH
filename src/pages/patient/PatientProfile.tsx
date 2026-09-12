@@ -429,20 +429,6 @@ export const PatientProfile: React.FC = () => {
       {/* ================================================== */}
       {activeTab === 'members' && (
         <div className="space-y-6">
-          {/* Helpful Explanatory Alert */}
-          <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-4 flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-teal-100 text-teal-800 shrink-0">
-              <Users className="h-5 w-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-xs font-bold text-teal-950 uppercase tracking-wider">
-                How Shared Family Healthcare Works in India
-              </h3>
-              <p className="text-xs text-teal-800 leading-relaxed">
-                You can switch the active profile at any time to book hospital OPD appointments, request telemedicine consultations, or view clinical lab tests for any family member. When a dependent gets their own mobile phone, click <strong>"Assign Personal Phone"</strong> to decouple their profile while keeping all past health records safe.
-              </p>
-            </div>
-          </div>
 
           {/* Members Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

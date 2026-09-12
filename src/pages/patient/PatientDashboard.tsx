@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -24,9 +24,18 @@ import {
   Pill,
   Sparkles,
   Percent,
+  Search,
+  Phone,
+  MessageCircle,
+  Navigation,
+  X,
+  ExternalLink,
+  Bed,
+  Mic,
 } from 'lucide-react';
 import { useFamily } from '@/contexts/FamilyContext';
 import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
+import { SmartHospitalAssistantModal } from '@/components/patient/SmartHospitalAssistantModal';
 
 export const PatientDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -41,6 +50,10 @@ export const PatientDashboard: React.FC = () => {
   const activeReferral = INITIAL_REFERRALS[0];
 
   const nearbyFacilities = INITIAL_FACILITIES.slice(0, 3);
+
+  // Voice & Facility Assistant Modal State
+  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState<'ASSISTANT' | 'STORES'>('ASSISTANT');
 
   return (
     <div className="space-y-7 font-sans">
@@ -360,47 +373,66 @@ export const PatientDashboard: React.FC = () => {
 
 
       {/* ================================================== */}
-      {/* NEARBY MEDICAL STORES & JAN AUSHADHI PROMO BANNER */}
+      {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT BANNER */}
       {/* ================================================== */}
-      <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50/70 to-emerald-100/60 p-5 shadow-xs">
+      <div className="relative overflow-hidden rounded-2xl border border-teal-300 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-5 text-white shadow-md">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm ring-4 ring-emerald-100">
-              <Pill className="h-6 w-6" />
+            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white shadow-sm">
+              <Mic className="h-6 w-6 text-teal-300" />
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                  <Sparkles className="h-3 w-3 text-amber-300" /> {t('patient.janAushadhiPriority', 'PMBJP Jan Aushadhi Priority')}
+                <span className="inline-flex items-center gap-1 rounded-md bg-teal-700/80 border border-teal-500/50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-100">
+                  <Sparkles className="h-3 w-3 text-teal-300" /> AI Voice Triage
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-                  <Percent className="h-3 w-3 text-amber-700" /> {t('patient.genericSavings', 'Up to 80% Generic Savings')}
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                  Gujarati • Hindi • English
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
-                  ● {t('patient.openStoresOnly', 'Open Stores Only')}
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-teal-100">
+                  ● Real-Time Doctor & Bed Match
                 </span>
               </div>
-              <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
-                {t('patient.findMedicinesTitle', 'Find Medicines & Nearby Pharmacies')}
+              <h3 className="mt-1 text-base font-extrabold text-white sm:text-lg tracking-tight">
+                "Tamare kem hospital javu che?" — Speak with Sanjeevani Assistant
               </h3>
-              <p className="mt-0.5 text-xs text-slate-600 max-w-xl">
-                {t('patient.findMedicinesSubtitle', 'Find currently open Jan Aushadhi Kendras and pharmacies near you, check medicine stock, and call chemists directly.')}
+              <p className="mt-0.5 text-xs text-teal-200/90 max-w-xl">
+                Tell your symptom (fracture, fever, chest pain, delivery) in voice or tap. Assistant directly finds the best hospital with on-duty doctors and available beds.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-            <Link to="/patient/medical-stores" className="w-full sm:w-auto">
-              <Button
-                variant="primary"
-                size="sm"
-                className="w-full sm:w-auto gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs font-bold text-xs h-10 px-4 cursor-pointer"
-              >
-                <Pill className="h-4 w-4" />
-                {t('patient.findMedicalStores', 'Find Medical Stores')}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            </Link>
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap">
+            <Button
+              onClick={() => {
+                setActiveModalTab('ASSISTANT');
+                setIsFacilityModalOpen(true);
+              }}
+              variant="primary"
+              size="sm"
+              className="w-full sm:w-auto gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm font-extrabold text-xs h-10 px-4 rounded-xl cursor-pointer"
+            >
+              <Mic className="h-4 w-4 text-emerald-100 animate-pulse" />
+              <span>🎙️ Ask Assistant (બોલો)</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+
+            <Button
+              onClick={() => {
+                setActiveModalTab('STORES');
+                setIsFacilityModalOpen(true);
+              }}
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto gap-1.5 bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold text-xs h-10 px-3.5 rounded-xl cursor-pointer"
+            >
+              <Pill className="h-3.5 w-3.5 text-emerald-300" />
+              <span>{t('patient.findMedicalStores', 'Medical Stores')}</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -573,6 +605,15 @@ export const PatientDashboard: React.FC = () => {
         </div>
 
       </section>
+
+      {/* ================================================== */}
+      {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT MODAL */}
+      {/* ================================================== */}
+      <SmartHospitalAssistantModal
+        isOpen={isFacilityModalOpen}
+        onClose={() => setIsFacilityModalOpen(false)}
+        defaultTab={activeModalTab}
+      />
 
     </div>
   );
