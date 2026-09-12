@@ -293,7 +293,7 @@ export const AppointmentBooking: React.FC = () => {
         title={t('appointments.bookAppointment')}
         subtitle={t('appointments.bookSubtitle')}
         breadcrumbs={[
-          { label: t('nav.Dashboard'), to: '/patient' },
+          { label: t('nav.dashboard', 'Dashboard'), to: '/patient' },
           { label: t('appointments.myAppointments') },
         ]}
       />

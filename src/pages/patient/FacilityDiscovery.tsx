@@ -239,7 +239,7 @@ export const FacilityDiscovery: React.FC = () => {
         title={t('facilities.findHospital', 'Find a Hospital')}
         subtitle={t('facilities.findHospitalSubtitle', 'Find a hospital or health centre near you.')}
         breadcrumbs={[
-          { label: t('nav.Dashboard', 'Dashboard'), to: '/patient' },
+          { label: t('nav.dashboard', 'Dashboard'), to: '/patient' },
           { label: t('facilities.title', 'Hospitals') },
         ]}
       />

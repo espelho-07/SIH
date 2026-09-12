@@ -84,7 +84,7 @@ export const ReferralTracking: React.FC = () => {
         title={t('referrals.title')}
         subtitle={t('referrals.subtitle')}
         breadcrumbs={[
-          { label: t('nav.Dashboard'), to: '/patient' },
+          { label: t('nav.dashboard', 'Dashboard'), to: '/patient' },
           { label: t('referrals.title') },
         ]}
       />

@@ -54,7 +54,7 @@ export const HealthRecordView: React.FC = () => {
         title={t('records.title')}
         subtitle={t('records.subtitle')}
         breadcrumbs={[
-          { label: t('nav.Dashboard'), to: '/patient' },
+          { label: t('nav.dashboard', 'Dashboard'), to: '/patient' },
           { label: t('records.title') },
         ]}
         actions={
