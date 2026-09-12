@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { StatusBadge } from '@/components/ui/Badge';
 import {
   INITIAL_HEALTH_RECORD,
-  INITIAL_PRESCRIPTIONS,
-  INITIAL_DIAGNOSTIC_ORDERS,
   INITIAL_LIVE_QUEUE,
 } from '@/mock/mockData';
 import { formatDate } from '@/lib/formatters';
@@ -24,132 +20,154 @@ import {
   Droplets,
   Printer,
   Pill,
-  Hospital,
   Search,
-  Filter,
   Users,
   ChevronRight,
   Phone,
   Plus,
   ExternalLink,
-  Download,
-  AlertCircle,
+  History,
+  Building2,
   FlaskConical,
+  Sparkles,
 } from 'lucide-react';
 
-// Rich Mock Data for Patient History Page
-const HISTORICAL_LAB_REPORTS = [
-  {
-    id: 'lab_h_01',
-    date: '2026-02-14',
-    testName: 'HbA1c (Glycated Hemoglobin)',
-    value: '7.4 %',
-    normalRange: '< 5.7 % (Normal), 5.7 - 6.4 % (Pre-diabetic)',
-    status: 'ELEVATED',
-    facility: 'Gandhinagar Civil Hospital Central Lab',
-    summary: 'Sub-optimally controlled glycemic control over past 90 days. Metformin titration recommended.',
-  },
-  {
-    id: 'lab_h_02',
-    date: '2026-02-14',
-    testName: 'Fasting Blood Sugar (FBS)',
-    value: '148 mg/dL',
-    normalRange: '70 - 99 mg/dL',
-    status: 'ELEVATED',
-    facility: 'Gandhinagar Civil Hospital Central Lab',
-    summary: 'Elevated fasting blood glucose. Advise dietary compliance.',
-  },
-  {
-    id: 'lab_h_03',
-    date: '2026-02-14',
-    testName: 'Lipid Profile - Total Cholesterol',
-    value: '198 mg/dL',
-    normalRange: '< 200 mg/dL (Desirable)',
-    status: 'BORDERLINE',
-    facility: 'Gandhinagar Civil Hospital Central Lab',
-    summary: 'Borderline elevation. LDL: 124 mg/dL, HDL: 42 mg/dL, Triglycerides: 165 mg/dL.',
-  },
-  {
-    id: 'lab_h_04',
-    date: '2026-02-14',
-    testName: 'Serum Creatinine & Blood Urea',
-    value: '0.92 mg/dL',
-    normalRange: '0.7 - 1.2 mg/dL',
-    status: 'NORMAL',
-    facility: 'Gandhinagar Civil Hospital Central Lab',
-    summary: 'Renal function intact. eGFR > 90 mL/min/1.73m2.',
-  },
-  {
-    id: 'lab_h_05',
-    date: '2026-01-10',
-    testName: '12-Lead Electrocardiogram (ECG)',
-    value: 'Normal Sinus Rhythm',
-    normalRange: 'Rate 60-100 bpm, No acute ST-T changes',
-    status: 'NORMAL',
-    facility: 'Gandhinagar Civil Cardiology Wing',
-    summary: 'Rate: 72 bpm, Normal axis, no pathological Q waves, no acute ischemia seen at rest.',
-  },
-  {
-    id: 'lab_h_06',
-    date: '2025-12-18',
-    testName: 'Chest X-Ray (PA View)',
-    value: 'Clear Lung Fields',
-    normalRange: 'Normal cardiothoracic ratio, clear CPA',
-    status: 'NORMAL',
-    facility: 'Pethapur CHC Radiology',
-    summary: 'Bilateral lung fields clear. Costophrenic angles sharp. CTR normal.',
-  },
-];
+// Clinical Encounters Categorized by Recent vs Old
+interface HistoricalEncounter {
+  id: string;
+  isRecent: boolean;
+  timeAgo: string;
+  date: string;
+  doctorName: string;
+  specialty: string;
+  facility: string;
+  diagnosis: string;
+  complaint: string;
+  vitals: string;
+  notes: string;
+  prescriptions: string[];
+}
 
-const HISTORICAL_ENCOUNTERS = [
+const CLINICAL_VISITS: HistoricalEncounter[] = [
   {
-    id: 'enc_h_01',
+    id: 'enc_01',
+    isRecent: true,
+    timeAgo: '10 Days Ago (Recent)',
     date: '2026-03-01T10:30:00Z',
     doctorName: 'Dr. Arvind Patel',
-    specialty: 'MD (Internal Medicine & Cardiology)',
+    specialty: 'MD Internal Medicine',
     facility: 'Gandhinagar Civil Hospital • OPD Room 4',
     diagnosis: 'Type 2 Diabetes Mellitus with Essential Hypertension',
-    complaint: 'Routine follow-up for blood pressure and diabetes management.',
-    vitals: 'BP: 128/82 mmHg • Pulse: 74 bpm • SpO2: 98% • Weight: 68 kg',
-    notes: 'Patient compliant with Telmisartan. Blood sugar slightly elevated. Advised morning brisk walk and diet control.',
-    prescriptions: ['Tab. Metformin 1000mg SR (1-0-1)', 'Tab. Telmisartan 40mg (1-0-0)', 'Tab. Atorvastatin 10mg (0-0-1)'],
+    complaint: 'Routine follow-up for blood pressure and blood sugar checkup.',
+    vitals: 'BP: 128/82 mmHg • Pulse: 74 bpm • Sugar: 148 mg/dL',
+    notes: 'Blood pressure is well-controlled on Telmisartan. Blood sugar slightly elevated. Advised morning 30-minute brisk walk and strict low-salt diet.',
+    prescriptions: [
+      'Tab. Metformin 1000mg SR (1-0-1 After Food)',
+      'Tab. Telmisartan 40mg (1-0-0 Morning)',
+      'Tab. Atorvastatin 10mg (0-0-1 Night)',
+    ],
   },
   {
-    id: 'enc_h_02',
+    id: 'enc_02',
+    isRecent: false,
+    timeAgo: '2 Months Ago (Old)',
     date: '2026-01-20T14:20:00Z',
     doctorName: 'Dr. Neha Vaghela',
-    specialty: 'MS (Ophthalmology)',
+    specialty: 'MS Ophthalmology (Eye Specialist)',
     facility: 'Gandhinagar Civil Hospital • Eye OPD',
     diagnosis: 'Diabetic Retinopathy Screening',
-    complaint: 'Annual diabetic eye examination on referral from PHC.',
-    vitals: 'Vision: 6/6 bilateral with corrective glasses',
+    complaint: 'Annual diabetic eye examination on referral from primary center.',
+    vitals: 'Vision: 6/6 bilateral with glasses',
     notes: 'Dilated fundus examination completed. Clear media. No evidence of diabetic microaneurysms or macular edema.',
     prescriptions: ['Carboxymethylcellulose 0.5% Eye Drops (1 drop TDS)'],
   },
   {
-    id: 'enc_h_03',
+    id: 'enc_03',
+    isRecent: false,
+    timeAgo: '3 Months Ago (Old)',
     date: '2025-12-15T09:45:00Z',
     doctorName: 'Dr. Priya Sharma',
-    specialty: 'General Physician',
+    specialty: 'Medical Officer',
     facility: 'Pethapur Primary Health Centre (PHC)',
-    diagnosis: 'Acute Bacterial Bronchitis & Mild Dehydration',
-    complaint: 'Persistent productive cough, fever 101F, and weakness for 4 days.',
-    vitals: 'BP: 122/80 mmHg • Pulse: 88 bpm • SpO2: 96% • Temp: 100.8°F',
-    notes: 'Scattered rhonchi heard in right lower zone. Sputum clear. Started on oral antibiotics and bronchodilator.',
-    prescriptions: ['Tab. Azithromycin 500mg (1-0-0)', 'Tab. Paracetamol 650mg (1-0-1)', 'Syrup Ambroxol + Levosalbutamol (2 tsp TDS)'],
+    diagnosis: 'Acute Bacterial Bronchitis & Cold',
+    complaint: 'Persistent productive cough, fever 101°F, and sore throat for 4 days.',
+    vitals: 'BP: 122/80 mmHg • Pulse: 88 bpm • Temp: 100.8°F',
+    notes: 'Scattered rhonchi heard in right lower zone. Started on oral antibiotics and bronchodilator. Symptoms resolved in 5 days.',
+    prescriptions: [
+      'Tab. Azithromycin 500mg (1-0-0 for 3 Days)',
+      'Tab. Paracetamol 650mg (1-0-1 for 3 Days)',
+      'Syrup Ambroxol + Levosalbutamol (2 tsp TDS)',
+    ],
   },
 ];
 
-const HISTORICAL_ADMISSIONS = [
+// Historical Inpatient Admissions
+const HOSPITAL_ADMISSIONS = [
   {
-    id: 'adm_h_01',
+    id: 'adm_01',
+    isRecent: false,
+    timeAgo: '4 Months Ago (Old)',
     admitDate: '2025-11-04',
     dischargeDate: '2025-11-07',
     facility: 'Gandhinagar Civil Hospital',
     ward: 'Male Medical Ward - Bed 14',
     doctor: 'Dr. Arvind Patel',
     diagnosis: 'Acute Asthmatic Bronchitis with Mild Hypoxia',
-    summary: 'Admitted with dyspnea (SpO2 93% on room air). Treated with nebulization, IV hydrocortisone, and supplemental O2. Discharged hemodynamically stable.',
+    summary: 'Admitted with sudden breathlessness (SpO2 93% on room air). Treated with nebulization, IV hydrocortisone, and supplemental oxygen. Discharged hemodynamically stable after 3 days.',
+  },
+];
+
+// Past Diagnostic Lab Reports
+const LAB_REPORTS = [
+  {
+    id: 'lab_01',
+    isRecent: true,
+    date: '2026-02-14',
+    testName: 'HbA1c (Glycated Hemoglobin)',
+    value: '7.4 %',
+    status: 'ELEVATED',
+    facility: 'Civil Hospital Central Lab',
+    summary: 'Sub-optimally controlled glycemic control over past 90 days. Diet compliance advised.',
+  },
+  {
+    id: 'lab_02',
+    isRecent: true,
+    date: '2026-02-14',
+    testName: 'Fasting Blood Sugar (FBS)',
+    value: '148 mg/dL',
+    status: 'ELEVATED',
+    facility: 'Civil Hospital Central Lab',
+    summary: 'Elevated fasting blood glucose. Advised dietary control.',
+  },
+  {
+    id: 'lab_03',
+    isRecent: true,
+    date: '2026-02-14',
+    testName: 'Lipid Profile - Total Cholesterol',
+    value: '198 mg/dL',
+    status: 'BORDERLINE',
+    facility: 'Civil Hospital Central Lab',
+    summary: 'Borderline elevation. Triglycerides: 165 mg/dL, LDL: 124 mg/dL.',
+  },
+  {
+    id: 'lab_04',
+    isRecent: false,
+    date: '2026-01-10',
+    testName: '12-Lead ECG (Electrocardiogram)',
+    value: 'Normal Sinus Rhythm',
+    status: 'NORMAL',
+    facility: 'Civil Cardiology Wing',
+    summary: 'Rate 72 bpm, normal axis, no pathological Q waves, no acute ischemia at rest.',
+  },
+  {
+    id: 'lab_05',
+    isRecent: false,
+    date: '2025-12-18',
+    testName: 'Chest X-Ray (PA View)',
+    value: 'Clear Lung Fields',
+    status: 'NORMAL',
+    facility: 'Pethapur CHC Radiology',
+    summary: 'Bilateral lung fields clear. Costophrenic angles sharp. Heart size normal.',
   },
 ];
 
@@ -157,7 +175,7 @@ export const PatientHistoryPage: React.FC = () => {
   const { id: routePatientId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
-  // Find currently selected token or fallback to first
+  // Queue Tokens
   const queueTokens = INITIAL_LIVE_QUEUE.tokens;
   const activeToken =
     queueTokens.find((t) => t.patientId === routePatientId) ||
@@ -172,9 +190,8 @@ export const PatientHistoryPage: React.FC = () => {
       status: 'CALLED',
     };
 
-  const basePatient = INITIAL_HEALTH_RECORD;
   const patient = {
-    ...basePatient,
+    ...INITIAL_HEALTH_RECORD,
     patientId: activeToken.patientId,
     name: activeToken.patientName,
     age: activeToken.patientAge,
@@ -183,447 +200,392 @@ export const PatientHistoryPage: React.FC = () => {
     tokenNumber: activeToken.tokenNumber,
   };
 
-  const [activeTab, setActiveTab] = useState<'ALL' | 'VISITS' | 'LABS' | 'MEDS' | 'ADMISSIONS'>('ALL');
+  // Filter State: ALL | RECENT | OLD | LABS
+  const [filterMode, setFilterMode] = useState<'ALL' | 'RECENT' | 'OLD' | 'LABS'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filterQuery = searchQuery.toLowerCase().trim();
+  const q = searchQuery.toLowerCase().trim();
 
-  const filteredEncounters = HISTORICAL_ENCOUNTERS.filter(
-    (e) =>
-      !filterQuery ||
-      e.diagnosis.toLowerCase().includes(filterQuery) ||
-      e.doctorName.toLowerCase().includes(filterQuery) ||
-      e.notes.toLowerCase().includes(filterQuery) ||
-      e.facility.toLowerCase().includes(filterQuery)
-  );
+  // Filter encounters
+  const filteredVisits = CLINICAL_VISITS.filter((v) => {
+    if (filterMode === 'RECENT' && !v.isRecent) return false;
+    if (filterMode === 'OLD' && v.isRecent) return false;
+    if (!q) return true;
+    return (
+      v.diagnosis.toLowerCase().includes(q) ||
+      v.doctorName.toLowerCase().includes(q) ||
+      v.prescriptions.some((p) => p.toLowerCase().includes(q)) ||
+      v.notes.toLowerCase().includes(q)
+    );
+  });
 
-  const filteredLabs = HISTORICAL_LAB_REPORTS.filter(
-    (l) =>
-      !filterQuery ||
-      l.testName.toLowerCase().includes(filterQuery) ||
-      l.summary.toLowerCase().includes(filterQuery) ||
-      l.value.toLowerCase().includes(filterQuery)
-  );
+  // Filter admissions
+  const filteredAdmissions = HOSPITAL_ADMISSIONS.filter((a) => {
+    if (filterMode === 'RECENT') return false; // admission is 4 months old
+    if (!q) return true;
+    return (
+      a.diagnosis.toLowerCase().includes(q) ||
+      a.facility.toLowerCase().includes(q) ||
+      a.summary.toLowerCase().includes(q)
+    );
+  });
 
-  const filteredAdmissions = HISTORICAL_ADMISSIONS.filter(
-    (a) =>
-      !filterQuery ||
-      a.diagnosis.toLowerCase().includes(filterQuery) ||
-      a.facility.toLowerCase().includes(filterQuery) ||
-      a.summary.toLowerCase().includes(filterQuery)
-  );
+  // Filter labs
+  const filteredLabs = LAB_REPORTS.filter((l) => {
+    if (filterMode === 'RECENT' && !l.isRecent) return false;
+    if (filterMode === 'OLD' && l.isRecent) return false;
+    if (!q) return true;
+    return (
+      l.testName.toLowerCase().includes(q) ||
+      l.summary.toLowerCase().includes(q) ||
+      l.value.toLowerCase().includes(q)
+    );
+  });
 
-  const returnUrl = `/doctor/patients/${patient.patientId || 'usr_pat_01'}`;
+  const treatmentDeskUrl = `/doctor/patients/${patient.patientId || 'usr_pat_01'}`;
 
   return (
-    <div className="space-y-5 max-w-7xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-4 pb-16 font-sans">
       {/* ================================================== */}
-      {/* PAGE HEADER WITH RETURN BUTTON */}
+      {/* TOP HEADER & RETURN ACTION */}
       {/* ================================================== */}
-      <PageHeader
-        title="Longitudinal Patient Health History (EHR)"
-        subtitle={`Complete ABHA verified clinical records, past doctor visits, lab reports and medications for ${patient.name}.`}
-        breadcrumbs={[
-          { label: 'Doctor Desk', to: '/doctor' },
-          { label: 'OPD Queue', to: '/doctor/queue' },
-          { label: 'Patient Clinical Desk', to: returnUrl },
-          { label: 'Patient History' },
-        ]}
-        actions={
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-800 shadow-xs">
+              <History className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-base sm:text-lg font-black text-slate-900">
+                Patient Records • Old & Recent Visits
+              </h1>
+              <p className="text-xs text-slate-500">
+                Compare previous treatments, past doctor prescriptions, and recent lab tests.
+              </p>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => window.print()}
-              className="text-xs gap-1.5 bg-white text-slate-700"
+              className="text-xs h-8 text-slate-600 gap-1.5 cursor-pointer"
             >
-              <Printer className="h-4 w-4 text-slate-500" />
-              <span>Print Record</span>
+              <Printer className="h-3.5 w-3.5 text-slate-500" />
+              <span>Print Records</span>
             </Button>
 
-            {/* RETURN TO PRESCRIPTION DESK BUTTON */}
             <Button
               variant="primary"
               size="sm"
-              onClick={() => navigate(returnUrl)}
-              className="text-xs bg-teal-700 hover:bg-teal-800 text-white font-black gap-2 min-h-[38px] shadow-xs cursor-pointer"
+              onClick={() => navigate(treatmentDeskUrl)}
+              className="text-xs bg-teal-700 hover:bg-teal-800 text-white font-black h-8 gap-1.5 shadow-xs cursor-pointer"
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Return to Prescription Desk</span>
+              <Stethoscope className="h-3.5 w-3.5" />
+              <span>Resume Today's Prescription Desk</span>
+              <ArrowLeft className="h-3.5 w-3.5 rotate-180" />
             </Button>
           </div>
-        }
-      />
+        </div>
+
+        {/* Patient Switcher */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+          <span className="text-xs font-bold text-slate-400 shrink-0">Switch Patient:</span>
+          {queueTokens.map((t) => {
+            const isCurrent = t.patientId === activeToken.patientId;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => navigate(`/doctor/patients/${t.patientId}/history`)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  isCurrent
+                    ? 'bg-purple-700 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <span className="font-mono text-[10px] opacity-80">{t.tokenNumber}</span>
+                <span>{t.patientName.split(' ')[0]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* ================================================== */}
-      {/* PATIENT DEMOGRAPHICS & CRITICAL ALERTS HERO CARD */}
+      {/* PATIENT PROFILE STRIP */}
       {/* ================================================== */}
-      <Card className="border-teal-200 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white shadow-xs">
-        <CardContent className="p-4 sm:p-5 space-y-3.5">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-teal-100 pb-3.5">
-            <div className="flex items-start sm:items-center gap-3.5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-xs font-mono font-black text-base">
+      <Card className="border-purple-200 bg-gradient-to-r from-purple-50/50 via-white to-teal-50/40 shadow-xs">
+        <CardContent className="p-3.5 sm:p-4 space-y-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-700 text-white font-mono font-black text-sm shadow-xs">
                 {patient.tokenNumber}
-              </div>
-
+              </span>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-xl font-black text-slate-900">{patient.name}</h2>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-300">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  <h2 className="text-base sm:text-lg font-black text-slate-900">{patient.name}</h2>
+                  <span className="text-xs text-slate-600 font-bold">
+                    {patient.age}Y • {patient.gender}
+                  </span>
+                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-300">
                     ABHA: {patient.abhaId}
                   </span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700">
-                    Blood: {patient.bloodGroup}
-                  </span>
                 </div>
-
-                <p className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-2">
-                  <span>
-                    <strong>{patient.age}</strong> Yrs • <strong>{patient.gender}</strong>
-                  </span>
-                  <span>•</span>
+                <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
                   <span className="flex items-center gap-1 font-mono">
                     <Phone className="h-3 w-3 text-slate-400" />
                     +91 {patient.phone}
                   </span>
-                  <span>•</span>
-                  <span className="text-slate-500">Gandhinagar District Base Record</span>
+                  <span>• Blood: <strong>{patient.bloodGroup}</strong></span>
+                  <span>• Civil Hospital Gandhinagar</span>
                 </p>
               </div>
             </div>
 
-            {/* Fast Return Shortcut */}
-            <Button
-              onClick={() => navigate(returnUrl)}
-              variant="outline"
-              size="sm"
-              className="text-xs bg-white text-teal-900 border-teal-300 hover:bg-teal-50 font-bold gap-1.5 self-end lg:self-center cursor-pointer shadow-2xs"
-            >
-              <Stethoscope className="h-3.5 w-3.5 text-teal-700" />
-              <span>Resume Treatment & Rx</span>
-            </Button>
-          </div>
-
-          {/* Critical Allergies & Chronic Conditions Ribbon */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-rose-200 bg-rose-50/80 p-3 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-rose-100 text-rose-800 shrink-0">
-                <ShieldAlert className="h-5 w-5" />
-              </div>
-              <div className="text-xs">
-                <span className="font-extrabold uppercase tracking-wider text-rose-700 text-[10px] block">
-                  Critical Drug Allergies:
-                </span>
-                <span className="font-black text-rose-900 text-sm">
-                  {patient.allergies?.join(', ') || 'No known allergies'}
-                </span>
-                <p className="text-[10px] text-rose-600">Contraindicated: Penicillins, Amoxicillin, Sulfa</p>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-teal-200 bg-teal-50/80 p-3 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-teal-100 text-teal-800 shrink-0">
-                <Activity className="h-5 w-5" />
-              </div>
-              <div className="text-xs">
-                <span className="font-extrabold uppercase tracking-wider text-teal-800 text-[10px] block">
-                  Known Chronic Conditions:
-                </span>
-                <span className="font-black text-teal-950 text-sm">
-                  {patient.chronicConditions?.join(' • ') || 'None recorded'}
-                </span>
-                <p className="text-[10px] text-teal-700">Active management under Dr. Arvind Patel</p>
-              </div>
+            {/* Quick Alerts */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="flex items-center gap-1 bg-rose-100 text-rose-800 border border-rose-300 px-2.5 py-1 rounded-xl text-xs font-bold">
+                <ShieldAlert className="h-3.5 w-3.5 text-rose-600" />
+                Allergy: Penicillin & Sulfa
+              </span>
+              <span className="flex items-center gap-1 bg-teal-100 text-teal-800 border border-teal-300 px-2.5 py-1 rounded-xl text-xs font-bold">
+                <Activity className="h-3.5 w-3.5 text-teal-700" />
+                Chronic: Diabetes & BP
+              </span>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* ================================================== */}
-      {/* SEARCH BAR & CATEGORY TABS */}
+      {/* FILTER BUTTONS: ALL vs RECENT vs OLD vs LABS */}
       {/* ================================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="h-4 w-4 absolute left-3 top-2.5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search past diagnoses, lab tests, doctor notes, drugs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white shadow-2xs"
-          />
+        {/* Simple Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setFilterMode('ALL')}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer ${
+              filterMode === 'ALL'
+                ? 'bg-purple-700 text-white shadow-xs font-black'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            🌟 All Records ({CLINICAL_VISITS.length + HOSPITAL_ADMISSIONS.length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterMode('RECENT')}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              filterMode === 'RECENT'
+                ? 'bg-emerald-700 text-white shadow-xs font-black'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-emerald-50'
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
+            <span>🟢 Recent Visits (Last 30 Days)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterMode('OLD')}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              filterMode === 'OLD'
+                ? 'bg-blue-700 text-white shadow-xs font-black'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-blue-50'
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-blue-500 inline-block"></span>
+            <span>📁 Old Past Records</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterMode('LABS')}
+            className={`px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              filterMode === 'LABS'
+                ? 'bg-amber-600 text-white shadow-xs font-black'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-amber-50'
+            }`}
+          >
+            <FlaskConical className="h-3.5 w-3.5" />
+            <span>🧪 Lab Reports ({LAB_REPORTS.length})</span>
+          </button>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs font-bold">
-          {[
-            { id: 'ALL', label: 'All Records (Timeline)' },
-            { id: 'VISITS', label: `Doctor Visits (${filteredEncounters.length})` },
-            { id: 'LABS', label: `Lab & Diagnostics (${filteredLabs.length})` },
-            { id: 'MEDS', label: 'Past Prescriptions (3)' },
-            { id: 'ADMISSIONS', label: `Hospital Admissions (${filteredAdmissions.length})` },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3 py-2 rounded-xl whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-teal-700 text-white shadow-2xs font-black'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Quick Search */}
+        <div className="relative w-full sm:w-64">
+          <Search className="h-3.5 w-3.5 absolute left-3 top-3 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search past disease or med..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+          />
         </div>
       </div>
 
       {/* ================================================== */}
-      {/* TAB CONTENTS */}
+      {/* TIMELINE LIST: RECENT & OLD VISITS */}
       {/* ================================================== */}
-
-      {/* 1. DOCTOR ENCOUNTERS & VISITS */}
-      {(activeTab === 'ALL' || activeTab === 'VISITS') && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <Stethoscope className="h-4 w-4 text-teal-700" />
-              <span>Doctor Encounters & Outpatient Visits ({filteredEncounters.length}):</span>
-            </h3>
-            <span className="text-xs text-slate-400 font-medium">Sorted by most recent</span>
-          </div>
-
-          <div className="space-y-3">
-            {filteredEncounters.map((enc) => (
-              <Card
-                key={enc.id}
-                className="border-slate-200 bg-white hover:border-teal-300 transition-all shadow-2xs overflow-hidden"
+      <div className="space-y-3">
+        {filterMode !== 'LABS' && (
+          <>
+            {filteredVisits.map((visit) => (
+              <div
+                key={visit.id}
+                className={`rounded-2xl border p-4 sm:p-5 bg-white shadow-2xs space-y-3 transition-all ${
+                  visit.isRecent
+                    ? 'border-emerald-300 ring-1 ring-emerald-100'
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
               >
-                <CardContent className="p-4 sm:p-5 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-800 shrink-0">
-                        <Stethoscope className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-black text-slate-900">{enc.diagnosis}</h4>
-                          <span className="rounded-full bg-teal-50 text-teal-800 text-[10px] font-bold px-2 py-0.5 border border-teal-200">
-                            Outpatient Visit
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500">{enc.facility}</p>
-                      </div>
-                    </div>
-
-                    <div className="text-left sm:text-right">
-                      <strong className="text-xs font-bold text-teal-900 block">{enc.doctorName}</strong>
-                      <span className="text-[11px] text-slate-500">{enc.specialty}</span>
-                      <p className="text-[10px] text-slate-400">{formatDate(enc.date)}</p>
-                    </div>
+                {/* Visit Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1 ${
+                        visit.isRecent
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      <Clock className="h-3 w-3" />
+                      <span>{visit.timeAgo}</span>
+                    </span>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900">
+                      {visit.diagnosis}
+                    </h3>
                   </div>
 
-                  <p className="text-xs text-slate-700 leading-relaxed">
-                    <strong className="text-slate-900 font-bold">Doctor's Clinical Notes:</strong> {enc.notes}
+                  <div className="text-left sm:text-right text-xs">
+                    <span className="font-bold text-slate-900">{visit.doctorName}</span>
+                    <span className="text-slate-500 block text-[11px]">{visit.facility}</span>
+                  </div>
+                </div>
+
+                {/* Complaint & Notes */}
+                <div className="space-y-1 text-xs text-slate-700">
+                  <p>
+                    <strong className="text-slate-900 font-bold">Patient Complaint:</strong> {visit.complaint}
                   </p>
+                  <p>
+                    <strong className="text-slate-900 font-bold">Doctor Advice / Clinical Notes:</strong> {visit.notes}
+                  </p>
+                </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase text-slate-400">Vitals Recorded:</span>
-                      <span className="font-mono text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 text-[11px]">
-                        {enc.vitals}
+                {/* Vitals Recorded */}
+                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-mono text-slate-700">
+                    <strong>Vitals:</strong> {visit.vitals}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Date: {formatDate(visit.date)}
+                  </span>
+                </div>
+
+                {/* Prescribed Medications */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Medicines Prescribed in this visit:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {visit.prescriptions.map((med, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-teal-50 text-teal-900 border border-teal-200 flex items-center gap-1"
+                      >
+                        <Pill className="h-3 w-3 text-teal-600" />
+                        <span>{med}</span>
                       </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-1">
-                      <span className="text-[10px] font-bold uppercase text-slate-400 mr-1">Prescribed:</span>
-                      {enc.prescriptions.map((p, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[10px] font-semibold bg-teal-50 text-teal-900 px-2 py-0.5 rounded border border-teal-200"
-                        >
-                          💊 {p}
-                        </span>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
-          </div>
-        </div>
-      )}
 
-      {/* 2. DIAGNOSTIC LAB & RADIOLOGY REPORTS */}
-      {(activeTab === 'ALL' || activeTab === 'LABS') && (
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <FlaskConical className="h-4 w-4 text-teal-700" />
-              <span>Diagnostic Lab & Radiology Reports ({filteredLabs.length}):</span>
-            </h3>
-            <span className="text-xs text-slate-400 font-medium">Central Pathology & Imaging</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {filteredLabs.map((lab) => (
-              <Card
-                key={lab.id}
-                className="border-slate-200 bg-white hover:border-teal-300 transition-all shadow-2xs"
+            {/* Inpatient Hospital Admissions */}
+            {filteredAdmissions.map((adm) => (
+              <div
+                key={adm.id}
+                className="rounded-2xl border border-rose-200 bg-rose-50/40 p-4 sm:p-5 shadow-2xs space-y-2.5"
               >
-                <CardContent className="p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rose-100 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-rose-100 text-rose-800 border border-rose-300 text-xs font-black px-2.5 py-0.5 rounded-xl">
+                      🏥 {adm.timeAgo} • INPATIENT ADMISSION
+                    </span>
+                    <h3 className="text-sm font-black text-rose-950">{adm.diagnosis}</h3>
+                  </div>
+                  <span className="text-xs text-rose-700 font-medium">{adm.facility} ({adm.ward})</span>
+                </div>
+                <p className="text-xs text-rose-900 leading-relaxed">{adm.summary}</p>
+                <p className="text-[11px] text-rose-600 font-medium">
+                  Stay: {adm.admitDate} to {adm.dischargeDate} • Attending: {adm.doctor}
+                </p>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Lab Reports View */}
+        {(filterMode === 'ALL' || filterMode === 'LABS') && (
+          <div className="space-y-2.5 pt-2">
+            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-purple-700" />
+              <span>Past Diagnostic & Lab Reports ({filteredLabs.length}):</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {filteredLabs.map((lab) => (
+                <div
+                  key={lab.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs space-y-2"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="text-xs font-black text-slate-900">{lab.testName}</h4>
                       <p className="text-[10px] text-slate-400">{lab.date} • {lab.facility}</p>
                     </div>
-
                     <span
-                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shrink-0 ${
+                      className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
                         lab.status === 'NORMAL'
                           ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                          : lab.status === 'ELEVATED'
-                          ? 'bg-rose-100 text-rose-800 border-rose-300'
-                          : 'bg-amber-100 text-amber-800 border-amber-300'
+                          : 'bg-rose-100 text-rose-800 border-rose-300'
                       }`}
                     >
                       {lab.status}
                     </span>
                   </div>
-
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-baseline justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Report Value</span>
-                      <span className="text-base font-black text-slate-900">{lab.value}</span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Normal Reference</span>
-                      <span className="text-xs font-medium text-slate-700">{lab.normalRange}</span>
-                    </div>
+                  <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase">Value</span>
+                    <span className="text-sm font-black text-slate-900">{lab.value}</span>
                   </div>
-
-                  <p className="text-xs text-slate-600 leading-normal">{lab.summary}</p>
-                </CardContent>
-              </Card>
-            ))}
+                  <p className="text-[11px] text-slate-600">{lab.summary}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* 3. PAST PRESCRIPTIONS */}
-      {(activeTab === 'ALL' || activeTab === 'MEDS') && (
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <Pill className="h-4 w-4 text-teal-700" />
-              <span>Past Prescriptions & Medication Regimens:</span>
-            </h3>
-            <span className="text-xs text-slate-400 font-medium">Digital Rx Records</span>
-          </div>
-
-          <div className="space-y-3">
-            {INITIAL_PRESCRIPTIONS.map((rx) => (
-              <Card key={rx.id} className="border-slate-200 bg-white shadow-2xs overflow-hidden">
-                <CardContent className="p-4 sm:p-5 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2.5">
-                    <div>
-                      <span className="text-sm font-black text-slate-900">{rx.diagnosisSummary}</span>
-                      <p className="text-xs text-slate-500">
-                        Prescribed by {rx.doctorName} ({rx.facilityName}) • {formatDate(rx.issuedAt)}
-                      </p>
-                    </div>
-
-                    <StatusBadge status={rx.status} />
-                  </div>
-
-                  <div className="space-y-2">
-                    {rx.items.map((it) => (
-                      <div
-                        key={it.id}
-                        className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-100"
-                      >
-                        <div>
-                          <strong className="text-slate-900 font-bold">{it.medicineName}</strong>
-                          <span className="text-slate-500 ml-2 font-mono">[{it.frequency}]</span>
-                          <span className="text-slate-500 ml-2">Duration: {it.duration}</span>
-                          <p className="text-[11px] text-slate-600 mt-0.5">{it.instructions}</p>
-                        </div>
-
-                        <Button
-                          onClick={() => navigate(returnUrl)}
-                          size="sm"
-                          variant="outline"
-                          className="text-[10px] font-bold text-teal-800 border-teal-300 hover:bg-teal-50 gap-1 shrink-0"
-                        >
-                          <Plus className="h-3 w-3 text-teal-700" />
-                          <span>Re-prescribe</span>
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 4. INPATIENT HOSPITAL ADMISSIONS */}
-      {(activeTab === 'ALL' || activeTab === 'ADMISSIONS') && (
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <Hospital className="h-4 w-4 text-teal-700" />
-              <span>Inpatient Admissions & Discharge Summaries ({filteredAdmissions.length}):</span>
-            </h3>
-            <span className="text-xs text-slate-400 font-medium">Base Hospital Records</span>
-          </div>
-
-          <div className="space-y-3">
-            {filteredAdmissions.map((adm) => (
-              <Card key={adm.id} className="border-slate-200 bg-white shadow-2xs">
-                <CardContent className="p-4 sm:p-5 space-y-2.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2">
-                    <div>
-                      <h4 className="text-sm font-black text-slate-900">{adm.diagnosis}</h4>
-                      <p className="text-xs text-slate-500">
-                        {adm.facility} • {adm.ward} • Attending: {adm.doctor}
-                      </p>
-                    </div>
-
-                    <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                      {adm.admitDate} to {adm.dischargeDate} (3 Days)
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-700 leading-relaxed">
-                    <strong className="text-slate-900">Discharge Summary:</strong> {adm.summary}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ================================================== */}
-      {/* BOTTOM ACTION BAR */}
-      {/* ================================================== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
-        <span className="text-xs text-slate-500">
-          Viewing longitudinal ABHA Health Record for Token #{patient.tokenNumber}.
-        </span>
-
+      {/* Return to Consultation Footer */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p className="text-xs text-slate-600 font-medium">
+          Done reviewing past history for <strong>{patient.name}</strong>?
+        </p>
         <Button
-          onClick={() => navigate(returnUrl)}
+          onClick={() => navigate(treatmentDeskUrl)}
           variant="primary"
-          className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-black text-xs gap-2 px-6 min-h-[42px] shadow-xs cursor-pointer"
+          className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-black gap-2 px-5 py-2.5 rounded-xl cursor-pointer"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Return to Prescription & Treatment Desk</span>
+          <Stethoscope className="h-4 w-4" />
+          <span>Resume Treatment & Prescription Desk</span>
         </Button>
       </div>
     </div>

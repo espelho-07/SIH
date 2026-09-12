@@ -197,6 +197,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-red-600 bg-red-50',
           },
           {
+            to: '/doctor/patients/history',
+            label: 'Old & Recent Records',
+            icon: History,
+            color: 'text-purple-600 bg-purple-50',
+          },
+          {
             to: '/doctor/referrals',
             label: 'Referrals',
             icon: GitBranch,
@@ -210,16 +216,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           },
           {
             to: '/doctor/roster',
-            label: 'Roster & Leaves',
+            label: 'Schedule/Leaves',
             icon: CalendarCheck2,
             color: 'text-emerald-600 bg-emerald-50',
           },
-          {
-            to: '/profile',
-            label: 'Doctor Profile',
-            icon: UserCheck,
-            color: 'text-teal-600 bg-teal-50',
-          },
+
         ];
 
       // ==================================================
@@ -716,47 +717,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       )
                     }
                   >
-                  {({ isActive }) => (
-                    <>
-                      {/* Active Left Indicator */}
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 rounded-r-full bg-[#1D6394]" />
-                      )}
+                    {({ isActive }) => (
+                      <>
+                        {/* Active Left Indicator */}
+                        {isActive && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 rounded-r-full bg-[#1D6394]" />
+                        )}
 
-                      <div className="flex min-w-0 items-center gap-3">
-                        {/* ICON */}
-                        <div
-                          className={cn(
-                            `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200`,
-                            isActive
-                              ? 'bg-white shadow-xs text-[#1D6394]'
-                              : item.color || 'bg-slate-50 text-slate-500'
-                          )}
-                        >
-                          <Icon
+                        <div className="flex min-w-0 items-center gap-3">
+                          {/* ICON */}
+                          <div
                             className={cn(
-                              'h-[18px] w-[18px]',
-                              isActive ? 'text-[#1D6394]' : ''
+                              `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200`,
+                              isActive
+                                ? 'bg-white shadow-xs text-[#1D6394]'
+                                : item.color || 'bg-slate-50 text-slate-500'
                             )}
-                          />
+                          >
+                            <Icon
+                              className={cn(
+                                'h-[18px] w-[18px]',
+                                isActive ? 'text-[#1D6394]' : ''
+                              )}
+                            />
+                          </div>
+
+                          {/* LABEL */}
+                          <span className="truncate">{t(`navMap.${item.label}`, item.label)}</span>
                         </div>
 
-                        {/* LABEL */}
-                        <span className="truncate">{t(`navMap.${item.label}`, item.label)}</span>
-                      </div>
-
-                      {/* BADGE */}
-                      {item.badge !== undefined && (
-                        <span className="ml-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              </React.Fragment>
-            );
-          })}
+                        {/* BADGE */}
+                        {item.badge !== undefined && (
+                          <span className="ml-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                            {item.badge}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                </React.Fragment>
+              );
+            })}
           </nav>
         </div>
       </aside>

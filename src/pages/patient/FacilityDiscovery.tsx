@@ -11,10 +11,7 @@ import {
   Search,
   MapPin,
   Building2,
-  Stethoscope,
-  Bed,
-  Clock,
-  Phone,
+  Ticket,
   Map as MapIcon,
   List,
   ShieldCheck,
@@ -582,182 +579,82 @@ export const FacilityDiscovery: React.FC = () => {
           HOSPITAL LIST
       ====================================================== */}
       {viewMode === 'LIST' && filteredFacilities.length > 0 && (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {filteredFacilities.map((facility) => (
             <Card
               key={facility.id}
-              className="border-slate-200 shadow-2xs transition-all hover:border-teal-300 hover:shadow-md"
+              className="border-slate-200/90 shadow-2xs transition-all hover:border-teal-400 hover:shadow-md bg-white rounded-xl overflow-hidden"
             >
-              <CardContent className="p-3.5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                  {/* =====================================================
-                      HOSPITAL NAME & LOCATION
-                  ====================================================== */}
-                  <div className="flex min-w-0 items-start gap-3 lg:w-[30%]">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-100">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  {/* HOSPITAL NAME & LOCATION + OPEN STATUS */}
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700 border border-teal-100 shadow-2xs">
                       <Building2 className="h-5 w-5" />
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="truncate text-sm font-bold text-slate-900">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <h3 className="text-base font-bold text-slate-900 truncate">
                           {facility.name}
                         </h3>
                         {facility.isVerified && (
-                          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-teal-600" />
+                          <span title="Verified Hospital">
+                            <ShieldCheck className="h-4 w-4 shrink-0 text-teal-600" />
+                          </span>
+                        )}
+
+                        {/* OPEN OR NOT STATUS */}
+                        {facility.isOpen ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 shadow-2xs">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            {t('facilities.openNow', 'Open Now')}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500 shadow-2xs">
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                            {t('facilities.closed', 'Closed')}
+                          </span>
                         )}
                       </div>
 
-                      <p className="mt-0.5 text-[10px] text-slate-500 font-medium">
-                        {getFacilityType(facility.type)}
-                      </p>
-
-                      <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
-                        <MapPin className="h-3 w-3 text-teal-600 shrink-0" />
-                        <span>{facility.distanceKm} km away</span>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-slate-500 font-medium">
+                        <span>{getFacilityType(facility.type)}</span>
                         <span>•</span>
-                        <span>{facility.district}</span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+                          {facility.district} ({facility.distanceKm} km away)
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* =====================================================
-                      STATUS BADGES
-                  ====================================================== */}
-                  <div className="lg:w-[14%]">
-                    <div className="flex flex-wrap gap-1.5">
-                      {facility.isOpen ? (
-                        <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
-                          {t('facilities.openNow', 'Open Now')}
-                        </span>
-                      ) : (
-                        <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-500">
-                          {t('facilities.closed', 'Closed')}
-                        </span>
-                      )}
-
-                      {facility.emergencyAvailable && (
-                        <span className="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-1 text-[9px] font-semibold text-red-700">
-                          {t('facilities.emergency', 'Emergency')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* =====================================================
-                      SERVICES
-                  ====================================================== */}
-                  <div className="min-w-0 lg:w-[20%]">
-                    <div className="mb-1 flex items-center gap-1.5">
-                      <Stethoscope className="h-3.5 w-3.5 text-slate-500" />
-                      <span className="text-[10px] font-semibold text-slate-500">
-                        {t('facilities.services', 'Services')}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {facility.specialties.slice(0, 2).map((specialty) => (
-                        <span
-                          key={specialty}
-                          className="rounded-md bg-slate-100 border border-slate-200/60 px-2 py-0.5 text-[10px] text-slate-700 font-medium"
-                        >
-                          {specialty}
-                        </span>
-                      ))}
-
-                      {facility.specialties.length > 2 && (
-                        <span className="rounded-md bg-slate-50 border border-slate-200/50 px-1.5 py-0.5 text-[10px] text-slate-500 font-medium">
-                          +{facility.specialties.length - 2}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* =====================================================
-                      LIVE METRICS (BEDS, WAITING, EMERGENCY)
-                  ====================================================== */}
-                  <div className="flex items-center gap-5 lg:flex-1">
-                    {/* BEDS */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-teal-50 border border-teal-100">
-                        <Bed className="h-3.5 w-3.5 text-teal-600" />
-                      </div>
-                      <div>
-                        <p className="text-[9px] text-slate-400 font-medium">
-                          {t('facilities.beds', 'Beds')}
-                        </p>
-                        <p className="text-xs font-bold text-slate-800">
-                          {facility.availableBeds} {t('facilities.available', 'available')}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* WAITING */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-50 border border-amber-100">
-                        <Clock className="h-3.5 w-3.5 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="text-[9px] text-slate-400 font-medium">
-                          {t('facilities.waiting', 'Waiting')}
-                        </p>
-                        <p className="text-xs font-bold text-slate-800">
-                          {facility.currentWaitTimeMinutes} min
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* EMERGENCY */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-red-50 border border-red-100">
-                        <Phone className="h-3.5 w-3.5 text-red-500" />
-                      </div>
-                      <div>
-                        <p className="text-[9px] text-slate-400 font-medium">
-                          {t('facilities.emergency', 'Emergency')}
-                        </p>
-                        <p
-                          className={`text-[10px] font-bold ${
-                            facility.emergencyAvailable
-                              ? 'text-emerald-700'
-                              : 'text-slate-500'
-                          }`}
-                        >
-                          {facility.emergencyAvailable
-                            ? t('facilities.statusAvailable', 'Available')
-                            : t('facilities.statusNotAvailable', 'Not Available')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* =====================================================
-                      ACTION BUTTONS
-                  ====================================================== */}
-                  <div className="flex gap-2 lg:w-[190px]">
+                  {/* LAST TWO BUTTONS: GET DETAILS & TOKEN */}
+                  <div className="flex items-center gap-2.5 sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <Link
                       to={`/patient/facilities/${facility.id}`}
-                      className="flex-1"
+                      className="flex-1 sm:flex-initial"
                     >
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 w-full text-[11px] font-semibold cursor-pointer"
+                        className="h-9 w-full sm:w-auto px-4 text-xs font-semibold border-slate-300 hover:border-teal-600 hover:text-teal-700 hover:bg-teal-50/50 transition-all cursor-pointer shadow-2xs"
                       >
-                        {t('facilities.details', 'Details')}
+                        {t('facilities.details', 'Get Details')}
                       </Button>
                     </Link>
 
                     <Link
-                      to="/patient/tokens"
-                      className="flex-1"
+                      to={`/patient/tokens?facilityId=${facility.id}`}
+                      className="flex-1 sm:flex-initial"
                     >
                       <Button
                         variant="primary"
                         size="sm"
-                        className="h-8 w-full bg-teal-700 text-[11px] font-semibold hover:bg-teal-800 shadow-2xs cursor-pointer"
+                        className="h-9 w-full sm:w-auto px-4 text-xs font-semibold bg-teal-700 hover:bg-teal-800 text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        {t('facilities.getToken', 'Get Token')}
+                        <Ticket className="h-3.5 w-3.5" />
+                        {t('facilities.token', 'Token')}
                       </Button>
                     </Link>
                   </div>
