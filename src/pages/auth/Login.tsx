@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import {
@@ -306,49 +307,45 @@ export const Login: React.FC = () => {
 
                 {/* STAFF ROLE SELECT */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                    Select Your Operational Role
-                  </label>
-                  <select
+                  <Select
+                    label="Select Your Operational Role"
                     value={staffRole}
-                    onChange={(e) => {
-                      const role = e.target.value as UserRole;
+                    onValueChange={(val) => {
+                      const role = val as UserRole;
                       setStaffRole(role);
                       setLoginError('');
                       if (role === 'FACILITY_STAFF') {
                         setStaffSubType('PHARMACIST');
                       }
                     }}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
-                  >
-                    <option value="ASHA">ASHA / ANM / CHO (Frontline)</option>
-                    <option value="DOCTOR">Doctor / Medical Specialist</option>
-                    <option value="FACILITY_STAFF">Hospital Facility Staff</option>
-                    <option value="DISTRICT_ADMIN">District Health Admin</option>
-                    <option value="SUPER_ADMIN">Super Admin (Technical Center)</option>
-                  </select>
+                    options={[
+                      { value: 'ASHA', label: 'ASHA / ANM / CHO (Frontline)', sublabel: 'Community field surveys and maternal care' },
+                      { value: 'DOCTOR', label: 'Doctor / Medical Specialist', sublabel: 'OPD consultations, triage, and e-prescriptions' },
+                      { value: 'FACILITY_STAFF', label: 'Hospital Facility Staff', sublabel: 'Registration, pharmacy dispensary, and lab' },
+                      { value: 'DISTRICT_ADMIN', label: 'District Health Admin', sublabel: 'District monitoring, shortages, and leaves' },
+                      { value: 'SUPER_ADMIN', label: 'Super Admin (Technical Center)', sublabel: 'Platform config and system audit logs' },
+                    ]}
+                  />
                 </div>
 
                 {/* FACILITY STAFF SUBTYPE */}
                 {staffRole === 'FACILITY_STAFF' && (
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                      Staff Subtype & Permissions
-                    </label>
-                    <select
+                    <Select
+                      label="Staff Subtype & Permissions"
                       value={staffSubType}
-                      onChange={(e) => {
-                        const subtype = e.target.value as StaffSubType;
+                      onValueChange={(val) => {
+                        const subtype = val as StaffSubType;
                         setStaffSubType(subtype);
                         setDemoCredentials('FACILITY_STAFF', subtype);
                       }}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
-                    >
-                      <option value="REGISTRATION_CLERK">Registration Clerk (Counter & Tokens)</option>
-                      <option value="PHARMACIST">Pharmacist (Dispensing & Stock)</option>
-                      <option value="LAB_TECHNICIAN">Lab Technician (Diagnostics)</option>
-                      <option value="FACILITY_OPERATIONS">Facility Operations (Beds & Fleet)</option>
-                    </select>
+                      options={[
+                        { value: 'REGISTRATION_CLERK', label: 'Registration Clerk (Counter & Tokens)', sublabel: 'Patient registration & OPD token issuance' },
+                        { value: 'PHARMACIST', label: 'Pharmacist (Dispensing & Stock)', sublabel: 'Prescription fulfillment & dispensary stock' },
+                        { value: 'LAB_TECHNICIAN', label: 'Lab Technician (Diagnostics)', sublabel: 'Lab test queue, sample processing & reports' },
+                        { value: 'FACILITY_OPERATIONS', label: 'Facility Operations (Beds & Fleet)', sublabel: 'Bed capacity, ambulance dispatch & staff leaves' },
+                      ]}
+                    />
                   </div>
                 )}
 

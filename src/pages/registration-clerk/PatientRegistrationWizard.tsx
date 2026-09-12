@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { registrationApi } from '@/api/registrationApi';
 import { tokenApi } from '@/api/queueApi';
 import { RegisteredPatient, Token, PriorityLevel } from '@/types/queue';
@@ -735,18 +736,19 @@ export const PatientRegistrationWizard: React.FC = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[11px] text-slate-600 font-medium">Relationship</label>
-                      <select
+                      <Select
+                        label="Relationship"
+                        size="sm"
                         value={emergencyRelation}
-                        onChange={(e) => setEmergencyRelation(e.target.value)}
-                        className="w-full h-9 rounded-md border border-slate-300 bg-white shadow-2xs cursor-pointer px-2.5 text-xs text-slate-800"
-                      >
-                        <option value="Spouse">Spouse</option>
-                        <option value="Parent">Parent</option>
-                        <option value="Child">Child</option>
-                        <option value="Sibling">Sibling</option>
-                        <option value="Other">Other Attendant</option>
-                      </select>
+                        onValueChange={(val) => setEmergencyRelation(val)}
+                        options={[
+                          { value: 'Spouse', label: 'Spouse' },
+                          { value: 'Parent', label: 'Parent' },
+                          { value: 'Child', label: 'Child' },
+                          { value: 'Sibling', label: 'Sibling' },
+                          { value: 'Other', label: 'Other Attendant' },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>
@@ -784,18 +786,18 @@ export const PatientRegistrationWizard: React.FC = () => {
 
                 {/* Department Selection */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Target OPD Department / Clinic</label>
-                  <select
+                  <Select
+                    label="Target OPD Department / Clinic"
                     value={departmentId}
-                    onChange={(e) => handleDepartmentChange(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-300 bg-white shadow-2xs px-3 text-xs text-slate-900 font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-600"
-                  >
-                    <option value="dep_med">General Medicine OPD</option>
-                    <option value="dep_cardio">Cardiology Clinic</option>
-                    <option value="dep_ortho">Orthopedics Clinic</option>
-                    <option value="dep_peds">Pediatrics & Immunization</option>
-                    <option value="dep_gyn">Gynecology & ANC</option>
-                  </select>
+                    onValueChange={(val) => handleDepartmentChange(val)}
+                    options={[
+                      { value: 'dep_med', label: 'General Medicine OPD', sublabel: 'Room 104-105 • Internal Medicine' },
+                      { value: 'dep_cardio', label: 'Cardiology Clinic', sublabel: 'Room 208 • Heart & Vascular' },
+                      { value: 'dep_ortho', label: 'Orthopedics Clinic', sublabel: 'Room 112 • Bone & Joint' },
+                      { value: 'dep_peds', label: 'Pediatrics & Immunization', sublabel: 'Room 108 • Child Health' },
+                      { value: 'dep_gyn', label: 'Gynecology & ANC', sublabel: 'Room 115 • Women & Maternal Health' },
+                    ]}
+                  />
                 </div>
 
                 {/* Doctor Assignment Selection */}
@@ -810,17 +812,18 @@ export const PatientRegistrationWizard: React.FC = () => {
                     </span>
                   </div>
 
-                  <select
+                  <Select
                     value={assignedDoctorId}
-                    onChange={(e) => handleDoctorChange(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-300 bg-white shadow-2xs px-3 text-xs text-slate-900 font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-600"
-                  >
-                    {availableDoctorsForDept.map((doc) => (
-                      <option key={doc.id} value={doc.id}>
-                        {doc.name} — {doc.roomNumber} ({doc.qualification}) [{doc.status === 'IN_OPD' ? '🟢 In Consultation' : doc.status === 'ON_DUTY' ? '🔵 On Duty' : doc.status}]
-                      </option>
-                    ))}
-                  </select>
+                    onValueChange={(val) => handleDoctorChange(val)}
+                    placeholder="Choose a consulting doctor..."
+                    searchable={availableDoctorsForDept.length > 3}
+                    options={availableDoctorsForDept.map((doc) => ({
+                      value: doc.id,
+                      label: `${doc.name} (${doc.roomNumber})`,
+                      sublabel: `${doc.specialty} • ${doc.qualification} • ${doc.opdSchedule}`,
+                      badge: doc.status === 'IN_OPD' ? '🟢 In Consultation' : '🔵 On Duty',
+                    }))}
+                  />
 
                   {/* Selected Doctor Active Badge / Info Card */}
                   {selectedDoctorObj && (

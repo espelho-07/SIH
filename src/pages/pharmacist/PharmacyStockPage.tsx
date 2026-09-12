@@ -3,6 +3,7 @@ import { pharmacyApi } from '@/api/pharmacyApi';
 import { MedicineInventoryItem } from '@/types/resources';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { StatusBadge } from '@/components/ui/Badge';
 import {
   Package,
@@ -12,6 +13,10 @@ import {
   RefreshCw,
   X,
   Calendar,
+  Trash2,
+  Pill,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const PharmacyStockPage: React.FC = () => {
@@ -30,9 +35,39 @@ export const PharmacyStockPage: React.FC = () => {
   const [adjustReason, setAdjustReason] = useState<string>('');
   const [submittingAdjustment, setSubmittingAdjustment] = useState(false);
 
+  // Add Medicine Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newMedName, setNewMedName] = useState('');
+  const [newGenericName, setNewGenericName] = useState('');
+  const [newCategory, setNewCategory] = useState('Tablet');
+  const [newBatchNumber, setNewBatchNumber] = useState('');
+  const [newQuantity, setNewQuantity] = useState<number>(500);
+  const [newUnit, setNewUnit] = useState('Tablets');
+  const [newThreshold, setNewThreshold] = useState<number>(100);
+  const [newExpiryDate, setNewExpiryDate] = useState(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 2);
+    return d.toISOString().split('T')[0];
+  });
+  const [submittingNewMed, setSubmittingNewMed] = useState(false);
+
+  // Delete Medicine State
+  const [deleteConfirmMed, setDeleteConfirmMed] = useState<MedicineInventoryItem | null>(null);
+  const [submittingDelete, setSubmittingDelete] = useState(false);
+
+  // Toast Notification
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   useEffect(() => {
     loadMedicines();
   }, []);
+
+  useEffect(() => {
+    if (toastMessage) {
+      const t = setTimeout(() => setToastMessage(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [toastMessage]);
 
   const loadMedicines = async () => {
     setLoading(true);
@@ -91,12 +126,85 @@ export const PharmacyStockPage: React.FC = () => {
           prev.map((m) => (m.id === res.data.id ? res.data : m))
         );
         setAdjustModalMed(null);
+        setToastMessage({
+          type: 'success',
+          text: `Stock adjusted for ${adjustModalMed.medicineName} (new total: ${res.data.availableQuantity} ${res.data.unit}).`,
+        });
       }
     } catch (err) {
       console.error('Adjustment error', err);
       alert('Failed to adjust stock. Please try again.');
     } finally {
       setSubmittingAdjustment(false);
+    }
+  };
+
+  const handleAddMedicineSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMedName.trim() || !newGenericName.trim()) {
+      alert('Please enter medicine name and generic salt name.');
+      return;
+    }
+
+    setSubmittingNewMed(true);
+    try {
+      const res = await pharmacyApi.addMedicine({
+        medicineName: newMedName.trim(),
+        genericName: newGenericName.trim(),
+        category: newCategory,
+        batchNumber: newBatchNumber.trim() || `BT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+        availableQuantity: Number(newQuantity) || 0,
+        minimumStockThreshold: Number(newThreshold) || 50,
+        unit: newUnit,
+        expiryDate: newExpiryDate,
+      });
+
+      if (res.success && res.data) {
+        setMedicines((prev) => [res.data, ...prev]);
+        setIsAddModalOpen(false);
+        // Reset form
+        setNewMedName('');
+        setNewGenericName('');
+        setNewCategory('Tablet');
+        setNewBatchNumber('');
+        setNewQuantity(500);
+        setNewUnit('Tablets');
+        setNewThreshold(100);
+        setToastMessage({
+          type: 'success',
+          text: `${res.data.medicineName} added successfully to dispensary inventory!`,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to add medicine', err);
+      setToastMessage({
+        type: 'error',
+        text: 'Failed to add medicine. Please try again.',
+      });
+    } finally {
+      setSubmittingNewMed(false);
+    }
+  };
+
+  const handleDeleteMedicineConfirm = async () => {
+    if (!deleteConfirmMed) return;
+
+    setSubmittingDelete(true);
+    try {
+      const res = await pharmacyApi.deleteMedicine(deleteConfirmMed.id);
+      if (res.success) {
+        setMedicines((prev) => prev.filter((m) => m.id !== deleteConfirmMed.id));
+        setToastMessage({
+          type: 'success',
+          text: `${deleteConfirmMed.medicineName} (Batch ${deleteConfirmMed.batchNumber}) deleted from inventory.`,
+        });
+        setDeleteConfirmMed(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete medicine', err);
+      alert('Failed to delete medicine. Please try again.');
+    } finally {
+      setSubmittingDelete(false);
     }
   };
 
@@ -129,16 +237,52 @@ export const PharmacyStockPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          onClick={loadMedicines}
-          variant="outline"
-          size="sm"
-          className="self-start sm:self-auto text-slate-600 hover:text-slate-900 text-xs font-semibold"
-        >
-          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-          Refresh Stock
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-1.5 min-h-[38px] px-4 rounded-xl shadow-xs cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            Add New Medicine
+          </Button>
+
+          <Button
+            onClick={loadMedicines}
+            variant="outline"
+            size="sm"
+            className="text-slate-600 hover:text-slate-900 text-xs font-semibold min-h-[38px]"
+          >
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+            Refresh Stock
+          </Button>
+        </div>
       </div>
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div
+          className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 shadow-sm animate-in fade-in-50 duration-200 ${
+            toastMessage.type === 'success'
+              ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+              : 'bg-rose-50 text-rose-900 border-rose-300'
+          }`}
+        >
+          <div className="flex items-center gap-2 text-xs font-bold">
+            {toastMessage.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+            )}
+            <span>{toastMessage.text}</span>
+          </div>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-slate-400 hover:text-slate-700 p-1"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* 2. Key Metrics Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -232,17 +376,17 @@ export const PharmacyStockPage: React.FC = () => {
         {/* Category selector */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
           <span className="text-xs font-semibold text-slate-500 shrink-0">Category:</span>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs font-medium bg-white border border-slate-300 shadow-2xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-700 cursor-pointer"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c === 'ALL' ? 'All Categories' : c}
-              </option>
-            ))}
-          </select>
+          <div className="w-48">
+            <Select
+              size="sm"
+              value={selectedCategory}
+              onValueChange={(val) => setSelectedCategory(val)}
+              options={categories.map((c) => ({
+                value: c,
+                label: c === 'ALL' ? 'All Categories' : c,
+              }))}
+            />
+          </div>
         </div>
       </div>
 
@@ -353,11 +497,21 @@ export const PharmacyStockPage: React.FC = () => {
                         onClick={() => handleOpenAdjust(med, 'DEDUCT')}
                         variant="ghost"
                         size="sm"
-                        className="text-slate-600 hover:text-rose-700 hover:bg-rose-50 text-xs font-bold px-2.5 py-1 min-h-[36px]"
+                        className="text-slate-600 hover:text-amber-700 hover:bg-amber-50 text-xs font-bold px-2.5 py-1 min-h-[36px]"
                         title="Deduct broken/expired stock"
                       >
                         <Minus className="h-3.5 w-3.5 mr-1" />
                         Adjust
+                      </Button>
+
+                      <Button
+                        onClick={() => setDeleteConfirmMed(med)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-xs font-bold px-2.5 py-1 min-h-[36px] rounded-xl"
+                        title="Delete medicine from formulary"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
@@ -459,6 +613,232 @@ export const PharmacyStockPage: React.FC = () => {
                 className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold min-h-[38px] px-4"
               >
                 {submittingAdjustment ? 'Updating Stock...' : 'Confirm & Save Audit Record'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Add New Medicine Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-150 my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-teal-100 text-teal-800">
+                  <Pill className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Add New Medicine</h3>
+                  <p className="text-xs text-slate-500">Register new drug into hospital dispensary inventory</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddMedicineSubmit} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 block">
+                    Medicine Brand Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Paracetamol 650mg"
+                    value={newMedName}
+                    onChange={(e) => setNewMedName(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:bg-white"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 block">
+                    Generic Salt Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Paracetamol IP"
+                    value={newGenericName}
+                    onChange={(e) => setNewGenericName(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <Select
+                    label="Dosage Form / Category"
+                    value={newCategory}
+                    onValueChange={(val) => setNewCategory(val)}
+                    options={[
+                      { value: 'Tablet', label: 'Tablet' },
+                      { value: 'Capsule', label: 'Capsule' },
+                      { value: 'Syrup', label: 'Syrup / Suspension' },
+                      { value: 'Injection', label: 'Injection / Vial' },
+                      { value: 'Ointment', label: 'Ointment / Gel' },
+                      { value: 'Drops', label: 'Eye / Ear Drops' },
+                      { value: 'Inhaler', label: 'Inhaler / Respule' },
+                      { value: 'IV Fluid', label: 'IV Infusion Bottle' },
+                      { value: 'Other', label: 'Other Form' },
+                    ]}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 block">
+                    Batch Number <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. BT-2026-904"
+                    value={newBatchNumber}
+                    onChange={(e) => setNewBatchNumber(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 block">
+                    Initial Stock <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={newQuantity}
+                    onChange={(e) => setNewQuantity(Math.max(0, Number(e.target.value)))}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <Select
+                    label="Dispensing Unit"
+                    value={newUnit}
+                    onValueChange={(val) => setNewUnit(val)}
+                    options={[
+                      { value: 'Tablets', label: 'Tablets' },
+                      { value: 'Capsules', label: 'Capsules' },
+                      { value: 'Strips', label: 'Strips' },
+                      { value: 'Bottles', label: 'Bottles' },
+                      { value: 'Vials', label: 'Vials' },
+                      { value: 'Ampoules', label: 'Ampoules' },
+                      { value: 'Tubes', label: 'Tubes' },
+                      { value: 'Bags', label: 'Bags' },
+                    ]}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 block">
+                    Low Stock Alert
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newThreshold}
+                    onChange={(e) => setNewThreshold(Math.max(1, Number(e.target.value)))}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700 block">
+                  Expiry Date <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={newExpiryDate}
+                  onChange={(e) => setNewExpiryDate(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:bg-white"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <Button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs font-bold min-h-[38px]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingNewMed}
+                  className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold min-h-[38px] px-5 rounded-xl cursor-pointer"
+                >
+                  {submittingNewMed ? 'Saving to Formulary...' : 'Save Medicine to Formulary'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Delete Medicine Confirmation Modal */}
+      {deleteConfirmMed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-2xl bg-rose-100 text-rose-700 shrink-0">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-black text-slate-900">Delete Medication</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Are you sure you want to delete this medication from hospital inventory?
+                </p>
+              </div>
+            </div>
+
+            {/* Medicine details preview */}
+            <div className="p-3.5 bg-rose-50/50 rounded-2xl border border-rose-200 space-y-1.5 text-xs">
+              <div className="font-extrabold text-slate-900">{deleteConfirmMed.medicineName}</div>
+              <div className="text-slate-600">Generic: {deleteConfirmMed.genericName}</div>
+              <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                <span className="font-mono">Batch: {deleteConfirmMed.batchNumber}</span>
+                <span className="font-bold text-slate-800">
+                  {deleteConfirmMed.availableQuantity.toLocaleString()} {deleteConfirmMed.unit} in stock
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-rose-600 font-medium">
+              ⚠️ This will remove the item from active dispensary stock and doctor prescribing options.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <Button
+                type="button"
+                onClick={() => setDeleteConfirmMed(null)}
+                variant="outline"
+                size="sm"
+                className="text-xs font-bold min-h-[38px]"
+              >
+                Keep Medication
+              </Button>
+              <Button
+                type="button"
+                onClick={handleDeleteMedicineConfirm}
+                disabled={submittingDelete}
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold min-h-[38px] px-4 rounded-xl cursor-pointer"
+              >
+                {submittingDelete ? 'Deleting...' : 'Yes, Delete Medication'}
               </Button>
             </div>
           </div>

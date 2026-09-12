@@ -1035,6 +1035,27 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   if (cleanUrl.includes('/medicines') || cleanUrl.includes('/medicine-inventory')) {
+    if (method === 'POST') {
+      const newMed = mockState.addMedicine((data || {}) as any);
+      return {
+        success: true,
+        message: 'Medicine added successfully to pharmacy formulary',
+        data: newMed,
+      };
+    }
+
+    if (method === 'DELETE') {
+      const parts = cleanUrl.split('/');
+      const medIndex = parts.findIndex((p) => p === 'medicines');
+      const medId = medIndex !== -1 ? parts[medIndex + 1] : parts[parts.length - 1];
+      const deleted = mockState.deleteMedicine(medId);
+      return {
+        success: deleted,
+        message: deleted ? 'Medicine removed from inventory successfully' : 'Medicine not found',
+        data: { id: medId },
+      };
+    }
+
     if (method === 'PATCH' && cleanUrl.includes('/quarantine')) {
       const parts = cleanUrl.split('/');
       const medIndex = parts.findIndex((p) => p === 'medicines');

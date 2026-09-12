@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { operationsApi } from '@/api/operationsApi';
 import { DoctorLeave } from '@/types/admin';
 import { LeaveReviewModal } from './components/LeaveReviewModal';
@@ -326,18 +327,17 @@ export const StaffLeaveOperationsPage: React.FC = () => {
         {/* Search & Department Dropdown */}
         <div className="flex items-center gap-2">
           {departments.length > 0 && (
-            <select
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-medium text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-            >
-              <option value="ALL">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
+            <div className="w-48">
+              <Select
+                size="sm"
+                value={departmentFilter}
+                onValueChange={(val) => setDepartmentFilter(val)}
+                options={[
+                  { value: 'ALL', label: 'All Departments' },
+                  ...departments.map((dept) => ({ value: dept, label: dept })),
+                ]}
+              />
+            </div>
           )}
 
           <div className="relative">

@@ -1243,6 +1243,41 @@ class MockHealthcareState {
     return med || null;
   }
 
+  addMedicine(item: Partial<MedicineInventoryItem>): MedicineInventoryItem {
+    const qty = Number(item.availableQuantity) || 0;
+    const threshold = Number(item.minimumStockThreshold) || 50;
+    let initialStatus: MedicineInventoryItem['status'] = 'IN_STOCK';
+    if (qty === 0) {
+      initialStatus = 'OUT_OF_STOCK';
+    } else if (qty <= threshold) {
+      initialStatus = 'LOW_STOCK';
+    }
+
+    const newMed: MedicineInventoryItem = {
+      id: item.id || `med_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      facilityId: item.facilityId || 'hosp_gandhinagar_civil',
+      medicineName: item.medicineName || 'Unnamed Medicine',
+      genericName: item.genericName || 'Generic Salt',
+      category: item.category || 'Tablet',
+      batchNumber: item.batchNumber || `BT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      availableQuantity: qty,
+      minimumStockThreshold: threshold,
+      unit: item.unit || 'Tablets',
+      expiryDate: item.expiryDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: item.status || initialStatus,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    this.medicines.unshift(newMed);
+    return newMed;
+  }
+
+  deleteMedicine(medicineId: string): boolean {
+    const initialLen = this.medicines.length;
+    this.medicines = this.medicines.filter((m) => m.id !== medicineId);
+    return this.medicines.length < initialLen;
+  }
+
   updateBedStatus(facilityId: string, category: string, available: number): BedSummary {
     const targetCat = this.bedSummary.categories.find((c) => c.type === category);
     if (targetCat) {
