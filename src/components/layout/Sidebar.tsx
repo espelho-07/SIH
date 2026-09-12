@@ -185,12 +185,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-blue-600 bg-blue-50',
           },
           {
-            to: '/doctor/queue',
-            label: 'Patient Queue',
-            icon: Ticket,
-            color: 'text-orange-600 bg-orange-50',
-          },
-          {
             to: '/doctor/patients',
             label: 'Patients & Treatment',
             icon: Activity,

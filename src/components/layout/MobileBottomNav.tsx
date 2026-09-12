@@ -52,9 +52,9 @@ export const MobileBottomNav: React.FC = () => {
       case 'DOCTOR':
         return [
           { to: '/doctor', label: 'Home', icon: LayoutDashboard },
-          { to: '/doctor/queue', label: 'Queue', icon: Ticket },
           { to: '/doctor/patients', label: 'Workspace', icon: Activity },
           { to: '/doctor/referrals', label: 'Referrals', icon: GitBranch },
+          { to: '/doctor/roster', label: 'Roster', icon: CalendarCheck2 },
         ];
 
       case 'FACILITY_STAFF':

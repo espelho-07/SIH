@@ -225,7 +225,7 @@ export const PatientHistoryPage: React.FC = () => {
         subtitle={`Complete ABHA verified clinical records, past doctor visits, lab reports and medications for ${patient.name}.`}
         breadcrumbs={[
           { label: 'Doctor Desk', to: '/doctor' },
-          { label: 'OPD Queue', to: '/doctor/queue' },
+          { label: 'Patients & Treatment', to: '/doctor/patients' },
           { label: 'Patient Clinical Desk', to: returnUrl },
           { label: 'Patient History' },
         ]}

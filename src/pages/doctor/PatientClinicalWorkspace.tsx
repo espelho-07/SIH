@@ -783,9 +783,9 @@ export const PatientClinicalWorkspace: React.FC = () => {
             })}
           </div>
 
-          <Link to="/doctor/queue" className="shrink-0 ml-1">
+          <Link to="/doctor/patients" className="shrink-0 ml-1">
             <Button variant="outline" size="sm" className="text-xs h-8 px-2.5 text-slate-600 gap-1">
-              <span>All Queue</span>
+              <span>All Patients</span>
               <ArrowRight className="h-3 w-3" />
             </Button>
           </Link>

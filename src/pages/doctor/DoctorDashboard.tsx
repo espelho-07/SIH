@@ -16,6 +16,7 @@ import {
   ArrowRight,
   AlertCircle,
   CalendarDays,
+  Activity,
 } from 'lucide-react';
 
 export const DoctorDashboard: React.FC = () => {
@@ -90,13 +91,13 @@ export const DoctorDashboard: React.FC = () => {
                 Month Planner
               </Button>
             </Link>
-            <Link to="/doctor/queue">
+            <Link to="/doctor/patients">
               <Button
                 size="md"
                 className="bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-2 shadow-md w-full sm:w-auto cursor-pointer"
               >
-                <Ticket className="h-4 w-4" />
-                View Patient Queue
+                <Activity className="h-4 w-4" />
+                Patients & Treatment
               </Button>
             </Link>
           </div>
@@ -254,13 +255,13 @@ export const DoctorDashboard: React.FC = () => {
               </p>
             </div>
 
-            <Link to="/doctor/queue">
+            <Link to="/doctor/patients">
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-1 text-xs"
               >
-                View All
+                View Patients
                 <ArrowRight className="h-3 w-3" />
               </Button>
             </Link>
