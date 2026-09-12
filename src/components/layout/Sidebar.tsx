@@ -191,6 +191,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-red-600 bg-red-50',
           },
           {
+            to: '/doctor/patients/history',
+            label: 'Old & Recent Records',
+            icon: History,
+            color: 'text-purple-600 bg-purple-50',
+          },
+          {
             to: '/doctor/referrals',
             label: 'Referrals',
             icon: GitBranch,
@@ -204,7 +210,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           },
           {
             to: '/doctor/roster',
-            label: 'Roster & Leaves',
+            label: 'Schedule/Leaves',
             icon: CalendarCheck2,
             color: 'text-emerald-600 bg-emerald-50',
           },

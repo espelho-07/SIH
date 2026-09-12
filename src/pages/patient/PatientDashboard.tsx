@@ -400,39 +400,35 @@ export const PatientDashboard: React.FC = () => {
                   )}
                 </div>
 
-                {/* Availability */}
-                <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <div className="flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-teal-700" />
-                    <span className="text-[11px] text-slate-600">
-                      <strong className="font-semibold text-slate-900">
-                        {facility.availableBeds}
-                      </strong>{' '}
-                      {t('patient.beds', 'beds')}
-                    </span>
-                  </div>
-
-                  <span className="text-[11px] text-red-700">
-                    <strong className="font-semibold">
-                      {facility.icuBedsAvailable}
-                    </strong>{' '}
-                    {t('patient.icu', 'ICU')}
-                  </span>
-                </div>
-
-                {/* View Hospital */}
-                <Link
-                  to={`/patient/facilities/${facility.id}`}
-                  className="mt-3 block"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-full text-xs font-semibold cursor-pointer"
+                {/* Two Action Buttons: Get Details & Token */}
+                <div className="mt-3 flex items-center gap-2">
+                  <Link
+                    to={`/patient/facilities/${facility.id}`}
+                    className="flex-1"
                   >
-                    {t('patient.viewHospital', 'View Hospital')}
-                  </Button>
-                </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full text-xs font-semibold border-slate-300 hover:border-teal-600 hover:text-teal-700 cursor-pointer"
+                    >
+                      Get Details
+                    </Button>
+                  </Link>
+
+                  <Link
+                    to={`/patient/tokens?facilityId=${facility.id}`}
+                    className="flex-1"
+                  >
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="h-8 w-full bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                    >
+                      <Ticket className="h-3 w-3" />
+                      Token
+                    </Button>
+                  </Link>
+                </div>
               </Card>
             ))}
           </div>

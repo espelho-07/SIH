@@ -491,6 +491,16 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/doctor/history"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <PatientHistoryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/doctor/referrals"
         element={
           <ProtectedRoute allowedRoles={['DOCTOR']}>
