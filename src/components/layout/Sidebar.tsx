@@ -278,12 +278,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               color: 'text-emerald-600 bg-emerald-50',
             },
             {
-              to: '/registration-clerk/patients',
-              label: 'Citizen Directory',
-              icon: Users,
-              color: 'text-violet-600 bg-violet-50',
-            },
-            {
               to: '/registration-clerk/appointments',
               label: 'Appointment Desk',
               icon: CalendarCheck2,

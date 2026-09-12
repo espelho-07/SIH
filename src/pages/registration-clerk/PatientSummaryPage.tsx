@@ -136,9 +136,9 @@ export const PatientSummaryPage: React.FC = () => {
         <User className="h-12 w-12 text-slate-300 mx-auto" />
         <h2 className="text-lg font-bold text-slate-800">Patient Record Not Found</h2>
         <p className="text-xs text-slate-500">The requested patient record could not be found in the directory.</p>
-        <Link to="/registration-clerk/patients">
+        <Link to="/registration-clerk">
           <Button variant="outline" className="text-xs font-semibold">
-            Back to Directory
+            Back to Front Desk
           </Button>
         </Link>
       </div>
@@ -163,10 +163,10 @@ export const PatientSummaryPage: React.FC = () => {
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between">
         <Link
-          to="/registration-clerk/patients"
+          to="/registration-clerk"
           className="text-xs font-semibold text-slate-500 hover:text-teal-700 flex items-center gap-1.5"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Patient Directory
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Front Desk
         </Link>
         <span className="text-[11px] font-mono text-slate-400">
           MRN: {patient.id}

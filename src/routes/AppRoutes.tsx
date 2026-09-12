@@ -54,7 +54,6 @@ import { StaffDashboard } from '@/pages/staff/StaffDashboard';
 // Registration Clerk Pages
 import { RegistrationClerkDashboard } from '@/pages/registration-clerk/RegistrationClerkDashboard';
 import { PatientRegistrationWizard } from '@/pages/registration-clerk/PatientRegistrationWizard';
-import { PatientSearchPage } from '@/pages/registration-clerk/PatientSearchPage';
 import { PatientSummaryPage } from '@/pages/registration-clerk/PatientSummaryPage';
 import { AppointmentDeskPage } from '@/pages/registration-clerk/AppointmentDeskPage';
 import { QueueCounterPage } from '@/pages/registration-clerk/QueueCounterPage';
@@ -622,13 +621,7 @@ export const AppRoutes: React.FC = () => {
       />
       <Route
         path="/registration-clerk/patients"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <PatientSearchPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/registration-clerk" replace />}
       />
       <Route
         path="/registration-clerk/patients/:id"

@@ -71,7 +71,6 @@ export const MobileBottomNav: React.FC = () => {
           return [
             { to: '/registration-clerk', label: 'Desk', icon: LayoutDashboard },
             { to: '/registration-clerk/register', label: 'Register', icon: UserPlus },
-            { to: '/registration-clerk/patients', label: 'Directory', icon: Users },
             { to: '/registration-clerk/appointments', label: 'Check-In', icon: CalendarCheck2 },
             { to: '/registration-clerk/queue', label: 'Counter', icon: Ticket },
           ];

@@ -9,7 +9,6 @@ import { Appointment, LiveQueueState, Token } from '@/types/queue';
 import { OpdTokenSlipModal } from './components/OpdTokenSlipModal';
 import {
   UserPlus,
-  Search,
   CalendarCheck2,
   Ticket,
   Clock,
@@ -136,18 +135,12 @@ export const RegistrationClerkDashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Quick Search Shortcut */}
+        {/* Quick Action Shortcut */}
         <div className="flex items-center gap-2.5 shrink-0">
           <Link to="/registration-clerk/register">
             <Button className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer">
               <UserPlus className="h-4 w-4 text-teal-200" />
               Register New Citizen
-            </Button>
-          </Link>
-          <Link to="/registration-clerk/patients">
-            <Button className="bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-2xs">
-              <Search className="h-4 w-4 text-teal-700" />
-              Search Directory
             </Button>
           </Link>
         </div>
