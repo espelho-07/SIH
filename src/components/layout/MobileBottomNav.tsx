@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -26,6 +27,7 @@ import {
 
 export const MobileBottomNav: React.FC = () => {
   const { role, staffSubType } = useAuth();
+  const { t } = useTranslation();
 
   const getMobileNavItems = () => {
     switch (role) {
@@ -147,7 +149,7 @@ export const MobileBottomNav: React.FC = () => {
               }
             >
               <Icon className="h-5 w-5" />
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+              <span className="text-[10px] mt-0.5 tracking-tight">{t(`navMap.${item.label}`, item.label)}</span>
             </NavLink>
           );
         })}
