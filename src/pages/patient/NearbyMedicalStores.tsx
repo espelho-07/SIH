@@ -23,6 +23,11 @@ import {
   FileText,
   ShoppingBag,
   Info,
+  Loader2,
+  SlidersHorizontal,
+  ArrowRight,
+  ShieldCheck,
+  Percent,
 } from 'lucide-react';
 
 // Common quick search medicines in clean English
@@ -51,6 +56,13 @@ export const NearbyMedicalStores: React.FC = () => {
 
   const [activePrescriptionFilter, setActivePrescriptionFilter] = useState(false);
 
+  // Prescription Pop-up Modal State
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [isScanningRx, setIsScanningRx] = useState(false);
+  const [rxPriorityMode, setRxPriorityMode] = useState<'JAN_AUSHADHI_FIRST' | 'ALL_NEAREST'>(
+    'JAN_AUSHADHI_FIRST'
+  );
+
   // Reservation Modal State
   const [reservingStore, setReservingStore] = useState<MedicalStore | null>(null);
   const [reservedMedicine, setReservedMedicine] = useState<StoreMedicineItem | null>(null);
@@ -58,7 +70,83 @@ export const NearbyMedicalStores: React.FC = () => {
   const [reservationPhone, setReservationPhone] = useState('9876543210');
   const [reservationConfirmedCode, setReservationConfirmedCode] = useState<string | null>(null);
 
-  // Filtered Stores: STRICTLY SHOW ONLY CURRENTLY OPEN STORES
+  // Open Prescription Check Pop-up with quick scanning transition
+  const handleOpenPrescriptionCheck = () => {
+    setIsPrescriptionModalOpen(true);
+    setIsScanningRx(true);
+    setTimeout(() => {
+      setIsScanningRx(false);
+    }, 750);
+  };
+
+  // Prescription Store Matching Algorithm
+  const rxStoreMatches = useMemo(() => {
+    const rxKeywords = activeRxMedicines.map((m) =>
+      m.medicineName.toLowerCase().replace('tab.', '').replace('cap.', '').trim().slice(0, 8)
+    );
+    const totalRx = activeRxMedicines.length;
+
+    const matches = INITIAL_MEDICAL_STORES.filter((s) => s.isOpenNow).map((store) => {
+      const availableItems: StoreMedicineItem[] = [];
+      let totalGenericPrice = 0;
+      let totalBrandPrice = 0;
+
+      activeRxMedicines.forEach((rxMed) => {
+        const keyword = rxMed.medicineName
+          .toLowerCase()
+          .replace('tab.', '')
+          .replace('cap.', '')
+          .trim()
+          .slice(0, 8);
+        const found = store.stockCatalog.find(
+          (item) =>
+            item.name.toLowerCase().includes(keyword) ||
+            item.genericName.toLowerCase().includes(keyword)
+        );
+        if (found) {
+          availableItems.push(found);
+          const gPrice = found.genericPrice ?? 0;
+          const bPrice = found.brandPrice ?? (gPrice * 2);
+          totalGenericPrice += gPrice;
+          totalBrandPrice += bPrice;
+        }
+      });
+
+      const matchedCount = availableItems.length;
+      const is100Percent = matchedCount === totalRx;
+      const savings = Math.max(0, totalBrandPrice - totalGenericPrice);
+
+      return {
+        store,
+        availableItems,
+        matchedCount,
+        totalRx,
+        is100Percent,
+        totalGenericPrice,
+        totalBrandPrice,
+        savings,
+      };
+    });
+
+    // Sorting inside prescription modal:
+    // By default: Jan Aushadhi Priority (100% Jan Aushadhi first, then nearest)
+    // If user changes to 'ALL_NEAREST': ranks 100% stores strictly by shortest distance regardless of store type!
+    matches.sort((a, b) => {
+      // 100% matched stores always come first
+      if (a.is100Percent && !b.is100Percent) return -1;
+      if (!a.is100Percent && b.is100Percent) return 1;
+
+      if (rxPriorityMode === 'JAN_AUSHADHI_FIRST') {
+        if (a.store.isJanAushadhi && !b.store.isJanAushadhi) return -1;
+        if (!a.store.isJanAushadhi && b.store.isJanAushadhi) return 1;
+      }
+      return a.store.distanceKm - b.store.distanceKm;
+    });
+
+    return matches;
+  }, [activeRxMedicines, rxPriorityMode]);
+
+  // Filtered Stores for the Main Page: STRICTLY SHOW ONLY CURRENTLY OPEN STORES
   const filteredStores = useMemo(() => {
     // 1. Strict filter: only open stores
     let result = INITIAL_MEDICAL_STORES.filter((s) => s.isOpenNow);
@@ -252,7 +340,7 @@ export const NearbyMedicalStores: React.FC = () => {
         </div>
         <div className="flex items-center gap-1 text-emerald-800 text-[11px] font-semibold">
           <Building2 className="h-3.5 w-3.5 text-teal-700" />
-          <span>Government Jan Aushadhi Kendras (up to 80% lower prices) are listed first</span>
+          <span>Government Jan Aushadhi Kendras (up to 80% lower prices) are prioritized</span>
         </div>
       </div>
 
@@ -261,7 +349,7 @@ export const NearbyMedicalStores: React.FC = () => {
       {/* ================================================== */}
       <Card className="border-slate-200 bg-white shadow-2xs">
         <CardContent className="p-3.5 sm:p-4 space-y-3">
-          {/* Main Search Input */}
+          {/* Main Search Input & Check from Prescription Trigger */}
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -283,25 +371,14 @@ export const NearbyMedicalStores: React.FC = () => {
               )}
             </div>
 
-            {/* Check Active Prescription */}
+            {/* Check from Prescription Pop-up Button */}
             <button
               type="button"
-              onClick={() => {
-                setActivePrescriptionFilter(!activePrescriptionFilter);
-                if (!activePrescriptionFilter) {
-                  setSearchQuery('');
-                }
-              }}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0 ${
-                activePrescriptionFilter
-                  ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'bg-emerald-50 border border-emerald-300 text-emerald-900 hover:bg-emerald-100'
-              }`}
+              onClick={handleOpenPrescriptionCheck}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs"
             >
-              <FileText className="h-4 w-4" />
-              <span>
-                {activePrescriptionFilter ? '✓ Checking Prescription' : '📋 Check from My Prescription'}
-              </span>
+              <FileText className="h-4 w-4 text-emerald-200" />
+              <span>📋 Check from My Prescription</span>
             </button>
           </div>
 
@@ -330,13 +407,13 @@ export const NearbyMedicalStores: React.FC = () => {
             ))}
           </div>
 
-          {/* Active Prescription Filter Active Info */}
+          {/* Active Prescription Filter Active Info (if applied to main page) */}
           {activePrescriptionFilter && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-2.5 flex items-start justify-between gap-2 text-xs text-emerald-950">
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold">Active medicines from your doctor prescription:</p>
+                  <p className="font-bold">Filtering stores for your active prescription medicines:</p>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {activeRxMedicines.map((m) => (
                       <span
@@ -354,7 +431,7 @@ export const NearbyMedicalStores: React.FC = () => {
                 onClick={() => setActivePrescriptionFilter(false)}
                 className="text-emerald-800 hover:text-emerald-950 font-bold underline shrink-0 cursor-pointer"
               >
-                Clear
+                Clear Filter
               </button>
             </div>
           )}
@@ -693,6 +770,345 @@ export const NearbyMedicalStores: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ================================================== */}
+      {/* SMART PRESCRIPTION STORE MATCHER POP-UP MODAL */}
+      {/* ================================================== */}
+      {isPrescriptionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800 font-bold">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Smart Prescription Store Matcher
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Find nearest pharmacies with 100% of your prescribed medicines
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrescriptionModalOpen(false)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* SCANNING STATE ANIMATION */}
+            {isScanningRx ? (
+              <div className="py-12 text-center space-y-4">
+                <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-base font-bold text-slate-900">
+                    Checking your current prescription...
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Scanning active medicines from ABHA vault across Gandhinagar pharmacies for single-stop availability.
+                  </p>
+                </div>
+                {/* Medicines being scanned pills */}
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  {activeRxMedicines.map((m) => (
+                    <span
+                      key={m.id}
+                      className="rounded-full bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 text-xs font-semibold animate-pulse"
+                    >
+                      ● {m.medicineName}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* RESULTS AFTER SCANNING */
+              <div className="space-y-4">
+                {/* 1. Prescribed Medicines Strip */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+                      Doctor's Active Prescription ({activeRxMedicines.length} Medicines):
+                    </span>
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                      Verified ABHA Record
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeRxMedicines.map((m) => (
+                      <span
+                        key={m.id}
+                        className="rounded-md bg-white border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs"
+                      >
+                        ✓ {m.medicineName} <span className="text-slate-400 font-normal">({m.frequency})</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Priority Preference Toggle (Jan Aushadhi Default vs All Medical Stores) */}
+                <div className="rounded-xl border border-teal-200 bg-teal-50/40 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-slate-800 flex items-center gap-1">
+                      <SlidersHorizontal className="h-3.5 w-3.5 text-teal-700" />
+                      Store Priority Preference:
+                    </span>
+                    <p className="text-[11px] text-slate-500">
+                      {rxPriorityMode === 'JAN_AUSHADHI_FIRST'
+                        ? 'Prioritizing Jan Aushadhi Kendras for up to 80% generic price savings.'
+                        : 'Showing nearest stores by distance first (including all private pharmacies).'}
+                    </p>
+                  </div>
+
+                  {/* Priority Toggle Buttons */}
+                  <div className="flex items-center gap-1 bg-white border border-slate-200 p-1 rounded-xl shadow-2xs shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setRxPriorityMode('JAN_AUSHADHI_FIRST')}
+                      className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                        rxPriorityMode === 'JAN_AUSHADHI_FIRST'
+                          ? 'bg-teal-700 text-white shadow-xs'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      🏛️ Jan Aushadhi Priority (Default)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRxPriorityMode('ALL_NEAREST')}
+                      className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer ${
+                        rxPriorityMode === 'ALL_NEAREST'
+                          ? 'bg-teal-700 text-white shadow-xs'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      📍 All Stores (Nearest First)
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Stores List With 100% Match Highlights */}
+                <div className="space-y-3">
+                  <span className="text-xs font-bold text-slate-700 block">
+                    Stores stocking your medicines (Nearest first):
+                  </span>
+
+                  {rxStoreMatches.map((match, idx) => {
+                    const isTopRecommendation = idx === 0 && match.is100Percent;
+
+                    return (
+                      <div
+                        key={match.store.id}
+                        className={`rounded-2xl border p-4 space-y-3 transition-all ${
+                          isTopRecommendation
+                            ? 'border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-400/50 shadow-sm'
+                            : match.is100Percent
+                            ? 'border-teal-300 bg-white shadow-2xs'
+                            : 'border-slate-200 bg-slate-50/50 opacity-90'
+                        }`}
+                      >
+                        {/* Top Store Badge & Name */}
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                              {isTopRecommendation && (
+                                <span className="rounded-md bg-emerald-700 text-white px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide shadow-2xs flex items-center gap-1">
+                                  <Sparkles className="h-3 w-3 text-amber-300" />
+                                  ★ Best Single-Stop Option (Shortest Distance)
+                                </span>
+                              )}
+
+                              {match.is100Percent ? (
+                                <span className="rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                                  ✓ 100% Medicines at One Place ({match.matchedCount}/{match.totalRx})
+                                </span>
+                              ) : (
+                                <span className="rounded-md bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">
+                                  {match.matchedCount > 0
+                                    ? `${match.matchedCount} of ${match.totalRx} Medicines Available`
+                                    : 'Call to Verify Stock'}
+                                </span>
+                              )}
+
+                              {match.store.isJanAushadhi ? (
+                                <span className="rounded-md bg-teal-800 text-white px-2 py-0.5 text-[10px] font-bold">
+                                  Jan Aushadhi (Govt)
+                                </span>
+                              ) : (
+                                <span className="rounded-md bg-slate-200 text-slate-800 px-2 py-0.5 text-[10px] font-bold">
+                                  Private Pharmacy
+                                </span>
+                              )}
+                            </div>
+
+                            <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                              {match.store.name}
+                            </h4>
+
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              📍 {match.store.distanceKm} km away • {match.store.area} • Open Now ({match.store.timings})
+                            </p>
+                          </div>
+
+                          {/* Price / Savings Tag */}
+                          {match.is100Percent && match.totalGenericPrice > 0 && (
+                            <div className="text-left sm:text-right shrink-0 bg-white border border-emerald-200 rounded-xl p-2 sm:px-3">
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase">
+                                All 3 Medicines Total:
+                              </span>
+                              <div className="flex items-baseline gap-1.5">
+                                <span className="text-xs text-slate-400 line-through">
+                                  ₹{match.totalBrandPrice}
+                                </span>
+                                <span className="text-base font-black text-emerald-800">
+                                  ₹{match.totalGenericPrice}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-extrabold text-emerald-700 block">
+                                You Save ₹{match.savings}!
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Available Medicines List */}
+                        {match.availableItems.length > 0 && (
+                          <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+                            <span className="text-[11px] font-bold text-slate-600 block mb-1">
+                              Stock verified at this store:
+                            </span>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                              {match.availableItems.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="rounded-lg bg-emerald-50/70 border border-emerald-200 px-2 py-1 flex items-center justify-between text-[11px]"
+                                >
+                                  <span className="font-semibold text-slate-800 truncate pr-1">
+                                    ✓ {item.name}
+                                  </span>
+                                  <span className="font-bold text-emerald-900 shrink-0">
+                                    ₹{item.genericPrice}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons Inside Modal */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <a href={`tel:${match.store.phone}`}>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold gap-1 text-xs h-8 px-3 rounded-lg cursor-pointer"
+                              >
+                                <Phone className="h-3 w-3" />
+                                <span>Call ({match.store.phone})</span>
+                              </Button>
+                            </a>
+
+                            {match.store.whatsappPhone && (
+                              <a
+                                href={`https://wa.me/${match.store.whatsappPhone}?text=${encodeURIComponent(
+                                  `Hello! I am checking my doctor prescription from Sanjeevani. Do you have all 3 medicines (${activeRxMedicines
+                                    .map((m) => m.medicineName)
+                                    .join(', ')}) ready for pickup?`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100 font-bold gap-1 text-xs h-8 px-2.5 rounded-lg cursor-pointer"
+                                >
+                                  <MessageCircle className="h-3 w-3 text-emerald-700" />
+                                  <span>WhatsApp</span>
+                                </Button>
+                              </a>
+                            )}
+
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                `${match.store.name} ${match.store.fullAddress}`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-slate-700 border-slate-300 hover:bg-slate-50 font-semibold gap-1 text-xs h-8 px-2.5 rounded-lg cursor-pointer"
+                              >
+                                <Navigation className="h-3 w-3 text-slate-500" />
+                                <span>Directions</span>
+                              </Button>
+                            </a>
+                          </div>
+
+                          {/* Quick 1-Hour Hold for Jan Aushadhi */}
+                          {match.store.isJanAushadhi && (
+                            <Button
+                              onClick={() => {
+                                setIsPrescriptionModalOpen(false);
+                                setReservingStore(match.store);
+                                setReservedMedicine(match.availableItems[0] || null);
+                                setReservationConfirmedCode(null);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="bg-white text-teal-900 border-teal-300 hover:bg-teal-50 font-bold gap-1 text-xs h-8 px-3 rounded-lg shadow-2xs cursor-pointer"
+                            >
+                              <ShoppingBag className="h-3 w-3 text-teal-700" />
+                              <span>Hold 1-Hr Pickup</span>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Modal Footer Actions */}
+                <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsPrescriptionModalOpen(false)}
+                    className="text-xs font-semibold rounded-xl"
+                  >
+                    Close
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setActivePrescriptionFilter(true);
+                      setIsPrescriptionModalOpen(false);
+                    }}
+                    className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold gap-1.5 rounded-xl px-4"
+                  >
+                    <span>View These Stores on Main Page</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ================================================== */}
       {/* SIMPLE 1-HOUR PICKUP HOLD MODAL */}
