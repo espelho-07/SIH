@@ -369,20 +369,20 @@ export const PatientDashboard: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                  <Sparkles className="h-3 w-3 text-amber-300" /> सरकारी जन औषधि केंद्र
+                  <Sparkles className="h-3 w-3 text-amber-300" /> PMBJP Jan Aushadhi Priority
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-                  <Percent className="h-3 w-3 text-amber-700" /> 70-80% सस्ती दवाएं
+                  <Percent className="h-3 w-3 text-amber-700" /> Up to 80% Generic Savings
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
-                  ● सिर्फ खुली दुकानें
+                  ● Open Stores Only
                 </span>
               </div>
               <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
-                पास की दवा की दुकानें खोजें (Nearby Medical Stores)
+                Find Medicines & Nearby Pharmacies
               </h3>
               <p className="mt-0.5 text-xs text-slate-600 max-w-xl">
-                अभी खुली हुई दुकानें देखें, सस्ती सरकारी दवाएं ढूंढें और सीधे दुकानदार को फोन लगाएं।
+                Find currently open Jan Aushadhi Kendras and pharmacies near you, check medicine stock, and call chemists directly.
               </p>
             </div>
           </div>
@@ -395,7 +395,7 @@ export const PatientDashboard: React.FC = () => {
                 className="w-full sm:w-auto gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs font-bold text-xs h-10 px-4 cursor-pointer"
               >
                 <Pill className="h-4 w-4" />
-                दवा की दुकानें देखें
+                Find Medical Stores
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </Link>

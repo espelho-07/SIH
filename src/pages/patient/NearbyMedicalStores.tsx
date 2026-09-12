@@ -25,15 +25,15 @@ import {
   Info,
 } from 'lucide-react';
 
-// Common medicines with bilingual labels for easy understanding by rural citizens
+// Common quick search medicines in clean English
 const POPULAR_MEDICINES = [
-  { label: 'बुखार / दर्द (Paracetamol)', query: 'Paracetamol' },
-  { label: 'गैस / एसिडिटी (Pantoprazole)', query: 'Pantoprazole' },
-  { label: 'शुगर / डायबिटीज (Metformin)', query: 'Metformin' },
-  { label: 'बीपी (Amlodipine)', query: 'Amlodipine' },
-  { label: 'दिल की दवा (Sorbitrate)', query: 'Sorbitrate' },
-  { label: 'खांसी / जुकाम (Cetirizine)', query: 'Cetirizine' },
-  { label: 'ओआरएस (ORS)', query: 'ORS' },
+  'Paracetamol 650mg',
+  'Pantoprazole 40mg',
+  'Metformin 500mg',
+  'Amlodipine 5mg',
+  'Sorbitrate 5mg',
+  'Cetirizine 10mg',
+  'ORS Sachet',
 ];
 
 export const NearbyMedicalStores: React.FC = () => {
@@ -58,9 +58,9 @@ export const NearbyMedicalStores: React.FC = () => {
   const [reservationPhone, setReservationPhone] = useState('9876543210');
   const [reservationConfirmedCode, setReservationConfirmedCode] = useState<string | null>(null);
 
-  // Filtered Stores: ONLY CURRENTLY OPEN STORES ARE SHOWN
+  // Filtered Stores: STRICTLY SHOW ONLY CURRENTLY OPEN STORES
   const filteredStores = useMemo(() => {
-    // 1. STRICT RULE: Show ONLY currently open stores
+    // 1. Strict filter: only open stores
     let result = INITIAL_MEDICAL_STORES.filter((s) => s.isOpenNow);
 
     // 2. Filter by Category
@@ -70,7 +70,7 @@ export const NearbyMedicalStores: React.FC = () => {
       result = result.filter((s) => s.timings.includes('24'));
     }
 
-    // 3. Filter by Search Query (Medicine name, store name, or area)
+    // 3. Filter by Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter((s) => {
@@ -93,7 +93,7 @@ export const NearbyMedicalStores: React.FC = () => {
       );
 
       result = result.filter((s) => {
-        // Keep private stores so patient can still call them
+        // Keep private stores so patient can still contact them
         if (!s.stockCatalog || s.stockCatalog.length === 0) return true;
         return s.stockCatalog.some((item) =>
           rxKeywords.some((k) => item.name.toLowerCase().includes(k))
@@ -129,7 +129,7 @@ export const NearbyMedicalStores: React.FC = () => {
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap | Sanjeevani Seva',
+      attribution: '&copy; OpenStreetMap | Sanjeevani Network',
       maxZoom: 18,
     }).addTo(map);
 
@@ -157,7 +157,7 @@ export const NearbyMedicalStores: React.FC = () => {
             align-items: center;
             gap: 4px;
           ">
-            <span>${isGovt ? '🏛 जन औषधि' : '💊 दुकान'}</span>
+            <span>${isGovt ? '🏛 PMBJP' : '💊 Pharmacy'}</span>
             <span>(${store.distanceKm}km)</span>
           </div>
         `,
@@ -172,13 +172,13 @@ export const NearbyMedicalStores: React.FC = () => {
       marker.bindPopup(`
         <div style="font-family: system-ui, sans-serif; padding: 4px; max-width: 230px;">
           <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 2px;">${store.name}</strong>
-          <span style="font-size: 11px; color: #64748b;">${store.area} • ${store.distanceKm} किमी दूर</span>
+          <span style="font-size: 11px; color: #64748b;">${store.area} • ${store.distanceKm} km away</span>
           <p style="font-size: 11px; margin-top: 6px; font-weight: bold; color: #059669">
-            ● अभी खुली है (${store.timings})
+            ● Open Now (${store.timings})
           </p>
           <div style="margin-top: 8px;">
             <a href="tel:${store.phone}" style="display: inline-block; background: #0f766e; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; text-decoration: none; font-weight: bold;">
-              📞 कॉल करें
+              📞 Call Store
             </a>
           </div>
         </div>
@@ -201,14 +201,14 @@ export const NearbyMedicalStores: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* ================================================== */}
-      {/* PAGE HEADER: SIMPLE & RURAL FRIENDLY */}
+      {/* PAGE HEADER */}
       {/* ================================================== */}
       <PageHeader
-        title="पास की दवा की दुकानें (Nearby Medical Stores)"
-        subtitle="दुकान खुली है या नहीं देखें और सीधे फोन करें • सरकारी जन औषधि केंद्र सबसे ऊपर हैं"
+        title="Nearby Medical Stores & Jan Aushadhi Kendras"
+        subtitle="Find open pharmacies near you, check medicine stock, and call stores directly."
         breadcrumbs={[
-          { label: 'होम', to: '/patient' },
-          { label: 'दवा की दुकानें' },
+          { label: 'Dashboard', to: '/patient' },
+          { label: 'Medical Stores' },
         ]}
         actions={
           <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-2xs">
@@ -222,7 +222,7 @@ export const NearbyMedicalStores: React.FC = () => {
               }`}
             >
               <List className="h-3.5 w-3.5" />
-              <span>सूची (List)</span>
+              <span>List View</span>
             </button>
             <button
               type="button"
@@ -234,7 +234,7 @@ export const NearbyMedicalStores: React.FC = () => {
               }`}
             >
               <MapIcon className="h-3.5 w-3.5" />
-              <span>नक्शा (Map)</span>
+              <span>Map View</span>
             </button>
           </div>
         }
@@ -247,12 +247,12 @@ export const NearbyMedicalStores: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
           <span className="font-bold">
-            सिर्फ अभी खुली हुई दुकानें दिखाई जा रही हैं (Currently Open Stores Only)
+            Showing currently open stores only
           </span>
         </div>
         <div className="flex items-center gap-1 text-emerald-800 text-[11px] font-semibold">
           <Building2 className="h-3.5 w-3.5 text-teal-700" />
-          <span>सरकारी जन औषधि केंद्र (70% से 80% सस्ती दवा) सबसे पहले दिखेंगे</span>
+          <span>Government Jan Aushadhi Kendras (up to 80% lower prices) are listed first</span>
         </div>
       </div>
 
@@ -269,7 +269,7 @@ export const NearbyMedicalStores: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="दवा का नाम या इलाका खोजें (उदा. बुखार, Paracetamol, गैस, Pantoprazole)..."
+                placeholder="Search medicine name or area (e.g. Paracetamol, Pantoprazole, Metformin)..."
                 className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 font-medium"
               />
               {searchQuery && (
@@ -300,7 +300,7 @@ export const NearbyMedicalStores: React.FC = () => {
             >
               <FileText className="h-4 w-4" />
               <span>
-                {activePrescriptionFilter ? '✓ पर्ची की दवाएं खोजी जा रही हैं' : '📋 मेरी पर्ची की दवाएं खोजें'}
+                {activePrescriptionFilter ? '✓ Checking Prescription' : '📋 Check from My Prescription'}
               </span>
             </button>
           </div>
@@ -309,23 +309,23 @@ export const NearbyMedicalStores: React.FC = () => {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
             <span className="text-xs font-bold text-slate-600 shrink-0 flex items-center gap-1">
               <Pill className="h-3.5 w-3.5 text-teal-700" />
-              आम दवाएं:
+              Common Medicines:
             </span>
             {POPULAR_MEDICINES.map((item, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => {
-                  setSearchQuery(item.query);
+                  setSearchQuery(item.split(' ')[0]);
                   setActivePrescriptionFilter(false);
                 }}
                 className={`text-xs font-semibold px-2.5 py-1 rounded-lg border whitespace-nowrap cursor-pointer transition-colors ${
-                  searchQuery.toLowerCase().includes(item.query.toLowerCase())
+                  searchQuery.toLowerCase().includes(item.split(' ')[0].toLowerCase())
                     ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
                     : 'bg-slate-50 hover:bg-teal-50 text-slate-700 border-slate-200'
                 }`}
               >
-                {item.label}
+                + {item}
               </button>
             ))}
           </div>
@@ -336,7 +336,7 @@ export const NearbyMedicalStores: React.FC = () => {
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold">आपकी डॉक्टर की पर्ची में ये दवाएं लिखी हैं:</p>
+                  <p className="font-bold">Active medicines from your doctor prescription:</p>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {activeRxMedicines.map((m) => (
                       <span
@@ -354,7 +354,7 @@ export const NearbyMedicalStores: React.FC = () => {
                 onClick={() => setActivePrescriptionFilter(false)}
                 className="text-emerald-800 hover:text-emerald-950 font-bold underline shrink-0 cursor-pointer"
               >
-                हटाएं
+                Clear
               </button>
             </div>
           )}
@@ -362,7 +362,7 @@ export const NearbyMedicalStores: React.FC = () => {
           {/* Clean Simple Filter Buttons */}
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-slate-500 font-semibold mr-1">दुकानें:</span>
+              <span className="text-slate-500 font-semibold mr-1">Filter:</span>
               <button
                 type="button"
                 onClick={() => setSelectedFilter('ALL')}
@@ -372,7 +372,7 @@ export const NearbyMedicalStores: React.FC = () => {
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                सभी खुली दुकानें ({filteredStores.length})
+                All Open Stores ({filteredStores.length})
               </button>
               <button
                 type="button"
@@ -383,7 +383,7 @@ export const NearbyMedicalStores: React.FC = () => {
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                🏛️ जन औषधि केंद्र (सरकारी)
+                🏛️ Jan Aushadhi (Govt)
               </button>
               <button
                 type="button"
@@ -394,12 +394,12 @@ export const NearbyMedicalStores: React.FC = () => {
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                ⏰ 24 घंटे खुली दुकानें
+                ⏰ 24x7 Open
               </button>
             </div>
 
             <span className="text-slate-500 text-[11px] font-medium">
-              गांधीनगर क्षेत्र • सबसे पास वाली दुकान
+              Gandhinagar • Nearest Stores
             </span>
           </div>
         </CardContent>
@@ -413,16 +413,16 @@ export const NearbyMedicalStores: React.FC = () => {
           <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
             <span className="font-bold text-slate-800 flex items-center gap-1.5">
               <MapPin className="h-4 w-4 text-teal-700" />
-              <span>नक्शे पर खुली दुकानें (Stores on Map)</span>
+              <span>Map View: Open Medical Stores</span>
             </span>
             <div className="flex items-center gap-3 text-[11px]">
               <span className="flex items-center gap-1 font-bold text-teal-800">
                 <span className="h-2.5 w-2.5 rounded-full bg-teal-700" />
-                जन औषधि केंद्र (Govt)
+                Jan Aushadhi (Govt)
               </span>
               <span className="flex items-center gap-1 font-bold text-blue-800">
                 <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                प्राइवेट मेडिकल स्टोर
+                Private Pharmacy
               </span>
             </div>
           </div>
@@ -439,9 +439,9 @@ export const NearbyMedicalStores: React.FC = () => {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
               <Search className="h-6 w-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-900">कोई दुकान नहीं मिली (No Stores Found)</h3>
+            <h3 className="text-sm font-bold text-slate-900">No open stores found</h3>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              आपकी खोज "{searchQuery}" के अनुसार अभी खुली हुई कोई दुकान नहीं मिली। कृपया नाम बदल कर खोजें।
+              No open medical stores match your search "{searchQuery}". Try searching for another medicine or clearing the filter.
             </p>
             <Button
               onClick={() => {
@@ -453,7 +453,7 @@ export const NearbyMedicalStores: React.FC = () => {
               size="sm"
               className="mt-4 text-xs font-bold"
             >
-              सभी दुकानें फिर से देखें
+              Reset Search
             </Button>
           </Card>
         ) : (
@@ -488,25 +488,25 @@ export const NearbyMedicalStores: React.FC = () => {
                             <>
                               <span className="inline-flex items-center gap-1 rounded-md bg-teal-800 text-white px-2.5 py-0.5 text-xs font-bold shadow-2xs">
                                 <Building2 className="h-3.5 w-3.5 text-amber-300" />
-                                सरकारी जन औषधि केंद्र
+                                PMBJP Jan Aushadhi Kendra (Govt)
                               </span>
                               <span className="inline-flex items-center rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 text-xs font-bold">
-                                70-80% सस्ती दवाएं
+                                Up to 80% Lower Prices
                               </span>
                             </>
                           ) : store.type === 'HOSPITAL_PHARMACY' ? (
                             <span className="inline-flex items-center rounded-md bg-blue-100 text-blue-900 border border-blue-200 px-2.5 py-0.5 text-xs font-bold">
-                              सरकारी अस्पताल दवाखाना (मुफ्त)
+                              Hospital OPD Dispensary (Free)
                             </span>
                           ) : (
                             <span className="inline-flex items-center rounded-md bg-slate-100 text-slate-800 border border-slate-200 px-2.5 py-0.5 text-xs font-bold">
-                              प्राइवेट मेडिकल स्टोर
+                              Private Medical Store
                             </span>
                           )}
 
                           {store.timings.includes('24') && (
                             <span className="inline-flex items-center rounded-md bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 text-xs font-bold">
-                              24 घंटे खुली
+                              24x7 Open
                             </span>
                           )}
                         </div>
@@ -518,12 +518,12 @@ export const NearbyMedicalStores: React.FC = () => {
                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 pt-0.5">
                           <span className="flex items-center gap-1 font-semibold text-slate-800">
                             <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
-                            {store.distanceKm} किमी दूर • {store.area}
+                            {store.distanceKm} km away • {store.area}
                           </span>
                           <span>•</span>
                           <span className="flex items-center gap-1 text-emerald-700 font-bold">
                             <Clock className="h-3.5 w-3.5 shrink-0" />
-                            अभी खुली है ({store.timings})
+                            Open Now ({store.timings})
                           </span>
                         </div>
                       </div>
@@ -531,7 +531,7 @@ export const NearbyMedicalStores: React.FC = () => {
                       {/* Distance Badge */}
                       <div className="shrink-0 self-start sm:self-auto">
                         <span className="inline-block rounded-xl bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-bold text-slate-800">
-                          दूरी: {store.distanceKm} km
+                          {store.distanceKm} km
                         </span>
                       </div>
                     </div>
@@ -545,10 +545,10 @@ export const NearbyMedicalStores: React.FC = () => {
                             <div>
                               <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-sm">
                                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                                <span>{matchedMedicine.name} ({matchedMedicine.unit}) उपलब्ध है</span>
+                                <span>{matchedMedicine.name} ({matchedMedicine.unit}) - In Stock</span>
                               </div>
                               <p className="text-xs text-slate-600 mt-0.5">
-                                जेनेरिक नाम: {matchedMedicine.genericName}
+                                Generic Composition: {matchedMedicine.genericName}
                               </p>
                             </div>
 
@@ -562,7 +562,7 @@ export const NearbyMedicalStores: React.FC = () => {
                                 </span>
                               </div>
                               <span className="text-[11px] font-bold text-emerald-700">
-                                बचत: ₹{(matchedMedicine.brandPrice || 0) - (matchedMedicine.genericPrice || 0)} प्रति पत्ता
+                                Save ₹{(matchedMedicine.brandPrice || 0) - (matchedMedicine.genericPrice || 0)} per pack
                               </span>
                             </div>
                           </div>
@@ -570,7 +570,7 @@ export const NearbyMedicalStores: React.FC = () => {
                           // Sample preview of 3 common medicines
                           <div>
                             <span className="text-[11px] font-bold text-slate-600 block mb-1.5">
-                              उपलब्ध जरूरी दवाएं और सरकारी दर:
+                              Available Essential Medicines & Generic Rates:
                             </span>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                               {store.stockCatalog.slice(0, 3).map((item) => (
@@ -581,7 +581,7 @@ export const NearbyMedicalStores: React.FC = () => {
                                   <div className="min-w-0 pr-1">
                                     <p className="font-bold text-slate-900 truncate">{item.name}</p>
                                     <span className="text-[11px] font-semibold text-emerald-700">
-                                      उपलब्ध है
+                                      In Stock
                                     </span>
                                   </div>
                                   <div className="text-right shrink-0">
@@ -602,10 +602,10 @@ export const NearbyMedicalStores: React.FC = () => {
                         <Info className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
                         <div>
                           <strong className="text-amber-900 font-bold block">
-                            दुकानदार से फोन पर दवा पूछें:
+                            Direct Chemist Verification:
                           </strong>
                           <p className="text-amber-800 mt-0.5">
-                            यह प्राइवेट दुकान है। दवा उपलब्ध है या नहीं, यह जानने के लिए नीचे दिए गए बटन से सीधे कॉल करें या व्हाट्सएप पर पर्ची भेजें।
+                            This local pharmacy can be contacted directly by phone or WhatsApp to confirm current medicine stock and prices.
                           </p>
                         </div>
                       </div>
@@ -622,7 +622,7 @@ export const NearbyMedicalStores: React.FC = () => {
                             className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold gap-1.5 h-10 px-4 rounded-xl shadow-2xs text-xs cursor-pointer"
                           >
                             <Phone className="h-4 w-4" />
-                            <span>कॉल करें ({store.phone})</span>
+                            <span>Call Store ({store.phone})</span>
                           </Button>
                         </a>
 
@@ -630,9 +630,9 @@ export const NearbyMedicalStores: React.FC = () => {
                         {store.whatsappPhone && (
                           <a
                             href={`https://wa.me/${store.whatsappPhone}?text=${encodeURIComponent(
-                              `नमस्ते! मुझे संजीवनी ऐप से आपकी दुकान का पता चला। क्या आपके पास ${
-                                searchQuery || 'यह दवा'
-                              } उपलब्ध है? कृपया कीमत और उपलब्धता बताएं।`
+                              `Hello! I found your medical store on the Sanjeevani Citizen Portal. Do you have ${
+                                searchQuery || 'this medicine'
+                              } in stock? Please share availability and pricing.`
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -643,7 +643,7 @@ export const NearbyMedicalStores: React.FC = () => {
                               className="bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100 font-bold gap-1.5 h-10 px-3.5 rounded-xl text-xs cursor-pointer"
                             >
                               <MessageCircle className="h-4 w-4 text-emerald-700" />
-                              <span>व्हाट्सएप पर पूछें</span>
+                              <span>WhatsApp Enquiry</span>
                             </Button>
                           </a>
                         )}
@@ -662,7 +662,7 @@ export const NearbyMedicalStores: React.FC = () => {
                             className="text-slate-700 border-slate-300 hover:bg-slate-50 font-semibold gap-1.5 h-10 px-3 rounded-xl text-xs cursor-pointer"
                           >
                             <Navigation className="h-3.5 w-3.5 text-slate-500" />
-                            <span>रास्ता देखें</span>
+                            <span>Directions</span>
                           </Button>
                         </a>
                       </div>
@@ -682,7 +682,7 @@ export const NearbyMedicalStores: React.FC = () => {
                           className="bg-white text-teal-900 border-teal-300 hover:bg-teal-50 font-bold gap-1.5 h-10 px-3.5 rounded-xl shadow-2xs text-xs cursor-pointer"
                         >
                           <ShoppingBag className="h-3.5 w-3.5 text-teal-700" />
-                          <span>1 घंटे के लिए दवा सुरक्षित रखें</span>
+                          <span>Hold for 1-Hr Pickup</span>
                         </Button>
                       )}
                     </div>
@@ -707,10 +707,10 @@ export const NearbyMedicalStores: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    दवा सुरक्षित रखें (1-Hour Hold)
+                    Hold Medicine for Pickup
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    जन औषधि केंद्र पर 1 घंटे तक दवा रखी रहेगी
+                    Jan Aushadhi Kendra will hold this medicine for 1 hour
                   </p>
                 </div>
               </div>
@@ -730,10 +730,10 @@ export const NearbyMedicalStores: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="text-base font-black text-slate-900">
-                    दवा सफलतापूर्वक सुरक्षित कर ली गई है!
+                    Medicine Reserved Successfully!
                   </h4>
                   <p className="text-xs text-slate-600 mt-1">
-                    यह टोकन नंबर जन औषधि केंद्र पर दिखाएं:
+                    Show this pickup token at the Jan Aushadhi Kendra counter:
                   </p>
                 </div>
 
@@ -742,7 +742,7 @@ export const NearbyMedicalStores: React.FC = () => {
                 </div>
 
                 <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-900 font-medium">
-                  दुकानदार 1 घंटे तक यह दवा किसी और को नहीं बेचेगा। कृपया समय पर पहुंच कर ले लें।
+                  The chemist will keep this medicine reserved for 1 hour. Please collect it before expiry.
                 </div>
 
                 <Button
@@ -750,15 +750,15 @@ export const NearbyMedicalStores: React.FC = () => {
                   variant="primary"
                   className="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold h-10 rounded-xl"
                 >
-                  ठीक है (Done)
+                  Done
                 </Button>
               </div>
             ) : (
               <form onSubmit={handleConfirmReservation} className="space-y-3.5 text-xs">
                 <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1">
-                  <span className="text-[11px] text-slate-500 font-semibold block">दुकान का नाम:</span>
+                  <span className="text-[11px] text-slate-500 font-semibold block">Store Name:</span>
                   <p className="font-bold text-slate-900">{reservingStore.name}</p>
-                  <p className="text-slate-500 text-[11px]">📍 {reservingStore.area} ({reservingStore.distanceKm} किमी दूर)</p>
+                  <p className="text-slate-500 text-[11px]">📍 {reservingStore.area} ({reservingStore.distanceKm} km away)</p>
                 </div>
 
                 {reservedMedicine && (
@@ -769,7 +769,7 @@ export const NearbyMedicalStores: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-base font-black text-emerald-900">₹{reservedMedicine.genericPrice}</p>
-                      <span className="text-[10px] text-emerald-700">सरकारी दर</span>
+                      <span className="text-[10px] text-emerald-700">Govt. Generic Rate</span>
                     </div>
                   </div>
                 )}
@@ -777,7 +777,7 @@ export const NearbyMedicalStores: React.FC = () => {
                 <div className="space-y-2 pt-1">
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">
-                      मरीज का नाम:
+                      Patient Name:
                     </label>
                     <input
                       type="text"
@@ -790,7 +790,7 @@ export const NearbyMedicalStores: React.FC = () => {
 
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">
-                      मोबाइल नंबर:
+                      Mobile Number:
                     </label>
                     <input
                       type="tel"
@@ -809,14 +809,14 @@ export const NearbyMedicalStores: React.FC = () => {
                     onClick={() => setReservingStore(null)}
                     className="flex-1 h-10 rounded-xl font-bold"
                   >
-                    रद्द करें (Cancel)
+                    Cancel
                   </Button>
                   <Button
                     type="submit"
                     variant="primary"
                     className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold h-10 rounded-xl"
                   >
-                    टोकन प्राप्त करें
+                    Generate Hold Token
                   </Button>
                 </div>
               </form>
