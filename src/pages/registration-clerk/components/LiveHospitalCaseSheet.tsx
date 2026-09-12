@@ -2,9 +2,6 @@
 import { PriorityLevel } from '@/types/queue';
 import {
   Printer,
-  HeartPulse,
-  CheckCircle2,
-  ShieldCheck,
   FileText,
 } from 'lucide-react';
 
@@ -40,7 +37,7 @@ const DEPARTMENTS: Record<string, { name: string; room: string; doctor: string; 
 export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
   hospitalName,
   district,
-  clerkName = 'Counter 02 • Registration Staff',
+  clerkName = 'Counter 02 • Registration Desk',
   name,
   phone,
   gender,
@@ -68,301 +65,284 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
     minute: '2-digit',
   });
 
-  const crNumber = `CR-${now.getFullYear()}-${phone && phone.length >= 4 ? phone.slice(-4) : '7891'}`;
-  const tokenPreview = `T-${dept.code}-${phone && phone.length >= 2 ? phone.slice(-2) : '14'}`;
+  const crNumber = `CR-${now.getFullYear()}-${phone && phone.length >= 4 ? phone.slice(-4) : '2409'}`;
+  const tokenPreview = `OPD-${dept.code}-${phone && phone.length >= 2 ? phone.slice(-2) : '14'}`;
 
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="space-y-3">
-      {/* Action Strip Above Case Sheet */}
+    <div className="space-y-2.5">
+      {/* Top Controls: Print Action */}
       <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-          </span>
-          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <FileText className="h-3.5 w-3.5 text-teal-700" />
-            Live Hospital Case Sheet (केस पेपर)
-          </span>
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+          <FileText className="h-4 w-4 text-teal-800" />
+          <span>Hospital OPD Case Paper (मरीज पर्ची / केस पेपर)</span>
         </div>
         <button
           type="button"
           onClick={handlePrint}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700 shadow-2xs transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-800 shadow-2xs transition-all cursor-pointer"
           title="Print OPD Case Slip"
         >
-          <Printer className="h-3.5 w-3.5 text-teal-700" />
-          <span>Print Slip (प्रिंट)</span>
+          <Printer className="h-3.5 w-3.5 text-slate-700" />
+          <span>Print Slip (पर्ची प्रिंट)</span>
         </button>
       </div>
 
-      {/* PHYSICAL CASE PAPER CONTAINER */}
-      <div className="relative rounded-2xl border-2 border-slate-300 bg-white shadow-xl overflow-hidden font-sans text-slate-900 transition-all">
-        {/* Subtle Watermark in background */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.025] select-none">
-          <HeartPulse className="w-80 h-80 text-slate-900" />
-        </div>
-
-        {/* 1. Official Government & Hospital Masthead */}
-        <div className="bg-gradient-to-r from-teal-950 via-slate-900 to-teal-900 text-white p-4 text-center border-b-2 border-amber-400 relative">
-          <div className="flex items-center justify-between gap-2 mb-1 text-[10px] font-semibold text-teal-200">
+      {/* AUTHENTIC HOSPITAL CASE SHEET / SLIP */}
+      <div className="rounded-xl border-2 border-slate-700 bg-white shadow-md overflow-hidden font-sans text-slate-900">
+        {/* 1. Official Government & Hospital Header */}
+        <div className="border-b-2 border-slate-800 p-4 text-center bg-white">
+          <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 uppercase tracking-wider pb-1.5 border-b border-slate-300">
             <span>GOVERNMENT OF GUJARAT</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              LIVE REAL-TIME PREVIEW
-            </span>
-            <span>DEPT OF HEALTH & FAMILY WELFARE</span>
+            <span>HEALTH & FAMILY WELFARE DEPARTMENT</span>
           </div>
 
-          <h3 className="font-black text-sm sm:text-base tracking-tight uppercase text-white drop-shadow-xs">
-            {hospitalName || 'Gandhinagar Civil Hospital & Medical College'}
-          </h3>
-          <p className="text-[11px] text-teal-100 font-medium">
-            District Public Health Grid • {district || 'Gandhinagar'}, Gujarat
-          </p>
-
-          <div className="mt-2 pt-2 border-t border-white/15 flex items-center justify-between text-[11px] font-bold">
-            <span className="text-amber-300 tracking-wider uppercase">
-              OPD PATIENT REGISTRATION CASE PAPER
-            </span>
-            <span className="text-teal-200 font-mono text-[10px]">
-              FORM: HCON-OPD-V3
-            </span>
+          <div className="py-2">
+            <h2 className="text-base sm:text-lg font-black tracking-tight text-slate-900 uppercase">
+              {hospitalName || 'GANDHINAGAR CIVIL HOSPITAL & MEDICAL COLLEGE'}
+            </h2>
+            <p className="text-[11px] font-semibold text-slate-600 uppercase mt-0.5">
+              APEX DISTRICT HEALTHCARE FACILITY • {district || 'GANDHINAGAR'}, GUJARAT
+            </p>
+            <div className="mt-2 inline-block bg-slate-900 text-white font-extrabold text-xs px-3.5 py-1 tracking-wider uppercase rounded-xs">
+              CENTRAL OPD REGISTRATION CARD (बाह्यरुग्ण केस पेपर)
+            </div>
           </div>
         </div>
 
-        {/* 2. Registration Metadata Strip */}
-        <div className="bg-slate-100/90 border-b border-slate-200 px-4 py-2 text-[11px] grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
-          <div>
-            <span className="text-slate-500 block text-[10px] font-sans">CR NUMBER:</span>
-            <strong className="text-slate-900 font-bold">{crNumber}</strong>
+        {/* 2. Registration Metadata Table */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-300 text-[11px] font-mono bg-slate-50/80 divide-x divide-slate-300">
+          <div className="p-2.5">
+            <span className="text-[9px] font-sans text-slate-500 block uppercase font-bold">CR Number:</span>
+            <span className="font-bold text-slate-900 text-xs">{crNumber}</span>
           </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] font-sans">REG DATE & TIME:</span>
-            <strong className="text-slate-800">{dateStr} {timeStr}</strong>
+          <div className="p-2.5">
+            <span className="text-[9px] font-sans text-slate-500 block uppercase font-bold">Date & Time:</span>
+            <span className="text-slate-800 font-bold">{dateStr} {timeStr}</span>
           </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] font-sans">REGISTRATION FEE:</span>
-            <strong className="text-emerald-700">₹ 10.00 (Govt Paid)</strong>
+          <div className="p-2.5">
+            <span className="text-[9px] font-sans text-slate-500 block uppercase font-bold">Category:</span>
+            <span className="text-slate-900 font-bold uppercase">
+              {priority === 'EMERGENCY' ? 'EMERGENCY RED' : priority === 'URGENT' ? 'URGENT / SENIOR' : 'GENERAL WALK-IN'}
+            </span>
           </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] font-sans">CLERK COUNTER:</span>
-            <strong className="text-slate-800 truncate block">{clerkName}</strong>
+          <div className="p-2.5">
+            <span className="text-[9px] font-sans text-slate-500 block uppercase font-bold">OPD Fee:</span>
+            <span className="text-emerald-800 font-bold">₹ 10.00 (PAID)</span>
           </div>
         </div>
 
-        {/* 3. Patient Demographics Particulars (Fills in Real Time) */}
-        <div className="p-4 space-y-3">
-          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2">
-            {/* Row 1: Patient Name */}
-            <div className="flex items-start justify-between gap-2 border-b border-slate-200/80 pb-2">
-              <div className="min-w-0 flex-1">
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                  Patient Full Name (मरीज का नाम):
-                </span>
-                <div className="mt-0.5">
+        {/* 3. Patient Demographics Particulars (Real Hospital Grid) */}
+        <div className="p-3.5 space-y-3">
+          <table className="w-full text-xs border border-slate-300 text-left">
+            <tbody>
+              <tr className="border-b border-slate-300">
+                <td className="w-1/3 p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
+                  Patient Name (रुग्णाचे नाव):
+                </td>
+                <td colSpan={3} className="p-2 font-black text-slate-900 text-sm tracking-wide">
                   {name.trim() ? (
-                    <span className="text-base font-black text-teal-950 uppercase tracking-tight block">
-                      {name.trim()}
-                    </span>
+                    <span className="uppercase text-slate-950 font-black">{name.trim()}</span>
                   ) : (
-                    <span className="text-xs text-slate-400 italic font-mono">
-                      [Fill patient name in form...]
+                    <span className="text-slate-400 font-normal italic font-mono">
+                      ..................................................................
                     </span>
                   )}
-                </div>
-              </div>
-
-              {/* ABHA Badge */}
-              <div className="text-right shrink-0">
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">ABHA Account:</span>
-                {abhaId ? (
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span className="font-mono text-xs font-bold text-slate-800">{abhaId}</span>
-                    {abhaVerified && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-1.5 py-0.2 rounded-full">
-                        <CheckCircle2 className="h-2.5 w-2.5" /> VERIFIED
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-[10px] text-slate-400 italic">Not Linked</span>
-                )}
-              </div>
-            </div>
-
-            {/* Row 2: Age, Gender, Mobile */}
-            <div className="grid grid-cols-3 gap-2 text-xs pt-1 border-b border-slate-200/80 pb-2">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Age / Gender:</span>
-                <span className="font-bold text-slate-900">
-                  {age ? `${age} Yrs` : '__ Yrs'} / {gender === 'M' ? 'Male (पु)' : gender === 'F' ? 'Female (स्त्री)' : 'Other'}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Phone Number:</span>
-                <span className="font-mono font-bold text-slate-900">
+                </td>
+              </tr>
+              <tr className="border-b border-slate-300">
+                <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
+                  Age / Gender (वय / लिंग):
+                </td>
+                <td className="p-2 font-bold text-slate-900">
+                  {age ? `${age} Yrs` : '__ Yrs'} / {gender === 'M' ? 'Male (M)' : gender === 'F' ? 'Female (F)' : 'Other (T)'}
+                </td>
+                <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
+                  Contact (मोबाईल):
+                </td>
+                <td className="p-2 font-mono font-bold text-slate-900">
                   {phone ? `+91 ${phone}` : '+91 __________'}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Date of Birth:</span>
-                <span className="font-mono text-slate-800">
+                </td>
+              </tr>
+              <tr className="border-b border-slate-300">
+                <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
+                  ABHA ID (आभा क्रमांक):
+                </td>
+                <td className="p-2 font-mono text-slate-800">
+                  {abhaId ? (
+                    <span className="font-bold text-teal-900">
+                      {abhaId} {abhaVerified && <span className="text-[10px] text-emerald-700 font-sans font-bold">[✓ VERIFIED]</span>}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">N/A (Walk-in)</span>
+                  )}
+                </td>
+                <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
+                  Date of Birth:
+                </td>
+                <td className="p-2 font-mono text-slate-800">
                   {dob || '—'}
-                </span>
-              </div>
-            </div>
-
-            {/* Row 3: Address & Emergency Contact */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Residential Address:</span>
-                <span className="text-slate-800 font-medium line-clamp-1">
+                </td>
+              </tr>
+              <tr className="border-b border-slate-300">
+                <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
+                  Residential Address (पत्ता):
+                </td>
+                <td colSpan={3} className="p-2 text-slate-800 font-medium">
                   {address && address.trim() ? `${address.trim()}, ${district} - ${pincode}` : `${district} - ${pincode}`}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Emergency Attendant:</span>
-                <span className="text-slate-800 font-medium">
-                  {emergencyName ? `${emergencyName} (${emergencyRelation}) • +91 ${emergencyPhone || '—'}` : '—'}
-                </span>
-              </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
+                  Attendant / Relative:
+                </td>
+                <td colSpan={3} className="p-2 text-slate-800 font-medium">
+                  {emergencyName ? `${emergencyName} (${emergencyRelation}) • Tel: +91 ${emergencyPhone || '—'}` : '—'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* 4. OPD Clinic & Token Box */}
+          <div className="border-2 border-slate-700 rounded-lg p-3 bg-slate-50/60 flex items-center justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
+                DEPARTMENT / CLINIC ALLOCATION:
+              </span>
+              <h4 className="text-sm sm:text-base font-black text-slate-900 uppercase">
+                {dept.name}
+              </h4>
+              <p className="text-xs text-slate-700 font-semibold mt-0.5">
+                ROOM: <strong className="font-black text-slate-950">{dept.room}</strong> • ATTENDING: <strong className="font-bold">{dept.doctor.toUpperCase()}</strong>
+              </p>
             </div>
-          </div>
 
-          {/* 4. OPD Clinic & Live Token Block */}
-          <div className="rounded-xl border-2 border-teal-600/30 bg-teal-50/50 p-3.5">
-            <div className="flex items-center justify-between gap-3">
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-extrabold tracking-wider text-teal-800 block">
-                  Target Clinic & Consultation Room:
-                </span>
-                <h4 className="text-sm font-black text-teal-950">
-                  {dept.name}
-                </h4>
-                <p className="text-xs text-teal-800 font-medium">
-                  {dept.room} • Attending: <strong className="font-bold">{dept.doctor}</strong>
-                </p>
+            <div className="border-2 border-slate-900 bg-white rounded-md p-2 text-center shrink-0 min-w-[110px] shadow-xs">
+              <span className="text-[9px] font-black uppercase text-slate-600 tracking-wider block">
+                QUEUE TOKEN
+              </span>
+              <div className="text-xl font-black font-mono text-slate-950 tracking-tight my-0.5">
+                {tokenPreview}
               </div>
-
-              {/* Live Token Number Preview Box */}
-              <div className="text-center rounded-xl bg-white border-2 border-teal-700 p-2.5 shadow-sm shrink-0 min-w-[100px]">
-                <span className="text-[9px] uppercase font-extrabold text-teal-700 block tracking-wider">
-                  OPD TOKEN
-                </span>
-                <div className="text-xl font-black font-mono text-teal-950 tracking-tight my-0.5">
-                  {tokenPreview}
-                </div>
-                <span className="inline-block text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider bg-teal-100 text-teal-800">
-                  {priority}
-                </span>
-              </div>
+              <span className="text-[9px] font-bold uppercase text-slate-700 block">
+                {priority}
+              </span>
             </div>
           </div>
 
           {/* 5. Doctor Clinical Notes & Examination (Authentic Ruled Case Paper Section) */}
-          <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2.5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">
-                CLINICAL VITALS & EXAMINATION (चिकित्सक तपासणी)
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                ROOM NURSE / TRIAGE ENTRY
-              </span>
+          <div className="border border-slate-300 rounded-lg overflow-hidden">
+            <div className="bg-slate-100 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between text-[10px] font-bold text-slate-700 uppercase">
+              <span>PHYSICIAN EXAMINATION & VITALS RECORD (चिकित्सक तपासणी)</span>
+              <span className="text-slate-500 font-mono">OPD BLOCK B</span>
             </div>
 
-            {/* Vitals Baseline Bar */}
-            <div className="grid grid-cols-5 gap-1.5 bg-slate-50 border border-slate-200 rounded-lg p-2 text-center text-[10px]">
-              <div>
-                <span className="text-slate-400 block">BP (mmHg)</span>
-                <strong className="text-slate-700 font-mono text-xs">___ / ___</strong>
+            {/* Vitals Box */}
+            <div className="grid grid-cols-5 divide-x divide-slate-300 border-b border-slate-300 text-center text-[10px] bg-white">
+              <div className="p-1.5">
+                <span className="text-slate-500 block text-[9px] font-bold">BP (mmHg)</span>
+                <span className="font-mono text-xs text-slate-400 font-bold">____ / ____</span>
               </div>
-              <div>
-                <span className="text-slate-400 block">Pulse (bpm)</span>
-                <strong className="text-slate-700 font-mono text-xs">___</strong>
+              <div className="p-1.5">
+                <span className="text-slate-500 block text-[9px] font-bold">Pulse (bpm)</span>
+                <span className="font-mono text-xs text-slate-400 font-bold">____</span>
               </div>
-              <div>
-                <span className="text-slate-400 block">Temp (°F)</span>
-                <strong className="text-slate-700 font-mono text-xs">___</strong>
+              <div className="p-1.5">
+                <span className="text-slate-500 block text-[9px] font-bold">Temp (°F)</span>
+                <span className="font-mono text-xs text-slate-400 font-bold">____</span>
               </div>
-              <div>
-                <span className="text-slate-400 block">SpO2 (%)</span>
-                <strong className="text-slate-700 font-mono text-xs">___ %</strong>
+              <div className="p-1.5">
+                <span className="text-slate-500 block text-[9px] font-bold">SpO2 (%)</span>
+                <span className="font-mono text-xs text-slate-400 font-bold">____ %</span>
               </div>
-              <div>
-                <span className="text-slate-400 block">Weight (kg)</span>
-                <strong className="text-slate-700 font-mono text-xs">___ kg</strong>
+              <div className="p-1.5">
+                <span className="text-slate-500 block text-[9px] font-bold">Weight (kg)</span>
+                <span className="font-mono text-xs text-slate-400 font-bold">____ kg</span>
               </div>
             </div>
 
             {/* Doctor Ruled Writing Section */}
-            <div className="space-y-2 text-xs pt-1">
+            <div className="p-3 space-y-3 bg-white">
               <div>
-                <span className="text-[10px] font-bold uppercase text-slate-600 block">
-                  Chief Complaints (C/O) & Clinical History:
+                <span className="text-[10px] font-extrabold text-slate-700 uppercase block">
+                  Chief Complaints & Clinical History (तक्रारी):
                 </span>
-                <div className="border-b border-dotted border-slate-300 h-4 mt-1" />
-                <div className="border-b border-dotted border-slate-300 h-4 mt-1" />
+                <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
+                <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
               </div>
 
               <div>
-                <span className="text-[10px] font-bold uppercase text-slate-600 block">
-                  Rx - Treatment / Medications Advised (औषधे):
+                <span className="text-[10px] font-extrabold text-slate-700 uppercase block">
+                  Clinical Diagnosis (निदान):
                 </span>
-                <div className="flex items-start gap-2 pt-1">
-                  <span className="text-base font-serif font-black text-slate-800 leading-none">℞</span>
-                  <div className="flex-1 space-y-2">
-                    <div className="border-b border-dotted border-slate-300 h-4" />
-                    <div className="border-b border-dotted border-slate-300 h-4" />
-                  </div>
+                <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
+              </div>
+
+              <div>
+                <div className="flex items-center gap-1">
+                  <span className="text-lg font-serif font-black text-slate-900 leading-none">℞</span>
+                  <span className="text-[10px] font-extrabold text-slate-700 uppercase">
+                    Prescription & Treatment (औषधोपचार):
+                  </span>
                 </div>
+                <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
+                <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
+                <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
               </div>
             </div>
+          </div>
 
-            {/* Stamp & Sign Strip */}
-            <div className="pt-3 flex items-end justify-between text-[10px] border-t border-slate-100">
-              <div className="space-y-1">
-                {/* Simulated Barcode */}
-                <div className="flex items-center gap-0.5 h-6">
-                  {[3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 1, 3, 1, 2, 3, 1, 4, 2, 1].map((w, i) => (
-                    <div
-                      key={i}
-                      className="bg-slate-800 h-full"
-                      style={{ width: `${w * 1.5}px` }}
-                    />
-                  ))}
-                </div>
-                <span className="text-[9px] font-mono text-slate-500 block">
-                  *{crNumber}*
-                </span>
-              </div>
+          {/* 6. Investigations Checkbox Strip */}
+          <div className="border border-slate-300 rounded-md p-2 bg-slate-50 text-[10px] text-slate-700">
+            <span className="font-bold uppercase text-[9px] text-slate-600 block mb-1">
+              INVESTIGATIONS ORDERED (तपासण्या):
+            </span>
+            <div className="flex items-center gap-4 flex-wrap font-mono">
+              <span>[ &nbsp; ] CBC</span>
+              <span>[ &nbsp; ] RBS / Blood Sugar</span>
+              <span>[ &nbsp; ] Urine R/M</span>
+              <span>[ &nbsp; ] X-Ray Chest</span>
+              <span>[ &nbsp; ] ECG</span>
+              <span>[ &nbsp; ] USG Abdomen</span>
+            </div>
+          </div>
 
-              <div className="text-center">
-                <div className="w-32 border-b border-slate-400 mb-1" />
-                <span className="font-bold text-slate-600 block text-[9px] uppercase">
-                  Doctor's Sign & Stamp
-                </span>
-                <span className="text-[8px] text-slate-400">
-                  {hospitalName}
-                </span>
+          {/* 7. Barcode & Signature Footer */}
+          <div className="pt-2 flex items-end justify-between text-[10px] border-t border-slate-300">
+            <div className="space-y-1">
+              <div className="flex items-center gap-0.5 h-6">
+                {[3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 1, 3, 1, 2, 3, 1, 4, 2, 1].map((w, i) => (
+                  <div
+                    key={i}
+                    className="bg-slate-900 h-full"
+                    style={{ width: `${w * 1.5}px` }}
+                  />
+                ))}
               </div>
+              <span className="text-[9px] font-mono text-slate-600 block">
+                *{crNumber}*
+              </span>
+            </div>
+
+            <div className="text-center">
+              <span className="text-[9px] text-slate-500 block mb-3 font-mono">
+                REG CLERK: {clerkName.toUpperCase()}
+              </span>
+              <div className="w-36 border-b border-slate-700 mb-0.5" />
+              <span className="font-bold text-slate-800 block text-[9px] uppercase tracking-wider">
+                MEDICAL OFFICER SIGN & STAMP
+              </span>
             </div>
           </div>
         </div>
 
-        {/* 6. Footer Disclaimer */}
-        <div className="bg-slate-50 border-t border-slate-200 px-4 py-2 text-[10px] text-slate-500 flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3 text-teal-700" />
-            <span>Valid for 7 days across all public healthcare OPDs.</span>
-          </div>
-          <span className="font-mono text-[9px] text-slate-400">
-            SECURE ABDM VERIFIED
-          </span>
+        {/* 8. Hospital Instructions Footer */}
+        <div className="bg-slate-100 border-t border-slate-300 px-3 py-1.5 text-[9px] text-slate-600 flex items-center justify-between">
+          <span>• Valid for 15 days for follow-up in the same department. Bring this slip on next visit.</span>
+          <span className="font-bold text-slate-700">ABDM HEALTH ID COMPLIANT</span>
         </div>
       </div>
     </div>
