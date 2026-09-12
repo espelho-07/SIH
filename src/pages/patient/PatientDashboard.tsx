@@ -374,12 +374,15 @@ export const PatientDashboard: React.FC = () => {
                 <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
                   <Percent className="h-3 w-3 text-amber-700" /> Up to 80% Generic Savings
                 </span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
+                  ● Open Stores Only
+                </span>
               </div>
               <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
                 Find Medicines & Nearby Pharmacies
               </h3>
               <p className="mt-0.5 text-xs text-slate-600 max-w-xl">
-                Check real-time stock at nearby Jan Aushadhi Kendras, reserve medicines for 1 hour, or contact local private medical stores directly.
+                Find currently open Jan Aushadhi Kendras and pharmacies near you, check medicine stock, and call chemists directly.
               </p>
             </div>
           </div>
@@ -389,7 +392,7 @@ export const PatientDashboard: React.FC = () => {
               <Button
                 variant="primary"
                 size="sm"
-                className="w-full sm:w-auto gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs font-semibold text-xs h-9 px-4 cursor-pointer"
+                className="w-full sm:w-auto gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs font-bold text-xs h-10 px-4 cursor-pointer"
               >
                 <Pill className="h-4 w-4" />
                 Find Medical Stores
