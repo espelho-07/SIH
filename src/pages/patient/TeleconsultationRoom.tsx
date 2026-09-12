@@ -36,6 +36,9 @@ import {
   Heart,
   Activity,
   Award,
+  X,
+  Check,
+  Paperclip,
 } from 'lucide-react';
 
 interface VisitedDoctor {
@@ -68,6 +71,20 @@ interface FamilyPatient {
   abhaId: string;
   bloodGroup: string;
   visitedDoctorIds: string[];
+}
+
+interface ConsultationRequestToken {
+  tokenNumber: string;
+  doctor: VisitedDoctor;
+  patient: FamilyPatient;
+  requestType: 'INSTANT' | 'SCHEDULED';
+  scheduledDate: string;
+  scheduledTimeSlot: string;
+  reason: string;
+  urgency: 'ROUTINE' | 'PRIORITY' | 'URGENT';
+  symptomDetails: string;
+  attachedReports: boolean;
+  registeredAt: string;
 }
 
 const FAMILY_PATIENTS: FamilyPatient[] = [
@@ -186,6 +203,24 @@ const VISITED_DOCTORS: VisitedDoctor[] = [
   },
 ];
 
+const TIME_SLOTS = [
+  '10:00 AM - 10:30 AM',
+  '11:30 AM - 12:00 PM',
+  '02:30 PM - 03:00 PM',
+  '04:00 PM - 04:30 PM',
+  '05:30 PM - 06:00 PM',
+  '07:00 PM - 07:30 PM',
+];
+
+const REASON_PRESETS = [
+  'Follow-up on Previous Prescription',
+  'Review Recent Lab / ECG Reports',
+  'Chest Discomfort & Blood Pressure Check',
+  'Fever, Cough or Throat Soreness',
+  'Medication Refill & Dose Adjustment',
+  'Routine Chronic Condition Review',
+];
+
 export const TeleconsultationRoom: React.FC = () => {
   const navigate = useNavigate();
 
@@ -195,13 +230,29 @@ export const TeleconsultationRoom: React.FC = () => {
     FAMILY_PATIENTS.find((p) => p.id === selectedPatientId) || FAMILY_PATIENTS[0];
 
   // Call Stage State Machine:
-  // 'SELECT_DOCTOR' -> 'CONNECTING' -> 'IN_CALL' -> 'COMPLETED'
+  // 'SELECT_DOCTOR' -> 'REQUEST_CONFIRMED' -> 'CONNECTING' -> 'IN_CALL' -> 'COMPLETED'
   const [callStage, setCallStage] = useState<
-    'SELECT_DOCTOR' | 'CONNECTING' | 'IN_CALL' | 'COMPLETED'
+    'SELECT_DOCTOR' | 'REQUEST_CONFIRMED' | 'CONNECTING' | 'IN_CALL' | 'COMPLETED'
   >('SELECT_DOCTOR');
 
-  // Selected Doctor to Call
+  // Selected Doctor
   const [selectedDoctor, setSelectedDoctor] = useState<VisitedDoctor>(VISITED_DOCTORS[0]);
+
+  // Request Consultation Popup Form States
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestDoctor, setRequestDoctor] = useState<VisitedDoctor>(VISITED_DOCTORS[0]);
+  const [requestType, setRequestType] = useState<'INSTANT' | 'SCHEDULED'>('SCHEDULED');
+  const [selectedDateOption, setSelectedDateOption] = useState<string>('Today (12 Sep)');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>(TIME_SLOTS[4]);
+  const [selectedReason, setSelectedReason] = useState<string>(REASON_PRESETS[0]);
+  const [symptomDetails, setSymptomDetails] = useState<string>(
+    'Requesting follow-up consultation to review fasting blood sugar (148 mg/dL) and daily resting BP.'
+  );
+  const [urgencyLevel, setUrgencyLevel] = useState<'ROUTINE' | 'PRIORITY' | 'URGENT'>('ROUTINE');
+  const [attachPastReports, setAttachPastReports] = useState<boolean>(true);
+
+  // Confirmed Token Details
+  const [confirmedToken, setConfirmedToken] = useState<ConsultationRequestToken | null>(null);
 
   // Doctor Filter Tabs in Selection View
   const [doctorFilter, setDoctorFilter] = useState<
@@ -216,7 +267,6 @@ export const TeleconsultationRoom: React.FC = () => {
   const [micOn, setMicOn] = useState(true);
   const [cameraOn, setCameraOn] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
-  const [showMobileChart, setShowMobileChart] = useState(false);
 
   // Live Consultation Notes
   const [notes, setNotes] = useState(
@@ -230,21 +280,79 @@ export const TeleconsultationRoom: React.FC = () => {
       interval = setInterval(() => {
         setCallDuration((prev) => prev + 1);
       }, 1000);
-    } else if (callStage === 'SELECT_DOCTOR') {
+    } else if (callStage === 'SELECT_DOCTOR' || callStage === 'REQUEST_CONFIRMED') {
       setCallDuration(0);
     }
     return () => clearInterval(interval);
   }, [callStage]);
 
-  // Handle Initiating Call to Selected Doctor
-  const handleInitiateCall = (doc: VisitedDoctor) => {
+  // Open the Request Popup Form for a specific doctor
+  const handleOpenRequestModal = (doc: VisitedDoctor) => {
+    setRequestDoctor(doc);
+    setSelectedDoctor(doc);
+    setSelectedReason(
+      doc.id === 'doc_vaghela'
+        ? 'Eye Review & Diabetic Retina Follow-up'
+        : doc.id === 'doc_sharma'
+        ? 'Bronchitis & Cough Follow-up'
+        : 'Follow-up on Previous Prescription'
+    );
+    setShowRequestModal(true);
+  };
+
+  // Submit Consultation Request & Register Time Slot
+  const handleSubmitConsultationRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const tokenNum = `TC-REQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newRequest: ConsultationRequestToken = {
+      tokenNumber: tokenNum,
+      doctor: requestDoctor,
+      patient: activePatient,
+      requestType,
+      scheduledDate: selectedDateOption,
+      scheduledTimeSlot: requestType === 'INSTANT' ? 'Immediate Live Queue (~2-5 mins)' : selectedTimeSlot,
+      reason: selectedReason,
+      urgency: urgencyLevel,
+      symptomDetails,
+      attachedReports: attachPastReports,
+      registeredAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    // Save to localStorage for integration with doctor queue
+    const existingRequests = JSON.parse(
+      localStorage.getItem('teleconsultation_requests') || '[]'
+    );
+    localStorage.setItem(
+      'teleconsultation_requests',
+      JSON.stringify([newRequest, ...existingRequests])
+    );
+
+    setConfirmedToken(newRequest);
+    setSelectedDoctor(requestDoctor);
+    setShowRequestModal(false);
+    setCallStage('REQUEST_CONFIRMED');
+  };
+
+  // Direct Immediate Call Bypass
+  const handleInitiateImmediateCall = (doc: VisitedDoctor) => {
     setSelectedDoctor(doc);
     setCallStage('CONNECTING');
     setNotes(
       `Teleconsultation with ${doc.name} (${doc.specialty}) for ${activePatient.name}. Follow-up regarding ${doc.lastDiagnosis}.`
     );
 
-    // Auto-transition to IN_CALL after simulated WebRTC handshake (2.4 seconds)
+    setTimeout(() => {
+      setCallStage('IN_CALL');
+    }, 2400);
+  };
+
+  // Start Call from Confirmed Token Voucher
+  const handleStartCallFromToken = () => {
+    if (confirmedToken) {
+      setSelectedDoctor(confirmedToken.doctor);
+    }
+    setCallStage('CONNECTING');
     setTimeout(() => {
       setCallStage('IN_CALL');
     }, 2400);
@@ -258,7 +366,7 @@ export const TeleconsultationRoom: React.FC = () => {
     const durationFormatted = `${mins} mins ${secs} secs`;
 
     const consultation = {
-      id: `CONS-${Date.now()}`,
+      id: confirmedToken?.tokenNumber || `CONS-${Date.now()}`,
       patientName: activePatient.name,
       abhaId: activePatient.abhaId,
       doctorName: selectedDoctor.name,
@@ -324,11 +432,11 @@ export const TeleconsultationRoom: React.FC = () => {
       ================================= */}
       <PageHeader
         title="Teleconsultation"
-        subtitle="Consult directly with doctors who have previously visited and treated you."
+        subtitle="Request a consultation and register your preferred time to talk with your doctor."
         breadcrumbs={[
           { label: 'Dashboard', to: '/patient' },
           { label: 'Teleconsultation', to: '/patient/teleconsultation' },
-          { label: 'Join Room' },
+          { label: 'Request Doctor Call' },
         ]}
         actions={
           <div className="flex items-center gap-2">
@@ -432,7 +540,7 @@ export const TeleconsultationRoom: React.FC = () => {
                   <span>Doctors Who Already Visited & Treated {activePatient.name}</span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Select a doctor to connect directly for follow-up advice and digital prescription.
+                  Select a suitable doctor to request a call and choose your preferred time.
                 </p>
               </div>
 
@@ -520,7 +628,7 @@ export const TeleconsultationRoom: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Visited Details Ribbon (Why doctor is relevant) */}
+                    {/* Visited Details Ribbon */}
                     <div className="rounded-xl border border-teal-100 bg-teal-50/50 p-2.5 text-xs space-y-1">
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-bold text-slate-600">Last Visited For:</span>
@@ -542,20 +650,33 @@ export const TeleconsultationRoom: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Live Queue / Wait Time Bar */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <div className="text-[10px] text-slate-500">
+                    {/* ACTION BUTTONS: REQUEST CONSULTATION & CHOOSE TIME + QUICK CALL */}
+                    <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2">
+                      <div className="text-[10px] text-slate-500 w-full sm:w-auto">
                         <p className="font-semibold text-slate-700">{doc.statusText}</p>
                         <p className="text-[9px] text-slate-400">{doc.rating}</p>
                       </div>
 
-                      <Button
-                        onClick={() => handleInitiateCall(doc)}
-                        className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-black gap-1.5 px-4 h-9 shadow-xs shrink-0 cursor-pointer"
-                      >
-                        <Video className="h-3.5 w-3.5" />
-                        <span>Call Doctor</span>
-                      </Button>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        {/* Primary: Request Call & Choose Suitable Time */}
+                        <Button
+                          onClick={() => handleOpenRequestModal(doc)}
+                          className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-black gap-1.5 h-9 px-3.5 shadow-xs flex-1 sm:flex-initial cursor-pointer"
+                        >
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>Request Call & Choose Time</span>
+                        </Button>
+
+                        {/* Secondary: Quick Immediate Call */}
+                        <Button
+                          variant="outline"
+                          onClick={() => handleInitiateImmediateCall(doc)}
+                          className="text-xs h-9 px-2.5 text-slate-700 hover:bg-teal-50 hover:text-teal-900 border-slate-300 font-bold cursor-pointer"
+                          title="Instant Call (Connect Now)"
+                        >
+                          <Video className="h-3.5 w-3.5 text-teal-700" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -563,6 +684,366 @@ export const TeleconsultationRoom: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ================================================== */}
+      {/* POPUP MODAL FORM: REQUEST CALL & REGISTER TIME SLOT */}
+      {/* ================================================== */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+          <div className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-slate-200 p-5 sm:p-6 space-y-4.5 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr ${requestDoctor.avatarColor} text-white font-bold text-sm shadow-xs`}
+                >
+                  {requestDoctor.initials}
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800 block">
+                    Book Doctor Teleconsultation
+                  </span>
+                  <h3 className="text-base font-black text-slate-900">
+                    Request Call with {requestDoctor.name}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {requestDoctor.specialty} • {requestDoctor.hospital}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowRequestModal(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmitConsultationRequest} className="space-y-4">
+              {/* Patient Identity Strip */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 flex items-center justify-between text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Patient</span>
+                  <strong className="text-slate-900 font-bold">{activePatient.name}</strong>
+                  <span className="text-slate-500 ml-1">({activePatient.relation} • {activePatient.age}Y)</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">ABHA ID</span>
+                  <span className="font-mono text-[11px] font-bold text-teal-800">{activePatient.abhaId}</span>
+                </div>
+              </div>
+
+              {/* Consultation Timing Type: Instant vs Register Time Slot */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-800 block">
+                  1. Choose When You Want to Talk with the Doctor:
+                </label>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRequestType('SCHEDULED')}
+                    className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                      requestType === 'SCHEDULED'
+                        ? 'bg-teal-50 border-teal-400 text-teal-900 ring-2 ring-teal-500/70 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-black text-xs">
+                      <Calendar className="h-3.5 w-3.5 text-teal-700" />
+                      <span>Preferred Time Slot</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Register your suitable date & time window
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRequestType('INSTANT')}
+                    className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                      requestType === 'INSTANT'
+                        ? 'bg-teal-50 border-teal-400 text-teal-900 ring-2 ring-teal-500/70 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-black text-xs">
+                      <Sparkles className="h-3.5 w-3.5 text-teal-700" />
+                      <span>Instant Call (Queue)</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Doctor rings you as soon as available (~2-5 mins)
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* If Scheduled: Select Date & Available Slots */}
+              {requestType === 'SCHEDULED' && (
+                <div className="space-y-2.5 bg-teal-50/40 p-3 rounded-xl border border-teal-100">
+                  {/* Date Chips */}
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Select Suitable Date:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {['Today (12 Sep)', 'Tomorrow (13 Sep)', 'Monday (15 Sep)'].map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setSelectedDateOption(d)}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                            selectedDateOption === d
+                              ? 'bg-teal-700 text-white border-teal-700 shadow-2xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Time Slots Grid */}
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Select Suitable Time Window:
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      {TIME_SLOTS.map((slot) => (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setSelectedTimeSlot(slot)}
+                          className={`py-1.5 px-2 rounded-lg text-[11px] font-bold border transition-all text-center cursor-pointer ${
+                            selectedTimeSlot === slot
+                              ? 'bg-teal-700 text-white border-teal-700 shadow-2xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
+                          }`}
+                        >
+                          <Clock className="h-3 w-3 inline mr-1 text-teal-600" />
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Consultation Reason & Complaints */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-800 block">
+                  2. Reason for Consultation:
+                </label>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {REASON_PRESETS.map((reason) => (
+                    <button
+                      key={reason}
+                      type="button"
+                      onClick={() => setSelectedReason(reason)}
+                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                        selectedReason === reason
+                          ? 'bg-teal-700 text-white border-teal-700 shadow-2xs font-bold'
+                          : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  rows={2}
+                  value={symptomDetails}
+                  onChange={(e) => setSymptomDetails(e.target.value)}
+                  placeholder="Describe any symptoms, doubts or medications to discuss..."
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                />
+              </div>
+
+              {/* Urgency Level */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-800 block">
+                  3. Triage Urgency Level:
+                </label>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  {[
+                    { id: 'ROUTINE', label: '🟢 Routine Follow-up', desc: 'Non-urgent review' },
+                    { id: 'PRIORITY', label: '🟡 Moderate Concern', desc: 'Needs attention' },
+                    { id: 'URGENT', label: '🔴 Urgent Request', desc: 'Severe discomfort' },
+                  ].map((lvl) => (
+                    <button
+                      key={lvl.id}
+                      type="button"
+                      onClick={() => setUrgencyLevel(lvl.id as any)}
+                      className={`p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                        urgencyLevel === lvl.id
+                          ? 'bg-teal-50 border-teal-400 ring-2 ring-teal-500/70 font-bold'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <p className="font-bold text-[11px] text-slate-900">{lvl.label}</p>
+                      <p className="text-[9px] text-slate-400">{lvl.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Attach Past ABHA Reports Checkbox */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="attachReports"
+                  checked={attachPastReports}
+                  onChange={(e) => setAttachPastReports(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded text-teal-700 focus:ring-teal-600 border-slate-300 cursor-pointer"
+                />
+                <label htmlFor="attachReports" className="text-xs cursor-pointer">
+                  <span className="font-bold text-slate-800 block">
+                    Share Latest ABHA Diagnostic & Prescription Records
+                  </span>
+                  <span className="text-[11px] text-slate-500 block leading-relaxed">
+                    Automatically securely attaches recent HbA1c (7.4%), Fasting Glucose (148 mg/dL), and ECG reports for the doctor to review during the call.
+                  </span>
+                </label>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRequestModal(false)}
+                  className="text-xs"
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="bg-teal-700 hover:bg-teal-800 text-white font-black text-xs gap-1.5 px-5 h-9 shadow-xs cursor-pointer"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Register & Submit Consultation Request</span>
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================== */}
+      {/* STAGE: REQUEST CONFIRMED & QUEUE TOKEN VOUCHER */}
+      {/* ================================================== */}
+      {callStage === 'REQUEST_CONFIRMED' && confirmedToken && (
+        <Card className="border-teal-200 bg-white shadow-lg overflow-hidden max-w-2xl mx-auto animate-in fade-in duration-150">
+          <div className="bg-gradient-to-r from-teal-700 to-teal-800 p-5 text-white flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white shadow-2xs">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-teal-200 tracking-wider">
+                  Request Confirmed & Registered
+                </span>
+                <h3 className="text-base font-black">
+                  Consultation Token: {confirmedToken.tokenNumber}
+                </h3>
+              </div>
+            </div>
+
+            <span className="rounded-full bg-emerald-400 text-emerald-950 font-black text-[10px] px-2.5 py-0.5">
+              ● Registered
+            </span>
+          </div>
+
+          <CardContent className="p-6 space-y-5">
+            <div className="text-center space-y-1">
+              <h2 className="text-lg font-black text-slate-900">
+                Your Request has been Sent to {confirmedToken.doctor.name}
+              </h2>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                The doctor has been notified in their teleconsultation desk. You have registered to talk with the doctor at your selected time.
+              </p>
+            </div>
+
+            {/* Token Voucher Grid */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3 pb-3 border-b border-slate-200">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Doctor</span>
+                  <strong className="text-slate-900 font-black text-sm block">
+                    {confirmedToken.doctor.name}
+                  </strong>
+                  <span className="text-teal-800 text-[11px] font-semibold">
+                    {confirmedToken.doctor.specialty}
+                  </span>
+                  <p className="text-[10px] text-slate-400">{confirmedToken.doctor.hospital}</p>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Registered Time</span>
+                  <strong className="text-teal-900 font-black text-sm block">
+                    {confirmedToken.scheduledTimeSlot}
+                  </strong>
+                  <span className="text-slate-600 text-[11px]">{confirmedToken.scheduledDate}</span>
+                  <p className="text-[10px] text-emerald-700 font-bold">● Slot Reserved</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-[11px]">
+                <div>
+                  <span className="text-slate-500 block">Patient Name:</span>
+                  <strong className="text-slate-900 font-bold">{confirmedToken.patient.name}</strong>
+                  <p className="text-[10px] text-slate-400 font-mono">ABHA: {confirmedToken.patient.abhaId}</p>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-slate-500 block">Reason for Call:</span>
+                  <strong className="text-slate-900 font-bold">{confirmedToken.reason}</strong>
+                  <p className="text-[10px] text-teal-700 font-semibold">Urgency: {confirmedToken.urgency}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Instruction Notice */}
+            <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-3 text-xs text-teal-950 flex items-start gap-2">
+              <ShieldCheck className="h-4 w-4 text-teal-700 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-bold">What happens next?</strong>
+                <p className="text-[11px] text-teal-900 leading-relaxed mt-0.5">
+                  Keep your phone or browser ready. When the doctor accepts your request or rings at the scheduled time, you can enter the waiting room or click below to start immediately.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+              <Button
+                onClick={handleStartCallFromToken}
+                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-black text-xs gap-1.5 px-6 min-h-[42px] shadow-xs cursor-pointer"
+              >
+                <Video className="h-4 w-4" />
+                <span>Enter Live Waiting Room / Start Call Now</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setCallStage('SELECT_DOCTOR')}
+                className="w-full sm:w-auto text-xs font-bold text-slate-700 min-h-[42px]"
+              >
+                Book Another Doctor / Back to Home
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* ================================================== */}
