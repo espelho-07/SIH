@@ -20,6 +20,9 @@ import {
   ShieldCheck,
   CheckCircle2,
   Users,
+  Pill,
+  Sparkles,
+  Percent,
 } from 'lucide-react';
 import { useFamily } from '@/contexts/FamilyContext';
 import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
@@ -351,6 +354,50 @@ export const PatientDashboard: React.FC = () => {
 
         </Card>
 
+      </div>
+
+
+      {/* ================================================== */}
+      {/* NEARBY MEDICAL STORES & JAN AUSHADHI PROMO BANNER */}
+      {/* ================================================== */}
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50/70 to-emerald-100/60 p-5 shadow-xs">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm ring-4 ring-emerald-100">
+              <Pill className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                  <Sparkles className="h-3 w-3 text-amber-300" /> PMBJP Jan Aushadhi Priority
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+                  <Percent className="h-3 w-3 text-amber-700" /> Up to 80% Generic Savings
+                </span>
+              </div>
+              <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
+                Find Medicines & Nearby Pharmacies
+              </h3>
+              <p className="mt-0.5 text-xs text-slate-600 max-w-xl">
+                Check real-time stock at nearby Jan Aushadhi Kendras, reserve medicines for 1 hour, or contact local private medical stores directly.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <Link to="/patient/medical-stores" className="w-full sm:w-auto">
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full sm:w-auto gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs font-semibold text-xs h-9 px-4 cursor-pointer"
+              >
+                <Pill className="h-4 w-4" />
+                Find Medical Stores
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
 
 

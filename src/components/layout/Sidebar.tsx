@@ -84,6 +84,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-purple-600 bg-purple-50',
           },
           {
+            to: '/patient/medical-stores',
+            label: 'Medical Stores',
+            icon: Pill,
+            color: 'text-teal-600 bg-teal-50',
+          },
+          {
             to: '/patient/tokens',
             label: 'My Token',
             icon: Ticket,
