@@ -45,6 +45,7 @@ import { DoctorQueue } from '@/pages/doctor/DoctorQueue';
 import { PatientClinicalWorkspace } from '@/pages/doctor/PatientClinicalWorkspace';
 import { PatientHistoryPage } from '@/pages/doctor/PatientHistoryPage';
 import { ReferralCreationWizard } from '@/pages/doctor/ReferralCreationWizard';
+import { DoctorReferralHub } from '@/pages/doctor/DoctorReferralHub';
 import TeleconsultationRoomDoctor from '@/pages/doctor/TeleconsultationRoom';
 
 // Facility Staff Pages
@@ -499,7 +500,7 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['DOCTOR']}>
             <AppShell>
-              <ReferralCreationWizard />
+              <DoctorReferralHub />
             </AppShell>
           </ProtectedRoute>
         }

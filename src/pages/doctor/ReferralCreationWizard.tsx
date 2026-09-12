@@ -11,6 +11,7 @@ import { facilityApi } from '@/api/facilityApi';
 import { referralApi } from '@/api/referralApi';
 import { FacilityMatchResult } from '@/types/facility';
 import { ReferralPriority } from '@/types/referral';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   GitBranch,
   CheckCircle2,
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 export const ReferralCreationWizard: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -132,9 +134,19 @@ export const ReferralCreationWizard: React.FC = () => {
     if (!selectedFacility) return;
 
     try {
+      const patientState = (location.state as any)?.patient;
       const res = await referralApi.create({
-        patientId: 'usr_pat_01',
+        patientId: patientState?.patientId || patientState?.id || 'usr_pat_01',
+        patientName: patientState?.name || 'Govindbhai Prajapati',
+        patientAge: patientState?.age || 52,
+        patientGender: (patientState?.gender === 'Male' || patientState?.gender === 'M') ? 'M' : 'F',
+        patientPhone: patientState?.phone || '9825011122',
+        fromFacilityId: user?.facilityId || 'fac_mansa_02',
+        fromFacilityName: user?.facilityName || 'Mansa Community Health Centre (CHC)',
+        fromDoctorId: user?.id || 'usr_doc_01',
+        fromDoctorName: user?.name || 'Dr. Arvind Patel',
         toFacilityId: selectedFacility.facility.id,
+        toFacilityName: selectedFacility.facility.name,
         toSpecialty: specialty,
         reasonForReferral: reason,
         clinicalSummary: summary,
@@ -249,10 +261,20 @@ export const ReferralCreationWizard: React.FC = () => {
 
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Button
-                onClick={() => navigate((location.state as any)?.returnUrl || '/doctor/patients')}
+                onClick={() => navigate('/doctor/referrals')}
                 variant="primary"
                 size="lg"
                 className="bg-teal-700 hover:bg-teal-800 gap-2 font-semibold w-full sm:w-auto px-6 cursor-pointer"
+              >
+                <GitBranch className="h-4 w-4" />
+                Track In Outbound Hub
+              </Button>
+
+              <Button
+                onClick={() => navigate((location.state as any)?.returnUrl || '/doctor/patients')}
+                variant="outline"
+                size="lg"
+                className="border-slate-300 text-slate-700 hover:bg-slate-50 w-full sm:w-auto px-5 cursor-pointer"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Patient

@@ -593,18 +593,52 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
-  // 5. REFERRALS
+  // 5. REFERRALS & CLOSED-LOOP TRANSFER COORDINATION
   if ((cleanUrl === '/referrals' || cleanUrl === '/api/v1/referrals' || cleanUrl.endsWith('/referrals')) && method === 'GET') {
+    const queryString = url.includes('?') ? url.split('?')[1] : '';
+    const queryParams = new URLSearchParams(queryString);
+    const facilityId = queryParams.get('facilityId') || (data as any)?.facilityId;
+    const toFacilityId = queryParams.get('toFacilityId') || (data as any)?.toFacilityId;
+    const fromFacilityId = queryParams.get('fromFacilityId') || (data as any)?.fromFacilityId;
+    const fromDoctorId = queryParams.get('fromDoctorId') || (data as any)?.fromDoctorId;
+    const patientId = queryParams.get('patientId') || (data as any)?.patientId;
+    const status = queryParams.get('status') || (data as any)?.status;
+    const priority = queryParams.get('priority') || (data as any)?.priority;
+
+    const list = mockState.getReferrals({
+      facilityId: facilityId || undefined,
+      toFacilityId: toFacilityId || undefined,
+      fromFacilityId: fromFacilityId || undefined,
+      fromDoctorId: fromDoctorId || undefined,
+      patientId: patientId || undefined,
+      status: status || undefined,
+      priority: priority || undefined,
+    });
+
     return {
       success: true,
       message: 'Referrals retrieved',
-      data: mockState.referrals,
-      meta: { page: 1, limit: 10, total: mockState.referrals.length },
+      data: list,
+      meta: { page: 1, limit: 50, total: list.length },
     };
   }
 
   if ((cleanUrl === '/referrals' || cleanUrl === '/api/v1/referrals' || cleanUrl.endsWith('/referrals')) && method === 'POST') {
-    const created = mockState.createReferral(data as CreateReferralRequest);
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user') || localStorage.getItem('sanjeevani_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const reqData = data as CreateReferralRequest;
+    const created = mockState.createReferral(reqData, {
+      name: reqData.fromDoctorName || currentUser?.name || 'Dr. Neha Vaghela',
+      role: currentUser?.designation || 'Medical Officer',
+      facilityId: reqData.fromFacilityId || currentUser?.facilityId,
+      facilityName: reqData.fromFacilityName || currentUser?.facilityName,
+      doctorId: reqData.fromDoctorId || currentUser?.id,
+    });
+
     return {
       success: true,
       message: `Referral ${created.referralCode} dispatched successfully`,
@@ -612,21 +646,186 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
-  if (cleanUrl.includes('/referrals') && cleanUrl.includes('/accept')) {
-    const ref = mockState.referrals[0];
-    ref.status = 'ACCEPTED';
-    ref.events.push({
-      id: `ev_${Date.now()}`,
-      status: 'ACCEPTED',
-      timestamp: new Date().toISOString(),
-      actorName: 'Receiving Medical Specialist',
-      actorRole: 'SPECIALIST',
-      facilityName: ref.toFacilityName,
+  // Specific Action Routes (Check before generic ID match)
+  const reviewMatch = cleanUrl.match(/\/referrals\/([^/]+)\/review$/);
+  if (reviewMatch && method === 'POST') {
+    const id = reviewMatch[1];
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.reviewReferral(id, {
+      name: currentUser?.name || 'Vikram Joshi',
+      role: 'Facility Operations Lead',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
     });
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} is now under review`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const acceptMatch = cleanUrl.match(/\/referrals\/([^/]+)\/accept$/);
+  if (acceptMatch && method === 'POST') {
+    const id = acceptMatch[1];
+    const { appointmentSlot, appointmentId } = (data || {}) as { appointmentSlot?: string; appointmentId?: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.acceptReferral(id, appointmentSlot, appointmentId, {
+      name: currentUser?.name || 'Vikram Joshi (Operations Lead)',
+      role: 'Facility Operations Lead',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} accepted and scheduled`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const rejectMatch = cleanUrl.match(/\/referrals\/([^/]+)\/reject$/);
+  if (rejectMatch && method === 'POST') {
+    const id = rejectMatch[1];
+    const { reason } = (data || {}) as { reason: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.rejectReferral(id, reason || 'Specialist / Bed Capacity Unavailable', {
+      name: currentUser?.name || 'Vikram Joshi (Operations Lead)',
+      role: 'Facility Operations',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} diverted with recorded reason`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const clarReqMatch = cleanUrl.match(/\/referrals\/([^/]+)\/clarification-request$/);
+  if (clarReqMatch && method === 'POST') {
+    const id = clarReqMatch[1];
+    const { message } = (data || {}) as { message: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.requestClarification(id, message, {
+      name: currentUser?.name || 'Vikram Joshi (Operations Lead)',
+      role: 'Facility Operations',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: 'Clarification query dispatched to referring doctor', data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const clarResMatch = cleanUrl.match(/\/referrals\/([^/]+)\/clarification-response$/);
+  if (clarResMatch && method === 'POST') {
+    const id = clarResMatch[1];
+    const { message } = (data || {}) as { message: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.provideClarification(id, message, {
+      name: currentUser?.name || 'Dr. Neha Vaghela',
+      role: 'Referring Doctor',
+    });
+    if (updated) {
+      return { success: true, message: 'Clarification response submitted to receiving facility', data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const arrivalMatch = cleanUrl.match(/\/referrals\/([^/]+)\/confirm-arrival$/);
+  if (arrivalMatch && method === 'POST') {
+    const id = arrivalMatch[1];
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.confirmArrival(id, {
+      name: currentUser?.name || 'Casualty Desk',
+      role: 'Registration Clerk',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Arrival confirmed for referral ${updated.referralCode}`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const outcomeMatch = cleanUrl.match(/\/referrals\/([^/]+)\/outcome$/);
+  if (outcomeMatch && method === 'POST') {
+    const id = outcomeMatch[1];
+    const { outcomeNotes } = (data || {}) as { outcomeNotes: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.recordReferralOutcome(id, outcomeNotes || 'Consultation concluded.', {
+      name: currentUser?.name || 'Dr. Arvind Patel',
+      role: 'Attending Specialist',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Consultation outcome recorded for referral ${updated.referralCode}`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const closeMatch = cleanUrl.match(/\/referrals\/([^/]+)\/close$/);
+  if (closeMatch && method === 'POST') {
+    const id = closeMatch[1];
+    const updated = mockState.closeReferral(id);
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} closed`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  // Generic single referral match: GET /referrals/:id
+  const singleRefMatch = cleanUrl.match(/\/referrals\/([^/]+)$/);
+  if (singleRefMatch && method === 'GET') {
+    const id = singleRefMatch[1];
+    const ref = mockState.getReferralById(id);
+    if (ref) {
+      return {
+        success: true,
+        message: 'Referral details retrieved',
+        data: ref,
+      };
+    }
+    return {
+      success: false,
+      message: `Referral with ID ${id} not found`,
+      data: null as any,
+    };
+  }
+
+  // Notifications endpoint
+  if ((cleanUrl === '/notifications' || cleanUrl.endsWith('/notifications')) && method === 'GET') {
     return {
       success: true,
-      message: 'Referral accepted and priority slot booked',
-      data: ref,
+      message: 'Notifications retrieved',
+      data: mockState.notifications,
     };
   }
 

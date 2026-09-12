@@ -32,6 +32,8 @@ export interface Token {
   createdAt: string;
   calledAt?: string;
   completedAt?: string;
+  referralId?: string;
+  referralCode?: string;
 }
 
 export interface LiveQueueState {
@@ -66,6 +68,8 @@ export interface Appointment {
   createdAt: string;
   tokenNumber?: string;
   checkedInAt?: string;
+  referralId?: string;
+  referralCode?: string;
 }
 
 export interface RegisteredPatient {

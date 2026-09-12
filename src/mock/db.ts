@@ -34,6 +34,7 @@ import {
 import { Facility, FacilityMatchRequest, FacilityMatchResult } from '@/types/facility';
 import { Token, LiveQueueState, Appointment, RegisteredPatient } from '@/types/queue';
 import { Referral, CreateReferralRequest } from '@/types/referral';
+import { HealthNotification } from '@/types/notification';
 import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord, LabResultParameter } from '@/types/clinical';
 import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem, DispensingRecord } from '@/types/resources';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
@@ -78,6 +79,123 @@ class MockHealthcareState {
   auditLogs: AuditLog[] = JSON.parse(JSON.stringify(INITIAL_AUDIT_LOGS));
   patients: RegisteredPatient[] = JSON.parse(JSON.stringify(INITIAL_PATIENTS));
   appointments: Appointment[] = JSON.parse(JSON.stringify(INITIAL_APPOINTMENTS));
+  notifications: HealthNotification[] = [];
+
+  constructor() {
+    this.loadReferrals();
+    this.loadAppointments();
+    this.loadNotifications();
+  }
+
+  saveReferrals() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('healthconnect_referrals', JSON.stringify(this.referrals));
+      }
+    } catch (e) {
+      console.warn('Failed to save referrals to localStorage', e);
+    }
+  }
+
+  loadReferrals() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = localStorage.getItem('healthconnect_referrals');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const savedIds = new Set(parsed.map((r: Referral) => r.id));
+            const missing = INITIAL_REFERRALS.filter((r) => !savedIds.has(r.id));
+            this.referrals = [...parsed, ...missing];
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to rehydrate referrals', e);
+    }
+    this.referrals = JSON.parse(JSON.stringify(INITIAL_REFERRALS));
+  }
+
+  saveAppointments() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('healthconnect_appointments', JSON.stringify(this.appointments));
+      }
+    } catch (e) {
+      console.warn('Failed to save appointments', e);
+    }
+  }
+
+  loadAppointments() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = localStorage.getItem('healthconnect_appointments');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.appointments = parsed;
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to rehydrate appointments', e);
+    }
+    this.appointments = JSON.parse(JSON.stringify(INITIAL_APPOINTMENTS));
+  }
+
+  saveNotifications() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('healthconnect_notifications', JSON.stringify(this.notifications));
+      }
+    } catch (e) {
+      console.warn('Failed to save notifications', e);
+    }
+  }
+
+  loadNotifications() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = localStorage.getItem('healthconnect_notifications');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            this.notifications = parsed;
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to rehydrate notifications', e);
+    }
+    this.notifications = [
+      {
+        id: 'notif_seed_01',
+        recipientFacilityId: 'fac_civil_01',
+        title: 'Inbound Emergency Referral Dispatched',
+        message: 'REF-2026-0904 for Kailashben Rathod arriving from Mansa CHC. ICU hold requested.',
+        type: 'REFERRAL',
+        referralId: 'ref_2026_0904',
+        referralCode: 'REF-2026-0904',
+        read: false,
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+      },
+    ];
+  }
+
+  addNotification(notif: Omit<HealthNotification, 'id' | 'timestamp' | 'read'>) {
+    const newNotif: HealthNotification = {
+      ...notif,
+      id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      read: false,
+      timestamp: new Date().toISOString(),
+    };
+    this.notifications.unshift(newNotif);
+    this.saveNotifications();
+    return newNotif;
+  }
   facilityStatus: Record<string, { status: FacilityOperationalStatus; reason?: string; lastUpdated: string; updatedBy: string }> = {
     fac_civil_01: {
       status: 'OPEN',
@@ -233,7 +351,9 @@ class MockHealthcareState {
       'ROUTINE',
       apt.patientAge,
       apt.patientGender,
-      apt.patientId
+      apt.patientId,
+      apt.referralId,
+      apt.referralCode
     );
     token.doctorId = apt.doctorId;
     token.doctorName = apt.doctorName;
@@ -242,6 +362,40 @@ class MockHealthcareState {
     apt.status = 'CHECKED_IN';
     apt.tokenNumber = token.tokenNumber;
     apt.checkedInAt = new Date().toISOString();
+    this.saveAppointments();
+
+    // If linked to referral, transition referral to PATIENT_ARRIVED / CHECKED_IN
+    if (apt.referralId) {
+      const ref = this.getReferralById(apt.referralId);
+      if (ref) {
+        ref.status = 'PATIENT_ARRIVED';
+        ref.tokenId = token.id;
+        ref.tokenNumber = token.tokenNumber;
+        ref.updatedAt = new Date().toISOString();
+        ref.events.push({
+          id: `ev_${Date.now()}`,
+          status: 'PATIENT_ARRIVED',
+          timestamp: new Date().toISOString(),
+          actorName: 'OPD Reception',
+          actorRole: 'Registration Desk',
+          facilityName: apt.facilityName,
+          notes: `Patient arrived & checked in. Token ${token.tokenNumber} issued for ${apt.specialty}.`,
+        });
+        this.saveReferrals();
+
+        // Notify receiving doctor
+        this.addNotification({
+          recipientUserId: apt.doctorId,
+          recipientFacilityId: apt.facilityId,
+          recipientRole: 'DOCTOR',
+          title: `Referral Patient Arrived: ${ref.referralCode}`,
+          message: `${ref.patientName} checked in. Token ${token.tokenNumber} queued for ${apt.specialty}.`,
+          type: 'QUEUE',
+          referralId: ref.id,
+          referralCode: ref.referralCode,
+        });
+      }
+    }
 
     return { appointment: apt, token };
   }
@@ -264,9 +418,12 @@ class MockHealthcareState {
       status: 'CONFIRMED',
       type: data.type || 'IN_PERSON',
       reasonForVisit: data.reasonForVisit || 'General Consultation',
+      referralId: data.referralId,
+      referralCode: data.referralCode,
       createdAt: new Date().toISOString(),
     };
     this.appointments.unshift(newApt);
+    this.saveAppointments();
     return newApt;
   }
 
@@ -279,12 +436,14 @@ class MockHealthcareState {
     priority: 'ROUTINE' | 'URGENT' | 'EMERGENCY' = 'ROUTINE',
     patientAge: number = 45,
     patientGender: 'M' | 'F' | 'Other' = 'M',
-    patientId: string = 'usr_pat_01'
+    patientId: string = 'usr_pat_01',
+    referralId?: string,
+    referralCode?: string
   ): Token {
     const facility = this.facilities.find((f) => f.id === facilityId) || this.facilities[0];
     const dept = facility.departments.find((d) => d.id === departmentId) || facility.departments[0];
     const num = Math.floor(Math.random() * 50) + 40;
-    const tokenNumber = `A-0${num}`;
+    const tokenNumber = `${dept.code || 'A'}-0${num}`;
 
     const newToken: Token = {
       id: `tok_${Date.now()}`,
@@ -303,6 +462,8 @@ class MockHealthcareState {
       priority,
       positionInQueue: this.liveQueue.tokens.filter((t) => t.status === 'WAITING').length + 1,
       estimatedWaitMinutes: (this.liveQueue.tokens.filter((t) => t.status === 'WAITING').length + 1) * 6,
+      referralId,
+      referralCode,
       createdAt: new Date().toISOString(),
     };
 
@@ -400,21 +561,81 @@ class MockHealthcareState {
     }).sort((a, b) => b.suitabilityScore - a.suitabilityScore);
   }
 
-  createReferral(req: CreateReferralRequest): Referral {
+  getReferrals(filters?: {
+    facilityId?: string;
+    toFacilityId?: string;
+    fromFacilityId?: string;
+    fromDoctorId?: string;
+    patientId?: string;
+    status?: string;
+    priority?: string;
+  }): Referral[] {
+    let list = [...this.referrals];
+
+    if (filters?.toFacilityId) {
+      list = list.filter(
+        (r) =>
+          r.toFacilityId === filters.toFacilityId ||
+          (filters.toFacilityId === 'fac_civil_01' && r.toFacilityName.toLowerCase().includes('civil'))
+      );
+    } else if (filters?.facilityId) {
+      list = list.filter((r) => r.toFacilityId === filters.facilityId || r.fromFacilityId === filters.facilityId);
+    }
+
+    if (filters?.fromFacilityId) {
+      list = list.filter((r) => r.fromFacilityId === filters.fromFacilityId);
+    }
+
+    if (filters?.fromDoctorId) {
+      list = list.filter((r) => r.fromDoctorId === filters.fromDoctorId);
+    }
+
+    if (filters?.patientId) {
+      list = list.filter(
+        (r) => r.patientId === filters.patientId || (filters.patientId === 'usr_pat_01' && r.patientName.includes('Rameshwar'))
+      );
+    }
+
+    if (filters?.status && filters.status !== 'ALL') {
+      list = list.filter((r) => r.status === filters.status);
+    }
+
+    if (filters?.priority && filters.priority !== 'ALL') {
+      list = list.filter((r) => r.priority === filters.priority);
+    }
+
+    return list;
+  }
+
+  getReferralById(id: string): Referral | null {
+    return this.referrals.find((r) => r.id === id || r.referralCode === id) || null;
+  }
+
+  createReferral(
+    req: CreateReferralRequest,
+    actor?: { name?: string; role?: string; facilityId?: string; facilityName?: string; doctorId?: string }
+  ): Referral {
     const destFacility = this.facilities.find((f) => f.id === req.toFacilityId) || this.facilities[0];
+    const fromFacId = req.fromFacilityId || actor?.facilityId || 'fac_pet_04';
+    const fromFac = this.facilities.find((f) => f.id === fromFacId);
+    const fromFacName = req.fromFacilityName || fromFac?.name || actor?.facilityName || 'Pethapur Primary Health Centre';
+    const fromDocName = req.fromDoctorName || actor?.name || 'Dr. Neha Vaghela';
+    const fromDocId = req.fromDoctorId || actor?.doctorId || 'usr_doc_pet';
+
+    const refCode = `REF-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const newRef: Referral = {
       id: `ref_${Date.now()}`,
-      referralCode: `REF-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-      patientId: req.patientId,
-      patientName: 'Rameshwar Sharma',
-      patientAge: 48,
-      patientGender: 'Male',
-      patientPhone: '9876543210',
-      abhaId: '14-8921-3409-7721',
-      fromFacilityId: 'fac_pet_04',
-      fromFacilityName: 'Pethapur Primary Health Centre',
-      fromDoctorId: 'usr_doc_pet',
-      fromDoctorName: 'Dr. Neha Vaghela',
+      referralCode: refCode,
+      patientId: req.patientId || 'usr_pat_01',
+      patientName: req.patientName || 'Rameshwar Sharma',
+      patientAge: req.patientAge || 48,
+      patientGender: req.patientGender || 'Male',
+      patientPhone: req.patientPhone || '9876543210',
+      abhaId: req.abhaId || '14-8921-3409-7721',
+      fromFacilityId: fromFacId,
+      fromFacilityName: fromFacName,
+      fromDoctorId: fromDocId,
+      fromDoctorName: fromDocName,
       toFacilityId: destFacility.id,
       toFacilityName: destFacility.name,
       toSpecialty: req.toSpecialty,
@@ -431,10 +652,10 @@ class MockHealthcareState {
           id: `ev_${Date.now()}`,
           status: 'CREATED',
           timestamp: new Date().toISOString(),
-          actorName: 'Dr. Arvind Patel',
-          actorRole: 'Senior Medical Officer',
-          facilityName: 'Pethapur PHC',
-          notes: 'Referral generated with clinical suitability matching.',
+          actorName: fromDocName,
+          actorRole: actor?.role || 'Senior Medical Officer',
+          facilityName: fromFacName,
+          notes: `Referral created & dispatched to ${destFacility.name} for ${req.toSpecialty}.`,
         },
       ],
       createdAt: new Date().toISOString(),
@@ -442,7 +663,315 @@ class MockHealthcareState {
     };
 
     this.referrals.unshift(newRef);
+    this.saveReferrals();
+
+    // Broadcast real notification to receiving facility operations
+    this.addNotification({
+      recipientFacilityId: destFacility.id,
+      recipientRole: 'FACILITY_STAFF',
+      title: `New Inbound ${newRef.priority} Referral: ${refCode}`,
+      message: `Patient ${newRef.patientName} referred from ${fromFacName} for ${newRef.toSpecialty}. Needs operational intake review.`,
+      type: 'REFERRAL',
+      referralId: newRef.id,
+      referralCode: newRef.referralCode,
+    });
+
     return newRef;
+  }
+
+  reviewReferral(
+    id: string,
+    actor?: { name?: string; role?: string; facilityName?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    if (ref.status === 'CREATED' || ref.status === 'SENT' || ref.status === 'CLARIFICATION_RECEIVED') {
+      ref.status = 'UNDER_REVIEW';
+      ref.updatedAt = new Date().toISOString();
+      ref.events.push({
+        id: `ev_${Date.now()}`,
+        status: 'UNDER_REVIEW',
+        timestamp: new Date().toISOString(),
+        actorName: actor?.name || 'Vikram Joshi (Operations Lead)',
+        actorRole: actor?.role || 'Facility Operations',
+        facilityName: actor?.facilityName || ref.toFacilityName,
+        notes: 'Operational triage initiated. Validating specialty bed capacity and clinician duty schedule.',
+      });
+      this.saveReferrals();
+    }
+    return ref;
+  }
+
+  acceptReferral(
+    id: string,
+    appointmentSlot?: string,
+    appointmentId?: string,
+    actor?: { name?: string; role?: string; facilityName?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    ref.status = appointmentId ? 'APPOINTMENT_CONFIRMED' : 'ACCEPTED';
+    ref.updatedAt = new Date().toISOString();
+    if (appointmentSlot) ref.appointmentSlot = appointmentSlot;
+    if (appointmentId) ref.appointmentId = appointmentId;
+
+    ref.events.push({
+      id: `ev_${Date.now()}`,
+      status: ref.status,
+      timestamp: new Date().toISOString(),
+      actorName: actor?.name || 'Vikram Joshi (Operations Lead)',
+      actorRole: actor?.role || 'Facility Operations',
+      facilityName: actor?.facilityName || ref.toFacilityName,
+      notes: appointmentSlot
+        ? `Referral accepted & appointment confirmed: ${appointmentSlot}. Slot reserved in receiving hospital.`
+        : 'Referral operationally accepted. Care coordination in progress.',
+    });
+    this.saveReferrals();
+
+    // Notify referring doctor and patient
+    this.addNotification({
+      recipientUserId: ref.fromDoctorId,
+      recipientFacilityId: ref.fromFacilityId,
+      recipientRole: 'DOCTOR',
+      title: `Referral Accepted: ${ref.referralCode}`,
+      message: `${ref.toFacilityName} accepted referral for ${ref.patientName}. Scheduled: ${appointmentSlot || 'Consultation Queue'}.`,
+      type: 'REFERRAL',
+      referralId: ref.id,
+      referralCode: ref.referralCode,
+    });
+
+    this.addNotification({
+      recipientUserId: ref.patientId,
+      recipientRole: 'PATIENT',
+      title: `Referral Accepted: ${ref.referralCode}`,
+      message: `Your referral to ${ref.toFacilityName} is confirmed! Scheduled slot: ${appointmentSlot || 'Standard Queue'}.`,
+      type: 'REFERRAL',
+      referralId: ref.id,
+      referralCode: ref.referralCode,
+    });
+
+    return ref;
+  }
+
+  rejectReferral(
+    id: string,
+    reason: string,
+    actor?: { name?: string; role?: string; facilityName?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    ref.status = 'REJECTED';
+    ref.rejectionReason = reason;
+    ref.updatedAt = new Date().toISOString();
+
+    ref.events.push({
+      id: `ev_${Date.now()}`,
+      status: 'REJECTED',
+      timestamp: new Date().toISOString(),
+      actorName: actor?.name || 'Vikram Joshi (Operations Lead)',
+      actorRole: actor?.role || 'Facility Operations',
+      facilityName: actor?.facilityName || ref.toFacilityName,
+      notes: `Referral diverted: ${reason}`,
+    });
+    this.saveReferrals();
+
+    // Notify referring doctor
+    this.addNotification({
+      recipientUserId: ref.fromDoctorId,
+      recipientFacilityId: ref.fromFacilityId,
+      recipientRole: 'DOCTOR',
+      title: `Referral Diverted: ${ref.referralCode}`,
+      message: `${ref.toFacilityName} diverted transfer for ${ref.patientName}. Reason: ${reason}`,
+      type: 'REFERRAL',
+      referralId: ref.id,
+      referralCode: ref.referralCode,
+    });
+
+    return ref;
+  }
+
+  requestClarification(
+    id: string,
+    message: string,
+    actor?: { name?: string; role?: string; facilityName?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    ref.status = 'CLARIFICATION_REQUIRED';
+    ref.clarificationRequest = {
+      requestedBy: actor?.name || 'Vikram Joshi (Operations Lead)',
+      role: actor?.role || 'Facility Operations',
+      facilityName: actor?.facilityName || ref.toFacilityName,
+      requestedAt: new Date().toISOString(),
+      message,
+    };
+    ref.updatedAt = new Date().toISOString();
+
+    ref.events.push({
+      id: `ev_${Date.now()}`,
+      status: 'CLARIFICATION_REQUIRED',
+      timestamp: new Date().toISOString(),
+      actorName: actor?.name || 'Vikram Joshi (Operations Lead)',
+      actorRole: actor?.role || 'Facility Operations',
+      facilityName: actor?.facilityName || ref.toFacilityName,
+      notes: `Clarification requested: ${message}`,
+    });
+    this.saveReferrals();
+
+    // Notify referring doctor
+    this.addNotification({
+      recipientUserId: ref.fromDoctorId,
+      recipientFacilityId: ref.fromFacilityId,
+      recipientRole: 'DOCTOR',
+      title: `Clarification Requested: ${ref.referralCode}`,
+      message: `${ref.toFacilityName} requires additional clinical info for ${ref.patientName}: "${message}"`,
+      type: 'REFERRAL',
+      referralId: ref.id,
+      referralCode: ref.referralCode,
+    });
+
+    return ref;
+  }
+
+  provideClarification(
+    id: string,
+    message: string,
+    actor?: { name?: string; role?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    ref.status = 'CLARIFICATION_RECEIVED';
+    ref.clarificationResponse = {
+      respondedBy: actor?.name || 'Dr. Neha Vaghela',
+      role: actor?.role || 'Referring Doctor',
+      respondedAt: new Date().toISOString(),
+      message,
+    };
+    ref.updatedAt = new Date().toISOString();
+
+    ref.events.push({
+      id: `ev_${Date.now()}`,
+      status: 'CLARIFICATION_RECEIVED',
+      timestamp: new Date().toISOString(),
+      actorName: actor?.name || 'Dr. Neha Vaghela',
+      actorRole: actor?.role || 'Referring Doctor',
+      facilityName: ref.fromFacilityName,
+      notes: `Clarification supplied: ${message}`,
+    });
+    this.saveReferrals();
+
+    // Notify receiving facility operations
+    this.addNotification({
+      recipientFacilityId: ref.toFacilityId,
+      recipientRole: 'FACILITY_STAFF',
+      title: `Clarification Provided: ${ref.referralCode}`,
+      message: `Doctor responded for ${ref.patientName}: "${message}". Ready for intake review.`,
+      type: 'REFERRAL',
+      referralId: ref.id,
+      referralCode: ref.referralCode,
+    });
+
+    return ref;
+  }
+
+  confirmArrival(
+    id: string,
+    actor?: { name?: string; role?: string; facilityName?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    ref.status = 'PATIENT_ARRIVED';
+    ref.updatedAt = new Date().toISOString();
+
+    ref.events.push({
+      id: `ev_${Date.now()}`,
+      status: 'PATIENT_ARRIVED',
+      timestamp: new Date().toISOString(),
+      actorName: actor?.name || 'Casualty Desk',
+      actorRole: actor?.role || 'Registration Staff',
+      facilityName: actor?.facilityName || ref.toFacilityName,
+      notes: 'Patient physically arrived at receiving facility. Triage intake completed.',
+    });
+    this.saveReferrals();
+    return ref;
+  }
+
+  recordReferralOutcome(
+    id: string,
+    outcomeNotes: string,
+    actor?: { name?: string; role?: string; facilityName?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    ref.status = 'COMPLETED';
+    ref.clinicalOutcomeNotes = outcomeNotes;
+    ref.consultedDoctorName = actor?.name || 'Dr. Arvind Patel';
+    ref.consultedAt = new Date().toISOString();
+    ref.updatedAt = new Date().toISOString();
+
+    ref.events.push({
+      id: `ev_${Date.now()}`,
+      status: 'COMPLETED',
+      timestamp: new Date().toISOString(),
+      actorName: actor?.name || 'Dr. Arvind Patel',
+      actorRole: actor?.role || 'Attending Specialist',
+      facilityName: actor?.facilityName || ref.toFacilityName,
+      notes: `Specialist consultation concluded. Clinical outcome notes: "${outcomeNotes}". Closed-loop feedback transmitted to ${ref.fromFacilityName}.`,
+    });
+    this.saveReferrals();
+
+    // Notify referring doctor and patient
+    this.addNotification({
+      recipientUserId: ref.fromDoctorId,
+      recipientFacilityId: ref.fromFacilityId,
+      recipientRole: 'DOCTOR',
+      title: `Closed-Loop Referral Completed: ${ref.referralCode}`,
+      message: `${ref.consultedDoctorName} at ${ref.toFacilityName} completed consultation for ${ref.patientName}. Care outcome notes are now available.`,
+      type: 'REFERRAL',
+      referralId: ref.id,
+      referralCode: ref.referralCode,
+    });
+
+    this.addNotification({
+      recipientUserId: ref.patientId,
+      recipientRole: 'PATIENT',
+      title: `Referral Completed: ${ref.referralCode}`,
+      message: `Your specialist consultation at ${ref.toFacilityName} is complete. You can view your care plan and prescription.`,
+      type: 'REFERRAL',
+      referralId: ref.id,
+      referralCode: ref.referralCode,
+    });
+
+    return ref;
+  }
+
+  closeReferral(
+    id: string,
+    actor?: { name?: string; role?: string; facilityName?: string }
+  ): Referral | null {
+    const ref = this.getReferralById(id);
+    if (!ref) return null;
+
+    ref.status = 'CLOSED';
+    ref.updatedAt = new Date().toISOString();
+    ref.events.push({
+      id: `ev_${Date.now()}`,
+      status: 'CLOSED',
+      timestamp: new Date().toISOString(),
+      actorName: actor?.name || 'Care Continuity Coordinator',
+      actorRole: actor?.role || 'Operations Coordinator',
+      facilityName: actor?.facilityName || ref.toFacilityName,
+      notes: 'Referral case formally closed in district health record.',
+    });
+    this.saveReferrals();
+    return ref;
   }
 
   // Pharmacy & Resource mutations

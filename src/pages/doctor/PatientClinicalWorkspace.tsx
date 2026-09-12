@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
@@ -9,7 +9,10 @@ import {
   INITIAL_LIVE_QUEUE,
 } from '@/mock/mockData';
 import { formatDate } from '@/lib/formatters';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { referralApi } from '@/api/referralApi';
+import { Referral } from '@/types/referral';
 import {
   Stethoscope,
   GitBranch,
@@ -464,6 +467,39 @@ export const PatientClinicalWorkspace: React.FC = () => {
     tokenNumber: activeToken.tokenNumber,
   };
 
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const referralIdFromUrl = searchParams.get('referralId');
+  const [activeReferral, setActiveReferral] = useState<Referral | null>(null);
+
+  useEffect(() => {
+    const fetchPatientReferral = async () => {
+      try {
+        const res = await referralApi.getAll();
+        if (res.data) {
+          let found: Referral | undefined;
+          if (referralIdFromUrl) {
+            found = res.data.find((r) => r.id === referralIdFromUrl);
+          }
+          if (!found) {
+            found = res.data.find(
+              (r) =>
+                (r.patientId === patient.patientId ||
+                  r.patientName.toLowerCase() === patient.name.toLowerCase() ||
+                  r.patientPhone === patient.phone) &&
+                ['ACCEPTED', 'APPOINTMENT_CONFIRMED', 'CHECKED_IN', 'PATIENT_ARRIVED', 'IN_CONSULTATION', 'CONSULTED', 'OUTCOME_RECORDED'].includes(r.status)
+            );
+          }
+          if (found) {
+            setActiveReferral(found);
+          }
+        }
+      } catch (err) {
+        console.error('Error finding patient referral:', err);
+      }
+    };
+    fetchPatientReferral();
+  }, [patient.patientId, patient.name, patient.phone, referralIdFromUrl]);
 
   // State: On-Demand Clinical Copilot Drawer (Hidden by default, shown ONLY after clicking button)
   const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
@@ -647,15 +683,27 @@ export const PatientClinicalWorkspace: React.FC = () => {
         village: 'Pethapur Ward 2',
         address: 'Plot 14, Gayatri Society',
         prescribedDays: ashaPrescribedDays,
-        doctorName: 'Dr. Arvind Patel',
-        doctorSpecialty: 'MD (Internal Medicine & Cardiology)',
-        doctorFacility: 'Gandhinagar Civil Hospital',
+        doctorName: user?.name || 'Dr. Arvind Patel',
+        doctorSpecialty: user?.specialty || 'MD (Internal Medicine & Cardiology)',
+        doctorFacility: user?.facilityName || 'Gandhinagar Civil Hospital',
         doctorInstructions: adviceText,
         prescribedChecks: ['Blood Pressure', 'Medication Compliance'],
         priority: 'PRIORITY',
         purpose: `Doctor Prescribed: Follow-up for ${diagnosis || 'Angina Pectoris'}`,
       });
     }
+
+    // Closed-Loop Referral: Transmit specialist consultation outcome back to referring hospital/doctor
+    if (activeReferral) {
+      const outcomeNotes = `Specialist Diagnosis: ${diagnosis || 'Evaluated'}. Management: ${adviceText || 'Standard medical management'}. Prescriptions issued: ${meds.map((m) => m.name).join(', ')}. Diagnostics: ${selectedTests.join(', ') || 'No immediate imaging ordered'}.`;
+      referralApi.recordOutcome(
+        activeReferral.id,
+        outcomeNotes,
+        user?.name || 'Dr. Arvind Patel',
+        user?.specialty || 'MD (Internal Medicine & Cardiology)'
+      ).catch((err) => console.error('Failed to record referral outcome:', err));
+    }
+
     setIsCompleted(true);
     setShowRxModal(true);
   };
@@ -890,6 +938,54 @@ export const PatientClinicalWorkspace: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Active Inbound Referral Dossier Banner */}
+      {activeReferral && (
+        <div className="rounded-2xl border-2 border-teal-300 bg-gradient-to-r from-teal-50 via-teal-50/70 to-emerald-50/50 p-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-teal-700 text-white shadow-xs shrink-0 mt-0.5">
+                <GitBranch className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-teal-800 text-white px-2 py-0.5 rounded">
+                    Inbound Inter-Facility Transfer
+                  </span>
+                  <span className="font-mono text-xs font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-teal-200">
+                    {activeReferral.referralCode}
+                  </span>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+                    {activeReferral.priority} Priority
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-300">
+                    {activeReferral.status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-teal-950">
+                  Transferred from {activeReferral.fromFacilityName} • Ref by Dr. {activeReferral.fromDoctorName}
+                </h4>
+                <p className="text-xs text-slate-700 font-medium">
+                  <strong>Referral Reason:</strong> {activeReferral.reasonForReferral}
+                  {activeReferral.clinicalSummary && ` • Summary: ${activeReferral.clinicalSummary}`}
+                </p>
+                {activeReferral.appointmentSlot && (
+                  <p className="text-xs font-semibold text-teal-800">
+                    Assigned Bed / Ward Hold: {activeReferral.appointmentSlot}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2">
+              <span className="text-xs font-bold text-emerald-800 bg-emerald-100/80 px-3 py-1.5 rounded-xl border border-emerald-300 flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+                Continuity of Care Active
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Allergy Conflict Warning */}
       {allergyConflictMeds.length > 0 && (
