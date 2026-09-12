@@ -7,6 +7,7 @@ import { registrationApi } from '@/api/registrationApi';
 import { tokenApi } from '@/api/queueApi';
 import { RegisteredPatient, Token } from '@/types/queue';
 import { OpdTokenSlipModal } from './components/OpdTokenSlipModal';
+import { mockState } from '@/mock/db';
 import {
   Search,
   UserPlus,
@@ -19,6 +20,7 @@ import {
   Filter,
   CheckCircle2,
   Building2,
+  AlertCircle,
   X,
 } from 'lucide-react';
 
@@ -443,25 +445,74 @@ export const PatientSearchPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Specialty & Doctor</label>
-                <select
-                  value={aptDoctorName}
-                  onChange={(e) => {
-                    setAptDoctorName(e.target.value);
-                    if (e.target.value.includes('Arvind')) setAptSpecialty('Cardiology / General Medicine');
-                    else if (e.target.value.includes('Rajesh')) setAptSpecialty('Orthopedics');
-                    else if (e.target.value.includes('Bhavna')) setAptSpecialty('Gynecology & ANC');
-                    else if (e.target.value.includes('Sneha')) setAptSpecialty('Pediatrics');
-                  }}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 font-semibold"
-                >
-                  <option value="Dr. Arvind Patel">Dr. Arvind Patel (Cardiology / Medicine)</option>
-                  <option value="Dr. Rajesh Mehta">Dr. Rajesh Mehta (Orthopedics)</option>
-                  <option value="Dr. Bhavna Joshi">Dr. Bhavna Joshi (Gynecology & ANC)</option>
-                  <option value="Dr. Sneha Desai">Dr. Sneha Desai (Pediatrics)</option>
-                </select>
-              </div>
+              {(() => {
+                const activeDocLeave = mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(aptDoctorName) : { onLeave: false };
+                const isSelectedDocOnLeave = activeDocLeave.onLeave;
+
+                return (
+                  <>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700">Specialty & Doctor</label>
+                        {isSelectedDocOnLeave && (
+                          <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                            Doctor On Leave
+                          </span>
+                        )}
+                      </div>
+                      <select
+                        value={aptDoctorName}
+                        onChange={(e) => {
+                          const docName = e.target.value;
+                          setAptDoctorName(docName);
+                          const matchedDoc = mockState?.doctors?.find((d) => d.name === docName);
+                          if (matchedDoc) {
+                            setAptSpecialty(matchedDoc.specialty);
+                          }
+                        }}
+                        className={`w-full h-10 rounded-xl border px-3 text-xs font-semibold ${
+                          isSelectedDocOnLeave
+                            ? 'border-rose-300 bg-rose-50/50 text-rose-950'
+                            : 'border-slate-200 bg-white text-slate-900'
+                        }`}
+                      >
+                        {(mockState?.doctors || []).map((doc) => {
+                          const leaveCheck = mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(doc.id) : { onLeave: false };
+                          const onLeave = doc.status === 'ON_LEAVE' || leaveCheck.onLeave;
+                          return (
+                            <option
+                              key={doc.id}
+                              value={doc.name}
+                              className={onLeave ? 'text-rose-600 bg-rose-50 font-bold' : 'text-slate-900'}
+                            >
+                              {onLeave ? '🚫' : '👨‍⚕️'} {doc.name} ({doc.specialty}) {onLeave ? '— ON LEAVE (Unavailable)' : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {isSelectedDocOnLeave && (
+                      <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 flex items-start gap-2.5">
+                        <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold text-rose-950">Cannot Book Walk-in Appointment</p>
+                          <p className="text-[11px] text-rose-800 mt-0.5">
+                            {aptDoctorName} is currently on leave
+                            {activeDocLeave.leave?.reason ? `: "${activeDocLeave.leave.reason}"` : ''}
+                            {activeDocLeave.leave?.endDate ? ` (returning ${activeDocLeave.leave.endDate})` : ''}.
+                            {activeDocLeave.leave?.handoverDoctorName && (
+                              <span className="block font-semibold mt-0.5 text-rose-900">
+                                🤝 Recommended Colleague: {activeDocLeave.leave.handoverDoctorName}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">Time Slot (Today, March 14)</label>
@@ -499,7 +550,7 @@ export const PatientSearchPage: React.FC = () => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={bookingApt}
+                  disabled={bookingApt || (mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(aptDoctorName).onLeave : false)}
                   className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold gap-1.5"
                 >
                   {bookingApt ? 'Booking...' : 'Confirm Appointment'}

@@ -13,6 +13,7 @@ interface AuthContextType {
   verifyOtp: (credentials: VerifyOtpRequest) => Promise<void>;
   logout: () => Promise<void>;
   quickSwitchRole: (role: UserRole, staffSubType?: StaffSubType) => void;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -103,6 +104,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('healthconnect_token', `mock_jwt_${targetUser.role.toLowerCase()}`);
   };
 
+  const updateUser = (updates: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updates };
+      localStorage.setItem('healthconnect_user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -115,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         verifyOtp,
         logout,
         quickSwitchRole,
+        updateUser,
       }}
     >
       {children}

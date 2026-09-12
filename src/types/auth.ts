@@ -27,6 +27,17 @@ export interface User {
   gender?: 'M' | 'F' | 'Other';
   age?: number;
   permissions?: string[];
+  designation?: string;
+  qualification?: string;
+  specialty?: string;
+  licenseNumber?: string;
+  employeeId?: string;
+  bio?: string;
+  address?: string;
+  bloodGroup?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  preferredLanguage?: string;
 }
 
 export interface AuthTokens {

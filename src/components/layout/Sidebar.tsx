@@ -208,6 +208,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             icon: Video,
             color: 'text-cyan-600 bg-cyan-50',
           },
+          {
+            to: '/doctor/roster',
+            label: 'Roster & Leaves',
+            icon: CalendarCheck2,
+            color: 'text-emerald-600 bg-emerald-50',
+          },
+          {
+            to: '/profile',
+            label: 'Doctor Profile',
+            icon: UserCheck,
+            color: 'text-teal-600 bg-teal-50',
+          },
         ];
 
       // ==================================================

@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PriorityBadge } from '@/components/ui/Badge';
 import { INITIAL_LIVE_QUEUE } from '@/mock/mockData';
+import { mockState } from '@/mock/db';
 import { Link } from 'react-router-dom';
 import {
   Stethoscope,
@@ -14,10 +15,14 @@ import {
   Clock,
   ArrowRight,
   AlertCircle,
+  CalendarDays,
 } from 'lucide-react';
 
 export const DoctorDashboard: React.FC = () => {
   const { user } = useAuth();
+  const doctorKey = user?.id || 'usr_doc_01';
+  const leaveInfo = mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(doctorKey) : { onLeave: false };
+  const isOnLeave = leaveInfo.onLeave;
 
   const queue = INITIAL_LIVE_QUEUE;
 
@@ -27,6 +32,34 @@ export const DoctorDashboard: React.FC = () => {
 
   return (
     <div className="space-y-5">
+      {/* On Leave Alert Banner */}
+      {isOnLeave && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-950 shadow-sm animate-fadeIn">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-rose-200 text-rose-900 flex items-center justify-center shrink-0">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-sm text-rose-950">You Are Currently Scheduled On Leave</p>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-rose-200 text-rose-900">
+                  {leaveInfo.leave?.category || 'LEAVE'}
+                </span>
+              </div>
+              <p className="text-rose-800 text-xs mt-0.5 font-medium">
+                {leaveInfo.leave?.reason ? `"${leaveInfo.leave.reason}"` : 'Active roster leave period.'}
+                {leaveInfo.leave?.endDate ? ` (returning ${leaveInfo.leave.endDate})` : ''}.
+                District directories & registration counters show your status as "ON LEAVE (Not Available)".
+              </p>
+            </div>
+          </div>
+          <Link to="/doctor/roster">
+            <Button size="sm" className="bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shrink-0 cursor-pointer">
+              Manage Roster & Leaves
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Welcome Section */}
       <div className="rounded-2xl bg-gradient-to-r from-teal-900 to-slate-900 p-4 sm:p-5 text-white shadow-sm">
@@ -46,15 +79,27 @@ export const DoctorDashboard: React.FC = () => {
             </p>
           </div>
 
-          <Link to="/doctor/queue">
-            <Button
-              size="md"
-              className="bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-2 shadow-md w-full sm:w-auto"
-            >
-              <Ticket className="h-4 w-4" />
-              View Patient Queue
-            </Button>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/doctor/roster">
+              <Button
+                size="md"
+                variant="outline"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-semibold gap-2 w-full sm:w-auto cursor-pointer"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Month Planner
+              </Button>
+            </Link>
+            <Link to="/doctor/queue">
+              <Button
+                size="md"
+                className="bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-2 shadow-md w-full sm:w-auto cursor-pointer"
+              >
+                <Ticket className="h-4 w-4" />
+                View Patient Queue
+              </Button>
+            </Link>
+          </div>
 
         </div>
       </div>

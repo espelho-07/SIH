@@ -38,7 +38,7 @@ import { Vitals, Diagnosis, Prescription, DiagnosticOrder, PatientHealthRecord, 
 import { BedSummary, BloodInventory, Ambulance, MedicineInventoryItem, EquipmentItem, DispensingRecord } from '@/types/resources';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
 import { AiDemandIntelligenceSummary } from '@/types/ai';
-import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog, DistrictAdminProfile, DistrictDoctor, BloodCenter } from '@/types/admin';
+import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog, DistrictAdminProfile, DistrictDoctor, BloodCenter, DoctorLeave } from '@/types/admin';
 import { User } from '@/types/auth';
 import {
   OperationalService,
@@ -90,7 +90,59 @@ class MockHealthcareState {
   operationalAnnouncements: OperationalAnnouncement[] = JSON.parse(JSON.stringify(INITIAL_OPERATIONAL_ANNOUNCEMENTS));
   staffDuty: StaffDutyItem[] = JSON.parse(JSON.stringify(INITIAL_STAFF_DUTY));
   operationalIssues: OperationalIssue[] = JSON.parse(JSON.stringify(INITIAL_OPERATIONAL_ISSUES));
-  doctors: DistrictDoctor[] = JSON.parse(JSON.stringify(INITIAL_DISTRICT_DOCTORS));
+  doctors: DistrictDoctor[] = JSON.parse(JSON.stringify(INITIAL_DISTRICT_DOCTORS)).map((d: DistrictDoctor) => {
+    if (d.id === 'doc_02' || d.name.includes('Neha Vaghela')) {
+      return {
+        ...d,
+        status: 'ON_LEAVE',
+        currentLeave: {
+          id: 'leave_seed_01',
+          doctorId: d.id,
+          doctorName: d.name,
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          category: 'CONFERENCE',
+          reason: 'Attending National Obstetrics & Gynecology Federation Summit at AIIMS Delhi',
+          status: 'APPROVED',
+          handoverDoctorName: 'Dr. Arvind Patel',
+          emergencyContact: '+91 98765 12345',
+          notes: 'Emergency C-sections and high-risk ANC to be redirected to Civil Hospital Gandhinagar.',
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        } as DoctorLeave,
+      };
+    }
+    return d;
+  });
+  doctorLeaves: DoctorLeave[] = [
+    {
+      id: 'leave_seed_01',
+      doctorId: 'doc_02',
+      doctorName: 'Dr. Neha Vaghela',
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      category: 'CONFERENCE',
+      reason: 'Attending National Obstetrics & Gynecology Federation Summit at AIIMS Delhi',
+      status: 'APPROVED',
+      handoverDoctorName: 'Dr. Arvind Patel',
+      emergencyContact: '+91 98765 12345',
+      notes: 'Emergency C-sections and high-risk ANC to be redirected to Civil Hospital Gandhinagar.',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: 'leave_seed_02',
+      doctorId: 'doc_01',
+      doctorName: 'Dr. Arvind Patel',
+      startDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      category: 'CASUAL',
+      reason: 'Annual personal leave and family religious commitment',
+      status: 'APPROVED',
+      handoverDoctorName: 'Dr. Meena Parmar',
+      emergencyContact: '+91 98765 05678',
+      notes: 'Outpatient clinic coverage assigned to Dr. Meena Parmar during morning hours.',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
   bloodCenters: BloodCenter[] = JSON.parse(JSON.stringify(INITIAL_BLOOD_CENTRES));
   districtAdmins: DistrictAdminProfile[] = JSON.parse(JSON.stringify(INITIAL_DISTRICT_ADMINS));
 
@@ -923,6 +975,161 @@ class MockHealthcareState {
       doc.status = status;
     }
     return doc || null;
+  }
+
+  updateDoctor(doctorId: string, updates: Partial<DistrictDoctor>): DistrictDoctor | null {
+    const doc = this.doctors.find((d) => d.id === doctorId || d.name.toLowerCase() === doctorId.toLowerCase());
+    if (doc) {
+      Object.assign(doc, updates);
+      // Also sync user record in this.users if matching
+      const userEntry = Object.values(this.users).find((u) => u.name === doc.name || u.phone === doc.phone);
+      if (userEntry) {
+        if (updates.name) userEntry.name = updates.name;
+        if (updates.phone) userEntry.phone = updates.phone;
+        if (updates.email) userEntry.email = updates.email;
+        if (updates.qualification) userEntry.qualification = updates.qualification;
+        if (updates.specialty) userEntry.specialty = updates.specialty;
+        if (updates.avatar) userEntry.avatar = updates.avatar;
+      }
+    }
+    return doc || null;
+  }
+
+  getDoctorLeaves(doctorIdOrName: string): DoctorLeave[] {
+    const term = (doctorIdOrName || '').trim().toLowerCase();
+    return this.doctorLeaves.filter(
+      (l) => l.doctorId.toLowerCase() === term ||
+             l.doctorName.toLowerCase().includes(term) ||
+             term.includes(l.doctorName.toLowerCase()) ||
+             (term === 'usr_doc_01' && (l.doctorId === 'doc_01' || l.doctorName.includes('Arvind Patel')))
+    );
+  }
+
+  isDoctorOnLeave(doctorIdOrName: string, dateStr?: string): { onLeave: boolean; leave?: DoctorLeave } {
+    const targetDate = dateStr || new Date().toISOString().split('T')[0];
+    const leaves = this.getDoctorLeaves(doctorIdOrName);
+    const activeLeave = leaves.find((l) => {
+      if (l.status === 'CANCELLED') return false;
+      return targetDate >= l.startDate && targetDate <= l.endDate;
+    });
+
+    if (activeLeave) {
+      return { onLeave: true, leave: activeLeave };
+    }
+
+    // Also verify if the doctor's status is directly ON_LEAVE
+    const term = (doctorIdOrName || '').trim().toLowerCase();
+    const doc = this.doctors.find(
+      (d) => d.id.toLowerCase() === term ||
+             d.name.toLowerCase().includes(term) ||
+             term.includes(d.name.toLowerCase()) ||
+             (term === 'usr_doc_01' && d.id === 'doc_01')
+    );
+
+    if (doc && doc.status === 'ON_LEAVE') {
+      return { onLeave: true, leave: doc.currentLeave };
+    }
+
+    return { onLeave: false };
+  }
+
+  addDoctorLeave(leaveData: Omit<DoctorLeave, 'id' | 'createdAt'>, actor: string = 'Doctor'): DoctorLeave {
+    const newLeave: DoctorLeave = {
+      ...leaveData,
+      id: `leave_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      status: leaveData.status || 'APPROVED',
+      createdAt: new Date().toISOString(),
+    };
+
+    this.doctorLeaves.unshift(newLeave);
+
+    // Find doctor and update status if leave is effective today
+    const today = new Date().toISOString().split('T')[0];
+    const isEffectiveNow = today >= newLeave.startDate && today <= newLeave.endDate;
+
+    const term = newLeave.doctorId.toLowerCase();
+    const doc = this.doctors.find(
+      (d) => d.id.toLowerCase() === term ||
+             d.name.toLowerCase().includes(newLeave.doctorName.toLowerCase()) ||
+             newLeave.doctorName.toLowerCase().includes(d.name.toLowerCase())
+    );
+
+    if (doc) {
+      if (isEffectiveNow) {
+        doc.status = 'ON_LEAVE';
+        doc.currentLeave = newLeave;
+      }
+    }
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: doc ? doc.id : 'usr_doctor',
+      actorName: actor || newLeave.doctorName,
+      actorRole: 'DOCTOR',
+      action: 'DOCTOR_LEAVE_FILED',
+      resourceType: 'DOCTOR_ROSTER',
+      resourceId: newLeave.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect Medical Officer Roster Portal',
+      status: 'SUCCESS',
+      details: `${newLeave.doctorName} planned leave from ${newLeave.startDate} to ${newLeave.endDate} [Reason: ${newLeave.reason}]`,
+    });
+
+    return newLeave;
+  }
+
+  cancelDoctorLeave(leaveId: string, actor: string = 'Doctor'): boolean {
+    const leave = this.doctorLeaves.find((l) => l.id === leaveId);
+    if (!leave) return false;
+
+    leave.status = 'CANCELLED';
+
+    // Find doctor and restore status
+    const term = leave.doctorId.toLowerCase();
+    const doc = this.doctors.find(
+      (d) => d.id.toLowerCase() === term ||
+             d.name.toLowerCase().includes(leave.doctorName.toLowerCase()) ||
+             leave.doctorName.toLowerCase().includes(d.name.toLowerCase())
+    );
+
+    if (doc) {
+      // Check if there is another active leave today
+      const today = new Date().toISOString().split('T')[0];
+      const otherActive = this.doctorLeaves.find(
+        (l) => l.id !== leaveId &&
+               (l.doctorId === doc.id || l.doctorName === doc.name) &&
+               l.status === 'APPROVED' &&
+               today >= l.startDate && today <= l.endDate
+      );
+
+      if (otherActive) {
+        doc.status = 'ON_LEAVE';
+        doc.currentLeave = otherActive;
+      } else {
+        doc.status = 'ON_DUTY';
+        doc.currentLeave = undefined;
+      }
+    }
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: doc ? doc.id : 'usr_doctor',
+      actorName: actor || leave.doctorName,
+      actorRole: 'DOCTOR',
+      action: 'DOCTOR_LEAVE_CANCELLED',
+      resourceType: 'DOCTOR_ROSTER',
+      resourceId: leave.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect Medical Officer Roster Portal',
+      status: 'SUCCESS',
+      details: `Leave cancelled for ${leave.doctorName} (${leave.startDate} to ${leave.endDate})`,
+    });
+
+    return true;
   }
 
   addBloodCenter(data: Partial<BloodCenter>, actor: string = 'District Health Admin'): BloodCenter {

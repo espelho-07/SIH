@@ -111,6 +111,7 @@ import { RolesPermissionsPage } from '@/pages/super-admin/RolesPermissionsPage';
 import { AiModelRegistryPage } from '@/pages/super-admin/AiModelRegistryPage';
 import { AuditLogsPage } from '@/pages/super-admin/AuditLogsPage';
 import { SuperAdminSettingsPage } from '@/pages/super-admin/SuperAdminSettingsPage';
+import { UserProfilePage } from '@/pages/profile/UserProfilePage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -120,6 +121,30 @@ export const AppRoutes: React.FC = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/patient/login" element={<Login />} />
       <Route path="/403" element={<Unauthorized />} />
+
+      {/* Universal Profile Route for all authenticated roles */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT', 'ASHA', 'DOCTOR', 'FACILITY_STAFF', 'DISTRICT_ADMIN', 'SUPER_ADMIN']}>
+            <AppShell>
+              <UserProfilePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Doctor Roster & Monthly Planner Route */}
+      <Route
+        path="/doctor/roster"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <UserProfilePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
 
       {/* 1. PATIENT / CITIZEN ROUTES */}
       <Route

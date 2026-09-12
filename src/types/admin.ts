@@ -71,6 +71,21 @@ export interface DistrictAdminProfile {
   privileges: string[];
 }
 
+export interface DoctorLeave {
+  id: string;
+  doctorId: string;
+  doctorName: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  reason: string; // e.g. "Attending National Cardiology Summit"
+  category: 'CASUAL' | 'SICK' | 'CONFERENCE' | 'DUTY_OFF' | 'EMERGENCY';
+  status: 'APPROVED' | 'PENDING' | 'CANCELLED';
+  handoverDoctorName?: string;
+  emergencyContact?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface DistrictDoctor {
   id: string;
   name: string;
@@ -78,7 +93,7 @@ export interface DistrictDoctor {
   specialty: string;
   facilityId: string;
   facilityName: string;
-  status: 'ON_DUTY' | 'IN_OPD' | 'IN_SURGERY' | 'OFF_DUTY';
+  status: 'ON_DUTY' | 'IN_OPD' | 'IN_SURGERY' | 'OFF_DUTY' | 'ON_LEAVE';
   phone: string;
   email: string;
   opdSchedule: string;
@@ -87,6 +102,9 @@ export interface DistrictDoctor {
   avatar?: string;
   district: string;
   joinedDate?: string;
+  registrationNumber?: string;
+  opdRoom?: string;
+  currentLeave?: DoctorLeave;
 }
 
 export interface BloodCenter {

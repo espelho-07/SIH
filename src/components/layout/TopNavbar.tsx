@@ -281,19 +281,23 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
 
           {/* User Profile & Logout */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white font-bold text-xs uppercase shadow-2xs">
+            <Link
+              to="/profile"
+              className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition-colors group cursor-pointer"
+              title="Manage Profile & Settings"
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-white font-bold text-xs uppercase shadow-2xs group-hover:bg-teal-700 transition-colors">
                 {user?.name ? user.name.slice(0, 2) : 'HC'}
               </div>
               <div className="hidden lg:block text-left min-w-0">
-                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]" title={user?.name}>
+                <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px] group-hover:text-teal-900" title={user?.name}>
                   {user?.name || 'Authorized User'}
                 </p>
                 <span className="text-[10px] font-semibold text-teal-800 bg-teal-50 px-1 py-0.5 rounded border border-teal-200/60 uppercase leading-none inline-block mt-0.5">
                   {role === 'FACILITY_STAFF' && staffSubType ? staffSubType.replace('_', ' ') : role?.replace('_', ' ')}
                 </span>
               </div>
-            </div>
+            </Link>
 
             <button
               type="button"

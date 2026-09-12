@@ -123,19 +123,39 @@ export const DistrictDoctorsPage: React.FC = () => {
       doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.facilityName.toLowerCase().includes(searchTerm.toLowerCase());
 
+    const leaveCheck = mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(doc.id) : { onLeave: false };
+    const effectiveStatus = leaveCheck.onLeave ? 'ON_LEAVE' : doc.status;
+
     const matchesSpecialty = specialtyFilter === 'ALL' || doc.specialty === specialtyFilter;
-    const matchesStatus = statusFilter === 'ALL' || doc.status === statusFilter;
+    const matchesStatus = statusFilter === 'ALL' || effectiveStatus === statusFilter;
 
     return matchesSearch && matchesSpecialty && matchesStatus;
   });
 
   const totalDoctors = doctorsList.length;
-  const onDutyCount = doctorsList.filter((d) => d.status === 'ON_DUTY' || d.status === 'IN_OPD').length;
+  const leaveCount = doctorsList.filter(
+    (d) => d.status === 'ON_LEAVE' || (mockState?.isDoctorOnLeave && mockState.isDoctorOnLeave(d.id).onLeave)
+  ).length;
+  const onDutyCount = doctorsList.filter(
+    (d) =>
+      (d.status === 'ON_DUTY' || d.status === 'IN_OPD') &&
+      !(mockState?.isDoctorOnLeave && mockState.isDoctorOnLeave(d.id).onLeave)
+  ).length;
   const teleconsultCount = doctorsList.filter((d) => d.teleconsultEnabled).length;
   const totalPatientsToday = doctorsList.reduce((acc, d) => acc + d.patientsToday, 0);
 
-  const getStatusBadge = (status: DistrictDoctor['status']) => {
-    switch (status) {
+  const getStatusBadge = (doc: DistrictDoctor) => {
+    const leaveCheck = mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(doc.id) : { onLeave: false };
+    const effectiveStatus = leaveCheck.onLeave ? 'ON_LEAVE' : doc.status;
+
+    switch (effectiveStatus) {
+      case 'ON_LEAVE':
+        return (
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-600 animate-pulse" />
+            ON LEAVE (Not Available)
+          </span>
+        );
       case 'IN_OPD':
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">In OPD Consultation</span>;
       case 'ON_DUTY':
@@ -143,6 +163,7 @@ export const DistrictDoctorsPage: React.FC = () => {
       case 'IN_SURGERY':
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">In Surgery (OT)</span>;
       case 'OFF_DUTY':
+      default:
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Off Duty</span>;
     }
   };
@@ -184,8 +205,8 @@ export const DistrictDoctorsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 3 Decision-Driving KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 4 Decision-Driving KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 bg-white border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Registered Doctors</span>
@@ -206,6 +227,17 @@ export const DistrictDoctorsPage: React.FC = () => {
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">{onDutyCount}</p>
           <span className="text-[11px] text-emerald-700 font-medium">Currently consulting in OPD & wards</span>
+        </Card>
+
+        <Card className="p-4 bg-white border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Doctors on Leave</span>
+            <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
+              <AlertCircle className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-rose-900 mt-2">{leaveCount}</p>
+          <span className="text-[11px] text-rose-700 font-medium">Out of office / Roster planned</span>
         </Card>
 
         <Card className="p-4 bg-white border-slate-200 shadow-xs">
@@ -233,13 +265,40 @@ export const DistrictDoctorsPage: React.FC = () => {
           />
         </div>
 
+        {/* Status Filter Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+          <span className="text-[11px] font-bold text-slate-500 mr-1">Status:</span>
+          {[
+            { key: 'ALL', label: 'All Statuses' },
+            { key: 'ON_DUTY', label: 'On Duty' },
+            { key: 'IN_OPD', label: 'In OPD' },
+            { key: 'ON_LEAVE', label: 'On Leave (Unavailable)' },
+            { key: 'OFF_DUTY', label: 'Off Duty' },
+          ].map((st) => (
+            <button
+              key={st.key}
+              onClick={() => setStatusFilter(st.key)}
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                statusFilter === st.key
+                  ? st.key === 'ON_LEAVE'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+              }`}
+            >
+              {st.label}
+            </button>
+          ))}
+        </div>
+
         {/* Specialty Filter Pills */}
-        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-100">
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
+          <span className="text-[11px] font-bold text-slate-500 mr-1">Specialty:</span>
           {specialties.map((spec) => (
             <button
               key={spec}
               onClick={() => setSpecialtyFilter(spec)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 specialtyFilter === spec
                   ? 'bg-teal-700 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
@@ -286,25 +345,62 @@ export const DistrictDoctorsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {getStatusBadge(doc.status)}
+                  {getStatusBadge(doc)}
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1.5 text-xs">
-                  <div className="flex items-center gap-2 text-slate-700">
-                    <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <span className="font-semibold">{doc.facilityName}</span>
-                  </div>
+                {(() => {
+                  const leaveCheck = mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(doc.id) : { onLeave: false };
+                  const isLeave = doc.status === 'ON_LEAVE' || leaveCheck.onLeave;
+                  const activeLeave = doc.currentLeave || leaveCheck.leave;
 
-                  <div className="flex items-center justify-between text-slate-500 pt-1">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      {doc.opdSchedule}
-                    </span>
-                    <span className="font-bold text-slate-900">
-                      {doc.patientsToday} patients seen
-                    </span>
-                  </div>
-                </div>
+                  if (isLeave && activeLeave) {
+                    return (
+                      <div className="p-3 bg-rose-50/90 rounded-xl border border-rose-200 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between text-rose-900 font-bold">
+                          <span className="flex items-center gap-1.5">
+                            <span className="h-2 w-2 rounded-full bg-rose-600 animate-pulse" />
+                            ON LEAVE • {activeLeave.category}
+                          </span>
+                          <span className="text-[10px] bg-rose-200/80 text-rose-950 px-2 py-0.5 rounded font-mono font-bold">
+                            {activeLeave.startDate} to {activeLeave.endDate}
+                          </span>
+                        </div>
+                        <p className="text-rose-800 text-[11px] font-semibold leading-tight">
+                          "{activeLeave.reason}"
+                        </p>
+                        <div className="flex items-center justify-between text-[10px] text-rose-700 pt-0.5 border-t border-rose-200/60">
+                          <span>
+                            {activeLeave.handoverDoctorName ? (
+                              <>Covering OPD: <strong>{activeLeave.handoverDoctorName}</strong></>
+                            ) : (
+                              <>{doc.facilityName}</>
+                            )}
+                          </span>
+                          <span className="font-bold text-rose-900">NOT ACCEPTING APPOINTMENTS</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1.5 text-xs">
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="font-semibold">{doc.facilityName}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-slate-500 pt-1">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 text-slate-400" />
+                          {doc.opdSchedule}
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {doc.patientsToday} patients seen
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="pt-3 mt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
@@ -331,6 +427,7 @@ export const DistrictDoctorsPage: React.FC = () => {
                     <option value="ON_DUTY">On Duty</option>
                     <option value="IN_OPD">In OPD</option>
                     <option value="IN_SURGERY">In Surgery</option>
+                    <option value="ON_LEAVE">On Leave</option>
                     <option value="OFF_DUTY">Off Duty</option>
                   </select>
                 </div>
