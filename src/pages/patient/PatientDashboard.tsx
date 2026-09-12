@@ -51,7 +51,7 @@ export const PatientDashboard: React.FC = () => {
 
   // Voice & Facility Assistant Modal State
   const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
-  const [activeModalTab, setActiveModalTab] = useState<'ASSISTANT' | 'STORES'>('ASSISTANT');
+  const [activeModalTab, setActiveModalTab] = useState<'ASSISTANT' | 'STORES' | 'TRIAGE'>('ASSISTANT');
 
   return (
     <div className="space-y-7 font-sans">
@@ -417,6 +417,19 @@ export const PatientDashboard: React.FC = () => {
               <Mic className="h-4 w-4 text-emerald-100 animate-pulse" />
               <span>🎙️ Ask Assistant (બોલો)</span>
               <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+
+            <Button
+              onClick={() => {
+                setActiveModalTab('TRIAGE');
+                setIsFacilityModalOpen(true);
+              }}
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto gap-1.5 bg-white/15 hover:bg-white/25 text-white border-white/30 font-bold text-xs h-10 px-3.5 rounded-xl cursor-pointer"
+            >
+              <span>🩺</span>
+              <span>Check Symptoms</span>
             </Button>
 
             <Button

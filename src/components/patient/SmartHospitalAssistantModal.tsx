@@ -20,11 +20,13 @@ import {
   MapPin,
   RotateCcw,
   Search,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
 import { INITIAL_MEDICAL_STORES } from '@/mock/medicalStoresData';
 import { Facility } from '@/types';
+import { DigitalTriageFlow } from '@/components/patient/DigitalTriageFlow';
 
 // Web Speech API Types
 interface SpeechRecognitionEvent {
@@ -176,7 +178,7 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  defaultTab?: 'ASSISTANT' | 'STORES';
+  defaultTab?: 'ASSISTANT' | 'STORES' | 'TRIAGE';
 }
 
 export const SmartHospitalAssistantModal: React.FC<Props> = ({
@@ -184,7 +186,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
   onClose,
   defaultTab = 'ASSISTANT',
 }) => {
-  const [activeTab, setActiveTab] = useState<'ASSISTANT' | 'STORES'>(defaultTab);
+  const [activeTab, setActiveTab] = useState<'ASSISTANT' | 'STORES' | 'TRIAGE'>(defaultTab);
   const [selectedSymptom, setSelectedSymptom] = useState<SymptomType>('FRACTURE');
   const [isListening, setIsListening] = useState(false);
   const [isVoiceMuted, setIsVoiceMuted] = useState(false);
@@ -386,33 +388,46 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
         </div>
 
         {/* ================================================== */}
-        {/* CLEAN 2 TABS SWITCHER */}
+        {/* 3 TABS SWITCHER */}
         {/* ================================================== */}
-        <div className="border-b border-slate-200 bg-slate-50/90 px-4 sm:px-6 pt-2.5 flex items-center gap-2">
+        <div className="border-b border-slate-200 bg-slate-50/90 px-4 sm:px-6 pt-2.5 flex items-center gap-1 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab('ASSISTANT')}
-            className={`flex items-center gap-2 pb-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer ${
+            className={`flex items-center gap-2 pb-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'ASSISTANT'
                 ? 'border-teal-700 text-teal-800'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <Mic className="h-4 w-4 text-teal-700" />
-            <span>🎙️ Hospital Assistant (Voice)</span>
+            <span>🎙️ Hospital Assistant</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('TRIAGE')}
+            className={`flex items-center gap-2 pb-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'TRIAGE'
+                ? 'border-teal-700 text-teal-800'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <ClipboardList className="h-4 w-4 text-teal-600" />
+            <span>🩺 Check Symptoms</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('STORES')}
-            className={`flex items-center gap-2 pb-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer ${
+            className={`flex items-center gap-2 pb-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'STORES'
                 ? 'border-teal-700 text-teal-800'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <Pill className="h-4 w-4 text-emerald-700" />
-            <span>💊 Open Pharmacies & Jan Aushadhi ({filteredStores.length})</span>
+            <span>💊 Jan Aushadhi & Pharmacies ({filteredStores.length})</span>
           </button>
         </div>
 
@@ -420,7 +435,14 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
         {/* MODAL BODY */}
         {/* ================================================== */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50">
-          {activeTab === 'ASSISTANT' ? (
+          {activeTab === 'TRIAGE' ? (
+            /* ================================================== */
+            /* DIGITAL TRIAGE FLOW */
+            /* ================================================== */
+            <div className="max-w-lg mx-auto">
+              <DigitalTriageFlow onClose={onClose} />
+            </div>
+          ) : activeTab === 'ASSISTANT' ? (
             /* ================================================== */
             /* 2-SIDED FOCUSED LAYOUT: ASSISTANT ON LEFT, HOSPITAL ON RIGHT */
             /* ================================================== */
