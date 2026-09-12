@@ -613,6 +613,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
+        {/* Laptop Workspace Header Pill */}
+        <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-[11px] font-semibold text-slate-700 truncate">
+              {role === 'PATIENT'
+                ? 'Citizen Portal • ABHA'
+                : role === 'DOCTOR'
+                ? 'Clinical OPD Desk'
+                : role === 'ASHA'
+                ? 'Frontline Health Bar'
+                : role === 'DISTRICT_ADMIN'
+                ? 'District Command HQ'
+                : role === 'SUPER_ADMIN'
+                ? 'Super Admin Grid'
+                : staffSubType === 'REGISTRATION_CLERK'
+                ? 'Front Desk & Tokens'
+                : staffSubType === 'PHARMACIST'
+                ? 'Pharmacy Station'
+                : staffSubType === 'LAB_TECHNICIAN'
+                ? 'Pathology Hub'
+                : staffSubType === 'FACILITY_OPERATIONS'
+                ? 'Operations Center'
+                : 'Facility Staff Console'}
+            </span>
+          </div>
+          <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/60">
+            Live
+          </span>
+        </div>
+
         {/* Mobile Patient Profile Switcher in Sidebar Drawer */}
         {role === 'PATIENT' && (
           <div className="md:hidden px-3 pt-3 pb-2 border-b border-slate-100 bg-slate-50/50">
@@ -647,7 +678,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* ---------------------------------------------
             NAVIGATION
         --------------------------------------------- */}
-        <div className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
           {!navItems[0]?.section && (
             <div className="mb-2 px-2.5">
               <div className="flex items-center gap-2">
@@ -686,7 +717,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       cn(
                         'group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-150',
                         isActive
-                          ? 'bg-sky-50 text-sky-950 font-semibold border border-sky-200/80 shadow-2xs'
+                          ? 'bg-gradient-to-r from-sky-50 via-sky-50/80 to-blue-50/40 text-sky-950 font-semibold border border-sky-200/80 shadow-2xs'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       )
                     }
@@ -728,6 +759,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
           })}
           </nav>
+        </div>
+
+        {/* Laptop Sidebar Bottom Help & Helpline Card */}
+        <div className="hidden md:block p-3 border-t border-slate-100 bg-slate-50/40">
+          {role === 'PATIENT' ? (
+            <div className="rounded-xl border border-sky-200/70 bg-gradient-to-br from-sky-50/70 to-blue-50/40 p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-sky-900">
+                  24x7 Emergency Care
+                </span>
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+              </div>
+              <p className="mt-1 text-[11px] text-slate-600">
+                Call <strong className="text-slate-900">108</strong> for Ambulance or <strong className="text-slate-900">104</strong> for Medical Advice
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-200 bg-white p-2.5 flex items-center justify-between text-[11px]">
+              <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span>Sync Active</span>
+              </div>
+              <span className="text-slate-400 font-mono text-[10px]">v2.4.0</span>
+            </div>
+          )}
         </div>
       </aside>
     </>

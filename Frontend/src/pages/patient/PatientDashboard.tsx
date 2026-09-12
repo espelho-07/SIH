@@ -57,43 +57,125 @@ export const PatientDashboard: React.FC = () => {
     <div className="space-y-7 font-sans">
 
       {/* ================================================== */}
-      {/* CITIZEN HEALTH BAR / ABHA IDENTITY */}
+      {/* CITIZEN WARM GREETING & MOBILE QUICK ACTION HUB */}
       {/* ================================================== */}
-
-      {/* CITIZEN HEALTH BAR / ABHA IDENTITY */}
-      {/* ================================================== */}
-
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
+      <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 border border-sky-200/80 text-sky-700 shadow-2xs">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-50 to-blue-100/60 border border-sky-200/70 text-sky-700 shadow-2xs">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold tracking-tight text-slate-900 sm:text-base">
-                  Ayushman Bharat Citizen Health Portal
-                </span>
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
+                  Namaste, {activeMember.name} 🙏
+                </h1>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
                   <CheckCircle2 className="h-3 w-3 text-emerald-600" /> ABHA Verified
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5 font-mono">
-                ABHA ID: {activeMember.abhaId} • Active: {activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})
+              <p className="text-xs text-slate-500 mt-0.5">
+                ABHA ID: <span className="font-mono font-medium text-slate-700">{activeMember.abhaId}</span> • Profile: <span className="font-medium text-slate-800">{activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel}</span>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
             <FamilyMemberSwitcher variant="banner" />
-            <div className="flex items-center gap-1.5 rounded-xl bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs text-slate-700">
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-50/80 border border-emerald-200/60 px-3 py-1 text-xs text-emerald-800">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="font-medium">OPD Active Today</span>
+              <span className="font-semibold text-[11px]">OPD Open Today</span>
             </div>
           </div>
+        </div>
+
+        {/* 4 Clean, Friendly Quick Action Cards (mobile-first, tap-friendly) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-4 pt-4 border-t border-slate-100">
+          <Link
+            to="/patient/tokens"
+            className="group flex flex-col p-3 rounded-2xl bg-sky-50/70 hover:bg-sky-100/70 border border-sky-100 transition-all text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="h-8 w-8 rounded-xl bg-white text-sky-700 flex items-center justify-center shadow-2xs">
+                <Ticket className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-bold text-sky-800 bg-white px-2 py-0.5 rounded-full border border-sky-200/60">
+                Live
+              </span>
+            </div>
+            <span className="text-xs font-bold text-slate-900 mt-2.5 group-hover:text-sky-800 transition-colors">
+              My OPD Token
+            </span>
+            <span className="text-[10px] text-slate-500">
+              {activeToken ? `Token ${activeToken.tokenNumber}` : 'Get OPD Pass'}
+            </span>
+          </Link>
+
+          <button
+            onClick={() => {
+              setActiveModalTab('ASSISTANT');
+              setIsFacilityModalOpen(true);
+            }}
+            className="group flex flex-col p-3 rounded-2xl bg-indigo-50/70 hover:bg-indigo-100/70 border border-indigo-100 transition-all text-left cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <div className="h-8 w-8 rounded-xl bg-white text-indigo-700 flex items-center justify-center shadow-2xs">
+                <Mic className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-bold text-indigo-800 bg-white px-2 py-0.5 rounded-full border border-indigo-200/60">
+                AI Voice
+              </span>
+            </div>
+            <span className="text-xs font-bold text-slate-900 mt-2.5 group-hover:text-indigo-800 transition-colors">
+              Ask AI Doctor
+            </span>
+            <span className="text-[10px] text-slate-500">
+              Speak symptoms
+            </span>
+          </button>
+
+          <Link
+            to="/patient/facilities"
+            className="group flex flex-col p-3 rounded-2xl bg-teal-50/70 hover:bg-teal-100/70 border border-teal-100 transition-all text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="h-8 w-8 rounded-xl bg-white text-teal-700 flex items-center justify-center shadow-2xs">
+                <Building2 className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-bold text-teal-800 bg-white px-2 py-0.5 rounded-full border border-teal-200/60">
+                Beds
+              </span>
+            </div>
+            <span className="text-xs font-bold text-slate-900 mt-2.5 group-hover:text-teal-800 transition-colors">
+              Nearby Hospitals
+            </span>
+            <span className="text-[10px] text-slate-500">
+              Doctors & wait times
+            </span>
+          </Link>
+
+          <a
+            href="tel:108"
+            className="group flex flex-col p-3 rounded-2xl bg-rose-50/70 hover:bg-rose-100/70 border border-rose-100 transition-all text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="h-8 w-8 rounded-xl bg-white text-rose-600 flex items-center justify-center shadow-2xs">
+                <Phone className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-bold text-rose-800 bg-white px-2 py-0.5 rounded-full border border-rose-200/60">
+                24x7
+              </span>
+            </div>
+            <span className="text-xs font-bold text-slate-900 mt-2.5 group-hover:text-rose-800 transition-colors">
+              Emergency 108
+            </span>
+            <span className="text-[10px] text-slate-500">
+              Instant Ambulance
+            </span>
+          </a>
         </div>
       </div>
 
@@ -289,52 +371,45 @@ export const PatientDashboard: React.FC = () => {
 
 
       {/* ================================================== */}
-      {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT BANNER */}
+      {/* FRIENDLY SANJEEVANI HEALTH ASSISTANT */}
       {/* ================================================== */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 text-slate-900 shadow-xs">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 border border-sky-200/80 shadow-xs">
-              <Mic className="h-6 w-6" />
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+      <div className="relative overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/40 p-5 sm:p-6 text-slate-900 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-white text-sky-700 border border-sky-200 shadow-xs">
+              <Mic className="h-6 w-6 text-sky-700" />
+              <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
               </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 border border-sky-200/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-900">
-                  <Sparkles className="h-3 w-3 text-sky-700" /> AI Voice Triage
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                  Gujarati • Hindi • English
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-                  ● Real-Time Doctor & Bed Match
-                </span>
+
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white border border-sky-200/80 px-2.5 py-0.5 text-[11px] font-semibold text-sky-800">
+                <Sparkles className="h-3.5 w-3.5 text-sky-600" />
+                <span>Sanjeevani Care Companion • ગુજરાતી / हिंदी / English</span>
               </div>
-              <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg tracking-tight">
-                "Tamare kem hospital javu che?" — Speak with Sanjeevani Assistant
-              </h3>
-              <p className="mt-0.5 text-xs text-slate-600 max-w-xl">
-                Tell your symptom (fracture, fever, chest pain, delivery) in voice or tap. Assistant directly finds the best hospital with on-duty doctors and available beds.
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                How can we help you feel better today?
+              </h2>
+              <p className="text-xs text-slate-600 max-w-xl leading-relaxed">
+                Speak or tap your symptoms. Our AI medical guide instantly finds the nearest hospital with on-duty doctors, available beds, and live wait times.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap">
+          {/* Primary Friendly Voice & Triage Actions */}
+          <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
             <Button
               onClick={() => {
                 setActiveModalTab('ASSISTANT');
                 setIsFacilityModalOpen(true);
               }}
-              variant="primary"
-              size="sm"
-              className="w-full sm:w-auto gap-2 bg-sky-700 hover:bg-sky-800 text-white shadow-xs font-semibold text-xs h-10 px-4 rounded-xl cursor-pointer"
+              className="w-full sm:w-auto gap-2 bg-gradient-to-r from-sky-600 via-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white shadow-xs shadow-sky-600/20 font-bold text-xs sm:text-sm h-11 px-5 rounded-2xl cursor-pointer"
             >
               <Mic className="h-4 w-4 text-sky-100" />
-              <span>🎙️ Ask Assistant (બોલો)</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <span>Speak Symptoms (બોલો)</span>
+              <ArrowRight className="h-4 w-4 ml-0.5" />
             </Button>
 
             <Button
@@ -342,27 +417,67 @@ export const PatientDashboard: React.FC = () => {
                 setActiveModalTab('TRIAGE');
                 setIsFacilityModalOpen(true);
               }}
-              variant="outline"
-              size="sm"
-              className="w-full sm:w-auto gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border-slate-300 font-medium text-xs h-10 px-3.5 rounded-xl cursor-pointer shadow-2xs"
+              variant="secondary"
+              className="w-full sm:w-auto gap-1.5 h-11 px-4 rounded-2xl text-xs font-semibold"
             >
-              <span>🩺</span>
-              <span>Check Symptoms</span>
-            </Button>
-
-            <Button
-              onClick={() => {
-                setActiveModalTab('STORES');
-                setIsFacilityModalOpen(true);
-              }}
-              variant="outline"
-              size="sm"
-              className="w-full sm:w-auto gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border-slate-300 font-medium text-xs h-10 px-3.5 rounded-xl cursor-pointer shadow-2xs"
-            >
-              <Pill className="h-3.5 w-3.5 text-teal-700" />
-              <span>Medical Stores</span>
+              <span>🩺 Check Symptoms</span>
             </Button>
           </div>
+        </div>
+
+        {/* Quick One-Tap Symptom Chips (Instant Guidance for Patients) */}
+        <div className="mt-4 pt-4 border-t border-sky-100 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <span className="text-[11px] font-semibold text-slate-500 shrink-0">Common needs:</span>
+          <button
+            onClick={() => {
+              setActiveModalTab('TRIAGE');
+              setIsFacilityModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-sky-50 border border-slate-200/90 text-xs text-slate-700 hover:text-sky-800 font-medium shrink-0 shadow-2xs transition-colors cursor-pointer"
+          >
+            <span>🌡️</span>
+            <span>Fever & Cold</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveModalTab('TRIAGE');
+              setIsFacilityModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-sky-50 border border-slate-200/90 text-xs text-slate-700 hover:text-sky-800 font-medium shrink-0 shadow-2xs transition-colors cursor-pointer"
+          >
+            <span>🦴</span>
+            <span>Bone Fracture / Injury</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveModalTab('TRIAGE');
+              setIsFacilityModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-sky-50 border border-slate-200/90 text-xs text-slate-700 hover:text-sky-800 font-medium shrink-0 shadow-2xs transition-colors cursor-pointer"
+          >
+            <span>🫀</span>
+            <span>Chest Pain</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveModalTab('TRIAGE');
+              setIsFacilityModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-sky-50 border border-slate-200/90 text-xs text-slate-700 hover:text-sky-800 font-medium shrink-0 shadow-2xs transition-colors cursor-pointer"
+          >
+            <span>🤰</span>
+            <span>Maternity & Delivery</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveModalTab('STORES');
+              setIsFacilityModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-sky-50 border border-slate-200/90 text-xs text-slate-700 hover:text-sky-800 font-medium shrink-0 shadow-2xs transition-colors cursor-pointer"
+          >
+            <Pill className="h-3 w-3 text-sky-700" />
+            <span>Nearby Medical Stores</span>
+          </button>
         </div>
       </div>
 
