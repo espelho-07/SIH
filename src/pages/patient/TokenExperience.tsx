@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useSocket } from '@/contexts/SocketContext';
@@ -59,33 +60,33 @@ const MOCK_PAST_TOKENS: PastToken[] = [
     date: '02 Sep 2026',
     time: '10:15 AM',
     status: 'COMPLETED',
-    notes: 'Seasonal Bronchitis consultation. Prescriptions dispensed at hospital pharmacy.',
+    notes: 'Seasonal cough & low-grade fever. Paracetamol + Ambroxol prescribed.',
     recordUrl: '/patient/records',
   },
   {
     id: 'past_tok_02',
-    tokenNumber: 'L-014',
-    patientName: 'Savitri Sharma',
-    relation: 'Spouse',
+    tokenNumber: 'B-014',
+    patientName: 'Sunita Sharma',
+    relation: 'Mother',
     facilityName: 'Gandhinagar Civil Hospital',
-    departmentName: 'Pathology Sample Collection Desk (Room 12)',
-    doctorName: 'Dr. Priya Desai / Rakesh Lab Tech',
+    departmentName: 'Obstetrics & Gynecology OPD (Room 5)',
+    doctorName: 'Dr. Meenakshi Sundaram',
     date: '28 Aug 2026',
-    time: '09:30 AM',
-    status: 'SERVED',
-    notes: 'Fasting Blood Glucose & Thyroid panel collected. Reports verified.',
+    time: '11:40 AM',
+    status: 'COMPLETED',
+    notes: 'Annual gynecological wellness checkup & CBC blood profile.',
     recordUrl: '/patient/records',
   },
   {
     id: 'past_tok_03',
-    tokenNumber: 'V-007',
-    patientName: 'Pooja Sharma',
-    relation: 'Daughter',
-    facilityName: 'Urban Health Centre - Sector 21',
-    departmentName: 'Immunization Room 2',
-    doctorName: 'Sister Meena Solanki (ANM)',
+    tokenNumber: 'P-006',
+    patientName: 'Aarav Sharma',
+    relation: 'Son',
+    facilityName: 'Mansa Community Health Centre',
+    departmentName: 'Pediatric Care & Immunization (Room 3)',
+    doctorName: 'Dr. Sangeeta Rao',
     date: '14 Jul 2026',
-    time: '11:00 AM',
+    time: '09:50 AM',
     status: 'COMPLETED',
     notes: 'Td Booster vaccine administered. Certificate issued.',
     recordUrl: '/patient/records',
@@ -107,6 +108,7 @@ const MOCK_PAST_TOKENS: PastToken[] = [
 ];
 
 export const TokenExperience: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { activeMember } = useFamily();
   const { simulateCallToken } = useSocket();
@@ -200,7 +202,7 @@ export const TokenExperience: React.FC = () => {
             className="text-xs h-7 px-3 gap-1 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer shadow-xs"
           >
             <PlusCircle className="h-3.5 w-3.5" />
-            + New Token
+            {t('tokens.bookNew')}
           </Button>
         </div>
       </div>
@@ -477,7 +479,7 @@ export const TokenExperience: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-slate-900">
-                  Past Tokens & OPD History
+                  {t('tokens.history')}
                 </h3>
                 <span className="text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.2 rounded-full">
                   {MOCK_PAST_TOKENS.length} Records

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 
 export const ReferralTracking: React.FC = () => {
+  const { t } = useTranslation();
   const referrals = INITIAL_REFERRALS;
 
   // First referral = current / active referral
@@ -32,11 +34,11 @@ export const ReferralTracking: React.FC = () => {
           PAGE HEADER
       ================================= */}
       <PageHeader
-        title="My Referrals"
-        subtitle="See your current referral and past referrals."
+        title={t('referrals.title')}
+        subtitle={t('referrals.subtitle')}
         breadcrumbs={[
-          { label: 'Dashboard', to: '/patient' },
-          { label: 'Referrals' },
+          { label: t('nav.Dashboard'), to: '/patient' },
+          { label: t('referrals.title') },
         ]}
       />
 
@@ -59,7 +61,7 @@ export const ReferralTracking: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm font-bold text-slate-900">
-                      Current Referral
+                      {t('referrals.currentReferral')}
                     </h2>
 
                     <PriorityBadge
@@ -88,7 +90,7 @@ export const ReferralTracking: React.FC = () => {
                   <Building2 className="h-3.5 w-3.5 text-teal-600" />
 
                   <p className="text-[10px] font-medium text-slate-400">
-                    Hospital
+                    {t('referrals.referredTo')}
                   </p>
                 </div>
 
@@ -105,7 +107,7 @@ export const ReferralTracking: React.FC = () => {
                   <Stethoscope className="h-3.5 w-3.5 text-indigo-600" />
 
                   <p className="text-[10px] font-medium text-slate-400">
-                    Department
+                    {t('referrals.department')}
                   </p>
                 </div>
 
@@ -138,7 +140,7 @@ export const ReferralTracking: React.FC = () => {
             <div className="mt-2 rounded-lg border border-slate-100 bg-white p-3">
 
               <p className="text-[10px] font-medium text-slate-400">
-                Reason for referral
+                {t('referrals.instructions')}
               </p>
 
               <p className="mt-1 text-xs text-slate-700">
@@ -182,7 +184,7 @@ export const ReferralTracking: React.FC = () => {
 
             <div>
               <h2 className="text-sm font-bold text-slate-900">
-                Referral History
+                {t('referrals.history')}
               </h2>
 
               <p className="text-[11px] text-slate-500">

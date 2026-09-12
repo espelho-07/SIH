@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -173,6 +174,7 @@ const getDoctorSlots = (doctorId: string, dateStr: string): TimeSlot[] => {
 };
 
 export const AppointmentBooking: React.FC = () => {
+  const { t } = useTranslation();
   const { members, activeMember } = useFamily();
 
   const [selectedMemberId, setSelectedMemberId] = useState<string>(activeMember.id);
@@ -288,11 +290,11 @@ export const AppointmentBooking: React.FC = () => {
           PAGE HEADER
       ========================================== */}
       <PageHeader
-        title="Book Doctor Appointment"
-        subtitle="Select a hospital, department, consulting doctor, and an open time slot."
+        title={t('appointments.bookAppointment')}
+        subtitle={t('appointments.bookSubtitle')}
         breadcrumbs={[
-          { label: 'Dashboard', to: '/patient' },
-          { label: 'Appointments' },
+          { label: t('nav.Dashboard'), to: '/patient' },
+          { label: t('appointments.myAppointments') },
         ]}
       />
 
@@ -337,7 +339,7 @@ export const AppointmentBooking: React.FC = () => {
                     OPD Pass Issued
                   </span>
                   <h3 className="text-lg font-extrabold text-emerald-950 mt-1">
-                    Appointment Confirmed!
+                    {t('appointments.bookingSuccess')}
                   </h3>
                   <p className="text-xs text-emerald-800 mt-0.5">
                     Your appointment has been registered on the ABDM Gujarat Central Healthcare Grid. Please arrive 15 minutes before your time slot.
@@ -449,7 +451,7 @@ export const AppointmentBooking: React.FC = () => {
                 {/* Hospital Select */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">
-                    Hospital / Health Centre
+                    {t('appointments.selectHospital')}
                   </label>
                   <div className="relative">
                     <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-600" />
@@ -476,7 +478,7 @@ export const AppointmentBooking: React.FC = () => {
                 {/* Department Select */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">
-                    Department / Specialty
+                    {t('appointments.selectDepartment')}
                   </label>
                   <div className="relative">
                     <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-600" />
@@ -503,7 +505,7 @@ export const AppointmentBooking: React.FC = () => {
                 {/* Doctor Select */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">
-                    Select Consulting Doctor
+                    {t('appointments.selectDoctor')}
                   </label>
                   <div className="space-y-2">
                     {currentDoctors.map((doc) => (
@@ -549,7 +551,7 @@ export const AppointmentBooking: React.FC = () => {
                 {/* Visit Date & Reason */}
                 <div className="space-y-3">
                   <Input
-                    label="Visit Date"
+                    label={t('appointments.selectDate')}
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
@@ -558,7 +560,7 @@ export const AppointmentBooking: React.FC = () => {
                   />
 
                   <Input
-                    label="Reason for Visit"
+                    label={t('appointments.reasonForVisit')}
                     type="text"
                     placeholder="Example: Fever, BP check, routine follow-up..."
                     value={reason}
@@ -579,7 +581,7 @@ export const AppointmentBooking: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-teal-700" />
                       <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                        Select Appointment Time Slot for {activeDoctor.name}
+                        {t('appointments.selectTimeSlot')}
                       </h3>
                     </div>
                     <p className="text-[11px] text-slate-500 mt-0.5">
@@ -757,7 +759,7 @@ export const AppointmentBooking: React.FC = () => {
                   className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl cursor-pointer shadow-xs"
                   isLoading={isLoading}
                 >
-                  Confirm Appointment
+                  {t('appointments.confirmBooking')}
                 </Button>
               </div>
             </form>
@@ -789,7 +791,7 @@ export const AppointmentBooking: React.FC = () => {
               <div>
 
                 <h2 className="text-sm font-bold text-slate-900">
-                  Previous Appointments
+                  {t('appointments.pastAppointments')}
                 </h2>
 
                 <p className="text-[10px] text-slate-500">

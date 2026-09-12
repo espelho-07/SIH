@@ -201,6 +201,14 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/patient/referral"
+        element={<Navigate to="/patient/referrals" replace />}
+      />
+      <Route
+        path="/patient/health-records"
+        element={<Navigate to="/patient/records" replace />}
+      />
+      <Route
         path="/patient/referrals/:id"
         element={
           <ProtectedRoute allowedRoles={['PATIENT']}>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AddFamilyMemberModal } from '@/components/patient/AddFamilyMemberModal';
@@ -272,6 +273,7 @@ const MOCK_FAMILY_RECORDS: MockFamilyRecord[] = [
 ];
 
 export const PatientProfile: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const {
     members,
@@ -353,20 +355,20 @@ export const PatientProfile: React.FC = () => {
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
-              Family Healthcare & Profiles
+              {t('profile.title')}
             </h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-xs font-bold text-teal-800">
               <ShieldCheck className="h-3.5 w-3.5 text-teal-600" />
-              ABDM Verified
+              {t('profile.abdmVerified')}
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-            <span>Primary Mobile: <strong className="font-mono text-slate-700">+91 98765 43210</strong></span>
+            <span>{t('profile.primaryMobile')}: <strong className="font-mono text-slate-700">+91 98765 43210</strong></span>
             <span>•</span>
-            <span>{members.length} Household Members</span>
+            <span>{t('profile.householdMembersCount', { count: members.length })}</span>
             <span>•</span>
             <span className="text-teal-700 font-medium">
-              Active: <strong>{activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})</strong>
+              {t('profile.active')}: <strong>{activeMember.name} ({activeMember.relation === 'SELF' ? t('profile.self') : activeMember.relationLabel})</strong>
             </span>
           </p>
         </div>
@@ -378,7 +380,7 @@ export const PatientProfile: React.FC = () => {
             className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center gap-2 rounded-xl py-2 px-4 cursor-pointer transition-all"
           >
             <UserPlus className="h-4 w-4" />
-            + Add Family Member
+            {t('profile.addMember')}
           </Button>
         </div>
       </div>
@@ -396,7 +398,7 @@ export const PatientProfile: React.FC = () => {
           }`}
         >
           <Users className="h-4 w-4" />
-          Household Members ({members.length})
+          {t('profile.tabMembers')} ({members.length})
         </button>
 
         <button
@@ -411,7 +413,7 @@ export const PatientProfile: React.FC = () => {
           }`}
         >
           <ShieldCheck className="h-4 w-4" />
-          Digital ABHA Cards
+          {t('profile.tabAbha')}
         </button>
 
         <button
@@ -423,7 +425,7 @@ export const PatientProfile: React.FC = () => {
           }`}
         >
           <FileText className="h-4 w-4" />
-          Family Health Vault ({MOCK_FAMILY_RECORDS.length})
+          {t('profile.tabVault')} ({MOCK_FAMILY_RECORDS.length})
         </button>
 
         <button
@@ -435,7 +437,7 @@ export const PatientProfile: React.FC = () => {
           }`}
         >
           <Smartphone className="h-4 w-4" />
-          Phone & Account Settings
+          {t('profile.tabPhone')}
         </button>
       </div>
 
@@ -459,7 +461,7 @@ export const PatientProfile: React.FC = () => {
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                   </span>
                   <h3 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wider">
-                    Currently Active Patient Profile
+                    {t('profile.activeMember')}
                   </h3>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -476,7 +478,7 @@ export const PatientProfile: React.FC = () => {
                   title="Click to switch active family member profile"
                 >
                   <Users className="h-4 w-4 text-teal-700" />
-                  <span>Switch Profile ({members.length})</span>
+                  <span>{t('profile.switchProfile')} ({members.length})</span>
                   <ChevronDown
                     className={`h-3.5 w-3.5 text-teal-700 transition-transform duration-200 ${
                       isSwitchDropdownOpen ? 'rotate-180' : ''
@@ -488,7 +490,7 @@ export const PatientProfile: React.FC = () => {
                 {isSwitchDropdownOpen && (
                   <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-30 animate-in fade-in slide-in-from-top-2 duration-150">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5">
-                      Select Active Patient
+                      {t('profile.switchProfile')}
                     </p>
                     <div className="space-y-1">
                       {members.map((m) => {
@@ -527,11 +529,11 @@ export const PatientProfile: React.FC = () => {
                             </div>
                             {isCur ? (
                               <span className="flex items-center gap-1 text-[10px] font-bold text-teal-700 bg-teal-100/70 px-2 py-0.5 rounded-full">
-                                <Check className="h-3 w-3" /> Active
+                                <Check className="h-3 w-3" /> {t('profile.active')}
                               </span>
                             ) : (
                               <span className="text-[10px] font-semibold text-slate-400">
-                                Switch
+                                {t('profile.switchProfile')}
                               </span>
                             )}
                           </button>
@@ -547,7 +549,7 @@ export const PatientProfile: React.FC = () => {
                         }}
                         className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-teal-700 hover:bg-teal-50 rounded-xl cursor-pointer transition-colors"
                       >
-                        <UserPlus className="h-3.5 w-3.5" /> + Add Another Member
+                        <UserPlus className="h-3.5 w-3.5" /> {t('profile.addMember')}
                       </button>
                     </div>
                   </div>
@@ -578,7 +580,7 @@ export const PatientProfile: React.FC = () => {
                         {activeMember.name}
                       </h3>
                       <span className="inline-flex items-center gap-1 rounded-full bg-teal-100 border border-teal-300 px-2.5 py-0.5 text-[11px] font-bold text-teal-800">
-                        <Check className="h-3.5 w-3.5 text-teal-700" /> Active Now
+                        <Check className="h-3.5 w-3.5 text-teal-700" /> {t('profile.active')}
                       </span>
                     </div>
 
@@ -611,7 +613,7 @@ export const PatientProfile: React.FC = () => {
               <div className="mt-5 rounded-2xl bg-teal-50/60 p-4 border border-teal-100 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-teal-600" /> ABHA Health ID
+                    <ShieldCheck className="h-4 w-4 text-teal-600" /> {t('profile.abhaNumber')}
                   </span>
                   <span className="font-mono font-black text-sm text-teal-950">
                     {activeMember.abhaId}
@@ -619,7 +621,7 @@ export const PatientProfile: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between pt-1 border-t border-teal-100/70">
                   <span className="text-xs font-medium text-slate-400">
-                    ABHA Address
+                    {t('profile.abhaAddress')}
                   </span>
                   <span className="font-mono text-slate-700 font-semibold text-xs">
                     {activeMember.abhaAddress || `${activeMember.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@abdm`}
@@ -631,7 +633,7 @@ export const PatientProfile: React.FC = () => {
               {activeMember.chronicConditions && activeMember.chronicConditions.length > 0 && (
                 <div className="mt-4 flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-slate-500 font-semibold">
-                    Care Tags:
+                    {t('profile.careTags')}:
                   </span>
                   {activeMember.chronicConditions.map((cond, i) => (
                     <span
@@ -651,14 +653,14 @@ export const PatientProfile: React.FC = () => {
                     <Smartphone className="h-4 w-4 text-slate-500" />
                     {activeHasPersonalPhone && activeDisplayPhone ? (
                       <span className="text-emerald-700 font-bold flex items-center gap-1.5">
-                        Personal Mobile: +91 {activeDisplayPhone}
+                        {t('profile.personalPhone')}: +91 {activeDisplayPhone}
                         <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.2 rounded font-bold">
                           Decoupled
                         </span>
                       </span>
                     ) : (
                       <span className="text-slate-800 font-bold">
-                        Shared Mobile (+91 98765 43210)
+                        {t('profile.sharedPhone')} (+91 98765 43210)
                       </span>
                     )}
                   </div>
@@ -676,7 +678,7 @@ export const PatientProfile: React.FC = () => {
                   onClick={() => setAssigningMember(activeMember)}
                   className="text-xs h-8 px-3 rounded-xl border-teal-600 text-teal-700 hover:bg-teal-50 font-bold cursor-pointer shrink-0"
                 >
-                  {activeHasPersonalPhone && activeDisplayPhone ? 'Change Phone' : 'Assign Personal Phone'}
+                  {activeHasPersonalPhone && activeDisplayPhone ? t('profile.changePhone') : t('profile.assignPhone')}
                 </Button>
               </div>
 
@@ -684,7 +686,7 @@ export const PatientProfile: React.FC = () => {
               <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-teal-700 flex items-center gap-1 px-2.5 py-1 bg-teal-50 border border-teal-200/80 rounded-xl">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-700" /> Currently Active Profile
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-700" /> {t('profile.activeMember')}
                   </span>
 
                   <Button
@@ -698,7 +700,7 @@ export const PatientProfile: React.FC = () => {
                     className="text-xs h-8 px-3 text-slate-700 hover:text-slate-900 cursor-pointer font-semibold"
                   >
                     <QrCode className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                    View ABHA
+                    {t('profile.viewAbha')}
                   </Button>
                 </div>
 
@@ -719,7 +721,7 @@ export const PatientProfile: React.FC = () => {
                     title="Remove member"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    <span>Remove Member</span>
+                    <span>{t('profile.removeMember')}</span>
                   </button>
                 )}
               </div>
@@ -741,10 +743,10 @@ export const PatientProfile: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-teal-900 transition-colors">
-                          Other Household Members ({otherMembers.length})
+                          {t('profile.otherMembers')} ({otherMembers.length})
                         </h4>
                         <span className="text-[10px] font-bold bg-slate-200/80 text-slate-700 px-2 py-0.5 rounded-full">
-                          {showOtherMembers ? 'Click to hide' : 'Click to view & switch'}
+                          {showOtherMembers ? t('profile.clickToCollapse') : t('profile.clickToExpand')}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
@@ -756,7 +758,7 @@ export const PatientProfile: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-1.5 text-xs font-bold text-teal-700 bg-white border border-slate-200 group-hover:border-teal-300 px-3.5 py-2 rounded-xl shadow-2xs transition-all shrink-0">
-                    <span>{showOtherMembers ? 'Hide Members' : 'Show All Members'}</span>
+                    <span>{showOtherMembers ? t('profile.clickToCollapse') : t('profile.clickToExpand')}</span>
                     {showOtherMembers ? (
                       <ChevronUp className="h-4 w-4 text-teal-700" />
                     ) : (
@@ -821,11 +823,11 @@ export const PatientProfile: React.FC = () => {
                               {/* ABHA details */}
                               <div className="mt-3.5 rounded-xl bg-slate-50 p-2.5 border border-slate-100 text-xs space-y-1">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[11px] text-slate-400 font-medium">ABHA ID</span>
+                                  <span className="text-[11px] text-slate-400 font-medium">{t('profile.abhaNumber')}</span>
                                   <span className="font-mono font-bold text-teal-900">{member.abhaId}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[11px] text-slate-400 font-medium">ABHA Address</span>
+                                  <span className="text-[11px] text-slate-400 font-medium">{t('profile.abhaAddress')}</span>
                                   <span className="font-mono text-slate-600 text-[11px]">
                                     {member.abhaAddress || `${member.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@abdm`}
                                   </span>
@@ -850,14 +852,14 @@ export const PatientProfile: React.FC = () => {
                               <div className="mt-3 text-xs text-slate-600 flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
                                 <span className="flex items-center gap-1 text-[11px] text-slate-500">
                                   <Smartphone className="h-3.5 w-3.5" />
-                                  {memHasPersonalPhone && memDisplayPhone ? `+91 ${memDisplayPhone}` : 'Shared Mobile'}
+                                  {memHasPersonalPhone && memDisplayPhone ? `+91 ${memDisplayPhone}` : t('profile.sharedPhone')}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => setAssigningMember(member)}
                                   className="text-[11px] text-teal-700 font-semibold hover:underline cursor-pointer"
                                 >
-                                  {memHasPersonalPhone && memDisplayPhone ? 'Change Phone' : 'Assign Phone'}
+                                  {memHasPersonalPhone && memDisplayPhone ? t('profile.changePhone') : t('profile.assignPhone')}
                                 </button>
                               </div>
                             </div>
@@ -873,7 +875,7 @@ export const PatientProfile: React.FC = () => {
                                   }}
                                   className="text-xs h-8 px-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer shadow-2xs"
                                 >
-                                  Switch to this Profile
+                                  {t('profile.switchToThis')}
                                 </Button>
 
                                 <Button
@@ -887,7 +889,7 @@ export const PatientProfile: React.FC = () => {
                                   className="text-xs h-8 px-2.5 text-slate-600 hover:text-slate-900 cursor-pointer"
                                 >
                                   <QrCode className="h-3.5 w-3.5 mr-1 text-slate-500" />
-                                  ABHA
+                                  {t('profile.tabAbha')}
                                 </Button>
                               </div>
 
@@ -925,7 +927,7 @@ export const PatientProfile: React.FC = () => {
                           <UserPlus className="h-5 w-5" />
                         </div>
                         <h4 className="text-xs font-bold text-slate-800 group-hover:text-teal-900">
-                          + Add Another Family Member
+                          {t('profile.addMember')}
                         </h4>
                         <p className="text-[11px] text-slate-500 max-w-xs">
                           Add dependent under this mobile number. Instant digital ABHA ID will be generated.
@@ -948,7 +950,7 @@ export const PatientProfile: React.FC = () => {
           {/* Member selector pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mr-1">
-              Select Member:
+              {t('profile.filterByMember')}:
             </span>
             {members.map((m) => (
               <button
@@ -963,7 +965,7 @@ export const PatientProfile: React.FC = () => {
               >
                 <span>{m.name}</span>
                 <span className="text-[10px] opacity-75">
-                  ({m.relation === 'SELF' ? 'Self' : m.relationLabel.split(' ')[0]})
+                  ({m.relation === 'SELF' ? t('profile.self') : m.relationLabel.split(' ')[0]})
                 </span>
               </button>
             ))}
@@ -1038,7 +1040,7 @@ export const PatientProfile: React.FC = () => {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="text-[10px] text-slate-400 block font-medium">
-                        ABHA Number
+                        {t('profile.abhaNumber')}
                       </span>
                       <span className="font-mono font-bold text-teal-950 text-xs sm:text-sm">
                         {selectedAbhaMember.abhaId}
@@ -1047,7 +1049,7 @@ export const PatientProfile: React.FC = () => {
 
                     <div>
                       <span className="text-[10px] text-slate-400 block font-medium">
-                        ABHA Address
+                        {t('profile.abhaAddress')}
                       </span>
                       <span className="font-mono font-bold text-slate-700 text-xs">
                         {selectedAbhaMember.abhaAddress || `${selectedAbhaMember.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@abdm`}
@@ -1056,7 +1058,7 @@ export const PatientProfile: React.FC = () => {
 
                     <div>
                       <span className="text-[10px] text-slate-400 block font-medium">
-                        Gender / Age
+                        {t('profile.ageGender')}
                       </span>
                       <span className="font-semibold text-slate-800">
                         {selectedAbhaMember.gender === 'F' ? 'Female' : selectedAbhaMember.gender === 'M' ? 'Male' : 'Other'} / {selectedAbhaMember.age} Years
@@ -1065,7 +1067,7 @@ export const PatientProfile: React.FC = () => {
 
                     <div>
                       <span className="text-[10px] text-slate-400 block font-medium">
-                        Blood Group
+                        {t('profile.bloodGroup')}
                       </span>
                       <span className="font-bold text-rose-600">
                         {selectedAbhaMember.bloodGroup}
@@ -1074,12 +1076,12 @@ export const PatientProfile: React.FC = () => {
 
                     <div className="col-span-2">
                       <span className="text-[10px] text-slate-400 block font-medium">
-                        Linked Mobile (Family Account)
+                        {t('profile.primaryMobile')}
                       </span>
                       <span className="font-mono font-semibold text-slate-800">
                         {selectedAbhaMember.hasOwnPhone && (selectedAbhaMember.personalPhone || selectedAbhaMember.phone !== '9876543210')
-                          ? `+91 ${selectedAbhaMember.personalPhone || selectedAbhaMember.phone} (Personal Phone)`
-                          : `+91 98765 43210 (Household Shared)`}
+                          ? `+91 ${selectedAbhaMember.personalPhone || selectedAbhaMember.phone} (${t('profile.personalPhone')})`
+                          : `+91 98765 43210 (${t('profile.sharedPhone')})`}
                       </span>
                     </div>
                   </div>
@@ -1103,7 +1105,7 @@ export const PatientProfile: React.FC = () => {
                 className="bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-xs"
               >
                 <Download className="h-4 w-4" />
-                Download Card (PDF)
+                {t('profile.downloadCard')} (PDF)
               </Button>
 
               <Button
@@ -1115,7 +1117,7 @@ export const PatientProfile: React.FC = () => {
                 className="border-slate-300 text-slate-700 hover:bg-slate-50 text-xs rounded-xl flex items-center gap-2 cursor-pointer"
               >
                 <Share2 className="h-4 w-4" />
-                Copy ABHA ID
+                {t('profile.share')} ABHA ID
               </Button>
             </div>
           </div>
@@ -1155,7 +1157,7 @@ export const PatientProfile: React.FC = () => {
                   {prescriptionCount}
                 </div>
                 <div className="text-xs font-bold text-slate-700 mt-0.5">
-                  Prescriptions
+                  {t('profile.prescriptions')}
                 </div>
                 <div className="text-[11px] text-slate-500">
                   Active medicine regimens
@@ -1189,7 +1191,7 @@ export const PatientProfile: React.FC = () => {
                   {labCount}
                 </div>
                 <div className="text-xs font-bold text-slate-700 mt-0.5">
-                  Lab Reports
+                  {t('profile.labReports')}
                 </div>
                 <div className="text-[11px] text-slate-500">
                   Pathology & blood profiles
@@ -1223,7 +1225,7 @@ export const PatientProfile: React.FC = () => {
                   {opdCount}
                 </div>
                 <div className="text-xs font-bold text-slate-700 mt-0.5">
-                  Hospital Visits
+                  {t('profile.opdVisits')}
                 </div>
                 <div className="text-[11px] text-slate-500">
                   Doctor clinical notes & ECG
@@ -1257,7 +1259,7 @@ export const PatientProfile: React.FC = () => {
                   {vaccineCount}
                 </div>
                 <div className="text-xs font-bold text-slate-700 mt-0.5">
-                  Vaccinations
+                  {t('profile.vaccines')}
                 </div>
                 <div className="text-[11px] text-slate-500">
                   UIP & booster certificates
@@ -1276,7 +1278,7 @@ export const PatientProfile: React.FC = () => {
                   type="text"
                   value={recordSearchQuery}
                   onChange={(e) => setRecordSearchQuery(e.target.value)}
-                  placeholder="Search by diagnosis, medicine, doctor, hospital, or care tag..."
+                  placeholder={t('profile.searchRecords')}
                   className="w-full pl-9 pr-9 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
                 />
                 {recordSearchQuery && (
@@ -1334,7 +1336,7 @@ export const PatientProfile: React.FC = () => {
             {/* Member Filter Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 border-t border-slate-100">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
-                Family Member:
+                {t('profile.filterByMember')}:
               </span>
               <button
                 onClick={() => setRecordFilterMemberId('ALL')}
@@ -1344,7 +1346,7 @@ export const PatientProfile: React.FC = () => {
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                All Family ({totalRecordsCount})
+                {t('profile.allMembers')} ({totalRecordsCount})
               </button>
               {members.map((m) => {
                 const count = MOCK_FAMILY_RECORDS.filter((r) => r.memberId === m.id).length;
@@ -1703,10 +1705,10 @@ export const PatientProfile: React.FC = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
             <div>
               <h3 className="text-base font-bold text-slate-900">
-                Primary Account Mobile Number
+                {t('profile.phoneSettingsTitle')}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                This is the head-of-household phone used for initial OTP login and shared dependent notifications.
+                {t('profile.primaryPhoneDesc')}
               </p>
             </div>
 

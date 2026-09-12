@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export const FacilityDiscovery: React.FC = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('ALL');
   const [emergencyOnly, setEmergencyOnly] = useState(false);
@@ -79,11 +81,11 @@ export const FacilityDiscovery: React.FC = () => {
       ========================== */}
 
       <PageHeader
-        title="Find a Hospital"
-        subtitle="Find a hospital or health centre near you."
+        title={t('facilities.title')}
+        subtitle={t('facilities.subtitle')}
         breadcrumbs={[
-          { label: 'Dashboard', to: '/patient' },
-          { label: 'Hospitals' },
+          { label: t('nav.Dashboard'), to: '/patient' },
+          { label: t('facilities.title') },
         ]}
         actions={
           <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1">
@@ -135,7 +137,7 @@ export const FacilityDiscovery: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search hospital or area..."
+                placeholder={t('facilities.searchPlaceholder')}
                 className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
               />
 
@@ -148,7 +150,7 @@ export const FacilityDiscovery: React.FC = () => {
               onChange={(e) => setSelectedType(e.target.value)}
               className="h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 outline-none focus:border-teal-500"
             >
-              <option value="ALL">All Hospitals</option>
+              <option value="ALL">{t('facilities.allTypes')}</option>
               <option value="DISTRICT_HOSPITAL">
                 District Hospital
               </option>

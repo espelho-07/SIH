@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Mic,
@@ -73,6 +74,7 @@ interface SymptomConfig {
   isEmergency: boolean;
   keywords: string[];
   assistantGujaratiSpeech: string;
+  assistantHindiSpeech: string;
   assistantEnglishAdvice: string;
 }
 
@@ -90,6 +92,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['fracture', 'bone', 'haadku', 'hadku', 'tut', 'bhangyu', 'leg', 'hand', 'fall'],
     assistantGujaratiSpeech:
       'હાડકું કે ફ્રેક્ચર માટે ગાંધીનગર સિવિલ હોસ્પિટલ સૌથી ઉત્તમ છે. ત્યાં 3 ઓર્થોપેડિક સર્જન હાજર છે, ડિજિટલ એક્સ-રે ચાલુ છે અને 48 બેડ ખાલી છે.',
+    assistantHindiSpeech:
+      'हड्डी की चोट या फ्रैक्चर के लिए गांधीनगर सिविल अस्पताल सबसे उपयुक्त है। वहां 3 ऑर्थोपेडिक सर्जन मौजूद हैं, डिजिटल एक्स-रे चालू है और 48 बेड उपलब्ध हैं।',
     assistantEnglishAdvice:
       'For suspected bone fracture, you need an active Orthopedics specialist and Digital X-Ray. Gandhinagar Civil Hospital has 3 Orthopedic surgeons on duty, active X-Ray, and 48 available beds.',
   },
@@ -106,6 +110,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['fever', 'bukhar', 'taav', 'tav', 'sardi', 'khasi', 'cold', 'body pain', 'shardi'],
     assistantGujaratiSpeech:
       'તાવ અને શરદી માટે જનરલ મેડિસિન OPD ખુલ્લી છે. ગાંધીનગર સિવિલ હોસ્પિટલમાં 5 ડોક્ટર હાજર છે અને અંદાજે વેઇટિંગ ટાઈમ માત્ર 20 મિનિટ છે.',
+    assistantHindiSpeech:
+      'बुखार और सर्दी के लिए जनरल मेडिसिन ओपीडी खुली है। गांधीनगर सिविल अस्पताल में 5 डॉक्टर मौजूद हैं और अनुमानित प्रतीक्षा समय केवल 20 मिनट है।',
     assistantEnglishAdvice:
       'General Medicine OPD is active. Gandhinagar Civil Hospital has 5 general physicians on duty with approximately 20 mins wait time.',
   },
@@ -122,6 +128,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['chest', 'heart', 'dil', 'chhati', 'cardiac', 'attack', 'pain', 'pressure', 'breath'],
     assistantGujaratiSpeech:
       'છાતીમાં દુખાવો ગંભીર ઈમરજન્સી હોઈ શકે છે! ગાંધીનગર સિવિલ હોસ્પિટલમાં 24x7 ઈમરજન્સી, 2 કાર્ડિયોલોજિસ્ટ અને 6 ICU બેડ ઉપલબ્ધ છે. તરત પહોંચો અથવા 108 પર કૉલ કરો!',
+    assistantHindiSpeech:
+      'सीने में दर्द एक गंभीर आपातकाल हो सकता है! गांधीनगर सिविल अस्पताल में 24x7 आपातकालीन सेवा, 2 हृदय रोग विशेषज्ञ और 6 आईसीयू बेड उपलब्ध हैं। तुरंत पहुंचे या 108 पर कॉल करें!',
     assistantEnglishAdvice:
       'Chest pain is a high medical emergency! Gandhinagar Civil Hospital has 24x7 Emergency, 2 on-duty cardiologists, and 6 ICU beds ready. Call 108 or proceed immediately!',
   },
@@ -138,6 +146,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['delivery', 'pregnant', 'pregnancy', 'prasuti', 'labor', 'delivery pain', 'gynae', 'balka'],
     assistantGujaratiSpeech:
       'પ્રસુતિ અને ડિલિવરી માટે ગાંધીનગર સિવિલ હોસ્પિટલનું મેટરનિટી યુનિટ તૈયાર છે. સ્પેશિયાલિસ્ટ ડોક્ટર્સ હાજર છે અને 48 જનરલ બેડ ઉપલબ્ધ છે.',
+    assistantHindiSpeech:
+      'प्रसव और डिलीवरी के लिए गांधीनगर सिविल अस्पताल की प्रसूति इकाई पूरी तरह तैयार है। विशेषज्ञ डॉक्टर मौजूद हैं और 48 जनरल बेड उपलब्ध हैं।',
     assistantEnglishAdvice:
       'Maternity & Labor Unit is fully operational. Civil Hospital has specialist gynecologists on call and 48 available general beds.',
   },
@@ -154,6 +164,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['accident', 'injury', 'chot', 'eja', 'trauma', 'khoon', 'blood', 'head', 'road'],
     assistantGujaratiSpeech:
       'અકસ્માત અને ઈજા માટે સિવિલ હોસ્પિટલનું 24x7 ટ્રોમા સેન્ટર ખુલ્લું છે. બ્લડ બેંક, સીટી સ્કેન અને 6 ICU બેડ તૈયાર છે.',
+    assistantHindiSpeech:
+      'दुर्घटना और चोट के लिए सिविल अस्पताल का 24x7 ट्रॉमा सेंटर खुला है। ब्लड बैंक, सीटी स्कैन और 6 आईसीयू बेड तैयार हैं।',
     assistantEnglishAdvice:
       '24x7 Emergency Trauma Center is active at Civil Hospital with on-site CT scan, operational Blood Bank, and 6 available ICU beds.',
   },
@@ -170,6 +182,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['child', 'baby', 'balak', 'bacha', 'pediatric', 'infant', 'kid'],
     assistantGujaratiSpeech:
       'બાળકની સારવાર માટે પીડિયાટ્રિક્સ OPD ચાલુ છે. ગાંધીનગર સિવિલ હોસ્પિટલમાં 4 બાળ રોગ નિષ્ણાત ડોક્ટર હાજર છે (વેઇટિંગ સમય: 15 મિનિટ).',
+    assistantHindiSpeech:
+      'बच्चों के इलाज के लिए बाल रोग ओपीडी चालू है। गांधीनगर सिविल अस्पताल में 4 बाल रोग विशेषज्ञ डॉक्टर मौजूद हैं (प्रतीक्षा समय: 15 मिनट)।',
     assistantEnglishAdvice:
       'Pediatrics OPD is active. Gandhinagar Civil Hospital has 4 child specialists on duty with 15 mins estimated wait time.',
   },
@@ -186,6 +200,10 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
   onClose,
   defaultTab = 'ASSISTANT',
 }) => {
+  const { i18n, t } = useTranslation();
+  const currentLang = i18n.language || 'en';
+  const speechLang = currentLang === 'hi' ? 'hi-IN' : currentLang === 'gu' ? 'gu-IN' : 'en-IN';
+
   const [activeTab, setActiveTab] = useState<'ASSISTANT' | 'STORES' | 'TRIAGE'>(defaultTab);
   const [selectedSymptom, setSelectedSymptom] = useState<SymptomType>('FRACTURE');
   const [isListening, setIsListening] = useState(false);
@@ -206,7 +224,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
       const recognition = new SpeechRecognition() as SpeechRecognitionInstance;
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'gu-IN'; // Default to Gujarati, also catches Hindi/English phonetics
+      recognition.lang = speechLang;
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -240,7 +258,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [speechLang]);
 
   // Speak assistant recommendation in Gujarati/Hindi/English
   const speakVoice = (text: string) => {
@@ -250,7 +268,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.92;
       utterance.pitch = 1.0;
-      utterance.lang = 'gu-IN'; // Browser will fallback gracefully if gu-IN not installed
+      utterance.lang = speechLang;
       window.speechSynthesis.speak(utterance);
     } catch {
       // Ignore speech synthesis errors gracefully
@@ -262,10 +280,15 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
     if (isOpen && activeTab === 'ASSISTANT') {
       const config = SYMPTOM_CONFIGS[selectedSymptom];
       if (config) {
-        speakVoice(config.assistantGujaratiSpeech);
+        const speechText = currentLang === 'hi'
+          ? config.assistantHindiSpeech
+          : currentLang === 'gu'
+          ? config.assistantGujaratiSpeech
+          : config.assistantEnglishAdvice;
+        speakVoice(speechText);
       }
     }
-  }, [selectedSymptom, isOpen, activeTab, isVoiceMuted]);
+  }, [selectedSymptom, isOpen, activeTab, isVoiceMuted, currentLang]);
 
   // Handle voice mic toggle
   const toggleListening = () => {

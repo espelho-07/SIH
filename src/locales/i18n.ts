@@ -44,7 +44,24 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
+  react: {
+    useSuspense: false,
+  },
 });
+
+// Sync HTML lang attribute for accessibility
+if (typeof document !== 'undefined') {
+  document.documentElement.lang = savedLanguage;
+}
+
+// Development warning for missing translation keys
+if (import.meta.env?.DEV) {
+  i18n.on('missingKey', (lngs, namespace, key) => {
+    console.warn(
+      `[HealthConnect i18n] Missing key: "${key}" for language: ${Array.isArray(lngs) ? lngs.join(', ') : lngs}`
+    );
+  });
+}
 
 // Clean up any lingering Google Translate cookies from previous sessions
 if (typeof document !== 'undefined') {
@@ -72,6 +89,11 @@ export const changeAppLanguage = (langCode: string) => {
   // Update i18next language
   i18n.changeLanguage(validCode);
 
+  // Update document lang for a11y
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = validCode;
+  }
+
   // Dispatch custom window event so any non-react listeners can react
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
@@ -81,5 +103,6 @@ export const changeAppLanguage = (langCode: string) => {
 };
 
 export default i18n;
+
 
 
