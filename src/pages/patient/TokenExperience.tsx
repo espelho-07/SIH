@@ -3,9 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useSocket } from '@/contexts/SocketContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
-import { tokenApi } from '@/api/queueApi';
 import { INITIAL_LIVE_QUEUE } from '@/mock/mockData';
 import { Token } from '@/types/queue';
 import { Link } from 'react-router-dom';
@@ -17,7 +15,6 @@ import {
   BellRing,
   Navigation,
   CheckCircle2,
-  PlusCircle,
   Users,
   MapPin,
   QrCode,
@@ -109,7 +106,6 @@ const MOCK_PAST_TOKENS: PastToken[] = [
 
 export const TokenExperience: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const { activeMember } = useFamily();
   const { simulateCallToken } = useSocket();
 
@@ -119,34 +115,10 @@ export const TokenExperience: React.FC = () => {
     ) || INITIAL_LIVE_QUEUE.tokens[3]
   );
 
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showNewTokenForm, setShowNewTokenForm] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPastTokens, setShowPastTokens] = useState(false);
   const [activePastFilter, setActivePastFilter] = useState<'ALL' | 'THIS_MONTH'>('ALL');
-
-  const [dept, setDept] = useState('dep_med');
-  const [facilityId, setFacilityId] = useState('fac_civil_01');
-
-  const handleGenerateToken = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsGenerating(true);
-
-    try {
-      const res = await tokenApi.generateToken({
-        patientName: activeMember?.name || user?.name || 'Rameshwar Sharma',
-        patientPhone: activeMember?.phone || user?.phone || '9876543210',
-        facilityId,
-        departmentId: dept,
-      });
-
-      setToken(res.data);
-      setShowNewTokenForm(false);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -195,91 +167,8 @@ export const TokenExperience: React.FC = () => {
             <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-teal-600' : 'text-slate-400'}`} />
             Refresh
           </Button>
-
-          <Button
-            onClick={() => setShowNewTokenForm(!showNewTokenForm)}
-            size="sm"
-            className="text-xs h-7 px-3 gap-1 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer shadow-xs"
-          >
-            <PlusCircle className="h-3.5 w-3.5" />
-            {t('tokens.bookNew')}
-          </Button>
         </div>
       </div>
-
-      {/* =====================================================
-          NEW TOKEN FORM (Collapsible)
-      ====================================================== */}
-      {showNewTokenForm && (
-        <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-4 shadow-xs animate-in fade-in duration-150">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <h3 className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
-              <Ticket className="h-3.5 w-3.5 text-teal-700" />
-              Issue New OPD Token for {activeMember?.name || 'Self'}
-            </h3>
-            <button
-              onClick={() => setShowNewTokenForm(false)}
-              className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <form onSubmit={handleGenerateToken} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                Hospital
-              </label>
-              <select
-                value={facilityId}
-                onChange={(e) => setFacilityId(e.target.value)}
-                className="w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-teal-600"
-              >
-                <option value="fac_civil_01">Gandhinagar Civil Hospital</option>
-                <option value="fac_mansa_02">Mansa CHC</option>
-                <option value="fac_kalol_03">Kalol SDH</option>
-                <option value="fac_pet_04">Pethapur PHC</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                Department
-              </label>
-              <select
-                value={dept}
-                onChange={(e) => setDept(e.target.value)}
-                className="w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-teal-600"
-              >
-                <option value="dep_med">General Medicine (Room 4)</option>
-                <option value="dep_card">Cardiology (Room 8)</option>
-                <option value="dep_ortho">Orthopedics (Room 11)</option>
-                <option value="dep_ped">Pediatrics (Room 3)</option>
-              </select>
-            </div>
-
-            <div className="sm:col-span-2 flex justify-end gap-2 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowNewTokenForm(false)}
-                className="text-xs h-7 rounded-lg"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                isLoading={isGenerating}
-                className="bg-teal-700 hover:bg-teal-800 text-white text-xs h-7 rounded-lg px-3"
-              >
-                Generate Token
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* =====================================================
           MAIN LIVE QUEUE & ACTIVE TOKEN DISPLAY CARD
