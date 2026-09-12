@@ -81,18 +81,18 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           </button>
 
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00838F] text-white shadow-sm group-hover:bg-[#006E78] transition-colors">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2B6CB0] text-white shadow-sm group-hover:bg-[#20548A] transition-colors">
               <HeartPulse className="h-6 w-6" />
             </div>
             <div className="text-left hidden sm:block">
-              <span className="block text-base font-black tracking-tight text-[#1B365D] leading-tight">
+              <span className="block text-base font-black tracking-tight text-slate-900 leading-tight">
                 {t('navbar.brandTitle', 'HEALTHCONNECT')}
               </span>
-              <span className="block text-[11px] font-bold text-[#00838F] leading-none">
+              <span className="block text-[11px] font-medium text-slate-500 leading-none">
                 {t('navbar.brandSubtitle', 'Public Healthcare Access & Care Continuity')}
               </span>
             </div>
-            <span className="font-bold text-base text-[#1B365D] sm:hidden">
+            <span className="font-bold text-base text-slate-900 sm:hidden">
               {t('navbar.brandTitle', 'HealthConnect')}
             </span>
           </Link>
