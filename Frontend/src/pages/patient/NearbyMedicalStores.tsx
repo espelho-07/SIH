@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_MEDICAL_STORES } from '@/mock/medicalStoresData';
+import { pharmacyApi } from '@/api/pharmacyApi';
 import {
   Search,
   Pill,
@@ -35,6 +36,13 @@ export const NearbyMedicalStores: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'JAN_AUSHADHI' | '24X7'>('ALL');
+  const [liveMedicines, setLiveMedicines] = useState<any[]>([]);
+
+  useEffect(() => {
+    pharmacyApi.getInventory().then((res) => {
+      if (res.data && res.data.length > 0) setLiveMedicines(res.data);
+    }).catch(console.warn);
+  }, []);
 
   // Filtered Stores: STRICTLY SHOW ONLY CURRENTLY OPEN STORES
   const filteredStores = useMemo(() => {

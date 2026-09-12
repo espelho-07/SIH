@@ -10,10 +10,11 @@ import {
   INITIAL_REFERRALS,
 } from '@/mock/mockData';
 import { facilityApi } from '@/api/facilityApi';
-import { queueApi } from '@/api/queueApi';
+import { queueApi, appointmentApi } from '@/api/queueApi';
 import { referralApi } from '@/api/referralApi';
+import { clinicalApi } from '@/api/clinicalApi';
 import { Facility } from '@/types/facility';
-import { Token, LiveQueueState } from '@/types/queue';
+import { Token, LiveQueueState, Appointment } from '@/types/queue';
 import { Referral } from '@/types/referral';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -61,6 +62,7 @@ export const PatientDashboard: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [liveQueue, setLiveQueue] = useState<LiveQueueState>(INITIAL_LIVE_QUEUE);
   const [referrals, setReferrals] = useState<Referral[]>(INITIAL_REFERRALS);
+  const [patientAppointments, setPatientAppointments] = useState<Appointment[]>([]);
   const [mapNearestOnly, setMapNearestOnly] = useState<boolean>(true);
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [nearestHospitalInfo, setNearestHospitalInfo] = useState<{ facility: Facility; distanceKm: number } | null>(null);
@@ -77,7 +79,11 @@ export const PatientDashboard: React.FC = () => {
     referralApi.getAll().then((res) => {
       if (res.data && res.data.length > 0) setReferrals(res.data);
     }).catch(console.warn);
-  }, []);
+
+    appointmentApi.getAll(activeMember?.id).then((res) => {
+      if (res.data && res.data.length > 0) setPatientAppointments(res.data);
+    }).catch(console.warn);
+  }, [activeMember?.id]);
 
   const handleLocatePatient = async () => {
     setIsLocating(true);

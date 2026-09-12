@@ -29,13 +29,33 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
+import { clinicalApi } from '@/api/clinicalApi';
+import { useFamily } from '@/contexts/FamilyContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Prescription, DiagnosticOrder } from '@/types/clinical';
+
 export const HealthRecordView: React.FC = () => {
   const { t } = useTranslation();
+  const { activeMember } = useFamily();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<
     'TIMELINE' | 'PRESCRIPTIONS' | 'DIAGNOSTICS'
   >('TIMELINE');
 
   const [expandedId, setExpandedId] = useState<string | null>('tl_01');
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>(INITIAL_PRESCRIPTIONS);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticOrder[]>(INITIAL_DIAGNOSTIC_ORDERS);
+
+  useEffect(() => {
+    const patientId = activeMember?.id || user?.id || 'usr_pat_01';
+    clinicalApi.getPrescriptions(patientId).then((res) => {
+      if (res.data && res.data.length > 0) setPrescriptions(res.data);
+    }).catch(console.warn);
+
+    clinicalApi.getDiagnosticOrders(patientId).then((res) => {
+      if (res.data && res.data.length > 0) setDiagnostics(res.data);
+    }).catch(console.warn);
+  }, [activeMember?.id, user?.id]);
 
   const record = INITIAL_HEALTH_RECORD;
 

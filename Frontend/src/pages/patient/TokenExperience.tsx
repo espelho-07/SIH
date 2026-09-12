@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -6,6 +6,7 @@ import { useSocket } from '@/contexts/SocketContext';
 import { useFamily } from '@/contexts/FamilyContext';
 import { INITIAL_LIVE_QUEUE } from '@/mock/mockData';
 import { Token } from '@/types/queue';
+import { queueApi } from '@/api/queueApi';
 import { Link } from 'react-router-dom';
 import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import {
@@ -120,9 +121,26 @@ export const TokenExperience: React.FC = () => {
   const [showPastTokens, setShowPastTokens] = useState(false);
   const [activePastFilter, setActivePastFilter] = useState<'ALL' | 'THIS_MONTH'>('ALL');
 
-  const handleRefresh = () => {
+  const fetchLiveQueue = () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 500);
+    queueApi.getLiveQueue('fac_civil_01').then((res) => {
+      if (res.data?.tokens && res.data.tokens.length > 0) {
+        const matched = res.data.tokens.find(
+          (t) => t.patientId === activeMember?.id || t.patientPhone === activeMember?.phone
+        ) || res.data.tokens[0];
+        if (matched) setToken(matched);
+      }
+    }).catch(console.warn).finally(() => {
+      setTimeout(() => setIsRefreshing(false), 400);
+    });
+  };
+
+  useEffect(() => {
+    fetchLiveQueue();
+  }, [activeMember?.id]);
+
+  const handleRefresh = () => {
+    fetchLiveQueue();
   };
 
   const filteredPastTokens = activePastFilter === 'ALL'

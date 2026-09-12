@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
 import { appointmentApi } from '@/api/queueApi';
+import { facilityApi } from '@/api/facilityApi';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
@@ -177,6 +178,29 @@ export const AppointmentBooking: React.FC = () => {
   const [isBooked, setIsBooked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [bookedRecord, setBookedRecord] = useState<AppointmentRecord | null>(null);
+
+  useEffect(() => {
+    appointmentApi.getAll(activeMember?.id).then((res) => {
+      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+        const liveMapped: AppointmentRecord[] = res.data.map((apt: any) => ({
+          id: apt.id,
+          tokenNumber: apt.tokenNumber ? `OPD-${apt.tokenNumber}` : 'OPD-28',
+          hospitalName: apt.facilityName || 'Gandhinagar Civil Hospital',
+          department: apt.departmentName || apt.specialty || 'General Medicine',
+          room: apt.roomNumber || 'Room 4 (1st Floor)',
+          doctorName: apt.doctorName || 'Dr. Arvind Patel (MD Medicine)',
+          patientName: apt.patientName || activeMember?.name || 'Govindbhai Patel',
+          patientPhone: apt.patientPhone || activeMember?.phone || '9825011122',
+          disease: apt.reasonForVisit || apt.specialty || 'General Consultation',
+          date: apt.date || '2026-09-14',
+          timeSlot: apt.timeSlot || '10:30 AM',
+          status: apt.status === 'COMPLETED' ? 'COMPLETED' : apt.status === 'CANCELLED' ? 'CANCELLED' : 'CONFIRMED',
+          bookingDate: apt.createdAt ? apt.createdAt.split('T')[0] : '2026-09-12',
+        }));
+        setAppointments(liveMapped);
+      }
+    }).catch(console.warn);
+  }, [activeMember?.id]);
 
   useEffect(() => {
     if (currentLang === 'gu') setVoiceLang('gu-IN');
