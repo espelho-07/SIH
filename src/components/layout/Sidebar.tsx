@@ -214,12 +214,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             icon: CalendarCheck2,
             color: 'text-emerald-600 bg-emerald-50',
           },
-          {
-            to: '/profile',
-            label: 'Doctor Profile',
-            icon: UserCheck,
-            color: 'text-teal-600 bg-teal-50',
-          },
         ];
 
       // ==================================================
@@ -452,13 +446,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: 'Referrals',
             icon: GitBranch,
             color: 'text-indigo-600 bg-indigo-50',
-            section: 'Facilities & Care',
-          },
-          {
-            to: '/district/operations',
-            label: 'Queues & OPD',
-            icon: Ticket,
-            color: 'text-orange-600 bg-orange-50',
             section: 'Facilities & Care',
           },
 

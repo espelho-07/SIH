@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -366,7 +366,18 @@ export const UserProfilePage: React.FC = () => {
     return matchingLeave;
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const handleCalendarDateClick = (dateStr: string) => {
+    if (dateStr > todayStr) {
+      setLeaveStartDate(dateStr);
+      setLeaveEndDate(dateStr);
+      setShowLeaveModal(true);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
@@ -1058,7 +1069,10 @@ export const UserProfilePage: React.FC = () => {
                   </Button>
                 </div>
 
-                <div className="flex items-center gap-3 text-[11px] font-semibold">
+                <div className="flex items-center gap-2 sm:gap-3 text-[11px] font-semibold flex-wrap">
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                    <Plus className="h-3 w-3" /> Click any date after today to apply leave
+                  </span>
                   <span className="flex items-center gap-1.5 text-emerald-800">
                     <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                     OPD Active
@@ -1094,20 +1108,35 @@ export const UserProfilePage: React.FC = () => {
                     const dayNumber = i + 1;
                     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
                     const isToday = dateStr === todayStr;
+                    const isFuture = dateStr > todayStr;
                     const dayLeave = getDayLeaveInfo(dayNumber);
                     const isSunday = (firstDayIndex + i) % 7 === 0;
 
                     return (
                       <div
                         key={dayNumber}
-                        className={`h-20 p-1.5 rounded-xl border transition-all flex flex-col justify-between text-left ${
+                        onClick={() => {
+                          if (isFuture) {
+                            handleCalendarDateClick(dateStr);
+                          }
+                        }}
+                        title={
+                          isFuture
+                            ? `Click to declare leave starting ${dateStr}`
+                            : isToday
+                            ? `Today (${dateStr})`
+                            : `Past date (${dateStr})`
+                        }
+                        className={`h-20 p-1.5 rounded-xl border transition-all flex flex-col justify-between text-left select-none ${
                           dayLeave
-                            ? 'bg-rose-50/90 border-rose-300 ring-1 ring-rose-200'
+                            ? 'bg-rose-50/90 border-rose-300 ring-1 ring-rose-200 cursor-pointer hover:border-rose-400'
                             : isToday
                             ? 'bg-teal-50/90 border-teal-400 ring-2 ring-teal-200'
+                            : isFuture
+                            ? 'bg-white border-slate-200 hover:border-teal-500 hover:ring-2 hover:ring-teal-200 hover:bg-teal-50/50 hover:shadow-xs cursor-pointer group'
                             : isSunday
-                            ? 'bg-slate-50 border-slate-200 text-slate-400'
-                            : 'bg-white border-slate-200 hover:border-teal-300 hover:shadow-xs'
+                            ? 'bg-slate-50 border-slate-200 text-slate-400 opacity-70'
+                            : 'bg-slate-50/60 border-slate-200 text-slate-400 opacity-60'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -1117,7 +1146,9 @@ export const UserProfilePage: React.FC = () => {
                                 ? 'h-5 w-5 rounded-full bg-teal-800 text-white flex items-center justify-center'
                                 : dayLeave
                                 ? 'text-rose-900'
-                                : 'text-slate-800'
+                                : isFuture
+                                ? 'text-slate-800 group-hover:text-teal-700'
+                                : 'text-slate-500'
                             }`}
                           >
                             {dayNumber}
@@ -1125,6 +1156,11 @@ export const UserProfilePage: React.FC = () => {
                           {isToday && (
                             <span className="text-[9px] font-bold text-teal-800 uppercase">
                               Today
+                            </span>
+                          )}
+                          {isFuture && !dayLeave && (
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-extrabold text-teal-700 bg-teal-100 px-1 py-0.5 rounded">
+                              + Leave
                             </span>
                           )}
                         </div>
@@ -1139,7 +1175,13 @@ export const UserProfilePage: React.FC = () => {
                         ) : isSunday ? (
                           <span className="text-[9px] font-medium text-slate-400">Weekly Off</span>
                         ) : (
-                          <div className="bg-emerald-50 text-emerald-800 p-0.5 rounded text-[9px] font-semibold truncate border border-emerald-200/60">
+                          <div
+                            className={`p-0.5 rounded text-[9px] font-semibold truncate border ${
+                              isFuture
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200/60 group-hover:border-teal-300 group-hover:bg-white'
+                                : 'bg-slate-100 text-slate-500 border-slate-200'
+                            }`}
+                          >
                             🩺 OPD 9-1
                           </div>
                         )}

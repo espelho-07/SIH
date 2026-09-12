@@ -88,7 +88,6 @@ import { DistrictCommandDashboard } from '@/pages/district/DistrictCommandDashbo
 import { DistrictFacilitiesPage } from '@/pages/district/DistrictFacilitiesPage';
 import { DistrictFacilityDetailPage } from '@/pages/district/DistrictFacilityDetailPage';
 import { DistrictDoctorsPage } from '@/pages/district/DistrictDoctorsPage';
-import { DistrictOperationsPage } from '@/pages/district/DistrictOperationsPage';
 import { DistrictResourcesPage } from '@/pages/district/DistrictResourcesPage';
 import { DistrictMedicinesPage } from '@/pages/district/DistrictMedicinesPage';
 import { DistrictBloodPage } from '@/pages/district/DistrictBloodPage';
@@ -903,13 +902,7 @@ export const AppRoutes: React.FC = () => {
       />
       <Route
         path="/district/operations"
-        element={
-          <ProtectedRoute allowedRoles={['DISTRICT_ADMIN']}>
-            <AppShell>
-              <DistrictOperationsPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/district" replace />}
       />
       <Route
         path="/district/resources"
@@ -1034,7 +1027,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/district-admin/facilities/:id" element={<Navigate to="/district/facilities/:id" replace />} />
       <Route path="/district-admin/doctors" element={<Navigate to="/district/doctors" replace />} />
       <Route path="/district-admin/referrals" element={<Navigate to="/district/referrals" replace />} />
-      <Route path="/district-admin/operations" element={<Navigate to="/district/operations" replace />} />
+      <Route path="/district-admin/operations" element={<Navigate to="/district" replace />} />
       <Route path="/district-admin/resources" element={<Navigate to="/district/resources" replace />} />
       <Route path="/district-admin/medicines" element={<Navigate to="/district/medicines" replace />} />
       <Route path="/district-admin/blood" element={<Navigate to="/district/blood" replace />} />
