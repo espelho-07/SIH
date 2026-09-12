@@ -40,8 +40,7 @@
     "systemHealth": "System Health",
     "settings": "Settings",
     "logout": "Sign Out",
-    "login": "Sign In",
-    "Dashboard": "Dashboard"
+    "login": "Sign In"
   },
   "status": {
     "online": "ONLINE",
@@ -54,8 +53,7 @@
     "verified": "Govt. Verified",
     "normal": "Normal",
     "warning": "Warning",
-    "critical": "Critical",
-    "offlineNotice": "Offline - changes stored locally"
+    "critical": "Critical"
   },
   "common": {
     "search": "Search...",
@@ -80,9 +78,7 @@
     "status": "Status",
     "priority": "Priority",
     "distance": "Distance",
-    "all": "All",
-    "kmAway": "km away",
-    "queued": "Queued"
+    "all": "All"
   },
   "roles": {
     "PATIENT": "Patient / Citizen",
@@ -136,8 +132,7 @@
     "findHospital": "Find Hospital",
     "viewHospital": "View Hospital",
     "beds": "beds",
-    "icu": "ICU",
-    "notFixedYet": "Not fixed yet"
+    "icu": "ICU"
   },
   "asha": {
     "assignedPatients": "Assigned Citizens",
@@ -342,9 +337,7 @@
     "noAppointments": "No previous appointments found",
     "room": "Room",
     "experience": "Experience",
-    "opdDays": "OPD Days",
-    "myAppointments": "My Appointments",
-    "selectTimeSlot": "Select Time Slot"
+    "opdDays": "OPD Days"
   },
   "referrals": {
     "title": "My Referrals",
@@ -363,10 +356,7 @@
     "fromFacility": "Referred From",
     "toFacility": "Referred To",
     "viewReferral": "View Referral",
-    "noReferrals": "No referrals found",
-    "department": "Clinical Department",
-    "instructions": "Special Instructions",
-    "history": "Referral History"
+    "noReferrals": "No referrals found"
   },
   "records": {
     "title": "My Health Records",
@@ -399,10 +389,7 @@
     "kmAway": "km away",
     "viewHospital": "View Hospital",
     "call": "Call",
-    "directions": "Directions",
-    "title": "Nearby Health Facilities",
-    "subtitle": "Search and discover public hospitals, CHCs, and PHCs with live bed status.",
-    "allTypes": "All Facility Types"
+    "directions": "Directions"
   },
   "tokens": {
     "title": "Live Queue & Token Status",
@@ -414,9 +401,7 @@
     "waitTime": "Estimated Wait",
     "turnNotice": "Your turn is getting closer",
     "pastTokens": "Past Consultation Tokens",
-    "liveQueue": "Live Queue",
-    "bookNew": "Generate Digital Token",
-    "history": "Queue History"
+    "liveQueue": "Live Queue"
   },
   "assistant": {
     "voiceTriage": "AI Voice Triage",
@@ -432,30 +417,5 @@
     "symptomPregnancy": "Delivery / Maternity",
     "symptomAccident": "Accident / Trauma",
     "symptomChild": "Child Sick / Pediatric"
-  },
-  "stores": {
-    "title": "Nearby Medical Stores & Jan Aushadhi Kendras",
-    "subtitle": "Find open pharmacies near you, check medicine stock, and call stores directly.",
-    "listView": "List View",
-    "mapView": "Map View",
-    "openStoresOnly": "Showing currently open stores only",
-    "janAushadhiPriority": "Government Jan Aushadhi Kendras (up to 80% lower prices) are prioritized",
-    "searchPlaceholder": "Search medicine name or area (e.g. Paracetamol, Pantoprazole, Metformin)...",
-    "popularMedicines": "Popular Medicines:",
-    "checkRxButton": "Check My Prescribed Medicines",
-    "janAushadhiFilter": "Jan Aushadhi Only",
-    "allStoresFilter": "All Pharmacies",
-    "emergencyFilter": "24x7 Open",
-    "reserveMedicine": "Reserve at Store",
-    "callChemist": "Call Chemist",
-    "getDirections": "Directions",
-    "genericAvailable": "Generic Equivalent Available",
-    "savingsUpTo": "Save up to {{percent}}%",
-    "stockInHand": "In Stock",
-    "stockUnits": "{{count}} units",
-    "outOfStock": "Out of Stock",
-    "reservationSuccess": "Medicine Reserved Successfully!",
-    "reservationCode": "Pickup Code: {{code}}",
-    "reservationNotice": "Please present this code at the pharmacy counter to collect your medicines."
   }
 }

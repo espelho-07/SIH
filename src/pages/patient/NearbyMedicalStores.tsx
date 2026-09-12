@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -43,7 +42,6 @@ const POPULAR_MEDICINES = [
 ];
 
 export const NearbyMedicalStores: React.FC = () => {
-  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'JAN_AUSHADHI' | '24X7'>('ALL');
   const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('LIST');
@@ -294,11 +292,11 @@ export const NearbyMedicalStores: React.FC = () => {
       {/* PAGE HEADER */}
       {/* ================================================== */}
       <PageHeader
-        title={t('stores.title', 'Nearby Medical Stores & Jan Aushadhi Kendras')}
-        subtitle={t('stores.subtitle', 'Find open pharmacies near you, check medicine stock, and call stores directly.')}
+        title="Nearby Medical Stores & Jan Aushadhi Kendras"
+        subtitle="Find open pharmacies near you, check medicine stock, and call stores directly."
         breadcrumbs={[
-          { label: t('nav.Dashboard', 'Dashboard'), to: '/patient' },
-          { label: t('navMap.Medical Stores', 'Medical Stores') },
+          { label: 'Dashboard', to: '/patient' },
+          { label: 'Medical Stores' },
         ]}
         actions={
           <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-2xs">
@@ -312,7 +310,7 @@ export const NearbyMedicalStores: React.FC = () => {
               }`}
             >
               <List className="h-3.5 w-3.5" />
-              <span>{t('stores.listView', 'List View')}</span>
+              <span>List View</span>
             </button>
             <button
               type="button"
@@ -324,7 +322,7 @@ export const NearbyMedicalStores: React.FC = () => {
               }`}
             >
               <MapIcon className="h-3.5 w-3.5" />
-              <span>{t('stores.mapView', 'Map View')}</span>
+              <span>Map View</span>
             </button>
           </div>
         }
@@ -337,12 +335,12 @@ export const NearbyMedicalStores: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
           <span className="font-bold">
-            {t('stores.openStoresOnly', 'Showing currently open stores only')}
+            Showing currently open stores only
           </span>
         </div>
         <div className="flex items-center gap-1 text-emerald-800 text-[11px] font-semibold">
           <Building2 className="h-3.5 w-3.5 text-teal-700" />
-          <span>{t('stores.janAushadhiPriority', 'Government Jan Aushadhi Kendras (up to 80% lower prices) are prioritized')}</span>
+          <span>Government Jan Aushadhi Kendras (up to 80% lower prices) are prioritized</span>
         </div>
       </div>
 
@@ -359,7 +357,7 @@ export const NearbyMedicalStores: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('stores.searchPlaceholder', 'Search medicine name or area (e.g. Paracetamol, Pantoprazole, Metformin)...')}
+                placeholder="Search medicine name or area (e.g. Paracetamol, Pantoprazole, Metformin)..."
                 className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-teal-600 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 font-medium"
               />
               {searchQuery && (
@@ -380,7 +378,7 @@ export const NearbyMedicalStores: React.FC = () => {
               className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs"
             >
               <FileText className="h-4 w-4 text-emerald-200" />
-              <span>📋 {t('stores.checkRxButton', 'Check from My Prescription')}</span>
+              <span>📋 Check from My Prescription</span>
             </button>
           </div>
 
@@ -388,7 +386,7 @@ export const NearbyMedicalStores: React.FC = () => {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
             <span className="text-xs font-bold text-slate-600 shrink-0 flex items-center gap-1">
               <Pill className="h-3.5 w-3.5 text-teal-700" />
-              {t('stores.popularMedicines', 'Common Medicines:')}
+              Common Medicines:
             </span>
             {POPULAR_MEDICINES.map((item, i) => (
               <button
@@ -433,7 +431,7 @@ export const NearbyMedicalStores: React.FC = () => {
                 onClick={() => setActivePrescriptionFilter(false)}
                 className="text-emerald-800 hover:text-emerald-950 font-bold underline shrink-0 cursor-pointer"
               >
-                {t('common.clear', 'Clear Filter')}
+                Clear Filter
               </button>
             </div>
           )}
@@ -441,7 +439,7 @@ export const NearbyMedicalStores: React.FC = () => {
           {/* Clean Simple Filter Buttons */}
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-slate-500 font-semibold mr-1">{t('common.filter', 'Filter')}:</span>
+              <span className="text-slate-500 font-semibold mr-1">Filter:</span>
               <button
                 type="button"
                 onClick={() => setSelectedFilter('ALL')}
@@ -451,7 +449,7 @@ export const NearbyMedicalStores: React.FC = () => {
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                {t('stores.allStoresFilter', 'All Open Stores')} ({filteredStores.length})
+                All Open Stores ({filteredStores.length})
               </button>
               <button
                 type="button"
@@ -462,7 +460,7 @@ export const NearbyMedicalStores: React.FC = () => {
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                🏛️ {t('stores.janAushadhiFilter', 'Jan Aushadhi (Govt)')}
+                🏛️ Jan Aushadhi (Govt)
               </button>
               <button
                 type="button"
@@ -473,7 +471,7 @@ export const NearbyMedicalStores: React.FC = () => {
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                ⏰ {t('stores.emergencyFilter', '24x7 Open')}
+                ⏰ 24x7 Open
               </button>
             </div>
 

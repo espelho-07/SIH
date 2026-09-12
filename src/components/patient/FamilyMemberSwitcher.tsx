@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useFamily } from '@/contexts/FamilyContext';
 import { AddFamilyMemberModal } from './AddFamilyMemberModal';
 import { Link } from 'react-router-dom';
@@ -15,7 +14,6 @@ import {
 export const FamilyMemberSwitcher: React.FC<{
   variant?: 'banner' | 'compact' | 'navbar' | 'sidebar';
 }> = ({ variant = 'banner' }) => {
-  const { t } = useTranslation();
   const { members, activeMember, setActiveMemberId } = useFamily();
   const [isOpen, setIsOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -50,10 +48,10 @@ export const FamilyMemberSwitcher: React.FC<{
             </div>
             <div className="text-left hidden sm:block">
               <span className="text-[9px] font-bold uppercase tracking-wider text-teal-700 block leading-none">
-                {t('profile.switchProfile', 'Patient Switcher')}
+                Patient Switcher
               </span>
               <span className="font-extrabold text-xs text-slate-900 flex items-center gap-1 mt-0.5 leading-none">
-                {activeMember.name} <span className="text-teal-700 font-semibold text-[10px]">({activeMember.relation === 'SELF' ? t('profile.self', 'Self') : activeMember.relationLabel.split(' ')[0]})</span>
+                {activeMember.name} <span className="text-teal-700 font-semibold text-[10px]">({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel.split(' ')[0]})</span>
               </span>
             </div>
             <ChevronDown
@@ -78,10 +76,10 @@ export const FamilyMemberSwitcher: React.FC<{
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-teal-200/70 text-teal-900">
-                      {t('profile.active', 'Active')}
+                      Active
                     </span>
                     <span className="text-[10px] font-semibold text-slate-500 truncate">
-                      {activeMember.relation === 'SELF' ? t('profile.self', 'Self') : activeMember.relationLabel}
+                      {activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel}
                     </span>
                   </div>
                   <h4 className="text-xs font-bold text-slate-900 truncate mt-0.5">
@@ -92,7 +90,7 @@ export const FamilyMemberSwitcher: React.FC<{
 
               <div className="flex items-center gap-1 shrink-0 text-teal-700">
                 <span className="text-[10px] font-bold uppercase tracking-wider hidden xl:inline">
-                  {t('profile.switchProfile', 'Switch')}
+                  Switch
                 </span>
                 <ChevronDown
                   className={`h-3.5 w-3.5 transition-transform duration-200 ${
@@ -115,10 +113,10 @@ export const FamilyMemberSwitcher: React.FC<{
             </div>
             <div className="text-left">
               <span className="text-[10px] text-teal-200 block leading-none">
-                {t('profile.activeMember', 'Active Profile')}
+                Active Patient Profile
               </span>
               <span className="font-bold text-xs text-white flex items-center gap-1.5 mt-0.5">
-                {activeMember.name} ({activeMember.relation === 'SELF' ? t('profile.self', 'Self') : activeMember.relationLabel.split(' ')[0]})
+                {activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel.split(' ')[0]})
               </span>
             </div>
             <ChevronDown
@@ -156,14 +154,14 @@ export const FamilyMemberSwitcher: React.FC<{
           >
             <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                {t('profile.switchProfile', 'Switch Household Member')} ({members.length})
+                Switch Household Member ({members.length})
               </span>
               <Link
                 to="/patient/profile"
                 onClick={() => setIsOpen(false)}
                 className="text-[10px] font-bold text-teal-700 hover:text-teal-900 flex items-center gap-0.5"
               >
-                {t('common.viewDetails', 'Manage All')}
+                Manage All
               </Link>
             </div>
 

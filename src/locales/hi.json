@@ -40,8 +40,7 @@
     "systemHealth": "सिस्टम स्वास्थ्य",
     "settings": "सेटिंग्स",
     "logout": "लॉग आउट",
-    "login": "साइन इन",
-    "Dashboard": "डैशबोर्ड"
+    "login": "साइन इन"
   },
   "status": {
     "online": "ऑनलाइन",
@@ -54,8 +53,7 @@
     "verified": "सरकारी सत्यापित",
     "normal": "सामान्य",
     "warning": "चेतावनी",
-    "critical": "गंभीर",
-    "offlineNotice": "ऑफलाइन - बदलाव स्थानीय रूप से सुरक्षित"
+    "critical": "गंभीर"
   },
   "common": {
     "search": "खोजें...",
@@ -80,9 +78,7 @@
     "status": "स्थिति",
     "priority": "प्राथमिकता",
     "distance": "दूरी",
-    "all": "सभी",
-    "kmAway": "किमी दूर",
-    "queued": "कतारबद्ध"
+    "all": "सभी"
   },
   "roles": {
     "PATIENT": "मरीज़ / नागरिक",
@@ -136,8 +132,7 @@
     "findHospital": "अस्पताल खोजें",
     "viewHospital": "अस्पताल देखें",
     "beds": "बिस्तर",
-    "icu": "आईसीयू",
-    "notFixedYet": "अभी निर्धारित नहीं"
+    "icu": "आईसीयू"
   },
   "asha": {
     "assignedPatients": "आवंटित नागरिक",
@@ -342,9 +337,7 @@
     "noAppointments": "कोई पूर्व अपॉइंटमेंट नहीं मिली",
     "room": "कक्ष",
     "experience": "अनुभव",
-    "opdDays": "ओपीडी दिन",
-    "myAppointments": "मेरी नियुक्तियां",
-    "selectTimeSlot": "समय स्लॉट चुनें"
+    "opdDays": "ओपीडी दिन"
   },
   "referrals": {
     "title": "मेरे रेफरल्स",
@@ -363,10 +356,7 @@
     "fromFacility": "रेफर करने वाला केंद्र",
     "toFacility": "रेफर किया गया अस्पताल",
     "viewReferral": "रेफरल देखें",
-    "noReferrals": "कोई रेफरल नहीं मिला",
-    "department": "चिकित्सा विभाग",
-    "instructions": "विशेष निर्देश",
-    "history": "रेफरल इतिहास"
+    "noReferrals": "कोई रेफरल नहीं मिला"
   },
   "records": {
     "title": "स्वास्थ्य रिकॉर्ड (EHR)",
@@ -399,10 +389,7 @@
     "kmAway": "किमी दूर",
     "viewHospital": "अस्पताल देखें",
     "call": "कॉल करें",
-    "directions": "दिशा-निर्देश",
-    "title": "नजदीकी स्वास्थ्य केंद्र",
-    "subtitle": "सरकारी अस्पतालों, सीएचसी और पीएचसी में लाइव बेड और सुविधाएं खोजें।",
-    "allTypes": "सभी प्रकार के केंद्र"
+    "directions": "दिशा-निर्देश"
   },
   "tokens": {
     "title": "लाइव कतार एवं टोकन स्थिति",
@@ -414,9 +401,7 @@
     "waitTime": "अनुमानित समय",
     "turnNotice": "आपकी बारी नजदीक आ रही है",
     "pastTokens": "पिछले टोकन",
-    "liveQueue": "लाइव कतार",
-    "bookNew": "डिजिटल टोकन प्राप्त करें",
-    "history": "कतार इतिहास"
+    "liveQueue": "लाइव कतार"
   },
   "assistant": {
     "voiceTriage": "एआई वॉयस ट्रायज",
@@ -432,30 +417,5 @@
     "symptomPregnancy": "प्रसव / गर्भावस्था",
     "symptomAccident": "दुर्घटना / गंभीर चोट",
     "symptomChild": "बाल रोग / बीमार बच्चा"
-  },
-  "stores": {
-    "title": "नजदीकी मेडिकल स्टोर एवं जन औषधि केंद्र",
-    "subtitle": "अपने पास की खुली दवा दुकानें देखें, दवा स्टॉक जांचें और सीधे संपर्क करें।",
-    "listView": "सूची दृश्य",
-    "mapView": "मानचित्र दृश्य",
-    "openStoresOnly": "केवल खुली दुकानें दिखाई जा रही हैं",
-    "janAushadhiPriority": "प्रधानमंत्री जन औषधि केंद्र (80% तक सस्ती दवाएं) प्राथमिकता पर हैं",
-    "searchPlaceholder": "दवा का नाम या क्षेत्र खोजें (उदा. पैरासिटामोल, पेंटोप्रोजोल)...",
-    "popularMedicines": "लोकप्रिय दवाएं:",
-    "checkRxButton": "मेरे पर्चे की दवाएं जांचें",
-    "janAushadhiFilter": "केवल जन औषधि",
-    "allStoresFilter": "सभी मेडिकल स्टोर",
-    "emergencyFilter": "२४x७ खुले",
-    "reserveMedicine": "स्टोर पर दवा आरक्षित करें",
-    "callChemist": "केमिस्ट को कॉल करें",
-    "getDirections": "दिशा-निर्देश",
-    "genericAvailable": "समान जेनेरिक दवा उपलब्ध",
-    "savingsUpTo": "{{percent}}% तक की बचत",
-    "stockInHand": "उपलब्ध",
-    "stockUnits": "{{count}} यूनिट",
-    "outOfStock": "स्टॉक समाप्त",
-    "reservationSuccess": "दवा सफलतापूर्वक आरक्षित!",
-    "reservationCode": "पिकअप कोड: {{code}}",
-    "reservationNotice": "दवा प्राप्त करने के लिए कृपया यह कोड मेडिकल काउंटर पर दिखाएं।"
   }
 }
