@@ -440,7 +440,7 @@ export const DistrictAdminsTab: React.FC<DistrictAdminsTabProps> = ({
                   <select
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
-                    className="flex min-h-[40px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700"
+                    className="flex min-h-[40px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 cursor-pointer"
                   >
                     {GUJARAT_DISTRICTS.map((d) => (
                       <option key={d} value={d}>

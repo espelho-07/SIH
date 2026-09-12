@@ -367,7 +367,7 @@ export const ExpiryManagementPage: React.FC = () => {
                 <select
                   value={quarantineReason}
                   onChange={(e) => setQuarantineReason(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 shadow-2xs rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 cursor-pointer"
                 >
                   <option value="Near expiry safety hold (<30 days)">Near expiry safety hold (&lt;30 days)</option>
                   <option value="Expired drug - Awaiting disposal">Expired drug - Awaiting disposal</option>

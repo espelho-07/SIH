@@ -308,7 +308,7 @@ export const SuperAdminDashboard: React.FC = () => {
             <select
               value={statewideDistrict}
               onChange={(e) => setStatewideDistrict(e.target.value)}
-              className="bg-slate-900/90 text-white border border-teal-400/40 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-teal-400 cursor-pointer shadow-inner"
+              className="bg-white text-slate-900 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-teal-400 cursor-pointer shadow-2xs"
             >
               <option value="ALL">All Gujarat Districts (Statewide View)</option>
               <option value="Gandhinagar">Gandhinagar District</option>

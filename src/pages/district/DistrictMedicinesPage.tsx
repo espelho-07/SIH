@@ -146,7 +146,7 @@ export const DistrictMedicinesPage: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-hidden"
+              className="px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-semibold shadow-2xs focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">All Stock Statuses</option>
               <option value="ADEQUATE">Adequate Stock Only</option>
@@ -267,7 +267,7 @@ export const DistrictMedicinesPage: React.FC = () => {
                 <select
                   value={selectedDrug}
                   onChange={(e) => setSelectedDrug(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
                   {INITIAL_MEDICINES.map((m) => (
                     <option key={m.id} value={m.medicineName}>
@@ -282,7 +282,7 @@ export const DistrictMedicinesPage: React.FC = () => {
                 <select
                   value={targetFacility}
                   onChange={(e) => setTargetFacility(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
                   <option value="central_warehouse">Gandhinagar District Drug Warehouse</option>
                   {INITIAL_FACILITIES.map((f) => (
@@ -302,12 +302,12 @@ export const DistrictMedicinesPage: React.FC = () => {
                     step="50"
                     value={indentQty}
                     onChange={(e) => setIndentQty(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Procurement Track</label>
-                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700">
+                  <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700">
                     <option>GMSCL Fast-Track (48h)</option>
                     <option>Local Emergency Purchase</option>
                   </select>

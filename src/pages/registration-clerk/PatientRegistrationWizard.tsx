@@ -565,7 +565,7 @@ export const PatientRegistrationWizard: React.FC = () => {
                       <select
                         value={emergencyRelation}
                         onChange={(e) => setEmergencyRelation(e.target.value)}
-                        className="w-full h-9 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-800"
+                        className="w-full h-9 rounded-md border border-slate-300 bg-white shadow-2xs cursor-pointer px-2.5 text-xs text-slate-800"
                       >
                         <option value="Spouse">Spouse</option>
                         <option value="Parent">Parent</option>
@@ -614,7 +614,7 @@ export const PatientRegistrationWizard: React.FC = () => {
                   <select
                     value={departmentId}
                     onChange={(e) => setDepartmentId(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600"
+                    className="w-full h-10 rounded-xl border border-slate-300 bg-white shadow-2xs px-3 text-xs text-slate-900 font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-600"
                   >
                     <option value="dep_med">General Medicine OPD (Room 4 � Dr. Arvind Patel)</option>
                     <option value="dep_cardio">Cardiology Clinic (Room 6 � Dr. Arvind Patel)</option>

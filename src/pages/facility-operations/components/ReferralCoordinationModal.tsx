@@ -707,7 +707,7 @@ export const ReferralCoordinationModal: React.FC<ReferralCoordinationModalProps>
                   <select
                     value={suggestedFacility}
                     onChange={(e) => setSuggestedFacility(e.target.value)}
-                    className="w-full text-xs rounded-xl border border-slate-200 p-2.5 bg-slate-50/50 text-slate-900 font-semibold cursor-pointer"
+                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white text-slate-900 font-semibold cursor-pointer shadow-2xs"
                   >
                     <option value="GMERS Medical College Dharpur-Patan">
                       GMERS Medical College Dharpur-Patan (28 km • 14 ICU Beds Available)

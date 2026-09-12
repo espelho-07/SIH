@@ -338,7 +338,7 @@ export const DistrictDiagnosticsPage: React.FC = () => {
                 <select
                   value={selectedMachine}
                   onChange={(e) => setSelectedMachine(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
                   {INITIAL_EQUIPMENT.map((e) => (
                     <option key={e.id} value={e.name}>
@@ -350,7 +350,7 @@ export const DistrictDiagnosticsPage: React.FC = () => {
 
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Maintenance Type</label>
-                <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700">
+                <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700">
                   <option>Preventive Maintenance (PM)</option>
                   <option>Corrective Repair / Breakdown</option>
                   <option>NABL / AERB Calibration</option>

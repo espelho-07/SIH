@@ -1193,7 +1193,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 <select
                   value={customMedFreq}
                   onChange={(e) => setCustomMedFreq(e.target.value)}
-                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-mono font-bold"
+                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white shadow-2xs cursor-pointer font-mono font-bold"
                 >
                   <option value="1-0-1">1-0-1 (BD)</option>
                   <option value="1-0-0">1-0-0 (OD Morn)</option>
@@ -1207,7 +1207,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 <select
                   value={customMedDuration}
                   onChange={(e) => setCustomMedDuration(e.target.value)}
-                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white shadow-2xs cursor-pointer"
                 >
                   <option value="3 Days">3 Days</option>
                   <option value="5 Days">5 Days</option>
@@ -1221,7 +1221,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 <select
                   value={customMedTiming}
                   onChange={(e) => setCustomMedTiming(e.target.value)}
-                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                  className="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white shadow-2xs cursor-pointer"
                 >
                   <option value="After Food">After Food</option>
                   <option value="Before Breakfast">Before Breakfast</option>
@@ -1331,7 +1331,7 @@ export const PatientClinicalWorkspace: React.FC = () => {
                 <select
                   value={followUpMode}
                   onChange={(e) => setFollowUpMode(e.target.value as any)}
-                  className="text-[11px] font-bold p-1 rounded-lg border border-slate-200 bg-white"
+                  className="text-[11px] font-bold p-1 rounded-lg border border-slate-300 bg-white shadow-2xs cursor-pointer"
                 >
                   <option value="OPD">OPD (Room 4)</option>
                   <option value="TELECONSULT">Teleconsult Video</option>

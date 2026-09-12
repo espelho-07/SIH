@@ -800,7 +800,7 @@ export const TodaysCheckupPage: React.FC = () => {
                 <select
                   value={orderPatientId}
                   onChange={(e) => setOrderPatientId(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white shadow-2xs cursor-pointer"
                 >
                   {INITIAL_ASHA_PATIENTS.map((p) => (
                     <option key={p.id} value={p.id}>

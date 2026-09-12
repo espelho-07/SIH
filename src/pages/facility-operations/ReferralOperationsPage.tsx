@@ -178,7 +178,7 @@ export const ReferralOperationsPage: React.FC = () => {
           <select
             value={facilityScope}
             onChange={(e) => setFacilityScope(e.target.value)}
-            className="text-xs font-semibold rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-700 cursor-pointer shadow-xs focus:ring-2 focus:ring-teal-600 focus:outline-none"
+            className="text-xs font-semibold rounded-xl border border-slate-300 px-3 py-2 bg-white text-slate-700 cursor-pointer shadow-2xs focus:ring-2 focus:ring-teal-600 focus:outline-none"
           >
             <option value="MY_FACILITY">{currentFacilityName} (Active)</option>
             <option value="ALL_FACILITIES">All Gandhinagar Network Facilities</option>

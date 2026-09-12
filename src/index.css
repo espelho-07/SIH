@@ -191,4 +191,82 @@ body {
   pointer-events: none !important;
 }
 
+/* ==========================================================================
+   PURE WHITE DROPDOWN UI (SYSTEM-WIDE)
+   ========================================================================== */
+
+/* All select dropdown inputs across the platform */
+select,
+.select-pure-white {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 0.75rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1.15em 1.15em !important;
+  padding-right: 2.25rem !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: #94a3b8 !important;
+  background-color: #ffffff !important;
+}
+
+select:focus,
+select:focus-visible {
+  border-color: #2b6cb0 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.18) !important;
+  background-color: #ffffff !important;
+}
+
+select:disabled {
+  background-color: #f8fafc !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Dropdown Options Popup (Windows/Chromium/Firefox/Safari) */
+select option,
+select optgroup {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 8px 12px;
+}
+
+select option:checked {
+  background-color: #e1eff8 !important;
+  color: #172e4b !important;
+  font-weight: 700;
+}
+
+select option:hover,
+select option:focus {
+  background-color: #f0f6fa !important;
+  color: #2b6cb0 !important;
+}
+
+/* Custom Dropdown Menus & Popovers */
+.dropdown-menu,
+[role="listbox"],
+[data-dropdown-menu],
+.custom-dropdown-panel {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+
 

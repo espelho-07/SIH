@@ -345,7 +345,7 @@ export const FacilityDiscovery: React.FC = () => {
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500 transition-colors cursor-pointer"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-800 outline-none focus:border-teal-700 focus:ring-1 focus:ring-teal-500 shadow-2xs transition-colors cursor-pointer font-medium"
                 >
                   <option value="ALL">{t('facilities.allTypes', 'All Hospitals')}</option>
                   <option value="DISTRICT_HOSPITAL">{t('facilities.districtHospital', 'District Hospital')}</option>
@@ -363,7 +363,7 @@ export const FacilityDiscovery: React.FC = () => {
                 <select
                   value={selectedDistrict}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500 transition-colors cursor-pointer"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-800 outline-none focus:border-teal-700 focus:ring-1 focus:ring-teal-500 shadow-2xs transition-colors cursor-pointer font-medium"
                 >
                   <option value="ALL">{t('facilities.allDistricts', 'All Districts')}</option>
                   {districts.map((district) => (
@@ -382,7 +382,7 @@ export const FacilityDiscovery: React.FC = () => {
                 <select
                   value={selectedSpecialty}
                   onChange={(e) => setSelectedSpecialty(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500 transition-colors cursor-pointer"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-800 outline-none focus:border-teal-700 focus:ring-1 focus:ring-teal-500 shadow-2xs transition-colors cursor-pointer font-medium"
                 >
                   <option value="ALL">{t('facilities.allServices', 'All Services')}</option>
                   {specialties.map((specialty) => (
@@ -401,7 +401,7 @@ export const FacilityDiscovery: React.FC = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500 transition-colors cursor-pointer"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-800 outline-none focus:border-teal-700 focus:ring-1 focus:ring-teal-500 shadow-2xs transition-colors cursor-pointer font-medium"
                 >
                   <option value="DISTANCE">{t('facilities.nearestFirst', 'Nearest First')}</option>
                   <option value="WAITING">{t('facilities.lowestWait', 'Lowest Waiting Time')}</option>

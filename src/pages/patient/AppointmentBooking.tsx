@@ -918,7 +918,7 @@ export const AppointmentBooking: React.FC = () => {
                       id="detailed-hospital-select"
                       value={facilityId}
                       onChange={(e) => setFacilityId(e.target.value)}
-                      className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold outline-none cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none cursor-pointer shadow-2xs"
                     >
                       {INITIAL_FACILITIES.map((f) => (
                         <option key={f.id} value={f.id}>
@@ -936,7 +936,7 @@ export const AppointmentBooking: React.FC = () => {
                       id="detailed-specialty-select"
                       value={specialty}
                       onChange={(e) => setSpecialty(e.target.value)}
-                      className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold outline-none cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none cursor-pointer shadow-2xs"
                     >
                       <option value="General Medicine">General Medicine</option>
                       <option value="Cardiology">Cardiology</option>

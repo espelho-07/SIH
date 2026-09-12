@@ -366,7 +366,7 @@ export const FrontlineReferralsPage: React.FC = () => {
                 <select
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                 >
                   {INITIAL_ASHA_PATIENTS.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -388,7 +388,7 @@ export const FrontlineReferralsPage: React.FC = () => {
                     else if (e.target.value.includes('CHC')) setFacilityType('CHC');
                     else setFacilityType('PHC');
                   }}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                 >
                   <option value="Pethapur Primary Health Centre">Pethapur Primary Health Centre (PHC) - 3.2 km</option>
                   <option value="Kalol Community Health Centre (FRU)">Kalol Community Health Centre (CHC) - 12 km</option>
@@ -402,7 +402,7 @@ export const FrontlineReferralsPage: React.FC = () => {
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                   >
                     <option value="Maternal & Obstetric Care">Maternal & Obstetric Care</option>
                     <option value="Pediatrics & Nutrition">Pediatrics & Nutrition</option>
@@ -417,7 +417,7 @@ export const FrontlineReferralsPage: React.FC = () => {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as typeof priority)}
-                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                   >
                     <option value="URGENT">Urgent (Within 24 Hours)</option>
                     <option value="EMERGENCY">Emergency (Immediate)</option>

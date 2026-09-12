@@ -470,7 +470,7 @@ export const DistrictFacilitiesPage: React.FC = () => {
                   <select
                     value={facType}
                     onChange={(e) => setFacType(e.target.value as Facility['type'])}
-                    className="flex min-h-[40px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[40px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-medium text-slate-900 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
                   >
                     <option value="DISTRICT_HOSPITAL">District Hospital (DH)</option>
                     <option value="SUB_DISTRICT_HOSPITAL">Sub-District Hospital (SDH)</option>

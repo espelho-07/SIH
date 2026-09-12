@@ -1175,7 +1175,7 @@ export const TeleconsultationRoom: React.FC = () => {
                       <select
                         value={newTiming}
                         onChange={(e) => setNewTiming(e.target.value)}
-                        className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium"
+                        className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-medium shadow-2xs"
                       >
                         <option value="1-0-1 (After Meals)">1-0-1 (Morning & Night)</option>
                         <option value="1-1-1 (TDS)">1-1-1 (Thrice Daily)</option>
@@ -1263,7 +1263,7 @@ export const TeleconsultationRoom: React.FC = () => {
                   <select
                     value={followUpDays}
                     onChange={(e) => setFollowUpDays(e.target.value)}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold"
+                    className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-bold shadow-2xs"
                   >
                     <option value="3">In 3 Days</option>
                     <option value="7">In 7 Days</option>

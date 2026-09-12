@@ -168,7 +168,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-hidden"
+              className="px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-semibold shadow-2xs focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">All Ambulance Types</option>
               <option value="ADVANCED_LIFE_SUPPORT">Advanced Life Support (ALS)</option>
@@ -304,7 +304,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
                   <select
                     value={emergencySeverity}
                     onChange={(e) => setEmergencySeverity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600"
                   >
                     <option value="CRITICAL">Critical (Cardiac/Trauma)</option>
                     <option value="HIGH">High (Maternal/Pediatric)</option>
@@ -314,7 +314,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
 
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Required Unit</label>
-                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600">
+                  <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600">
                     <option>Closest ALS Unit</option>
                     <option>Closest BLS Unit</option>
                   </select>
@@ -326,7 +326,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
                 <select
                   value={destinationHospital}
                   onChange={(e) => setDestinationHospital(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600"
                 >
                   {INITIAL_FACILITIES.map((f) => (
                     <option key={f.id} value={f.id}>

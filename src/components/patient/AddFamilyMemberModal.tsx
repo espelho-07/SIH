@@ -177,7 +177,7 @@ export const AddFamilyMemberModal: React.FC<AddFamilyMemberModalProps> = ({
                   <select
                     value={relation}
                     onChange={(e) => setRelation(e.target.value as FamilyRelation)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
                   >
                     <option value="SPOUSE">Spouse (Wife / Husband)</option>
                     <option value="CHILD">Child (Son / Daughter)</option>
@@ -194,7 +194,7 @@ export const AddFamilyMemberModal: React.FC<AddFamilyMemberModalProps> = ({
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value as 'M' | 'F' | 'Other')}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
                   >
                     <option value="F">Female</option>
                     <option value="M">Male</option>
@@ -222,7 +222,7 @@ export const AddFamilyMemberModal: React.FC<AddFamilyMemberModalProps> = ({
                   <select
                     value={bloodGroup}
                     onChange={(e) => setBloodGroup(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
                   >
                     {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map((bg) => (
                       <option key={bg} value={bg}>

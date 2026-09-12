@@ -648,7 +648,7 @@ export const UserProfilePage: React.FC = () => {
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value as 'M' | 'F' | 'Other')}
-                      className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900"
+                      className="w-full h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-medium text-slate-900 shadow-2xs cursor-pointer"
                     >
                       <option value="M">Male</option>
                       <option value="F">Female</option>
@@ -660,7 +660,7 @@ export const UserProfilePage: React.FC = () => {
                     <select
                       value={bloodGroup}
                       onChange={(e) => setBloodGroup(e.target.value)}
-                      className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-900"
+                      className="w-full h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-medium text-slate-900 shadow-2xs cursor-pointer"
                     >
                       <option value="A+">A+</option>
                       <option value="A-">A-</option>
@@ -1502,7 +1502,7 @@ export const UserProfilePage: React.FC = () => {
                 <select
                   value={leaveCategory}
                   onChange={(e) => setLeaveCategory(e.target.value as any)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800"
+                  className="w-full h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-800 shadow-2xs cursor-pointer"
                 >
                   <option value="CASUAL">Casual Leave (CL)</option>
                   <option value="SICK">Medical / Sick Leave (ML)</option>

@@ -326,7 +326,7 @@ export const DistrictBloodPage: React.FC = () => {
                 <select
                   value={broadcastGroup}
                   onChange={(e) => setBroadcastGroup(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600"
                 >
                   <option value="O-">O-Negative (Universal Donor / Critical)</option>
                   <option value="AB-">AB-Negative (Rare)</option>
@@ -341,7 +341,7 @@ export const DistrictBloodPage: React.FC = () => {
 
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Target Donation Centre</label>
-                <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600">
+                <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600">
                   <option>Gandhinagar Civil Hospital Blood Centre (Sector 12)</option>
                   <option>Red Cross Regional Blood Centre (Sector 21)</option>
                 </select>
@@ -423,7 +423,7 @@ export const DistrictBloodPage: React.FC = () => {
                   <select
                     value={centerType}
                     onChange={(e) => setCenterType(e.target.value as BloodCenter['type'])}
-                    className="flex min-h-[40px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[40px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-medium text-slate-900 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
                   >
                     <option value="BLOOD_BANK">Full Blood Centre (Collection, Separation & Storage)</option>
                     <option value="STORAGE_UNIT">Sub-District Blood Storage Unit (BSU)</option>

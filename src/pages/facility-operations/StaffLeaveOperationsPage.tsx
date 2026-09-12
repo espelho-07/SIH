@@ -354,7 +354,7 @@ export const StaffLeaveOperationsPage: React.FC = () => {
             <select
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="text-xs bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-medium text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="ALL">All Departments</option>
               {departments.map((dept) => (

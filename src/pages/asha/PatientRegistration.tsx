@@ -260,7 +260,7 @@ export const PatientRegistration: React.FC = () => {
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value as 'M' | 'F' | 'Other')}
-                      className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-medium"
+                      className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 font-medium cursor-pointer"
                     >
                       <option value="F">Female</option>
                       <option value="M">Male</option>
@@ -286,7 +286,7 @@ export const PatientRegistration: React.FC = () => {
                     <select
                       value={bloodGroup}
                       onChange={(e) => setBloodGroup(e.target.value)}
-                      className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-medium"
+                      className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 font-medium cursor-pointer"
                     >
                       <option value="A+">A+</option>
                       <option value="A-">A-</option>
@@ -328,7 +328,7 @@ export const PatientRegistration: React.FC = () => {
                     <select
                       value={village}
                       onChange={(e) => setVillage(e.target.value)}
-                      className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-medium"
+                      className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 font-medium cursor-pointer"
                     >
                       <option value="Pethapur Ward 1">Pethapur Ward 1</option>
                       <option value="Pethapur Ward 2">Pethapur Ward 2</option>
@@ -424,7 +424,7 @@ export const PatientRegistration: React.FC = () => {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as AshaPatient['category'])}
-                    className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-medium"
+                    className="flex min-h-[44px] w-full rounded-xl border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 font-medium cursor-pointer"
                   >
                     <option value="MATERNAL">Maternal / Antenatal Care (ANC)</option>
                     <option value="INFANT">Infant & Child Immunization (UIP)</option>

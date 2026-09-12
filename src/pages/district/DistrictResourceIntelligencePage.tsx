@@ -300,7 +300,7 @@ export const DistrictResourceIntelligencePage: React.FC = () => {
             <select
               value={selectedBlockFilter}
               onChange={(e) => setSelectedBlockFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 focus:border-teal-600 focus:outline-none cursor-pointer"
+              className="rounded-xl border border-slate-300 bg-white shadow-2xs px-2.5 py-2 text-xs font-medium text-slate-700 focus:border-teal-600 focus:outline-none cursor-pointer"
             >
               <option value="ALL">All Blocks ({areas.length})</option>
               {availableBlocks.map((blk) => (
@@ -315,7 +315,7 @@ export const DistrictResourceIntelligencePage: React.FC = () => {
           <select
             value={selectedSeverityFilter}
             onChange={(e) => setSelectedSeverityFilter(e.target.value as any)}
-            className="rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-medium text-slate-700 focus:border-teal-600 focus:outline-none cursor-pointer"
+            className="rounded-xl border border-slate-300 bg-white shadow-2xs px-2.5 py-2 text-xs font-medium text-slate-700 focus:border-teal-600 focus:outline-none cursor-pointer"
           >
             <option value="ALL">All Priorities</option>
             <option value="OUTBREAK">🚨 Outbreak Surges Only</option>

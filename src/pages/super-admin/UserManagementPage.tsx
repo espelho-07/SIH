@@ -169,7 +169,7 @@ export const UserManagementPage: React.FC = () => {
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
-            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
           >
             <option value="ALL">All Roles</option>
             <option value="PATIENT">Patient</option>
@@ -395,7 +395,7 @@ export const UserManagementPage: React.FC = () => {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                   >
                     <option value="DOCTOR">Doctor</option>
                     <option value="ASHA">ASHA Worker</option>
@@ -410,7 +410,7 @@ export const UserManagementPage: React.FC = () => {
                     <select
                       value={staffSubType}
                       onChange={(e) => setStaffSubType(e.target.value as StaffSubType)}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                     >
                       <option value="REGISTRATION_CLERK">Registration Clerk</option>
                       <option value="PHARMACIST">Pharmacist</option>

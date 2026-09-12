@@ -516,7 +516,7 @@ export const HomeVisitsPage: React.FC = () => {
                 <select
                   value={newPatientId}
                   onChange={(e) => setNewPatientId(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium focus:ring-2 focus:ring-teal-700"
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer focus:ring-2 focus:ring-teal-700"
                 >
                   {INITIAL_ASHA_PATIENTS.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -542,7 +542,7 @@ export const HomeVisitsPage: React.FC = () => {
                   <select
                     value={newTimeSlot}
                     onChange={(e) => setNewTimeSlot(e.target.value)}
-                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                   >
                     <option value="09:00 AM - 09:45 AM">09:00 AM - 09:45 AM</option>
                     <option value="10:00 AM - 10:45 AM">10:00 AM - 10:45 AM</option>
@@ -558,7 +558,7 @@ export const HomeVisitsPage: React.FC = () => {
                 <select
                   value={newVisitType}
                   onChange={(e) => setNewVisitType(e.target.value as VisitType)}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                 >
                   <option value="ANC">Antenatal Care (ANC)</option>
                   <option value="PNC">Postnatal Care (PNC)</option>

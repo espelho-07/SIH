@@ -278,7 +278,7 @@ export const DistrictResourcesPage: React.FC = () => {
                 <select
                   value={resourceType}
                   onChange={(e) => setResourceType(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
                   <option value="OXYGEN_CYLINDERS">D-Type Oxygen Cylinders (46.7L)</option>
                   <option value="BLOOD_UNITS_O_POS">Blood Units (O-Positive PRBC)</option>
@@ -294,7 +294,7 @@ export const DistrictResourcesPage: React.FC = () => {
                   <select
                     value={fromFacility}
                     onChange={(e) => setFromFacility(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   >
                     {INITIAL_FACILITIES.map((f) => (
                       <option key={f.id} value={f.id}>
@@ -309,7 +309,7 @@ export const DistrictResourcesPage: React.FC = () => {
                   <select
                     value={toFacility}
                     onChange={(e) => setToFacility(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   >
                     {INITIAL_FACILITIES.map((f) => (
                       <option key={f.id} value={f.id}>
@@ -328,12 +328,12 @@ export const DistrictResourcesPage: React.FC = () => {
                     min="1"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Authorization Priority</label>
-                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700">
+                  <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700">
                     <option>High Priority (Immediate Dispatch)</option>
                     <option>Routine Rebalancing</option>
                   </select>

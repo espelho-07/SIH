@@ -87,7 +87,7 @@ export const SettingsTab: React.FC = () => {
               <select
                 value={logLevel}
                 onChange={(e) => setLogLevel(e.target.value)}
-                className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
               >
                 <option value="DEBUG">Detailed (For technical troubleshooting)</option>
                 <option value="INFO">Normal (Recommended for everyday use)</option>

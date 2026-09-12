@@ -270,7 +270,7 @@ export const QueueCounterPage: React.FC = () => {
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800 font-medium"
+              className="h-8 rounded-lg border border-slate-300 bg-white shadow-2xs cursor-pointer px-2.5 text-xs text-slate-800 font-medium"
             >
               <option value="ALL">All Departments</option>
               <option value="dep_med">General Medicine OPD</option>
@@ -418,7 +418,7 @@ export const QueueCounterPage: React.FC = () => {
                 <select
                   value={walkInDept}
                   onChange={(e) => setWalkInDept(e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 font-semibold"
+                  className="w-full h-10 rounded-xl border border-slate-300 bg-white shadow-2xs px-3 text-xs text-slate-900 font-semibold cursor-pointer"
                 >
                   <option value="dep_med">General Medicine OPD (Room 4 � Dr. Arvind Patel)</option>
                   <option value="dep_cardio">Cardiology Clinic (Room 6 � Dr. Arvind Patel)</option>

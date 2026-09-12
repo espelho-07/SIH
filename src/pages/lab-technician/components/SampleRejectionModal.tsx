@@ -105,7 +105,7 @@ export const SampleRejectionModal: React.FC<SampleRejectionModalProps> = ({
             <select
               value={selectedReason}
               onChange={(e) => setSelectedReason(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs text-slate-800 focus:border-rose-600 focus:ring-1 focus:ring-rose-600"
+              className="w-full rounded-xl border border-slate-300 bg-white shadow-2xs px-3 py-2.5 text-xs text-slate-800 cursor-pointer focus:border-rose-600 focus:ring-1 focus:ring-rose-600"
               required
             >
               {REJECTION_REASONS.map((r) => (

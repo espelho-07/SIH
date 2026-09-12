@@ -169,7 +169,7 @@ export const ReferralMonitor: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-700 cursor-pointer"
+              className="text-xs rounded-xl border border-slate-300 shadow-2xs px-3 py-2 bg-white text-slate-700 cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
               <option value="NEEDS_REVIEW">Needs Review / Triage</option>
@@ -182,7 +182,7 @@ export const ReferralMonitor: React.FC = () => {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="text-xs rounded-xl border border-slate-200 px-3 py-2 bg-white text-slate-700 cursor-pointer"
+              className="text-xs rounded-xl border border-slate-300 shadow-2xs px-3 py-2 bg-white text-slate-700 cursor-pointer"
             >
               <option value="ALL">All Priorities</option>
               <option value="EMERGENCY">Emergency</option>

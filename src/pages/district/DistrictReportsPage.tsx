@@ -120,7 +120,7 @@ export const DistrictReportsPage: React.FC = () => {
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="p-1.5 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-hidden"
+              className="p-1.5 px-3 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 shadow-2xs focus:outline-hidden cursor-pointer"
             >
               <option value="LAST_30_DAYS">Last 30 Days (Feb - Mar 2026)</option>
               <option value="THIS_MONTH">This Month (March 2026)</option>

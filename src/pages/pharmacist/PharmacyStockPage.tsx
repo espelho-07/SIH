@@ -235,7 +235,7 @@ export const PharmacyStockPage: React.FC = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-700"
+            className="text-xs font-medium bg-white border border-slate-300 shadow-2xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-700 cursor-pointer"
           >
             {categories.map((c) => (
               <option key={c} value={c}>

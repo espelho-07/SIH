@@ -319,7 +319,7 @@ export const Login: React.FC = () => {
                         setStaffSubType('PHARMACIST');
                       }
                     }}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
+                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
                   >
                     <option value="ASHA">ASHA / ANM / CHO (Frontline)</option>
                     <option value="DOCTOR">Doctor / Medical Specialist</option>
@@ -342,7 +342,7 @@ export const Login: React.FC = () => {
                         setStaffSubType(subtype);
                         setDemoCredentials('FACILITY_STAFF', subtype);
                       }}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
+                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-sm text-slate-900 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6CB0]"
                     >
                       <option value="REGISTRATION_CLERK">Registration Clerk (Counter & Tokens)</option>
                       <option value="PHARMACIST">Pharmacist (Dispensing & Stock)</option>
