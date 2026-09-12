@@ -35,7 +35,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
 
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-sky-700 text-white shadow-sm">
               <HeartPulse className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
 
@@ -44,7 +44,7 @@ export const LandingPage: React.FC = () => {
                 SANJEEVANI-CONNECT
               </span>
 
-              <span className="hidden sm:block text-[11px] font-semibold text-teal-800 leading-none truncate">
+              <span className="hidden sm:block text-[11px] font-medium text-slate-500 leading-none truncate">
                 National Public Health Access & Care Continuity Grid
               </span>
             </div>
@@ -74,7 +74,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
 
           <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3.5 py-1 text-xs font-semibold text-slate-800 border border-slate-200 mb-6 max-w-full truncate">
-            <ShieldCheck className="h-4 w-4 text-teal-700 shrink-0" />
+            <ShieldCheck className="h-4 w-4 text-sky-700 shrink-0" />
 
             <span className="truncate">
               Smart India Hackathon 2024–2026 Platform • SIH26133
@@ -85,7 +85,7 @@ export const LandingPage: React.FC = () => {
             Connected healthcare.
             <br />
 
-            <span className="text-teal-700">
+            <span className="text-sky-700">
               From first contact to complete care.
             </span>
           </h1>
@@ -102,7 +102,7 @@ export const LandingPage: React.FC = () => {
             <Link to="/login" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold gap-2 px-6 shadow-xs"
+                className="w-full sm:w-auto bg-sky-700 hover:bg-sky-800 text-white font-semibold gap-2 px-6 shadow-xs"
               >
                 <Search className="h-5 w-5" />
                 Find Healthcare Facilities

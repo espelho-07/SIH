@@ -68,14 +68,14 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           </button>
 
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm group-hover:bg-teal-800 transition-colors">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-700 text-white shadow-sm group-hover:bg-sky-800 transition-colors">
               <HeartPulse className="h-6 w-6" />
             </div>
             <div className="text-left hidden sm:block">
               <span className="block text-base font-extrabold tracking-tight text-slate-900 leading-tight">
                 HEALTHCONNECT
               </span>
-              <span className="block text-[11px] font-medium text-teal-800 leading-none">
+              <span className="block text-[11px] font-medium text-slate-500 leading-none">
                 Public Healthcare Access & Care Continuity
               </span>
             </div>
@@ -92,7 +92,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           className="hidden md:flex items-center gap-2 rounded-full bg-slate-100/90 hover:bg-slate-200/80 px-3 py-1.5 text-xs text-slate-700 border border-slate-200 shadow-2xs transition-all cursor-pointer group"
           title="Click to change your hospital or district location"
         >
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-50 group-hover:bg-teal-100 text-teal-700 transition-colors">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-50 group-hover:bg-sky-100 text-sky-700 transition-colors">
             <MapPin className="h-3 w-3" />
           </div>
           <div className="flex items-center gap-1.5 font-medium">
@@ -102,7 +102,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
               {selectedFacility.split('&')[0].trim()}
             </span>
           </div>
-          <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200/60 ml-0.5 group-hover:bg-teal-700 group-hover:text-white transition-colors">
+          <span className="text-[10px] font-semibold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200/60 ml-0.5 group-hover:bg-sky-700 group-hover:text-white transition-colors">
             Change
           </span>
         </button>
@@ -124,7 +124,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
             title={`Current Location: ${selectedDistrict}`}
             aria-label="Change Location"
           >
-            <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+            <MapPin className="h-3.5 w-3.5 text-sky-700 shrink-0" />
             <span className="truncate max-w-[45px] sm:max-w-[65px] text-[11px] sm:text-xs">{selectedDistrict}</span>
           </button>
 
@@ -163,14 +163,14 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           <div className="relative">
             <button
               onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg bg-teal-50 border border-teal-200 px-2.5 py-1.5 text-xs font-bold text-teal-900 hover:bg-teal-100 min-h-[38px] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-200/80 min-h-[38px] transition-colors"
               title="Quick switch role for live demonstration"
             >
-              <Sliders className="h-3.5 w-3.5 text-teal-700" />
+              <Sliders className="h-3.5 w-3.5 text-slate-600" />
               <span className="hidden md:inline">
                 Role: {role === 'FACILITY_STAFF' && staffSubType ? staffSubType : role}
               </span>
-              <ChevronDown className="h-3 w-3 text-teal-700" />
+              <ChevronDown className="h-3 w-3 text-slate-500" />
             </button>
 
             {roleMenuOpen && (

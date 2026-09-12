@@ -34,8 +34,8 @@ export const DoctorDashboard: React.FC = () => {
 
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-[11px] font-semibold text-teal-800">
-                <Stethoscope className="h-3.5 w-3.5 text-teal-700" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 text-[11px] font-semibold text-sky-800">
+                <Stethoscope className="h-3.5 w-3.5 text-sky-700" />
                 OPD Clinical Specialist
               </span>
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
@@ -55,7 +55,7 @@ export const DoctorDashboard: React.FC = () => {
           <Link to="/doctor/queue">
             <Button
               size="md"
-              className="bg-teal-700 hover:bg-teal-800 text-white font-semibold gap-2 shadow-xs w-full sm:w-auto"
+              className="bg-sky-700 hover:bg-sky-800 text-white font-semibold gap-2 shadow-xs w-full sm:w-auto"
             >
               <Ticket className="h-4 w-4" />
               View Patient Queue
@@ -75,121 +75,97 @@ export const DoctorDashboard: React.FC = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
 
           {/* Waiting */}
-          <Card className="border-slate-200">
+          <Card className="border-slate-200 bg-white shadow-xs">
             <CardContent className="p-3.5">
-
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-teal-100 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-teal-700" />
+                <div className="h-8 w-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center">
+                  <Users className="h-4 w-4 text-sky-700" />
                 </div>
-
                 <span className="text-[10px] font-medium text-slate-400">
                   Patients
                 </span>
               </div>
-
               <p className="text-2xl font-bold text-slate-900 mt-2.5">
                 {queue.totalWaiting}
               </p>
-
               <p className="text-xs font-medium text-slate-600 mt-0.5">
                 Waiting
               </p>
-
               <p className="text-[10px] text-slate-500 mt-0.5">
                 About 8 min. each
               </p>
-
             </CardContent>
           </Card>
 
 
           {/* Current Patient */}
-          <Card className="border-slate-200">
+          <Card className="border-slate-200 bg-white shadow-xs">
             <CardContent className="p-3.5">
-
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-sky-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center">
                   <Ticket className="h-4 w-4 text-sky-700" />
                 </div>
-
                 <span className="text-[10px] font-medium text-slate-400">
                   Token
                 </span>
               </div>
-
-              <p className="text-2xl font-bold text-sky-700 mt-2.5">
+              <p className="text-2xl font-bold text-sky-800 mt-2.5">
                 {queue.currentTokenNumber}
               </p>
-
               <p className="text-xs font-medium text-slate-600 mt-0.5">
                 Now Seeing
               </p>
-
               <p className="text-[10px] text-slate-500 mt-0.5">
                 Room 4
               </p>
-
             </CardContent>
           </Card>
 
 
           {/* Urgent */}
-          <Card className="border-rose-200 bg-rose-50/50">
+          <Card className="border-slate-200 bg-white shadow-xs">
             <CardContent className="p-3.5">
-
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-rose-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center">
                   <AlertCircle className="h-4 w-4 text-rose-700" />
                 </div>
-
-                <span className="text-[10px] font-medium text-rose-500">
+                <span className="text-[10px] font-medium text-slate-400">
                   Attention
                 </span>
               </div>
-
               <p className="text-2xl font-bold text-rose-700 mt-2.5">
                 1
               </p>
-
-              <p className="text-xs font-medium text-rose-800 mt-0.5">
+              <p className="text-xs font-medium text-slate-700 mt-0.5">
                 Urgent Patient
               </p>
-
-              <p className="text-[10px] text-rose-600 mt-0.5">
+              <p className="text-[10px] text-slate-500 mt-0.5">
                 Needs quick attention
               </p>
-
             </CardContent>
           </Card>
 
 
           {/* Referrals */}
-          <Card className="border-indigo-200 bg-indigo-50/50">
+          <Card className="border-slate-200 bg-white shadow-xs">
             <CardContent className="p-3.5">
-
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
                   <GitBranch className="h-4 w-4 text-indigo-700" />
                 </div>
-
-                <span className="text-[10px] font-medium text-indigo-500">
+                <span className="text-[10px] font-medium text-slate-400">
                   Action
                 </span>
               </div>
-
-              <p className="text-2xl font-bold text-indigo-700 mt-2.5">
+              <p className="text-2xl font-bold text-slate-900 mt-2.5">
                 2
               </p>
-
-              <p className="text-xs font-medium text-indigo-800 mt-0.5">
+              <p className="text-xs font-medium text-slate-700 mt-0.5">
                 Referrals
               </p>
-
-              <p className="text-[10px] text-indigo-600 mt-0.5">
+              <p className="text-[10px] text-slate-500 mt-0.5">
                 Patients to refer
               </p>
-
             </CardContent>
           </Card>
 
@@ -259,7 +235,7 @@ export const DoctorDashboard: React.FC = () => {
                   {/* Patient Information */}
                   <div className="flex items-center gap-2.5">
 
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-800 font-bold text-xs">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 border border-sky-200 text-sky-800 font-bold text-xs">
                       {t.tokenNumber}
                     </div>
 
@@ -293,7 +269,7 @@ export const DoctorDashboard: React.FC = () => {
                       <Button
                         variant="primary"
                         size="sm"
-                        className="text-xs bg-teal-700 hover:bg-teal-800"
+                        className="text-xs bg-sky-700 hover:bg-sky-800 font-semibold text-white"
                       >
                         Open Patient
                       </Button>

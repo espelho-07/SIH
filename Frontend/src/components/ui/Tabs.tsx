@@ -45,9 +45,9 @@ export const TabsTrigger: React.FC<{
       type="button"
       onClick={() => context.setActiveTab(value)}
       className={cn(
-        'inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 min-h-[40px]',
+        'inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-700 min-h-[40px]',
         isActive
-          ? 'bg-white text-teal-800 shadow-xs font-semibold'
+          ? 'bg-white text-sky-900 shadow-xs font-semibold'
           : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50',
         className
       )}

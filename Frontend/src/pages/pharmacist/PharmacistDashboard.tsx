@@ -85,8 +85,8 @@ export const PharmacistDashboard: React.FC = () => {
       <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 border border-teal-200/80 px-3 py-0.5 text-xs font-semibold text-teal-800">
-              <Pill className="h-3.5 w-3.5 text-teal-700" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 border border-sky-200/80 px-3 py-0.5 text-xs font-semibold text-sky-800">
+              <Pill className="h-3.5 w-3.5 text-sky-700" />
               <span>Outpatient Pharmacy Dispensing Station</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -101,16 +101,16 @@ export const PharmacistDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <Button
               onClick={() => navigate('/pharmacist/prescriptions')}
-              className="bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl shadow-xs cursor-pointer"
+              className="bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl shadow-xs cursor-pointer"
             >
-              <Clock className="h-4 w-4 mr-2 text-teal-100" />
+              <Clock className="h-4 w-4 mr-2 text-sky-100" />
               View Dispense Queue ({pendingPrescriptions.length})
             </Button>
             <Button
               onClick={() => navigate('/pharmacist/stock')}
               className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs sm:text-sm px-4 py-2.5 min-h-[42px] rounded-xl cursor-pointer shadow-2xs"
             >
-              <Package className="h-4 w-4 mr-2 text-teal-700" />
+              <Package className="h-4 w-4 mr-2 text-sky-700" />
               Stock Inventory
             </Button>
           </div>
@@ -163,7 +163,7 @@ export const PharmacistDashboard: React.FC = () => {
         {/* Pending Prescriptions */}
         <Card
           onClick={() => navigate('/pharmacist/prescriptions')}
-          className="p-5 border-slate-200 hover:border-teal-300 hover:shadow-md transition-all cursor-pointer group"
+          className="p-5 border-slate-200 hover:border-sky-300 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -178,7 +178,7 @@ export const PharmacistDashboard: React.FC = () => {
           </p>
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs">
             <span className="text-amber-800 font-medium">Awaiting dispensing</span>
-            <span className="text-teal-700 font-semibold group-hover:translate-x-0.5 transition-transform inline-flex items-center">
+            <span className="text-sky-700 font-semibold group-hover:translate-x-0.5 transition-transform inline-flex items-center">
               Queue &rarr;
             </span>
           </div>
@@ -187,22 +187,22 @@ export const PharmacistDashboard: React.FC = () => {
         {/* Dispensed Today */}
         <Card
           onClick={() => navigate('/pharmacist/history')}
-          className="p-5 border-slate-200 hover:border-teal-300 hover:shadow-md transition-all cursor-pointer group"
+          className="p-5 border-slate-200 hover:border-sky-300 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Dispensed Today
             </span>
-            <div className="p-2 rounded-xl bg-teal-50 text-teal-700 group-hover:bg-teal-100 transition-colors">
+            <div className="p-2 rounded-xl bg-sky-50 text-sky-700 group-hover:bg-sky-100 transition-colors">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-3xl font-black text-teal-800 mt-2">
+          <p className="text-3xl font-black text-sky-900 mt-2">
             {dispensedTodayCount}
           </p>
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs">
             <span className="text-emerald-700 font-semibold">100% Stock Synchronized</span>
-            <span className="text-teal-700 font-semibold group-hover:translate-x-0.5 transition-transform inline-flex items-center">
+            <span className="text-sky-700 font-semibold group-hover:translate-x-0.5 transition-transform inline-flex items-center">
               History &rarr;
             </span>
           </div>
@@ -267,7 +267,7 @@ export const PharmacistDashboard: React.FC = () => {
             <CardHeader className="pb-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <CardTitle className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-teal-700" />
+                  <Clock className="h-4 w-4 text-sky-700" />
                   Live Prescriptions Queue
                 </CardTitle>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -283,7 +283,7 @@ export const PharmacistDashboard: React.FC = () => {
                   placeholder="Search patient, doctor, Rx ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-700 focus:bg-white"
+                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-700 focus:bg-white"
                 />
               </div>
             </CardHeader>
@@ -293,7 +293,7 @@ export const PharmacistDashboard: React.FC = () => {
                 <div className="py-12 text-center text-xs text-slate-400">Loading prescription queue...</div>
               ) : filteredPending.length === 0 ? (
                 <div className="py-12 text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-700 mx-auto flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-sky-50 text-sky-700 mx-auto flex items-center justify-center">
                     <CheckCircle2 className="h-6 w-6" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-800">All Prescriptions Dispensed!</h4>
@@ -305,7 +305,7 @@ export const PharmacistDashboard: React.FC = () => {
                 filteredPending.map((rx) => (
                   <div
                     key={rx.id}
-                    className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-teal-200 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-sky-200 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     <div className="space-y-1.5 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -334,7 +334,7 @@ export const PharmacistDashboard: React.FC = () => {
                         {rx.items.map((it) => (
                           <span
                             key={it.id}
-                            className="inline-flex items-center text-[11px] bg-teal-50/80 text-teal-900 border border-teal-100 px-2 py-0.5 rounded-lg font-medium"
+                            className="inline-flex items-center text-[11px] bg-sky-50/80 text-sky-900 border border-sky-100 px-2 py-0.5 rounded-lg font-medium"
                           >
                             {it.medicineName.split(' ')[0]} {it.dosage} ({it.totalQuantity})
                           </span>
@@ -347,7 +347,7 @@ export const PharmacistDashboard: React.FC = () => {
                         onClick={() => navigate(`/pharmacist/prescriptions/${rx.id}`)}
                         variant="primary"
                         size="sm"
-                        className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs min-h-[38px] px-3.5"
+                        className="bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs min-h-[38px] px-3.5"
                       >
                         Open &amp; Dispense
                         <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
@@ -363,7 +363,7 @@ export const PharmacistDashboard: React.FC = () => {
                     onClick={() => navigate('/pharmacist/prescriptions')}
                     variant="ghost"
                     size="sm"
-                    className="text-teal-800 hover:text-teal-950 text-xs font-bold"
+                    className="text-sky-800 hover:text-sky-950 text-xs font-bold"
                   >
                     View All {pendingPrescriptions.length} Prescriptions in Queue &rarr;
                   </Button>
@@ -388,7 +388,7 @@ export const PharmacistDashboard: React.FC = () => {
                 className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-colors text-xs font-semibold"
               >
                 <div className="flex items-center gap-2.5">
-                  <Clock className="h-4 w-4 text-teal-700" />
+                  <Clock className="h-4 w-4 text-sky-700" />
                   <span>Prescription Queue</span>
                 </div>
                 <span className="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-bold">
@@ -401,7 +401,7 @@ export const PharmacistDashboard: React.FC = () => {
                 className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-colors text-xs font-semibold"
               >
                 <div className="flex items-center gap-2.5">
-                  <Package className="h-4 w-4 text-teal-700" />
+                  <Package className="h-4 w-4 text-sky-700" />
                   <span>Stock Inventory</span>
                 </div>
                 <span className="text-slate-400 text-xs">{medicines.length} items</span>
@@ -425,7 +425,7 @@ export const PharmacistDashboard: React.FC = () => {
                 className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-colors text-xs font-semibold"
               >
                 <div className="flex items-center gap-2.5">
-                  <History className="h-4 w-4 text-teal-700" />
+                  <History className="h-4 w-4 text-sky-700" />
                   <span>Dispense History Log</span>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-400" />
@@ -433,29 +433,29 @@ export const PharmacistDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Safe Dispensing Checklist Card */}
-          <Card className="border-teal-100 bg-teal-50/50 shadow-xs">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-teal-900 flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-teal-700" />
+          {/* Safe Dispensing Checklist Card - Clean White Surface */}
+          <Card className="border-slate-200 bg-white shadow-xs">
+            <CardHeader className="pb-2 border-b border-slate-100">
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-sky-700" />
                 Good Dispensing Practice (GPP)
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 text-xs text-teal-950 space-y-2.5 leading-relaxed">
+            <CardContent className="p-4 text-xs text-slate-700 space-y-2.5 leading-relaxed">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-teal-700 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-sky-700 shrink-0 mt-0.5" />
                 <span>Verify patient identity &amp; ABHA ID before handing over medications.</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-teal-700 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-sky-700 shrink-0 mt-0.5" />
                 <span>Confirm dosage, duration, and frequency with bilingual instructions slip.</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-teal-700 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-sky-700 shrink-0 mt-0.5" />
                 <span>Ensure batch expiry is checked. Never dispense expired or quarantined stock.</span>
               </div>
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-teal-700 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-sky-700 shrink-0 mt-0.5" />
                 <span>Authoritative stock deduction occurs automatically upon 1-click confirmation.</span>
               </div>
             </CardContent>

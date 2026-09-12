@@ -88,7 +88,7 @@ export const LabTechnicianDashboard: React.FC = () => {
       <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 border border-teal-200/80 text-teal-800">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 border border-sky-200/80 text-sky-800">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Laboratory Work Desk • {user?.facilityName || 'Gandhinagar Civil Hospital'}
             </span>
@@ -106,9 +106,9 @@ export const LabTechnicianDashboard: React.FC = () => {
           <Button
             size="sm"
             onClick={() => navigate('/lab-technician/tests')}
-            className="bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
+            className="bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
           >
-            <FlaskConical className="h-4 w-4 text-teal-200" />
+            <FlaskConical className="h-4 w-4 text-sky-200" />
             <span>All Test Orders</span>
           </Button>
 
@@ -234,21 +234,21 @@ export const LabTechnicianDashboard: React.FC = () => {
         {/* 4. Reports Ready Today */}
         <Card
           onClick={() => navigate('/lab-technician/history')}
-          className="p-4 border-slate-200 hover:border-teal-400 hover:shadow-sm transition-all cursor-pointer bg-white"
+          className="p-4 border-slate-200 hover:border-sky-400 hover:shadow-sm transition-all cursor-pointer bg-white"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Reports Released</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
               <CheckCircle2 className="h-4 w-4" />
             </span>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-teal-800">
+            <span className="text-2xl sm:text-3xl font-black text-sky-800">
               {reportsReady.length}
             </span>
             <span className="text-[11px] text-slate-500 font-medium">verified</span>
           </div>
-          <span className="mt-2 inline-block text-[11px] font-semibold text-teal-800">
+          <span className="mt-2 inline-block text-[11px] font-semibold text-sky-800">
             Pushed to Patient EHR →
           </span>
         </Card>
@@ -270,7 +270,7 @@ export const LabTechnicianDashboard: React.FC = () => {
               </div>
               <Link
                 to="/lab-technician/tests"
-                className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1"
+                className="text-xs font-bold text-sky-700 hover:text-sky-800 flex items-center gap-1"
               >
                 View Full Queue ({orders.length}) <ChevronRight className="h-3.5 w-3.5" />
               </Link>
@@ -370,7 +370,7 @@ export const LabTechnicianDashboard: React.FC = () => {
                           variant="primary"
                           size="sm"
                           onClick={() => navigate(`/lab-technician/tests/${order.id}/result`)}
-                          className="text-xs h-8 bg-teal-700 hover:bg-teal-800 text-white font-semibold flex items-center gap-1"
+                          className="text-xs h-8 bg-sky-700 hover:bg-sky-800 text-white font-semibold flex items-center gap-1"
                         >
                           <span>Enter Result</span>
                           <ArrowRight className="h-3.5 w-3.5" />
@@ -382,7 +382,7 @@ export const LabTechnicianDashboard: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedReportOrder(order)}
-                          className="text-xs h-8 border-teal-200 text-teal-800 bg-teal-50 hover:bg-teal-100 font-semibold flex items-center gap-1"
+                          className="text-xs h-8 border-sky-200 text-sky-800 bg-sky-50 hover:bg-sky-100 font-semibold flex items-center gap-1"
                         >
                           <FileCheck className="h-3.5 w-3.5" />
                           <span>View Report</span>
@@ -412,7 +412,7 @@ export const LabTechnicianDashboard: React.FC = () => {
             <CardHeader className="pb-3 border-b border-slate-100">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-teal-700" />
+                  <Cpu className="h-4 w-4 text-sky-700" />
                   Analyzer Bench Status
                 </CardTitle>
                 <span className="text-[10px] font-bold uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">

@@ -52,11 +52,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/patient',
     email: 'ramesh.sharma@example.in',
     icon: HeartPulse,
-    bgClass: 'bg-emerald-50/70',
-    borderClass: 'border-emerald-200',
-    hoverClass: 'hover:border-emerald-500 hover:bg-emerald-100/60 hover:shadow-md',
-    iconBgClass: 'bg-emerald-600 text-white',
-    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'doctor',
@@ -68,11 +68,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/doctor',
     email: 'dr.arvind.patel@gujarat.gov.in',
     icon: Stethoscope,
-    bgClass: 'bg-sky-50/70',
-    borderClass: 'border-sky-200',
-    hoverClass: 'hover:border-sky-500 hover:bg-sky-100/60 hover:shadow-md',
-    iconBgClass: 'bg-sky-600 text-white',
-    badgeClass: 'bg-sky-100 text-sky-800 border-sky-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'asha',
@@ -84,11 +84,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/asha',
     email: 'sunita.asha@gujarat.health.gov.in',
     icon: UsersRound,
-    bgClass: 'bg-teal-50/70',
-    borderClass: 'border-teal-200',
-    hoverClass: 'hover:border-teal-500 hover:bg-teal-100/60 hover:shadow-md',
-    iconBgClass: 'bg-teal-600 text-white',
-    badgeClass: 'bg-teal-100 text-teal-800 border-teal-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'clerk',
@@ -101,11 +101,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/registration-clerk',
     email: 'rajesh.reg@civilhospital.in',
     icon: ClipboardList,
-    bgClass: 'bg-violet-50/70',
-    borderClass: 'border-violet-200',
-    hoverClass: 'hover:border-violet-500 hover:bg-violet-100/60 hover:shadow-md',
-    iconBgClass: 'bg-violet-600 text-white',
-    badgeClass: 'bg-violet-100 text-violet-800 border-violet-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'pharmacist',
@@ -118,11 +118,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/pharmacist',
     email: 'priya.pharma@civilhospital.in',
     icon: Pill,
-    bgClass: 'bg-amber-50/70',
-    borderClass: 'border-amber-200',
-    hoverClass: 'hover:border-amber-500 hover:bg-amber-100/60 hover:shadow-md',
-    iconBgClass: 'bg-amber-600 text-white',
-    badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'lab',
@@ -135,11 +135,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/lab-technician',
     email: 'amit.lab@civilhospital.in',
     icon: FlaskConical,
-    bgClass: 'bg-purple-50/70',
-    borderClass: 'border-purple-200',
-    hoverClass: 'hover:border-purple-500 hover:bg-purple-100/60 hover:shadow-md',
-    iconBgClass: 'bg-purple-600 text-white',
-    badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'ops',
@@ -152,11 +152,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/facility-operations',
     email: 'vikram.ops@civilhospital.in',
     icon: Activity,
-    bgClass: 'bg-cyan-50/70',
-    borderClass: 'border-cyan-200',
-    hoverClass: 'hover:border-cyan-500 hover:bg-cyan-100/60 hover:shadow-md',
-    iconBgClass: 'bg-cyan-600 text-white',
-    badgeClass: 'bg-cyan-100 text-cyan-800 border-cyan-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'district',
@@ -168,11 +168,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/district',
     email: 'cdho.gandhinagar@gujarat.gov.in',
     icon: Building2,
-    bgClass: 'bg-blue-50/70',
-    borderClass: 'border-blue-200',
-    hoverClass: 'hover:border-blue-500 hover:bg-blue-100/60 hover:shadow-md',
-    iconBgClass: 'bg-blue-600 text-white',
-    badgeClass: 'bg-blue-100 text-blue-800 border-blue-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
   {
     id: 'superadmin',
@@ -184,11 +184,11 @@ const QUICK_ROLES: QuickRoleConfig[] = [
     route: '/super-admin',
     email: 'alok.systems@nic.in',
     icon: ShieldCheck,
-    bgClass: 'bg-rose-50/70',
-    borderClass: 'border-rose-200',
-    hoverClass: 'hover:border-rose-500 hover:bg-rose-100/60 hover:shadow-md',
-    iconBgClass: 'bg-rose-600 text-white',
-    badgeClass: 'bg-rose-100 text-rose-800 border-rose-300',
+    bgClass: 'bg-white',
+    borderClass: 'border-slate-200/90',
+    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
+    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
   },
 ];
 
@@ -388,14 +388,14 @@ export const Login: React.FC = () => {
       ================================================= */}
       <div className="sm:mx-auto sm:w-full sm:max-w-2xl text-center px-4">
         <Link to="/" className="inline-flex items-center gap-2.5 mb-3 group">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-md group-hover:bg-teal-800 transition-all group-hover:scale-105">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-700 text-white shadow-md group-hover:bg-sky-800 transition-all group-hover:scale-105">
             <HeartPulse className="h-7 w-7" />
           </div>
         </Link>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
           SANJEEVANI-CONNECT
         </h1>
-        <p className="text-xs font-bold text-teal-800 mt-1 uppercase tracking-wider">
+        <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wider">
           Integrated Public Healthcare Access & Telemetry Platform
         </p>
       </div>
@@ -407,23 +407,23 @@ export const Login: React.FC = () => {
         <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-5 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-700 text-white shadow-xs">
                 <Zap className="h-4 w-4 fill-current" />
               </div>
               <div>
                 <h2 className="text-sm font-bold text-slate-900 flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span>1-Click Role Direct Login</span>
-                  <span className="rounded-full bg-teal-50 text-teal-800 border border-teal-200/80 px-2 py-0.5 text-[10px] font-semibold">
+                  <span className="rounded-full bg-sky-50 text-sky-800 border border-sky-200/80 px-2 py-0.5 text-[10px] font-semibold">
                     Instant Access
                   </span>
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 font-medium">
                   Select any ecosystem role below to authenticate and enter the workspace
                 </p>
               </div>
             </div>
             <div className="text-xs text-slate-400 flex items-center gap-1.5 self-start sm:self-auto shrink-0 font-medium">
-              <Lock className="h-3.5 w-3.5 text-teal-700" />
+              <Lock className="h-3.5 w-3.5 text-slate-500" />
               <span>Auth Guard Active</span>
             </div>
           </div>

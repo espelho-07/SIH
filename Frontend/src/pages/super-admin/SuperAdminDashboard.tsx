@@ -242,7 +242,7 @@ export const SuperAdminDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Top Breadcrumb Navigation */}
       <nav className="flex items-center gap-1.5 text-xs text-slate-400" aria-label="Breadcrumbs">
-        <span className="text-teal-700 font-semibold">HealthConnect</span>
+        <span className="text-sky-700 font-semibold">HealthConnect</span>
         <span>/</span>
         <span className="text-slate-600 font-semibold">Operations Center</span>
         {activeTab !== 'OVERVIEW' && (
@@ -256,8 +256,8 @@ export const SuperAdminDashboard: React.FC = () => {
       {/* Top Banner - Clean Healthcare Platform Administration */}
       <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-xs font-semibold text-teal-800">
-            <Server className="h-3.5 w-3.5 text-teal-700" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 text-xs font-semibold text-sky-800">
+            <Server className="h-3.5 w-3.5 text-sky-700" />
             <span>Operations Center</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">System Administration</h1>

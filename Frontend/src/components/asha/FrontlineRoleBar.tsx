@@ -66,8 +66,8 @@ export const FrontlineRoleBar: React.FC<FrontlineRoleBarProps> = ({
       <div className="rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-6 text-slate-900 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-teal-800 border border-teal-200/80">
-              <HeartPulse className="h-3.5 w-3.5 text-teal-700" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-sky-800 border border-sky-200/80">
+              <HeartPulse className="h-3.5 w-3.5 text-sky-700" />
               Frontline Healthcare Console
             </span>
             <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700">
@@ -98,22 +98,26 @@ export const FrontlineRoleBar: React.FC<FrontlineRoleBarProps> = ({
             }`}
           >
             {pendingSyncCount > 0 ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
+              <WifiOff className="h-5 w-5" />
             ) : isOnline ? (
-              <CheckCircle2 className="h-4 w-4" />
+              <Wifi className="h-5 w-5" />
             ) : (
-              <WifiOff className="h-4 w-4" />
+              <WifiOff className="h-5 w-5" />
             )}
           </div>
 
-          <div className="text-left">
+          <div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Data Pipeline
+                Network Pipeline
               </span>
               <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                className={`h-2 w-2 rounded-full ${
+                  pendingSyncCount > 0
+                    ? 'bg-amber-500 animate-pulse'
+                    : isOnline
+                    ? 'bg-emerald-500'
+                    : 'bg-slate-400'
                 }`}
               />
             </div>
@@ -126,7 +130,7 @@ export const FrontlineRoleBar: React.FC<FrontlineRoleBarProps> = ({
               <button
                 type="button"
                 onClick={syncOfflineQueue}
-                className="text-[11px] underline text-teal-700 hover:text-teal-900 font-semibold cursor-pointer transition-colors"
+                className="text-[11px] underline text-sky-700 hover:text-sky-900 font-semibold cursor-pointer transition-colors"
               >
                 Sync Now to Server
               </button>
@@ -158,7 +162,7 @@ export const FrontlineRoleBar: React.FC<FrontlineRoleBarProps> = ({
                 onClick={() => onModeChange(mode)}
                 className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all min-h-[40px] cursor-pointer ${
                   isSelected
-                    ? 'bg-teal-700 text-white shadow-xs'
+                    ? 'bg-sky-700 text-white shadow-xs'
                     : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/70'
                 }`}
                 title={profile.focus}
@@ -173,7 +177,7 @@ export const FrontlineRoleBar: React.FC<FrontlineRoleBarProps> = ({
 
       {/* Active Mode Focus Hint */}
       <div className="text-[11px] text-slate-500 px-2 flex items-center gap-1.5">
-        <span className="font-semibold text-teal-800">
+        <span className="font-semibold text-sky-800">
           {roleProfiles[activeMode].label} Focus:
         </span>
         <span className="truncate">{roleProfiles[activeMode].focus}</span>

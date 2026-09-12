@@ -9,7 +9,7 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 173 80% 28%; /* #0f766e - Deep clinical teal */
+    --primary: 199 89% 34%; /* #0a6597 - Modern calm healthcare blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11%;
@@ -23,7 +23,7 @@
     --success: 152 76% 36%; /* #059669 - Positive state */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 173 80% 28%;
+    --ring: 199 89% 48%;
     --radius: 0.5rem;
   }
 
@@ -109,7 +109,7 @@
 
 /* Subtle, calm healthcare focus ring */
 :focus-visible {
-  outline: 2px solid #0f766e;
+  outline: 2px solid #0284c7;
   outline-offset: 2px;
 }
 

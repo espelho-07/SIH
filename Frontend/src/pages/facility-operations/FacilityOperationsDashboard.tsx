@@ -139,14 +139,14 @@ export const FacilityOperationsDashboard: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Toast Notice */}
       {actionNotice && (
-        <div className="rounded-xl bg-teal-50 border border-teal-200 p-3.5 text-xs font-semibold text-teal-900 flex items-center justify-between animate-in fade-in-50">
+        <div className="rounded-xl bg-sky-50 border border-sky-200 p-3.5 text-xs font-semibold text-sky-900 flex items-center justify-between animate-in fade-in-50">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-teal-700 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-sky-700 shrink-0" />
             <span>{actionNotice}</span>
           </div>
           <button
             onClick={() => setActionNotice(null)}
-            className="text-teal-700 hover:text-teal-950 font-bold cursor-pointer"
+            className="text-sky-700 hover:text-sky-950 font-bold cursor-pointer"
           >
             Dismiss
           </button>
@@ -157,7 +157,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
       <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="bg-teal-50 text-teal-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-teal-200/80">
+            <span className="bg-sky-50 text-sky-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-sky-200/80">
               Operations Control Center
             </span>
             <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${statusMeta.bg}`}>
@@ -180,9 +180,9 @@ export const FacilityOperationsDashboard: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <Button
             onClick={() => setStatusModalOpen(true)}
-            className="bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
+            className="bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
           >
-            <SlidersHorizontal className="h-4 w-4 text-teal-200" />
+            <SlidersHorizontal className="h-4 w-4 text-sky-200" />
             Update Facility Status
           </Button>
 
@@ -190,7 +190,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
             onClick={() => setBroadcastModalOpen(true)}
             className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
           >
-            <Megaphone className="h-4 w-4 text-teal-600" />
+            <Megaphone className="h-4 w-4 text-sky-700" />
             Broadcast Notice
           </Button>
 
@@ -248,10 +248,10 @@ export const FacilityOperationsDashboard: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Waiting Queue */}
         <Link to="/facility-operations/queues" className="group">
-          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Queue Load</span>
-              <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors">
+              <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center group-hover:bg-sky-700 group-hover:text-white transition-colors">
                 <Clock className="h-4 w-4" />
               </div>
             </div>
@@ -260,12 +260,12 @@ export const FacilityOperationsDashboard: React.FC = () => {
                 {summary?.telemetry.totalWaitingQueue || 0}
               </p>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-xs font-semibold text-teal-700">
+                <span className="text-xs font-semibold text-sky-700">
                   ~{summary?.telemetry.avgQueueWaitMinutes || 0}m avg wait
                 </span>
               </div>
             </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
               <span>View all queues</span>
               <ChevronRight className="h-3 w-3" />
             </div>
@@ -274,7 +274,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
 
         {/* Bed Capacity */}
         <Link to="/facility-operations/resources" className="group">
-          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bed Capacity</span>
               <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-700 group-hover:text-white transition-colors">
@@ -292,7 +292,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                 <span className="text-[11px] text-slate-400">• {(Math.round(((summary?.telemetry.bedsOccupied || 0) / (summary?.telemetry.bedsTotal || 1)) * 100))}% full</span>
               </div>
             </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
               <span>Inspect wards</span>
               <ChevronRight className="h-3 w-3" />
             </div>
@@ -301,7 +301,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
 
         {/* Ambulances Ready */}
         <Link to="/facility-operations/resources" className="group">
-          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ambulances</span>
               <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center group-hover:bg-blue-700 group-hover:text-white transition-colors">
@@ -316,7 +316,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                 {(summary?.telemetry.ambulancesTotal || 0) - (summary?.telemetry.ambulancesReady || 0)} On Active Run
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
               <span>Fleet telemetry</span>
               <ChevronRight className="h-3 w-3" />
             </div>
@@ -325,7 +325,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
 
         {/* Pending Referrals */}
         <Link to="/facility-operations/referrals" className="group">
-          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Inbound Transfers</span>
               <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center group-hover:bg-indigo-700 group-hover:text-white transition-colors">
@@ -340,7 +340,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                 Awaiting Bed Allocation
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
               <span>Coordinate transfers</span>
               <ChevronRight className="h-3 w-3" />
             </div>
@@ -351,7 +351,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
         <Card className="p-4 border-slate-200 h-full flex flex-col justify-between col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Staff On Duty</span>
-            <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center">
               <UserCheck className="h-4 w-4" />
             </div>
           </div>
@@ -381,7 +381,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
             </div>
             <Link
               to="/facility-operations/services"
-              className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1"
+              className="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1"
             >
               Full Service Matrix <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
@@ -433,7 +433,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                       <div>
                         <span className="text-slate-400 text-[10px] uppercase font-bold block">Current Wait</span>
                         <span className="font-bold text-slate-800 flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-teal-600" />
+                          <Clock className="h-3 w-3 text-sky-600" />
                           {service.currentWaitMinutes} mins
                         </span>
                       </div>
@@ -450,7 +450,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                   <div className="pt-3 mt-2 border-t border-slate-100 flex items-center justify-end">
                     <button
                       onClick={() => setSelectedService(service)}
-                      className="text-xs font-bold text-teal-700 hover:text-teal-900 hover:underline cursor-pointer"
+                      className="text-xs font-bold text-sky-700 hover:text-sky-900 hover:underline cursor-pointer"
                     >
                       Change Status →
                     </button>
@@ -470,7 +470,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
             </div>
             <Link
               to="/facility-operations/alerts"
-              className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1"
+              className="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1"
             >
               Alerts Center <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
@@ -516,7 +516,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                   <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-100">
                     <Link
                       to={issue.actionPath}
-                      className="text-[11px] font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1"
+                      className="text-[11px] font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1"
                     >
                       {issue.actionLabel} →
                     </Link>
@@ -535,7 +535,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
           {/* Active Announcements */}
           <div className="pt-2">
             <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Megaphone className="h-3.5 w-3.5 text-teal-700" /> Active Bulletins
+              <Megaphone className="h-3.5 w-3.5 text-sky-700" /> Active Bulletins
             </h3>
             <div className="space-y-2">
               {summary?.announcements.slice(0, 2).map((ann) => (

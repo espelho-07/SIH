@@ -136,12 +136,12 @@ export const QueueCounterPage: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Notice Banner */}
       {actionNotice && (
-        <div className="rounded-xl bg-teal-50 border border-teal-200 p-4 text-xs font-semibold text-teal-900 flex items-center justify-between">
+        <div className="rounded-xl bg-sky-50 border border-sky-200 p-4 text-xs font-semibold text-sky-900 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-teal-700 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-sky-700 shrink-0" />
             <span>{actionNotice}</span>
           </div>
-          <button onClick={() => setActionNotice(null)} className="text-teal-700 font-bold">
+          <button onClick={() => setActionNotice(null)} className="text-sky-700 font-bold">
             Dismiss
           </button>
         </div>
@@ -153,9 +153,9 @@ export const QueueCounterPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <Link
               to="/registration-clerk"
-              className="text-xs font-semibold text-slate-500 hover:text-teal-700"
+              className="text-xs font-semibold text-slate-500 hover:text-sky-700"
             >
-              ? Front Desk
+              ← Front Desk
             </Link>
           </div>
           <h1 className="text-xl font-black text-slate-900 mt-1">OPD Token Counter Desk</h1>
@@ -177,7 +177,7 @@ export const QueueCounterPage: React.FC = () => {
           </Button>
           <Button
             onClick={() => setWalkInModalOpen(true)}
-            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 cursor-pointer shadow-sm"
+            className="bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 cursor-pointer shadow-sm"
           >
             <Ticket className="h-4 w-4" />
             Issue Walk-in Token
@@ -191,8 +191,8 @@ export const QueueCounterPage: React.FC = () => {
         <div className="md:col-span-7 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="bg-teal-50 text-teal-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-teal-200/80 flex items-center gap-1.5">
-                <Volume2 className="h-3 w-3 text-teal-700 animate-pulse" />
+              <span className="bg-sky-50 text-sky-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-sky-200/80 flex items-center gap-1.5">
+                <Volume2 className="h-3 w-3 text-sky-700 animate-pulse" />
                 Live OPD Counter 1
               </span>
               <span className="text-xs text-slate-500 font-mono">Room 4 • Dr. Arvind Patel</span>
@@ -205,7 +205,7 @@ export const QueueCounterPage: React.FC = () => {
               <div className="text-5xl md:text-6xl font-black text-slate-900 font-mono tracking-tight my-1">
                 {currentCalledToken?.tokenNumber || queue?.currentTokenNumber || '—'}
               </div>
-              <p className="text-base font-bold text-teal-800">
+              <p className="text-base font-bold text-sky-900">
                 {currentCalledToken?.patientName || 'Govindbhai Prajapati'}
               </p>
               <span className="text-xs text-slate-500 font-medium">
@@ -217,9 +217,9 @@ export const QueueCounterPage: React.FC = () => {
           <Button
             onClick={handleCallNext}
             disabled={callingNext || waitingTokens.length === 0}
-            className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs gap-2 min-h-[44px] rounded-xl cursor-pointer shadow-xs transition-colors"
+            className="w-full bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs gap-2 min-h-[44px] rounded-xl cursor-pointer shadow-xs transition-colors"
           >
-            <Volume2 className="h-4 w-4 text-teal-200" />
+            <Volume2 className="h-4 w-4 text-sky-200" />
             {callingNext ? 'Calling Token...' : `Call Next Token (${waitingTokens.length} Waiting)`}
           </Button>
         </div>
@@ -228,7 +228,7 @@ export const QueueCounterPage: React.FC = () => {
         <div className="md:col-span-5 grid grid-cols-2 gap-4">
           <Card className="p-4 border-slate-200 flex flex-col justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase">Waiting Patients</span>
-            <p className="text-3xl font-black text-teal-700 my-1">{waitingTokens.length}</p>
+            <p className="text-3xl font-black text-sky-700 my-1">{waitingTokens.length}</p>
             <span className="text-[11px] text-slate-400">Across active clinics</span>
           </Card>
 
@@ -298,7 +298,7 @@ export const QueueCounterPage: React.FC = () => {
                       #{idx + 1}
                     </span>
 
-                    <span className="font-mono font-black text-sm bg-teal-100/70 text-teal-950 px-2.5 py-1 rounded-lg border border-teal-200">
+                    <span className="font-mono font-black text-sm bg-sky-100/80 text-sky-950 px-2.5 py-1 rounded-lg border border-sky-200">
                       {t.tokenNumber}
                     </span>
 

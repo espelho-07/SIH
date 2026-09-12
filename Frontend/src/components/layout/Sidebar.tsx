@@ -686,7 +686,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       cn(
                         'group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-150',
                         isActive
-                          ? 'bg-teal-50/80 text-teal-900 font-semibold border border-teal-100/80 shadow-2xs'
+                          ? 'bg-sky-50 text-sky-950 font-semibold border border-sky-200/80 shadow-2xs'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       )
                     }
@@ -695,7 +695,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <>
                       {/* Active Left Indicator */}
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-teal-700" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-sky-600" />
                       )}
 
                       <div className="flex min-w-0 items-center gap-3">
@@ -704,7 +704,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           className={cn(
                             'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-150',
                             isActive
-                              ? 'bg-white text-teal-700 border border-teal-200/70 shadow-2xs'
+                              ? 'bg-white text-sky-700 border border-sky-200 shadow-2xs'
                               : 'bg-slate-50 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 border border-slate-100'
                           )}
                         >
