@@ -8,6 +8,8 @@ import {
   DiagnosticGapItem,
   EvidenceRecommendation,
   DistrictAiQueryResponse,
+  UnusedResourceItem,
+  HospitalDoctorRequirement,
 } from '@/types/intelligence';
 import {
   INITIAL_FACILITIES,
@@ -916,4 +918,204 @@ export class IntelligenceService {
       isGrounded: true,
     };
   }
+
+  /**
+   * Unused & Underutilized Resources Intelligence.
+   * Identifies equipment, beds, and supplies that are idle, in maintenance, or under-capacity.
+   */
+  static getUnusedResources(district: string = 'Gandhinagar'): UnusedResourceItem[] {
+    return [
+      {
+        id: 'unused_usg_kalol',
+        resourceName: 'Ultrasound Sonography Unit #2 (Mindray DC-70)',
+        category: 'EQUIPMENT',
+        facilityId: 'fac_kalol_03',
+        facilityName: 'Kalol Sub-District Hospital',
+        currentStatus: 'LOW_UTILIZATION',
+        utilizationRate: 18,
+        idleQuantity: '1 Machine (~21 scans/day unutilized)',
+        impactOrCause: 'Unit operated only in 2-hour afternoon slot; performs ~4 scans/day against rated capacity of 25 scans.',
+        opportunityRecommendation: 'Deploy mobile sonology roster or accept scheduled high-risk antenatal batches from Pethapur PHC (where 100% of USG is referred out).',
+      },
+      {
+        id: 'unused_xray_mansa',
+        resourceName: 'Dental X-Ray & Automatic Chair Unit',
+        category: 'EQUIPMENT',
+        facilityId: 'fac_mansa_02',
+        facilityName: 'Mansa Community Health Centre',
+        currentStatus: 'IDLE',
+        utilizationRate: 0,
+        idleQuantity: '1 Unit (Completely idle Thu-Sat)',
+        impactOrCause: 'Dental Medical Officer is rostered only Mon-Wed. Unit sits locked and unoperated 3 full days every week.',
+        opportunityRecommendation: 'Rotate visiting dental surgeon from Gandhinagar Civil Hospital or open inter-facility referral slots on Thursdays & Fridays.',
+      },
+      {
+        id: 'unused_mri_civil',
+        resourceName: '1.5T Superconducting MRI Scanner',
+        category: 'EQUIPMENT',
+        facilityId: 'fac_civil_01',
+        facilityName: 'Gandhinagar Civil Hospital',
+        currentStatus: 'OFFLINE_MAINTENANCE',
+        utilizationRate: 0,
+        idleQuantity: '1 Unit (0 scans/day running)',
+        impactOrCause: 'Helium cold-head compressor sensor trip for 4 days; blocking ~15 diagnostic scans/day. 2-3 neuro/ortho patients redirected daily.',
+        opportunityRecommendation: 'Expedite biomedical vendor SLA escalation (Ticket: TKT-MRI-2026-081) to restore primary imaging throughput immediately.',
+      },
+      {
+        id: 'unused_beds_kalol',
+        resourceName: 'Elective Orthopedic & Post-Op Inpatient Beds',
+        category: 'BEDS',
+        facilityId: 'fac_kalol_03',
+        facilityName: 'Kalol Sub-District Hospital',
+        currentStatus: 'LOW_UTILIZATION',
+        utilizationRate: 42,
+        idleQuantity: '18 Vacant Beds',
+        impactOrCause: 'Inpatient ward occupancy at Kalol is only 42%, while Gandhinagar Civil Hospital surgical & general wards are strained at 94% saturation.',
+        opportunityRecommendation: 'Reroute non-critical elective general and ortho surgeries from Civil Hospital to Kalol SDH to decompress district hospital beds.',
+      },
+      {
+        id: 'unused_vent_kalol',
+        resourceName: 'Non-Invasive BiPAP/CPAP Ventilator Consoles',
+        category: 'EQUIPMENT',
+        facilityId: 'fac_kalol_03',
+        facilityName: 'Kalol Sub-District Hospital',
+        currentStatus: 'SURPLUS_AVAILABLE',
+        utilizationRate: 40,
+        idleQuantity: '6 Units (Idle in store)',
+        impactOrCause: 'Kept in storage buffer; local Kalol ICU utilizes only 4 of 10 machines, while Mansa CHC has acute pediatric asthma & COPD season spikes.',
+        opportunityRecommendation: 'Temporary inter-facility loan of 2-3 units to Mansa CHC to provide local respiratory support during seasonal surge.',
+      },
+      {
+        id: 'unused_med_kalol',
+        resourceName: 'Tab. Azithromycin 500mg IP (Antibiotic)',
+        category: 'MEDICINE',
+        facilityId: 'fac_kalol_03',
+        facilityName: 'Kalol Sub-District Hospital Pharmacy',
+        currentStatus: 'SURPLUS_AVAILABLE',
+        utilizationRate: 100,
+        idleQuantity: '1,200 Strips (Above 90-day requirement)',
+        impactOrCause: 'Kalol holds surplus inventory, while Gandhinagar Civil Hospital pharmacy has dropped below safe emergency threshold (480/600 strips).',
+        opportunityRecommendation: 'Inter-facility transfer of 400 strips to Gandhinagar Civil Hospital pharmacy to resolve stockout warning without new procurement.',
+      },
+    ];
+  }
+
+  /**
+   * Hospital-Wise Doctor & Specialist Requirements.
+   * Answers which hospital needs which field/specialty doctors, backlog, and urgency.
+   */
+  static getHospitalDoctorRequirements(district: string = 'Gandhinagar'): HospitalDoctorRequirement[] {
+    return [
+      {
+        facilityId: 'fac_civil_01',
+        facilityName: 'Gandhinagar Civil Hospital',
+        facilityType: 'District Tertiary Hospital',
+        requirements: [
+          {
+            specialty: 'Cardiology',
+            doctorsNeeded: 2,
+            currentDoctors: 1,
+            patientBacklog: 42,
+            avgWaitDays: 3.8,
+            urgency: 'CRITICAL',
+            reason: 'High referral influx from rural corridors; single cardiologist handling 80+ patients daily.',
+          },
+          {
+            specialty: 'Neurology',
+            doctorsNeeded: 1,
+            currentDoctors: 0,
+            patientBacklog: 20,
+            avgWaitDays: 5.0,
+            urgency: 'CRITICAL',
+            reason: 'Zero dedicated neurologists on staff; stroke and epilepsy patients currently transferred to Ahmedabad.',
+          },
+          {
+            specialty: 'Infectious Disease / Critical Care',
+            doctorsNeeded: 1,
+            currentDoctors: 0,
+            patientBacklog: 30,
+            avgWaitDays: 1.5,
+            urgency: 'HIGH',
+            reason: 'Sector 24 & Pethapur Dengue outbreak created acute fever triage and platelet monitoring strain.',
+          },
+        ],
+      },
+      {
+        facilityId: 'fac_mansa_02',
+        facilityName: 'Mansa Community Health Centre',
+        facilityType: 'Community Health Centre (CHC)',
+        requirements: [
+          {
+            specialty: 'Pediatrics',
+            doctorsNeeded: 1,
+            currentDoctors: 1,
+            patientBacklog: 35,
+            avgWaitDays: 2.0,
+            urgency: 'HIGH',
+            reason: 'Seasonal spike in pediatric acute respiratory infections (38 recorded cases in corridor).',
+          },
+          {
+            specialty: 'Obstetrics & Gynecology (OBG)',
+            doctorsNeeded: 1,
+            currentDoctors: 1,
+            patientBacklog: 18,
+            avgWaitDays: 2.5,
+            urgency: 'HIGH',
+            reason: 'Night-shift emergency LSCS deliveries require on-call coverage to avoid 18.5 km transit to Civil.',
+          },
+        ],
+      },
+      {
+        facilityId: 'fac_kalol_03',
+        facilityName: 'Kalol Sub-District Hospital',
+        facilityType: 'Sub-District Hospital (SDH)',
+        requirements: [
+          {
+            specialty: 'Orthopedic Surgeon',
+            doctorsNeeded: 1,
+            currentDoctors: 1,
+            patientBacklog: 22,
+            avgWaitDays: 2.2,
+            urgency: 'MODERATE',
+            reason: 'High rate of industrial machinery trauma & highway road traffic accidents along Kalol-Mehsana highway.',
+          },
+          {
+            specialty: 'Pulmonologist / Chest Specialist',
+            doctorsNeeded: 1,
+            currentDoctors: 0,
+            patientBacklog: 16,
+            avgWaitDays: 3.0,
+            urgency: 'MODERATE',
+            reason: 'Industrial dust & occupational asthma cases requiring routine spirometry evaluation.',
+          },
+        ],
+      },
+      {
+        facilityId: 'fac_pet_04',
+        facilityName: 'Pethapur Primary Health Centre',
+        facilityType: 'Primary Health Centre (PHC)',
+        requirements: [
+          {
+            specialty: 'General Medical Officer (MBBS)',
+            doctorsNeeded: 1,
+            currentDoctors: 1,
+            patientBacklog: 45,
+            avgWaitDays: 1.0,
+            urgency: 'CRITICAL',
+            reason: 'Single Medical Officer handling over 85 daily OPD patients, immunizations, and ASHA review.',
+          },
+          {
+            specialty: 'Visiting Obstetrician / Gynecologist',
+            doctorsNeeded: 1,
+            currentDoctors: 0,
+            patientBacklog: 26,
+            avgWaitDays: 7.0,
+            urgency: 'HIGH',
+            reason: '100% of high-risk pregnancies currently forced to travel 6.8 km to Civil Hospital for basic checkups.',
+          },
+        ],
+      },
+    ];
+  }
 }
+

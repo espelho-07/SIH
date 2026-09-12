@@ -843,6 +843,26 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
+  if (cleanUrl.includes('/district/intelligence/unused-resources')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Unused & underutilized resources retrieved',
+      data: IntelligenceService.getUnusedResources(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/doctor-requirements')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Hospital-wise doctor requirements retrieved',
+      data: IntelligenceService.getHospitalDoctorRequirements(district),
+    };
+  }
+
   if (cleanUrl.includes('/district/intelligence/query') && method === 'POST') {
     const body = (data || {}) as { query?: string; district?: string };
     const answer = IntelligenceService.queryDistrictIntelligence(body.query || '', body.district || 'Gandhinagar');

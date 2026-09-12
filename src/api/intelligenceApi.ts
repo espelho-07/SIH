@@ -9,6 +9,8 @@ import {
   DiagnosticGapItem,
   EvidenceRecommendation,
   DistrictAiQueryResponse,
+  UnusedResourceItem,
+  HospitalDoctorRequirement,
 } from '@/types/intelligence';
 
 export const intelligenceApi = {
@@ -36,6 +38,13 @@ export const intelligenceApi = {
   getRecommendations: (district: string = 'Gandhinagar') =>
     apiRequest<EvidenceRecommendation[]>('/district/intelligence/recommendations', 'GET', { district }),
 
+  getUnusedResources: (district: string = 'Gandhinagar') =>
+    apiRequest<UnusedResourceItem[]>('/district/intelligence/unused-resources', 'GET', { district }),
+
+  getDoctorRequirements: (district: string = 'Gandhinagar') =>
+    apiRequest<HospitalDoctorRequirement[]>('/district/intelligence/doctor-requirements', 'GET', { district }),
+
   queryAi: (query: string, district: string = 'Gandhinagar') =>
     apiRequest<DistrictAiQueryResponse>('/district/intelligence/query', 'POST', { query, district }),
 };
+

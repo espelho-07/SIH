@@ -222,3 +222,33 @@ export interface DistrictAiQueryResponse {
   dataFreshness: string;
   isGrounded: boolean;
 }
+
+export interface UnusedResourceItem {
+  id: string;
+  resourceName: string;
+  category: 'EQUIPMENT' | 'BEDS' | 'MEDICINE' | 'DIAGNOSTIC';
+  facilityId: string;
+  facilityName: string;
+  currentStatus: 'IDLE' | 'LOW_UTILIZATION' | 'OFFLINE_MAINTENANCE' | 'SURPLUS_AVAILABLE';
+  utilizationRate?: number; // e.g. 18%
+  idleQuantity: number | string;
+  impactOrCause: string;
+  opportunityRecommendation: string;
+}
+
+export interface DoctorRequirementItem {
+  specialty: string;
+  doctorsNeeded: number;
+  currentDoctors: number;
+  patientBacklog: number;
+  avgWaitDays?: number;
+  urgency: 'CRITICAL' | 'HIGH' | 'MODERATE';
+  reason: string;
+}
+
+export interface HospitalDoctorRequirement {
+  facilityId: string;
+  facilityName: string;
+  facilityType: string;
+  requirements: DoctorRequirementItem[];
+}
