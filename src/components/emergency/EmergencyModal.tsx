@@ -70,7 +70,7 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({ open, onOpenChan
     : `https://www.google.com/maps/search/?api=1&query=${emergencyFacility.coordinates.lat},${emergencyFacility.coordinates.lng}`;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="lg">
+    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="xl">
       <DialogHeader className="pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-700 border border-red-200/60">

@@ -330,8 +330,8 @@ export const AuditLogsPage: React.FC = () => {
 
       {/* Inspect Event Modal */}
       {inspectingLog && (
-        <Dialog open={Boolean(inspectingLog)} onOpenChange={(open) => !open && setInspectingLog(null)}>
-          <DialogContent className="max-w-xl">
+        <Dialog open={Boolean(inspectingLog)} onOpenChange={(open) => !open && setInspectingLog(null)} maxWidth="2xl">
+          <DialogContent className="space-y-4">
             <DialogHeader>
               <div className="flex items-center gap-2 text-teal-700 mb-1">
                 <ShieldCheck className="h-5 w-5" />

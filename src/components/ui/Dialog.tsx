@@ -7,10 +7,10 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
 }
 
-export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, maxWidth = 'lg' }) => {
+export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, maxWidth = 'xl' }) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -36,12 +36,15 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, ma
   if (!open || !mounted) return null;
 
   const maxWidths = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    full: 'max-w-5xl',
+    sm: 'max-w-md',
+    md: 'max-w-xl sm:max-w-2xl',
+    lg: 'max-w-2xl sm:max-w-3xl',
+    xl: 'max-w-3xl sm:max-w-4xl',
+    '2xl': 'max-w-4xl sm:max-w-5xl',
+    '3xl': 'max-w-5xl sm:max-w-6xl',
+    '4xl': 'max-w-6xl sm:max-w-7xl',
+    '5xl': 'max-w-[92vw]',
+    full: 'max-w-[96vw]',
   };
 
   const dialogElement = (
@@ -58,7 +61,7 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, ma
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative z-10 w-full my-auto rounded-2xl bg-white p-6 shadow-2xl transition-all border border-slate-200 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden',
+          'relative z-10 w-full my-auto rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-200 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden',
           maxWidths[maxWidth]
         )}
       >

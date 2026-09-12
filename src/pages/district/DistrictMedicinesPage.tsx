@@ -247,7 +247,7 @@ export const DistrictMedicinesPage: React.FC = () => {
       {/* Emergency Indent Modal */}
       {showIndentModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6 bg-white border-slate-200 shadow-xl space-y-4">
+          <Card className="w-full max-w-2xl sm:max-w-3xl p-6 sm:p-8 bg-white border-slate-200 shadow-xl space-y-4 rounded-3xl">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2 text-teal-800 font-bold text-base">
                 <Package className="h-5 w-5" />

@@ -440,7 +440,7 @@ export const DistrictFacilitiesPage: React.FC = () => {
 
       {/* ADD GOVERNMENT FACILITY MODAL */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-teal-700" />
@@ -672,7 +672,7 @@ export const DistrictFacilitiesPage: React.FC = () => {
 
       {/* QUICK INSPECT MODAL */}
       {inspectFacility && (
-        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="lg">
+        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="xl">
           <DialogHeader>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-100">

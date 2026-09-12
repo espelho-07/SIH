@@ -188,7 +188,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
 
       {/* Add User Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare User</DialogTitle>
             <DialogDescription>

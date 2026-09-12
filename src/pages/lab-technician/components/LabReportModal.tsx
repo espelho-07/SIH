@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { DiagnosticOrder } from '@/types/clinical';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
@@ -46,7 +46,7 @@ export const LabReportModal: React.FC<LabReportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
-      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-6 max-h-[90vh]">
+      <div className="w-full max-w-4xl sm:max-w-5xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-6 max-h-[90vh]">
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-3.5 bg-slate-50">
           <div className="flex items-center gap-2">

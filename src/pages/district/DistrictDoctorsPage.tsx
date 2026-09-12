@@ -342,7 +342,7 @@ export const DistrictDoctorsPage: React.FC = () => {
 
       {/* ADD DOCTOR MODAL */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="lg">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5 text-teal-700" />

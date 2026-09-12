@@ -268,7 +268,7 @@ export const UserManagementPage: React.FC = () => {
 
       {/* User Details Dialog */}
       {selectedUser && (
-        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)} maxWidth="md">
+        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)} maxWidth="lg">
           <DialogHeader>
             <DialogTitle>{selectedUser.name}</DialogTitle>
             <DialogDescription>
@@ -358,7 +358,7 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Add User Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare User</DialogTitle>
             <DialogDescription>

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { FacilityOperationalStatus } from '@/types/operations';
@@ -110,7 +110,7 @@ export const FacilityStatusModal: React.FC<FacilityStatusModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="lg">
+    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="2xl">
       <form onSubmit={handleSubmit}>
         <DialogHeader>
           <div className="flex items-center gap-2">

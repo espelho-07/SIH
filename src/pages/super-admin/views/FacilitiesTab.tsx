@@ -226,7 +226,7 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
 
       {/* Facility Inspection Dialog */}
       {inspectFacility && (
-        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="lg">
+        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>{inspectFacility.name}</DialogTitle>
             <DialogDescription>
@@ -284,7 +284,7 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
 
       {/* Add Facility Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare Facility</DialogTitle>
             <DialogDescription>

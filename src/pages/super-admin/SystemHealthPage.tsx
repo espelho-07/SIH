@@ -197,7 +197,7 @@ export const SystemHealthPage: React.FC = () => {
 
       {/* Service Details Inspection Dialog */}
       {selectedService && (
-        <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)} maxWidth="md">
+        <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)} maxWidth="lg">
           <DialogHeader>
             <DialogTitle>{selectedService.name}</DialogTitle>
             <DialogDescription>

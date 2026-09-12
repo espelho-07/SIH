@@ -69,7 +69,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   title,
   position = 'right',
   children,
-  width = 'max-w-md',
+  width = 'max-w-lg sm:max-w-xl',
 }) => {
   if (!open) return null;
 

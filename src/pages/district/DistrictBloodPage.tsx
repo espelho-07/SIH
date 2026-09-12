@@ -306,7 +306,7 @@ export const DistrictBloodPage: React.FC = () => {
       {/* Broadcast Alert Modal */}
       {showBroadcastModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6 bg-white border-slate-200 shadow-xl space-y-4">
+          <Card className="w-full max-w-2xl sm:max-w-3xl p-6 sm:p-8 bg-white border-slate-200 shadow-xl space-y-4 rounded-3xl">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2 text-rose-700 font-bold text-base">
                 <Radio className="h-5 w-5" />
@@ -381,7 +381,7 @@ export const DistrictBloodPage: React.FC = () => {
 
       {/* ADD BLOOD CENTRE MODAL */}
       {showAddCenterModal && (
-        <Dialog open={showAddCenterModal} onOpenChange={setShowAddCenterModal} maxWidth="lg">
+        <Dialog open={showAddCenterModal} onOpenChange={setShowAddCenterModal} maxWidth="2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Droplet className="h-5 w-5 text-rose-700" />

@@ -420,7 +420,7 @@ export const DistrictAdminsTab: React.FC<DistrictAdminsTabProps> = ({
 
       {/* APPOINT NEW DISTRICT ADMIN MODAL */}
       {showAppointModal && (
-        <Dialog open={showAppointModal} onOpenChange={setShowAppointModal} maxWidth="lg">
+        <Dialog open={showAppointModal} onOpenChange={setShowAppointModal} maxWidth="2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-indigo-900">
               <ShieldCheck className="h-5 w-5 text-indigo-700" />
@@ -569,7 +569,7 @@ export const DistrictAdminsTab: React.FC<DistrictAdminsTabProps> = ({
 
       {/* VIEW ADMIN DETAILS MODAL */}
       {selectedAdmin && (
-        <Dialog open={!!selectedAdmin} onOpenChange={() => setSelectedAdmin(null)} maxWidth="md">
+        <Dialog open={!!selectedAdmin} onOpenChange={() => setSelectedAdmin(null)} maxWidth="lg">
           <DialogHeader>
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-800 font-bold text-[10px]">

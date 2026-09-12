@@ -265,7 +265,7 @@ export const FacilityGovernancePage: React.FC = () => {
 
       {/* Facility Inspection Dialog */}
       {inspectFacility && (
-        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="lg">
+        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>{inspectFacility.name}</DialogTitle>
             <DialogDescription>
@@ -323,7 +323,7 @@ export const FacilityGovernancePage: React.FC = () => {
 
       {/* Add Facility Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare Facility</DialogTitle>
             <DialogDescription>

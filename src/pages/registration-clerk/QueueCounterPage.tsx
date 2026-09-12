@@ -360,7 +360,7 @@ export const QueueCounterPage: React.FC = () => {
       {/* Manual Walk-In Token Modal */}
       {walkInModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-100">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="w-full max-w-2xl sm:max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
             <div className="bg-teal-700 px-6 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Ticket className="h-5 w-5 text-teal-200" />

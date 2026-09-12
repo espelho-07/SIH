@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { operationsApi } from '@/api/operationsApi';
@@ -49,7 +49,7 @@ export const QueueDelayModal: React.FC<QueueDelayModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="sm">
+    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="lg">
       <form onSubmit={handleBroadcast}>
         <DialogHeader>
           <div className="flex items-center gap-2">

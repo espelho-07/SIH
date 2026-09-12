@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { DiagnosticOrder } from '@/types/clinical';
 import { Button } from '@/components/ui/Button';
 import {
@@ -55,7 +55,7 @@ export const SampleRejectionModal: React.FC<SampleRejectionModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+      <div className="w-full max-w-2xl sm:max-w-3xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-rose-100 px-5 py-4 bg-rose-50/70">
           <div className="flex items-center gap-2.5">

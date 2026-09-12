@@ -43,7 +43,7 @@ export const AdminEmergencyModal: React.FC<AdminEmergencyModalProps> = ({ open, 
     INITIAL_FACILITIES.find((f) => f.emergencyAvailable) || INITIAL_FACILITIES[0];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="xl">
+    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="2xl">
       <DialogHeader className="pb-3 border-b border-slate-100">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">

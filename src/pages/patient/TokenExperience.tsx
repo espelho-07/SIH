@@ -611,7 +611,7 @@ export const TokenExperience: React.FC = () => {
       ====================================================== */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-100">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 text-center space-y-4">
+          <div className="w-full max-w-md sm:max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-200 text-center space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Hospital OPD QR Check-in
