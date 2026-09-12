@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
 import { appointmentApi } from '@/api/queueApi';
 import { facilityApi } from '@/api/facilityApi';
+import { directoryApi } from '@/api/directoryApi';
+import { Facility } from '@/types/facility';
+import { DistrictDoctor } from '@/types/admin';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
@@ -160,12 +163,36 @@ export const AppointmentBooking: React.FC = () => {
   // View Details Modal State (Triggered by [View] button)
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRecord | null>(null);
 
-  // Form States
-  const [hospitalName, setHospitalName] = useState('Gandhinagar Civil Hospital');
+  // Form States & Live Directory
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
+  const [doctors, setDoctors] = useState<DistrictDoctor[]>([]);
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string>(searchParams.get('facilityId') || 'fac_civil_01');
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('ALL');
+  const [hospitalName, setHospitalName] = useState('Gandhinagar Civil Hospital & Medical College');
   const [patientName, setPatientName] = useState(activeMember?.name || 'Govindbhai Patel');
   const [disease, setDisease] = useState('Fever & Cold');
   const [date, setDate] = useState('2026-09-14');
   const [timeSlot, setTimeSlot] = useState('10:30 AM');
+
+  // Load live facilities and doctors from MongoDB
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setFacilities(res.data);
+        const match = res.data.find((f) => f.id === selectedFacilityId) || res.data[0];
+        if (match) {
+          setSelectedFacilityId(match.id);
+          setHospitalName(match.name);
+        }
+      }
+    }).catch(console.warn);
+
+    directoryApi.getDoctors().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setDoctors(res.data);
+      }
+    }).catch(console.warn);
+  }, []);
 
   // Voice Assistant States
   const [isListening, setIsListening] = useState(false);
@@ -179,12 +206,18 @@ export const AppointmentBooking: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [bookedRecord, setBookedRecord] = useState<AppointmentRecord | null>(null);
 
+  // Available doctors for the chosen hospital
+  const availableDoctors = doctors.filter((d) => {
+    if (!selectedFacilityId || selectedFacilityId === 'ALL') return true;
+    return d.facilityId === selectedFacilityId || d.hospital?.toLowerCase().includes(hospitalName.toLowerCase().slice(0, 8));
+  });
+
   useEffect(() => {
     appointmentApi.getAll(activeMember?.id).then((res) => {
       if (res.data && Array.isArray(res.data) && res.data.length > 0) {
         const liveMapped: AppointmentRecord[] = res.data.map((apt: any) => ({
           id: apt.id,
-          tokenNumber: apt.tokenNumber ? `OPD-${apt.tokenNumber}` : 'OPD-28',
+          tokenNumber: apt.tokenNumber ? (apt.tokenNumber.startsWith('OPD-') ? apt.tokenNumber : `OPD-${apt.tokenNumber}`) : 'OPD-28',
           hospitalName: apt.facilityName || 'Gandhinagar Civil Hospital',
           department: apt.departmentName || apt.specialty || 'General Medicine',
           room: apt.roomNumber || 'Room 4 (1st Floor)',
@@ -439,15 +472,20 @@ export const AppointmentBooking: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const facility =
-        INITIAL_FACILITIES.find((f) =>
-          f.name.toLowerCase().includes(hospitalName.toLowerCase().slice(0, 8))
-        ) || INITIAL_FACILITIES[0];
+      const chosenFacility = facilities.find(
+        (f) => f.id === selectedFacilityId || f.name.toLowerCase() === hospitalName.toLowerCase()
+      ) || facilities[0];
+
+      const chosenDoctor = doctors.find((d) => d.id === selectedDoctorId) || availableDoctors[0];
 
       const res = await appointmentApi.book({
-        facilityId: facility.id,
-        facilityName: hospitalName,
-        specialty: 'General Medicine',
+        facilityId: chosenFacility.id,
+        facilityName: chosenFacility.name,
+        doctorId: chosenDoctor?.id,
+        doctorName: chosenDoctor?.name,
+        specialty: chosenDoctor?.specialty || 'General Medicine',
+        roomNumber: chosenDoctor?.roomNumber || 'Room 4 (1st Floor)',
+        departmentName: chosenDoctor?.specialty || 'General Medicine OPD',
         date,
         timeSlot,
         patientName,
@@ -462,10 +500,10 @@ export const AppointmentBooking: React.FC = () => {
       const newRecord: AppointmentRecord = {
         id: serverApt?.id || `APT-2026-00${appointments.length + 1}`,
         tokenNumber: newTokenNumber,
-        hospitalName: serverApt?.facilityName || hospitalName,
-        department: serverApt?.departmentName || serverApt?.specialty || 'General Medicine',
-        room: serverApt?.roomNumber || 'Room 4 (1st Floor)',
-        doctorName: serverApt?.doctorName || 'Dr. Arvind Patel (MD Medicine)',
+        hospitalName: serverApt?.facilityName || chosenFacility.name,
+        department: serverApt?.departmentName || serverApt?.specialty || chosenDoctor?.specialty || 'General Medicine',
+        room: serverApt?.roomNumber || chosenDoctor?.roomNumber || 'Room 4 (1st Floor)',
+        doctorName: serverApt?.doctorName || chosenDoctor?.name || 'Dr. Arvind Patel (MD Medicine)',
         patientName: serverApt?.patientName || patientName,
         patientPhone: serverApt?.patientPhone || activeMember?.phone || '9825011122',
         disease: serverApt?.reasonForVisit || disease,
@@ -1151,48 +1189,85 @@ export const AppointmentBooking: React.FC = () => {
                 {/* 5-Field Form */}
                 <form onSubmit={handleBooking} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* FIELD 1: HOSPITAL */}
+                    {/* FIELD 1: HOSPITAL (Live from MongoDB) */}
                     <div className="space-y-1">
-                      <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                        <Building2 className="h-4 w-4 text-teal-700" />
-                        <span>1. Hospital Name</span>
+                      <label className="text-xs font-black text-slate-800 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Building2 className="h-4 w-4 text-teal-700" />
+                          <span>1. Hospital / Healthcare Centre</span>
+                        </span>
+                        <span className="text-[10px] text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded-md">
+                          Live DB
+                        </span>
                       </label>
                       <select
-                        value={hospitalName}
-                        onChange={(e) => setHospitalName(e.target.value)}
+                        value={selectedFacilityId}
+                        onChange={(e) => {
+                          const fId = e.target.value;
+                          setSelectedFacilityId(fId);
+                          const matchedFac = facilities.find((f) => f.id === fId);
+                          if (matchedFac) setHospitalName(matchedFac.name);
+                        }}
                         className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-bold text-slate-900"
                       >
-                        {HOSPITALS_LIST.map((h, i) => (
-                          <option key={i} value={h}>
-                            {h}
+                        {facilities.map((fac) => (
+                          <option key={fac.id} value={fac.id}>
+                            {fac.name} ({fac.type?.replace('_', ' ') || 'Hospital'})
                           </option>
                         ))}
                       </select>
                     </div>
 
-                    {/* FIELD 2: PATIENT NAME */}
+                    {/* FIELD 2: ATTENDING DOCTOR & DEPARTMENT (Live from MongoDB) */}
                     <div className="space-y-1">
-                      <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                        <User className="h-4 w-4 text-teal-700" />
-                        <span>2. Patient Name</span>
+                      <label className="text-xs font-black text-slate-800 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Stethoscope className="h-4 w-4 text-teal-700" />
+                          <span>2. Attending Doctor & Department</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {availableDoctors.length} doctors available
+                        </span>
                       </label>
-                      <input
-                        type="text"
-                        required
-                        value={patientName}
-                        onChange={(e) => setPatientName(e.target.value)}
-                        placeholder="Enter full name..."
+                      <select
+                        value={selectedDoctorId}
+                        onChange={(e) => setSelectedDoctorId(e.target.value)}
                         className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-bold text-slate-900"
-                      />
+                      >
+                        <option value="ALL">
+                          Any Available Medical Officer (General Medicine OPD)
+                        </option>
+                        {availableDoctors.map((doc) => (
+                          <option key={doc.id} value={doc.id}>
+                            {doc.name} • {doc.specialty} ({doc.roomNumber || 'Room 4'})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
-                  {/* FIELD 3: DISEASE / PROBLEM */}
+                  {/* FIELD 3: PATIENT NAME */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <User className="h-4 w-4 text-teal-700" />
+                      <span>3. Patient Name</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={patientName}
+                      onChange={(e) => setPatientName(e.target.value)}
+                      placeholder="Enter full name..."
+                      className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-bold text-slate-900"
+                    />
+                  </div>
+
+                  {/* FIELD 4: DISEASE / PROBLEM */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                         <Stethoscope className="h-4 w-4 text-teal-700" />
-                        <span>3. Disease / Problem</span>
+                        <span>4. Disease / Problem / Chief Complaint</span>
                       </label>
                       <span className="text-[11px] text-slate-400">1-Tap to select:</span>
                     </div>
@@ -1228,13 +1303,13 @@ export const AppointmentBooking: React.FC = () => {
                     />
                   </div>
 
-                  {/* FIELD 4 (DATE) & FIELD 5 (TIME) */}
+                  {/* FIELD 5 (DATE) & FIELD 6 (TIME) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                           <CalendarDays className="h-4 w-4 text-teal-700" />
-                          <span>4. Date</span>
+                          <span>5. Date</span>
                         </label>
                         <div className="flex gap-1 text-xs">
                           <button
@@ -1270,7 +1345,7 @@ export const AppointmentBooking: React.FC = () => {
                     <div className="space-y-1.5">
                       <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
                         <Clock className="h-4 w-4 text-teal-700" />
-                        <span>5. Time Slot</span>
+                        <span>6. Time Slot</span>
                       </label>
 
                       <div className="flex flex-wrap gap-1.5 pt-0.5">
