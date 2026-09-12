@@ -129,7 +129,7 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md md:hidden shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md lg:hidden shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]"
       aria-label="Mobile Navigation"
     >
       <div className="flex h-16 items-center justify-around px-1 sm:px-2">

@@ -41,6 +41,7 @@ import {
   ListTodo,
   Stethoscope,
   Settings,
+  Phone,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -588,10 +589,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* MOBILE BACKDROP */}
+      {/* MOBILE / TABLET BACKDROP */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-16 bottom-0 z-30 bg-slate-900/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-x-0 top-16 bottom-0 z-30 bg-slate-900/50 backdrop-blur-xs lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -601,23 +602,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <aside
         className={cn(
           `fixed top-16 bottom-0 left-0 z-30
-          w-64 h-[calc(100vh-4rem)]
-          border-r border-slate-200
+          w-64 h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)]
+          border-r border-slate-200/90
           bg-white
-          shadow-[4px_0_24px_rgba(15,23,42,0.04)]
+          shadow-xs
           transition-transform duration-200
           ease-in-out
-          md:sticky md:top-16
-          md:shrink-0 md:translate-x-0
-          flex flex-col`,
+          lg:sticky lg:top-16
+          lg:shrink-0 lg:translate-x-0
+          flex flex-col justify-between overflow-hidden`,
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Laptop Workspace Header Pill */}
-        <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+        {/* Workspace Header Pill */}
+        <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-2 min-w-0">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-[11px] font-semibold text-slate-700 truncate">
+            <span className="text-xs font-bold text-slate-800 truncate">
               {role === 'PATIENT'
                 ? 'Citizen Portal • ABHA'
                 : role === 'DOCTOR'
@@ -639,14 +640,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 : 'Facility Staff Console'}
             </span>
           </div>
-          <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/60">
+          <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60">
             Live
           </span>
         </div>
 
         {/* Mobile Patient Profile Switcher in Sidebar Drawer */}
         {role === 'PATIENT' && (
-          <div className="md:hidden px-3 pt-3 pb-2 border-b border-slate-100 bg-slate-50/50">
+          <div className="lg:hidden px-3 pt-3 pb-2 border-b border-slate-100 bg-slate-50/50">
             <FamilyMemberSwitcher variant="sidebar" />
           </div>
         )}
@@ -678,9 +679,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* ---------------------------------------------
             NAVIGATION
         --------------------------------------------- */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-thin">
           {!navItems[0]?.section && (
-            <div className="mb-2 px-2.5">
+            <div className="mb-1 px-2.5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
                   Menu
@@ -703,7 +704,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <div
                       className={cn(
                         'px-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400',
-                        index > 0 ? 'pt-3.5 pb-1' : 'pb-1'
+                        index > 0 ? 'pt-3 pb-1' : 'pb-1'
                       )}
                     >
                       {item.section}
@@ -715,38 +716,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     end={item.to.split('/').length <= 2}
                     className={({ isActive }) =>
                       cn(
-                        'group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-150',
+                        'group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs sm:text-sm font-medium transition-all duration-150',
                         isActive
-                          ? 'bg-gradient-to-r from-sky-50 via-sky-50/80 to-blue-50/40 text-sky-950 font-semibold border border-sky-200/80 shadow-2xs'
+                          ? 'bg-teal-50 text-teal-900 font-semibold border border-teal-200/80 shadow-2xs'
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       )
                     }
                   >
                   {({ isActive }) => (
                     <>
-                      {/* Active Left Indicator */}
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-sky-600" />
-                      )}
-
                       <div className="flex min-w-0 items-center gap-3">
-                        {/* ICON */}
-                        <div
+                        <Icon
                           className={cn(
-                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-150',
+                            'h-[18px] w-[18px] shrink-0 transition-colors',
                             isActive
-                              ? 'bg-white text-sky-700 border border-sky-200 shadow-2xs'
-                              : 'bg-slate-50 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 border border-slate-100'
+                              ? 'text-teal-700'
+                              : 'text-slate-400 group-hover:text-slate-700'
                           )}
-                        >
-                          <Icon className="h-[18px] w-[18px]" />
-                        </div>
-
-                        {/* LABEL */}
+                        />
                         <span className="truncate">{item.label}</span>
                       </div>
 
-                      {/* BADGE */}
+                      {isActive && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-teal-600 shrink-0" />
+                      )}
+
                       {item.badge !== undefined && (
                         <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">
                           {item.badge}
@@ -761,19 +755,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </nav>
         </div>
 
-        {/* Laptop Sidebar Bottom Help & Helpline Card */}
-        <div className="hidden md:block p-3 border-t border-slate-100 bg-slate-50/40">
+        {/* Sidebar Bottom Help & Helpline Card */}
+        <div className="shrink-0 p-3 border-t border-slate-100 bg-slate-50/60">
           {role === 'PATIENT' ? (
-            <div className="rounded-xl border border-sky-200/70 bg-gradient-to-br from-sky-50/70 to-blue-50/40 p-3">
+            <div className="rounded-2xl border border-sky-200/70 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/40 p-3 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-sky-900">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-900">
                   24x7 Emergency Care
                 </span>
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
               </div>
-              <p className="mt-1 text-[11px] text-slate-600">
-                Call <strong className="text-slate-900">108</strong> for Ambulance or <strong className="text-slate-900">104</strong> for Medical Advice
+              <p className="mt-1 text-[11px] text-slate-600 leading-snug">
+                Free ambulance & medical advice
               </p>
+              <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                <a
+                  href="tel:108"
+                  className="flex items-center justify-center gap-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-1.5 transition-colors shadow-2xs"
+                >
+                  <Phone className="h-3 w-3" />
+                  108 Ambulance
+                </a>
+                <a
+                  href="tel:104"
+                  className="flex items-center justify-center gap-1 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold py-1.5 transition-colors shadow-2xs"
+                >
+                  104 Helpline
+                </a>
+              </div>
             </div>
           ) : (
             <div className="rounded-xl border border-slate-200 bg-white p-2.5 flex items-center justify-between text-[11px]">

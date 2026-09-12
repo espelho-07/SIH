@@ -61,7 +61,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="md:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="lg:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
             aria-label="Toggle navigation menu"
           >
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
