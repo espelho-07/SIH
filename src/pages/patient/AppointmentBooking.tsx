@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,7 +7,6 @@ import { INITIAL_FACILITIES } from '@/mock/mockData';
 import { appointmentApi } from '@/api/queueApi';
 import { useFamily } from '@/contexts/FamilyContext';
 import { Link } from 'react-router-dom';
-import { Appointment } from '@/types/queue';
 
 import {
   CalendarDays,
@@ -17,19 +15,19 @@ import {
   Stethoscope,
   MapPin,
   CheckCircle2,
-  XCircle,
   Eye,
   History,
   ShieldCheck,
   Users,
   Sun,
   Moon,
-  Ticket,
-  RefreshCw,
   Sparkles,
-  AlertCircle,
+  Printer,
+  Navigation,
+  Check,
   ArrowRight,
-  ChevronRight,
+  Mic,
+  ChevronDown,
 } from 'lucide-react';
 
 interface DoctorOption {
@@ -126,64 +124,35 @@ const DOCTORS_BY_SPECIALTY: Record<string, DoctorOption[]> = {
   ],
 };
 
-interface TimeSlot {
-  time: string;
-  session: 'MORNING' | 'AFTERNOON';
-  isBooked: boolean;
-  bookedReason?: string;
-}
-
-const ALL_SLOT_TEMPLATES: { time: string; session: 'MORNING' | 'AFTERNOON' }[] = [
-  { time: '09:00 AM', session: 'MORNING' },
-  { time: '09:30 AM', session: 'MORNING' },
-  { time: '10:00 AM', session: 'MORNING' },
-  { time: '10:30 AM', session: 'MORNING' },
-  { time: '11:00 AM', session: 'MORNING' },
-  { time: '11:30 AM', session: 'MORNING' },
-  { time: '12:00 PM', session: 'MORNING' },
-  { time: '12:30 PM', session: 'MORNING' },
-  { time: '02:00 PM', session: 'AFTERNOON' },
-  { time: '02:30 PM', session: 'AFTERNOON' },
-  { time: '03:00 PM', session: 'AFTERNOON' },
-  { time: '03:30 PM', session: 'AFTERNOON' },
-  { time: '04:00 PM', session: 'AFTERNOON' },
-  { time: '04:30 PM', session: 'AFTERNOON' },
+const QUICK_REASONS = [
+  { en: 'Fever & Cold', gu: 'તાવ અને શરદી', hi: 'बुखार और जुकाम', specialty: 'General Medicine' },
+  { en: 'Joint / Body Pain', gu: 'હાડકા-સાંધાનો દુખાવો', hi: 'जोड़ों व शरीर में दर्द', specialty: 'Orthopedics' },
+  { en: 'Blood Pressure / Sugar Check', gu: 'બીપી / સુગર તપાસ', hi: 'बीपी / शुगर जांच', specialty: 'Cardiology' },
+  { en: 'General Routine Checkup', gu: 'સામાન્ય નિયમિત તપાસ', hi: 'नियमित चेकअप', specialty: 'General Medicine' },
+  { en: 'Weakness / Headache', gu: 'નબળાઈ / માથાનો દુખાવો', hi: 'कमजोरी / सिरदर्द', specialty: 'General Medicine' },
+  { en: 'Stomach / Indigestion', gu: 'પેટમાં દુખાવો / ગેસ', hi: 'पेट दर्द / अपच', specialty: 'General Medicine' },
+  { en: 'Child Care / Baby Fever', gu: 'બાળક બીમાર / બાળ રોગ', hi: 'बच्चे की बीमारी / बाल रोग', specialty: 'Pediatrics' },
+  { en: 'Women / Maternity Health', gu: 'મહિલા આરોગ્ય / પ્રસુતિ', hi: 'महिला एवं प्रसूति स्वास्थ्य', specialty: 'Obstetrics & Gynecology' },
 ];
 
-/**
- * Deterministically computes slot availability based on Doctor + Date.
- * Ensures that booked slots are clearly locked and free slots can be booked.
- */
-const getDoctorSlots = (doctorId: string, dateStr: string): TimeSlot[] => {
-  let hash = 0;
-  const key = `${doctorId}-${dateStr}`;
-  for (let i = 0; i < key.length; i++) {
-    hash = (hash * 31 + key.charCodeAt(i)) % 1000000;
-  }
+const DATE_OPTIONS = [
+  { id: 'today', dateStr: '2026-09-14', labelEn: 'Today (Mon)', labelGu: 'આજે (સોમ)', labelHi: 'आज (सोम)' },
+  { id: 'tomorrow', dateStr: '2026-09-15', labelEn: 'Tomorrow (Tue)', labelGu: 'આવતીકાલે (મંગળ)', labelHi: 'कल (मंगल)' },
+  { id: 'dayAfter', dateStr: '2026-09-16', labelEn: 'Day After (Wed)', labelGu: 'પરમદિવસે (બુધ)', labelHi: 'परसों (बुध)' },
+];
 
-  // Pre-configured slot patterns: 5 slots are booked, 9 are available
-  const bookedIndices = [
-    (hash + 1) % 14,
-    (hash + 3) % 14,
-    (hash + 6) % 14,
-    (hash + 8) % 14,
-    (hash + 11) % 14,
-  ];
-
-  return ALL_SLOT_TEMPLATES.map((slot, index) => {
-    const isBooked = bookedIndices.includes(index);
-    return {
-      ...slot,
-      isBooked,
-      bookedReason: isBooked ? 'Patient Reserved' : undefined,
-    };
-  });
-};
+const RURAL_MORNING_SLOTS = ['09:30 AM', '10:30 AM', '11:30 AM'];
+const RURAL_AFTERNOON_SLOTS = ['02:30 PM', '03:30 PM'];
 
 export const AppointmentBooking: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language || 'en';
   const { members, activeMember } = useFamily();
 
+  // Mode: 'EASY' (Default for rural people) vs 'DETAILED' (Full medical roster)
+  const [mode, setMode] = useState<'EASY' | 'DETAILED'>('EASY');
+
+  // Booking states
   const [selectedMemberId, setSelectedMemberId] = useState<string>(activeMember.id);
   const [facilityId, setFacilityId] = useState('fac_civil_01');
   const [specialty, setSpecialty] = useState('General Medicine');
@@ -192,8 +161,15 @@ export const AppointmentBooking: React.FC = () => {
   const [selectedSlot, setSelectedSlot] = useState('10:30 AM');
   const [reason, setReason] = useState('Routine blood sugar and blood pressure review');
 
+  // Voice speech-to-text state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<'IDLE' | 'LISTENING' | 'SAVED'>('IDLE');
+  const recognitionRef = useRef<any>(null);
+
   const [isBooked, setIsBooked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [bookedTokenNumber, setBookedTokenNumber] = useState('OPD-28');
+  const [showRecentVisits, setShowRecentVisits] = useState(false);
 
   // Available doctors under current department
   const currentDoctors = DOCTORS_BY_SPECIALTY[specialty] || DOCTORS_BY_SPECIALTY['General Medicine'];
@@ -206,472 +182,761 @@ export const AppointmentBooking: React.FC = () => {
     }
   }, [specialty, currentDoctors, selectedDoctorId]);
 
-  // Compute live slots for chosen doctor and date
-  const doctorSlots = getDoctorSlots(activeDoctor.id, date);
-  const morningSlots = doctorSlots.filter((s) => s.session === 'MORNING');
-  const afternoonSlots = doctorSlots.filter((s) => s.session === 'AFTERNOON');
-
-  const freeSlotsCount = doctorSlots.filter((s) => !s.isBooked).length;
-  const bookedSlotsCount = doctorSlots.filter((s) => s.isBooked).length;
-
-  // Ensure selected slot is ALWAYS a free slot
+  // Initialize Web Speech Recognition
   useEffect(() => {
-    const isCurrentFree = doctorSlots.find((s) => s.time === selectedSlot && !s.isBooked);
-    if (!isCurrentFree) {
-      const firstFree = doctorSlots.find((s) => !s.isBooked);
-      if (firstFree) {
-        setSelectedSlot(firstFree.time);
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      // Select speech language
+      if (currentLang === 'gu') {
+        recognition.lang = 'gu-IN';
+      } else if (currentLang === 'hi') {
+        recognition.lang = 'hi-IN';
+      } else {
+        recognition.lang = 'en-IN';
       }
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setVoiceStatus('LISTENING');
+      };
+
+      recognition.onresult = (event: any) => {
+        const current = event.resultIndex;
+        const transcriptText = event.results[current][0].transcript;
+        if (transcriptText) {
+          setReason(transcriptText);
+        }
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+        setVoiceStatus('IDLE');
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setVoiceStatus('SAVED');
+      };
+
+      recognitionRef.current = recognition;
     }
-  }, [activeDoctor.id, date, doctorSlots, selectedSlot]);
 
-  // Active patient details
-  const bookingPatient = members.find((m) => m.id === selectedMemberId) || activeMember;
-
-  // User appointments state and active tab
-  const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
-  const [appointmentsList, setAppointmentsList] = useState<Appointment[]>([]);
-  const [activeTab, setActiveTab] = useState<'UPCOMING' | 'PREVIOUS'>('UPCOMING');
-  const [checkInLoadingId, setCheckInLoadingId] = useState<string | null>(null);
-
-  const selectedFacility = INITIAL_FACILITIES.find(
-    (facility) => facility.id === facilityId
-  );
-
-  // Load appointments from API / storage
-  const loadAppointments = async () => {
-    try {
-      const res = await appointmentApi.getAll();
-      const all: Appointment[] = res.data && res.data.length > 0 ? [...res.data] : [];
-      const saved = localStorage.getItem('healthconnect_appointments');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          for (const item of parsed) {
-            if (!all.some((a) => a.id === item.id)) {
-              all.unshift(item);
-            }
-          }
-        } catch (e) {}
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
       }
+    };
+  }, [currentLang]);
 
-      // Filter for active patient / family member or fallback
-      const filtered = all.filter(
-        (a) =>
-          a.patientId === bookingPatient.id ||
-          a.patientName?.toLowerCase() === bookingPatient.name?.toLowerCase() ||
-          (bookingPatient.phone && a.patientPhone === bookingPatient.phone)
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert(
+        currentLang === 'gu'
+          ? 'તમારા બ્રાઉઝરમાં માઇક સપોર્ટ નથી. કૃપા કરીને નીચે ટાઇપ કરો અથવા પસંદ કરો.'
+          : currentLang === 'hi'
+          ? 'आपके ब्राउज़र में माइक सपोर्ट नहीं है। कृपया नीचे टाइप करें या चुनें।'
+          : 'Voice speech recognition is not supported in this browser. Please type or select below.'
       );
-      setAppointmentsList(filtered.length > 0 ? filtered : all.slice(0, 4));
-    } catch (e) {
-      console.warn('Failed to load appointments', e);
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setVoiceStatus('SAVED');
+    } else {
+      try {
+        setVoiceStatus('LISTENING');
+        recognitionRef.current.start();
+      } catch (err) {
+        console.error('Speech recognition error:', err);
+      }
     }
   };
 
-  useEffect(() => {
-    loadAppointments();
-  }, [bookingPatient.id, bookingPatient.name]);
+  // Active patient details
+  const bookingPatient = members.find((m) => m.id === selectedMemberId) || activeMember;
+  const selectedFacility = INITIAL_FACILITIES.find((facility) => facility.id === facilityId) || INITIAL_FACILITIES[0];
 
-  const handleBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
+
+  const handleBooking = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsLoading(true);
 
     try {
-      const res = await appointmentApi.book({
-        patientId: bookingPatient.id,
-        patientName: bookingPatient.name,
-        patientPhone: bookingPatient.phone,
-        patientAge: bookingPatient.age,
-        patientGender: (bookingPatient.gender as any) || 'M',
+      await appointmentApi.book({
         facilityId,
-        facilityName: selectedFacility?.name || 'Gandhinagar Civil Hospital',
-        doctorId: activeDoctor.id,
-        doctorName: activeDoctor.name,
         specialty,
         date,
         timeSlot: selectedSlot,
         reasonForVisit: reason,
-        status: 'CONFIRMED',
       });
 
-      const newApt = res.data;
-      if (newApt) {
-        setCreatedAppointment(newApt);
-        setAppointmentsList((prev) => [newApt, ...prev.filter((a) => a.id !== newApt.id)]);
-      }
+      const randomToken = `OPD-${Math.floor(20 + Math.random() * 30)}`;
+      setBookedTokenNumber(randomToken);
       setIsBooked(true);
-      setActiveTab('UPCOMING');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCheckIn = async (aptId: string) => {
-    setCheckInLoadingId(aptId);
-    try {
-      const res = await appointmentApi.checkIn(aptId);
-      if (res.data) {
-        setAppointmentsList((prev) =>
-          prev.map((a) =>
-            a.id === aptId
-              ? {
-                  ...a,
-                  status: 'CHECKED_IN',
-                  tokenNumber: res.data.token.tokenNumber,
-                  checkedInAt: new Date().toISOString(),
-                }
-              : a
-          )
-        );
-        if (createdAppointment && createdAppointment.id === aptId) {
-          setCreatedAppointment((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  status: 'CHECKED_IN',
-                  tokenNumber: res.data.token.tokenNumber,
-                  checkedInAt: new Date().toISOString(),
-                }
-              : null
-          );
-        }
-      }
-    } catch (err) {
-      console.warn('Check-in error', err);
-    } finally {
-      setCheckInLoadingId(null);
-    }
+  const handlePrint = () => {
+    window.print();
   };
 
-  // Filter upcoming (scheduled, confirmed, or active checked_in) vs previous
-  const upcomingAppointments = appointmentsList.filter(
-    (a) => a.status === 'CONFIRMED' || a.status === 'SCHEDULED' || a.status === 'CHECKED_IN'
-  );
-
-  const pastAppointments = [
-    ...appointmentsList.filter((a) => a.status === 'COMPLETED' || a.status === 'CANCELLED'),
+  const previousAppointments = [
     {
-      id: 'APT-1025',
-      date: '2026-08-28',
-      facilityName: 'Gandhinagar Civil Hospital',
-      specialty: 'General Medicine',
-      timeSlot: '10:30 AM',
-      status: 'COMPLETED' as const,
-      doctorName: 'Dr. Vikramaditya Mehta',
-      patientName: bookingPatient.name,
-      patientId: bookingPatient.id,
-      patientPhone: bookingPatient.phone,
-      facilityId: 'fac_civil_01',
-      doctorId: 'doc_mehta_02',
-      type: 'IN_PERSON' as const,
-      reasonForVisit: 'General health check-up',
-      createdAt: '2026-08-20T10:00:00Z',
+      id: 'APT-2026-001',
+      date: '28 Aug 2026',
+      hospital: 'Gandhinagar Civil Hospital',
+      department: 'General Medicine',
+      doctor: 'Dr. Arvind Patel',
+      time: '10:30 AM',
+      status: 'Completed',
     },
     {
-      id: 'APT-1018',
-      date: '2026-08-10',
-      facilityName: 'Mansa Community Health Centre',
-      specialty: 'General Medicine',
-      timeSlot: '11:00 AM',
-      status: 'COMPLETED' as const,
-      doctorName: 'Dr. Ananya Patel',
-      patientName: bookingPatient.name,
-      patientId: bookingPatient.id,
-      patientPhone: bookingPatient.phone,
-      facilityId: 'fac_mansa_02',
-      doctorId: 'doc_ananya_03',
-      type: 'IN_PERSON' as const,
-      reasonForVisit: 'Seasonal fever review',
-      createdAt: '2026-08-05T10:00:00Z',
+      id: 'APT-2026-002',
+      date: '10 Aug 2026',
+      hospital: 'Mansa Community Health Centre',
+      department: 'General Medicine',
+      doctor: 'Dr. Vikramaditya Mehta',
+      time: '11:00 AM',
+      status: 'Completed',
     },
     {
-      id: 'APT-1007',
-      date: '2026-07-22',
-      facilityName: 'Gandhinagar Civil Hospital',
-      specialty: 'Cardiology',
-      timeSlot: '09:30 AM',
-      status: 'CANCELLED' as const,
-      doctorName: 'Dr. K. P. Trivedi',
-      patientName: bookingPatient.name,
-      patientId: bookingPatient.id,
-      patientPhone: bookingPatient.phone,
-      facilityId: 'fac_civil_01',
-      doctorId: 'doc_cardio_01',
-      type: 'IN_PERSON' as const,
-      reasonForVisit: 'Cardio ECG Review',
-      createdAt: '2026-07-15T10:00:00Z',
+      id: 'APT-2026-003',
+      date: '22 Jul 2026',
+      hospital: 'Gandhinagar Civil Hospital',
+      department: 'Cardiology',
+      doctor: 'Dr. K. P. Trivedi',
+      time: '09:30 AM',
+      status: 'Cancelled',
     },
   ];
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-3.5 font-sans w-full pb-6">
       {/* =========================================
-          PAGE HEADER
+          PAGE HEADER WITH RURAL SIMPLICITY BADGE
       ========================================== */}
-      <PageHeader
-        title={t('appointments.bookAppointment')}
-        subtitle={t('appointments.bookSubtitle')}
-        breadcrumbs={[
-          { label: t('nav.dashboard', 'Dashboard'), to: '/patient' },
-          { label: t('appointments.myAppointments', 'My Appointments') },
-        ]}
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-slate-200 pb-2.5">
+        <div>
+          <h1 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-600 text-white shadow-xs">
+              <Stethoscope className="h-5 w-5" />
+            </span>
+            {t('appointments.bookAppointment', 'OPD Doctor Appointment')}
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {t('appointments.bookSubtitle', 'Simple, free hospital appointment booking for you and your family')}
+          </p>
+        </div>
+
+        {/* MODE SWITCHER (EASY RURAL VS DETAILED) */}
+        {!isBooked && (
+          <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-xl border border-slate-200 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setMode('EASY')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                mode === 'EASY'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{t('appointments.easyMode', 'Easy Mode (સરળ પદ્ધતિ)')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('DETAILED')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                mode === 'DETAILED'
+                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-bold'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              {t('appointments.detailedMode', 'Full Doctor Roster')}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* =========================================
-          BOOK APPOINTMENT CARD
+          CONFIRMED DIGITAL OPD PASS / SLIP
       ========================================== */}
-      <Card className="border-slate-200 bg-white shadow-sm overflow-hidden rounded-2xl">
-        <CardContent className="p-4 sm:p-6">
-          {/* Section Header */}
-          <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 text-teal-700">
-                <CalendarDays className="h-5 w-5" />
+      {isBooked ? (
+        <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="relative rounded-2xl border-2 border-dashed border-emerald-400 bg-gradient-to-b from-emerald-50/90 via-white to-white p-4 sm:p-6 shadow-xs">
+            {/* Header / Stamp */}
+            <div className="flex items-center justify-between pb-3 border-b border-emerald-200 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-emerald-700" />
+                <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-900">
+                  Government Health Department • Government of Gujarat
+                </span>
               </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900">
-                  New OPD Consultation Appointment
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Real-time slot allocation connected to hospital OPD roster
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-xs">
+                <CheckCircle2 className="h-4 w-4" />
+                100% FREE (નિઃશુલ્ક સરકારી સેવા)
+              </span>
+            </div>
+
+            {/* Slip Core Info */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              {/* Token Number Box (Huge for rural readability) */}
+              <div className="md:col-span-1 text-center p-4 rounded-xl bg-emerald-700 text-white shadow-xs flex flex-col items-center justify-center">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
+                  {t('appointments.tokenNo', 'OPD Token No.')}
+                </span>
+                <span className="text-4xl sm:text-5xl font-black tracking-tight mt-1">
+                  #{bookedTokenNumber}
+                </span>
+                <span className="mt-1.5 text-[11px] font-semibold bg-emerald-800/80 px-2 py-0.5 rounded-full text-emerald-100">
+                  Direct OPD Queue Entry
+                </span>
+              </div>
+
+              {/* Appointment Key Information */}
+              <div className="md:col-span-2 space-y-3">
+                <div>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                    {t('appointments.patient', 'Patient Name')}
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-black text-slate-900">
+                    {bookingPatient.name}
+                  </h2>
+                  <p className="text-xs text-slate-500 font-mono">
+                    ABHA ID: {bookingPatient.abhaId || '14-8921-3409-7721'} • {bookingPatient.relation === 'SELF' ? 'Self' : bookingPatient.relationLabel}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">
+                      {t('appointments.room', 'Room / Counter')}
+                    </p>
+                    <p className="text-sm sm:text-base font-black text-teal-800 mt-0.5">
+                      {activeDoctor.room}
+                    </p>
+                    <p className="text-[11px] text-slate-500">{activeDoctor.name}</p>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">
+                      {t('appointments.time', 'Date & Time')}
+                    </p>
+                    <p className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
+                      {selectedSlot}
+                    </p>
+                    <p className="text-[11px] text-slate-600 font-bold">{date}</p>
+                  </div>
+                </div>
+
+                {/* Spoken/Written Reason recorded on the appointment slip */}
+                <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200">
+                  <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wide">
+                    {t('appointments.reasonForVisit', 'Health Problem / Reason (તકલીફ / કારણ):')}
+                  </p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">
+                    {reason || 'General Health Consultation'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-slate-700 bg-amber-50 border border-amber-200 p-2 rounded-xl">
+                  <Building2 className="h-4 w-4 text-amber-700 shrink-0" />
+                  <span className="font-semibold">
+                    {selectedFacility.name} ({selectedFacility.district})
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Clear Rural Instructions */}
+            <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2.5">
+              <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
+              <div className="text-xs text-emerald-900 space-y-0.5">
+                <p className="font-bold">
+                  {t('appointments.passInstruction', 'Show this pass at the hospital counter. Consultation & medicines are free.')}
+                </p>
+                <p className="text-[11px] text-emerald-800">
+                  • કૃપા કરીને સમયના ૧૫ મિનિટ પહેલા પહોંચો. (Please arrive 15 minutes before your slot).
                 </p>
               </div>
             </div>
 
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              ABDM Verified Booking
-            </span>
-          </div>
+            {/* Actions for the Slip */}
+            <div className="mt-4 pt-3 border-t border-slate-200 flex flex-wrap items-center gap-2.5">
+              <Button
+                onClick={handlePrint}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl cursor-pointer flex items-center gap-2 shadow-xs"
+              >
+                <Printer className="h-4 w-4" />
+                <span>{t('appointments.downloadPass', 'Save / Print Pass')}</span>
+              </Button>
 
-          {/* =====================================
-              SUCCESS MESSAGE
-          ====================================== */}
-          {isBooked ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 sm:p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start gap-3.5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-xs">
-                    <CheckCircle2 className="h-7 w-7" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
-                        OPD Pass #{createdAppointment?.id || 'CONFIRMED'}
-                      </span>
-                      {createdAppointment?.status === 'CHECKED_IN' ? (
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-200/80 px-2 py-0.5 rounded-md flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-700" />
-                          Active In Hospital (Token #{createdAppointment.tokenNumber})
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-200">
-                          <Clock className="h-3 w-3 text-amber-700" />
-                          Confirmed • Awaiting Hospital OPD Check-in
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-lg font-extrabold text-emerald-950 mt-1">
-                      {t('appointments.bookingSuccess', 'Appointment Confirmed Successfully!')}
-                    </h3>
-                    <p className="text-xs text-emerald-800 mt-0.5">
-                      {createdAppointment?.status === 'CHECKED_IN'
-                        ? 'You have checked in! Your live queue token is active. Please proceed to the consultation room when called.'
-                        : 'Your appointment is registered on the hospital schedule. When you arrive at the hospital, use "Hospital Self Check-in" below to receive your live queue token.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Confirmation Details Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="rounded-xl bg-white border border-emerald-100 p-3 shadow-2xs">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Patient</p>
-                  <p className="mt-0.5 text-xs font-bold text-slate-900 truncate">
-                    {bookingPatient.name}
-                  </p>
-                  <p className="text-[10px] text-teal-700 font-mono">
-                    {bookingPatient.relation === 'SELF' ? 'Self' : bookingPatient.relationLabel}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-white border border-emerald-100 p-3 shadow-2xs">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Hospital & Room</p>
-                  <p className="mt-0.5 text-xs font-bold text-slate-900 truncate">
-                    {selectedFacility?.name || 'Gandhinagar Civil Hospital'}
-                  </p>
-                  <p className="text-[10px] text-slate-500 font-medium">
-                    {activeDoctor.room}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-white border border-emerald-100 p-3 shadow-2xs">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Doctor</p>
-                  <p className="mt-0.5 text-xs font-bold text-slate-900 truncate">
-                    {activeDoctor.name}
-                  </p>
-                  <p className="text-[10px] text-teal-700">{specialty}</p>
-                </div>
-
-                <div className="rounded-xl bg-white border border-emerald-100 p-3 shadow-2xs">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">Scheduled Slot</p>
-                  <p className="mt-0.5 text-xs font-black text-teal-900">
-                    {selectedSlot}
-                  </p>
-                  <p className="text-[10px] font-mono text-slate-500">{date}</p>
-                </div>
-              </div>
-
-              {/* Status note */}
-              {createdAppointment?.status !== 'CHECKED_IN' ? (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs">
-                  <AlertCircle className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">Not Yet Active in Hospital OPD Queue</p>
-                    <p className="text-[11px] text-amber-800 mt-0.5">
-                      Your consultation slot is reserved. Live queue tokens are issued when you arrive at the hospital. You can tap <strong>"Hospital Self Check-in"</strong> below now or upon reaching the hospital to activate your token immediately.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-100/80 border border-emerald-300 text-emerald-950 text-xs">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">Live OPD Queue Token: #{createdAppointment.tokenNumber}</p>
-                    <p className="text-[11px] text-emerald-800 mt-0.5">
-                      Your queue token is active in the hospital OPD system. You can track wait times and your turn position in the OPD Tokens tracker.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                {createdAppointment && createdAppointment.status !== 'CHECKED_IN' ? (
-                  <Button
-                    size="sm"
-                    onClick={() => handleCheckIn(createdAppointment.id)}
-                    isLoading={checkInLoadingId === createdAppointment.id}
-                    className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs gap-1.5"
-                  >
-                    <Ticket className="h-3.5 w-3.5" />
-                    Hospital Self Check-in (Issue Token Now)
-                  </Button>
-                ) : (
-                  <Link to="/patient/tokens">
-                    <Button size="sm" className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs gap-1.5">
-                      <Ticket className="h-3.5 w-3.5" />
-                      Track Live Token
-                    </Button>
-                  </Link>
-                )}
-
-                {createdAppointment && (
-                  <Link to={`/patient/appointments/${createdAppointment.id}`}>
-                    <Button variant="outline" size="sm" className="text-xs font-semibold rounded-xl cursor-pointer gap-1.5 bg-white hover:bg-slate-50 border-slate-300">
-                      <Eye className="h-3.5 w-3.5 text-teal-700" />
-                      View OPD Pass
-                    </Button>
-                  </Link>
-                )}
-
+              <a
+                href={`https://maps.google.com/?q=${selectedFacility.coordinates.lat},${selectedFacility.coordinates.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setIsBooked(false);
-                    setCreatedAppointment(null);
-                  }}
-                  className="text-xs rounded-xl cursor-pointer gap-1 bg-white hover:bg-slate-50 border-slate-300"
+                  className="border-slate-300 text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold rounded-xl cursor-pointer flex items-center gap-1.5"
                 >
-                  <RefreshCw className="h-3.5 w-3.5 text-slate-500" />
-                  Book Another Appointment
+                  <Navigation className="h-4 w-4 text-teal-700" />
+                  <span>Directions (દવાખાનાનો રસ્તો)</span>
                 </Button>
-              </div>
+              </a>
+
+              <Button
+                variant="outline"
+                onClick={() => setIsBooked(false)}
+                className="border-slate-300 text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold rounded-xl cursor-pointer ml-auto"
+              >
+                {t('appointments.bookAnother', 'Book Another Appointment')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* =========================================
+           BOOKING FLOW
+        ========================================== */
+        <div className="space-y-3.5">
+          {mode === 'EASY' ? (
+            /* =========================================
+               EASY RURAL MODE (3-STEP PROGRESSIVE VIEW)
+            ========================================== */
+            <div className="space-y-3.5">
+              {/* STEP 1: WHO IS THE PATIENT? */}
+              <Card className="border-slate-200 bg-white shadow-2xs rounded-xl overflow-hidden">
+                <CardContent className="p-3 sm:p-4 space-y-2.5">
+                  <div>
+                    <h2 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-teal-800 font-bold text-xs">
+                        1
+                      </span>
+                      {t('appointments.step1Title', '1. Who is the appointment for?')}
+                    </h2>
+                    <p className="text-[11px] text-slate-500 mt-0.5 ml-6.5">
+                      {t('appointments.step1Subtitle', 'Select yourself or a family member')}
+                    </p>
+                  </div>
+
+                  {/* Big Friendly Patient Selection Tiles */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-0.5">
+                    {members.map((m) => {
+                      const isSelected = selectedMemberId === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setSelectedMemberId(m.id)}
+                          className={`p-2.5 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+                            isSelected
+                              ? 'border-teal-700 bg-teal-50/80 shadow-2xs ring-1 ring-teal-500/20'
+                              : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div
+                              className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                                isSelected ? 'bg-teal-700 text-white' : 'bg-slate-100 text-slate-700'
+                              }`}
+                            >
+                              {m.name.charAt(0)}
+                            </div>
+                            {isSelected && (
+                              <span className="h-4 w-4 rounded-full bg-teal-700 text-white flex items-center justify-center">
+                                <Check className="h-3 w-3" />
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 truncate">
+                              {m.name}
+                            </p>
+                            <span
+                              className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded-md mt-0.5 ${
+                                isSelected
+                                  ? 'bg-teal-200/80 text-teal-900'
+                                  : 'bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              {m.relation === 'SELF'
+                                ? 'Self (પોતે)'
+                                : m.relationLabel.split(' ')[0]}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* STEP 2: WHAT IS THE HEALTH PROBLEM? (VOICE & QUICK CHIPS) */}
+              <Card className="border-slate-200 bg-white shadow-2xs rounded-xl overflow-hidden">
+                <CardContent className="p-3 sm:p-4 space-y-3">
+                  <div>
+                    <h2 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-teal-800 font-bold text-xs">
+                        2
+                      </span>
+                      {t('appointments.step2Title', '2. What is the health problem?')}
+                    </h2>
+                    <p className="text-[11px] text-slate-500 mt-0.5 ml-6.5">
+                      {currentLang === 'gu'
+                        ? 'તમારી તકલીફ બોલો, લખો અથવા નીચે આપેલ વિકલ્પ પસંદ કરો'
+                        : currentLang === 'hi'
+                        ? 'अपनी परेशानी बोलें, लिखें या नीचे दिया गया विकल्प चुनें'
+                        : 'Speak or type your problem, or pick a quick reason below'}
+                    </p>
+                  </div>
+
+                  {/* COMPACT VOICE INPUT & QUICK REASONS */}
+                  <div className="space-y-2.5">
+                    {/* Compact 1-line Voice & Type bar with Save Button */}
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`relative flex items-center flex-1 rounded-xl border transition-all ${
+                          isListening
+                            ? 'border-red-500 bg-red-50/50 ring-1 ring-red-400/20'
+                            : 'border-slate-300 bg-white focus-within:border-teal-700 focus-within:ring-1 focus-within:ring-teal-500/20'
+                        }`}
+                      >
+                        <input
+                          type="text"
+                          value={reason}
+                          onChange={(e) => {
+                            setReason(e.target.value);
+                            setVoiceStatus('IDLE');
+                          }}
+                          placeholder={
+                            isListening
+                              ? (currentLang === 'gu' ? 'સાંભળી રહ્યા છીએ... બોલો...' : currentLang === 'hi' ? 'सुन रहे हैं... बोलिए...' : 'Listening... speak now...')
+                              : (currentLang === 'gu' ? 'તકલીફ લખો અથવા બોલો...' : currentLang === 'hi' ? 'परेशानी लिखें या बोलें...' : 'Type or speak your problem...')
+                          }
+                          className="h-9 w-full px-3 text-xs font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-400"
+                        />
+                      </div>
+
+                      {/* Compact Mic Button */}
+                      <button
+                        type="button"
+                        onClick={toggleListening}
+                        className={`h-9 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                          isListening
+                            ? 'bg-red-600 text-white animate-pulse shadow-xs'
+                            : 'bg-teal-700 hover:bg-teal-800 text-white shadow-xs'
+                        }`}
+                      >
+                        <Mic className={`h-3.5 w-3.5 ${isListening ? 'animate-bounce' : ''}`} />
+                        <span>
+                          {isListening
+                            ? (currentLang === 'gu' ? 'સાંભળે છે...' : currentLang === 'hi' ? 'सुन रहे हैं...' : 'Listening...')
+                            : (currentLang === 'gu' ? 'બોલો' : currentLang === 'hi' ? 'बोलें' : 'Speak')}
+                        </span>
+                      </button>
+
+                      {/* Save Button for unambiguous confirmation */}
+                      <button
+                        type="button"
+                        onClick={() => setVoiceStatus('SAVED')}
+                        className="h-9 px-3 rounded-xl text-xs font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                      >
+                        <Check className="h-3.5 w-3.5 text-emerald-700" />
+                        <span>{currentLang === 'gu' ? 'સાચવો' : currentLang === 'hi' ? 'सेव करें' : 'Save'}</span>
+                      </button>
+                    </div>
+
+                    {/* Clear Status Feedback so user knows it worked and is saved */}
+                    {voiceStatus === 'SAVED' && reason && (
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                        <span>
+                          {currentLang === 'gu' ? 'કાપલીમાં નોંધાયેલ: ' : currentLang === 'hi' ? 'पर्ची में दर्ज: ' : 'Saved in appointment: '}
+                          <strong className="text-emerald-900">"{reason}"</strong>
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Quick Reason Chips */}
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase text-slate-400">
+                        {t('appointments.quickReason', 'Quick reason for visit (tap to select):')}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {QUICK_REASONS.map((r, idx) => {
+                          const label =
+                            currentLang === 'gu'
+                              ? r.gu
+                              : currentLang === 'hi'
+                              ? r.hi
+                              : r.en;
+                          const isMatch = reason === r.en || reason === label;
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setReason(label);
+                                setVoiceStatus('SAVED');
+                              }}
+                              className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                                isMatch
+                                  ? 'bg-teal-700 text-white shadow-xs font-bold'
+                                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* STEP 3: HOSPITAL, DAY & TIME */}
+              <Card className="border-slate-200 bg-white shadow-2xs rounded-xl overflow-hidden">
+                <CardContent className="p-3 sm:p-4 space-y-3">
+                  <div>
+                    <h2 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-teal-800 font-bold text-xs">
+                        3
+                      </span>
+                      {t('appointments.step3Title', '3. Choose Hospital, Day & Time')}
+                    </h2>
+                    <p className="text-[11px] text-slate-500 mt-0.5 ml-6.5">
+                      {t('appointments.step3Subtitle', 'Select when you would like to visit the hospital')}
+                    </p>
+                  </div>
+
+                  {/* Selected Hospital Display with Free Govt OPD badge */}
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-teal-50/80 via-emerald-50/50 to-white border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-9 w-9 rounded-lg bg-teal-600 text-white flex items-center justify-center shrink-0">
+                        <Building2 className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-xs sm:text-sm font-extrabold text-slate-900">
+                            {selectedFacility.name}
+                          </h3>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <ShieldCheck className="h-3 w-3" />
+                            {t('appointments.freeGovtOpd', '100% Free Govt OPD')}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-teal-700" />
+                          <span>{selectedFacility.distanceKm} km away • {selectedFacility.address}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Change Hospital Dropdown */}
+                    <div className="sm:text-right shrink-0">
+                      <label htmlFor="hospital-select" className="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">
+                        Change Hospital:
+                      </label>
+                      <select
+                        id="hospital-select"
+                        value={facilityId}
+                        onChange={(e) => setFacilityId(e.target.value)}
+                        className="h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-800 outline-none cursor-pointer focus:ring-1 focus:ring-teal-500/20"
+                      >
+                        {INITIAL_FACILITIES.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name} ({f.distanceKm} km)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Day Picker (Direct User Entry) */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                      <CalendarDays className="h-3.5 w-3.5 text-teal-700" />
+                      <span>{t('appointments.selectDay', 'Select Day of Visit (મુલાકાતનો દિવસ / તારીખ):')}</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                          placeholder={
+                            currentLang === 'gu'
+                              ? 'મુલાકાતનો દિવસ અથવા તારીખ લખો (દા.ત. 2026-09-15 અથવા સોમવાર)...'
+                              : currentLang === 'hi'
+                              ? 'विज़िट का दिन या तारीख लिखें (उदा. 2026-09-15 या सोमवार)...'
+                              : 'Enter day or date of visit (e.g. 2026-09-15 or Monday)...'
+                          }
+                          className="h-10 w-full px-3 text-xs sm:text-sm font-semibold text-slate-800 bg-white border border-slate-300 rounded-xl focus:border-teal-700 focus:ring-1 focus:ring-teal-500/20 outline-none placeholder:text-slate-400"
+                        />
+                      </div>
+                      <input
+                        type="date"
+                        value={date.match(/^\d{4}-\d{2}-\d{2}$/) ? date : ''}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => {
+                          if (e.target.value) setDate(e.target.value);
+                        }}
+                        className="h-10 px-2.5 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100 shrink-0"
+                        title={currentLang === 'gu' ? 'કેલેન્ડરમાંથી તારીખ પસંદ કરો' : 'Pick from calendar'}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Time Slots (Direct User Entry) */}
+                  <div className="space-y-1.5 pt-0.5">
+                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5 text-teal-700" />
+                      <span>{t('appointments.selectTime', 'Select Time (સમય):')}</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={selectedSlot}
+                          onChange={(e) => setSelectedSlot(e.target.value)}
+                          placeholder={
+                            currentLang === 'gu'
+                              ? 'તમારો અનુકૂળ સમય લખો (દા.ત. 10:30 AM, 03:00 PM)...'
+                              : currentLang === 'hi'
+                              ? 'अपना पसंदीदा समय लिखें (उदा. 10:30 AM, 03:00 PM)...'
+                              : 'Enter preferred time (e.g. 10:30 AM, 03:00 PM)...'
+                          }
+                          className="h-10 w-full px-3 text-xs sm:text-sm font-semibold text-slate-800 bg-white border border-slate-300 rounded-xl focus:border-teal-700 focus:ring-1 focus:ring-teal-500/20 outline-none placeholder:text-slate-400"
+                        />
+                      </div>
+                      <input
+                        type="time"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const [h, m] = e.target.value.split(':');
+                            const hour = parseInt(h, 10);
+                            const ampm = hour >= 12 ? 'PM' : 'AM';
+                            const formattedHour = hour % 12 || 12;
+                            const padHour = formattedHour < 10 ? `0${formattedHour}` : formattedHour;
+                            setSelectedSlot(`${padHour}:${m} ${ampm}`);
+                          }
+                        }}
+                        className="h-10 px-2.5 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100 shrink-0"
+                        title={currentLang === 'gu' ? 'ઘડિયાળમાંથી સમય પસંદ કરો' : 'Pick time from clock'}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Summary & Big Action Button */}
+                  <div className="pt-2.5 border-t border-slate-200 space-y-2.5">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs flex-wrap gap-1.5">
+                      <div>
+                        <p className="font-bold text-slate-900">
+                          {bookingPatient.name} • {activeDoctor.name} ({activeDoctor.room})
+                        </p>
+                        <p className="text-slate-500 mt-0.5">
+                          {date} at <strong className="text-teal-800">{selectedSlot}</strong>
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full">
+                        ✓ No Fee Required
+                      </span>
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={() => handleBooking()}
+                      isLoading={isLoading}
+                      className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm sm:text-base rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle2 className="h-5 w-5" />
+                      <span>{t('appointments.confirmBooking', 'Book Free OPD Appointment')}</span>
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
-            /* =====================================
-               BOOKING FORM
-            ====================================== */
-            <form onSubmit={handleBooking} className="space-y-6">
-              {/* PATIENT FAMILY MEMBER SELECTION */}
-              <div className="space-y-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5 text-teal-700" />
-                    Book Appointment For (Household Member)
-                  </label>
-                  <span className="text-[11px] text-slate-400">
-                    {members.length} Members Available
+            /* =========================================
+               DETAILED ROSTER MODE (FULL CONTROLS)
+            ========================================== */
+            <Card className="border-slate-200 bg-white shadow-2xs rounded-xl overflow-hidden">
+              <CardContent className="p-3 sm:p-4 space-y-3.5">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h2 className="text-sm font-bold text-slate-900">
+                    Standard Medical OPD Roster
+                  </h2>
+                  <span className="text-xs text-slate-500">
+                    Advanced booking mode with full doctor qualifications
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-0.5">
-                  {members.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setSelectedMemberId(m.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
-                        selectedMemberId === m.id
-                          ? 'bg-teal-800 text-white shadow-xs font-bold'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <span>{m.name}</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-md ${
+                {/* Patient Household selection */}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">
+                    Household Member:
+                  </label>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+                    {members.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setSelectedMemberId(m.id)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer shrink-0 ${
                           selectedMemberId === m.id
-                            ? 'bg-teal-900 text-teal-200'
-                            : 'bg-slate-100 text-slate-500'
+                            ? 'bg-teal-800 text-white'
+                            : 'bg-slate-100 text-slate-700'
                         }`}
                       >
-                        {m.relation === 'SELF' ? 'Self' : m.relationLabel.split(' ')[0]}
-                      </span>
-                    </button>
-                  ))}
+                        {m.name} ({m.relation === 'SELF' ? 'Self' : m.relationLabel})
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* HOSPITAL & SPECIALTY */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Hospital Select */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    {t('appointments.selectHospital')}
-                  </label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-600" />
+                {/* Hospital and Department Selects */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  <div className="space-y-1">
+                    <label htmlFor="detailed-hospital-select" className="text-xs font-bold text-slate-700">
+                      {t('appointments.selectHospital', 'Select Hospital')}
+                    </label>
                     <select
+                      id="detailed-hospital-select"
                       value={facilityId}
                       onChange={(e) => setFacilityId(e.target.value)}
-                      className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer"
+                      className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold outline-none cursor-pointer"
                     >
-                      {INITIAL_FACILITIES.map((facility) => (
-                        <option key={facility.id} value={facility.id}>
-                          {facility.name}
+                      {INITIAL_FACILITIES.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
                         </option>
                       ))}
                     </select>
                   </div>
-                  {selectedFacility && (
-                    <p className="flex items-center gap-1 text-[11px] text-slate-500 pt-0.5">
-                      <MapPin className="h-3 w-3 text-teal-700" />
-                      <span>{selectedFacility.distanceKm} km away • {selectedFacility.type}</span>
-                    </p>
-                  )}
-                </div>
 
-                {/* Department Select */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    {t('appointments.selectDepartment')}
-                  </label>
-                  <div className="relative">
-                    <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-600" />
+                  <div className="space-y-1">
+                    <label htmlFor="detailed-specialty-select" className="text-xs font-bold text-slate-700">
+                      {t('appointments.selectDepartment', 'Select Department')}
+                    </label>
                     <select
+                      id="detailed-specialty-select"
                       value={specialty}
                       onChange={(e) => setSpecialty(e.target.value)}
-                      className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer"
+                      className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold outline-none cursor-pointer"
                     >
                       <option value="General Medicine">General Medicine</option>
                       <option value="Cardiology">Cardiology</option>
@@ -680,612 +945,167 @@ export const AppointmentBooking: React.FC = () => {
                       <option value="Obstetrics & Gynecology">Women&apos;s Health (OBG)</option>
                     </select>
                   </div>
-                  <p className="text-[11px] text-slate-400 pt-0.5">
-                    {currentDoctors.length} consulting doctor(s) on duty
-                  </p>
                 </div>
-              </div>
 
-              {/* DOCTOR SELECTION & VISIT DATE */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Doctor Select */}
+                {/* Doctor Selection with Bios */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">
-                    {t('appointments.selectDoctor')}
+                    {t('appointments.selectDoctor', 'Select Doctor')}
                   </label>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {currentDoctors.map((doc) => (
                       <div
                         key={doc.id}
                         onClick={() => setSelectedDoctorId(doc.id)}
-                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                        className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                           selectedDoctorId === doc.id
-                            ? 'border-teal-700 bg-teal-50/70 ring-1 ring-teal-600 shadow-2xs'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                            ? 'border-teal-700 bg-teal-50/70 ring-1 ring-teal-600'
+                            : 'border-slate-200 bg-white hover:bg-slate-50'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                              selectedDoctorId === doc.id
-                                ? 'bg-teal-700 text-white'
-                                : 'bg-slate-100 text-slate-600'
-                            }`}
-                          >
-                            {doc.avatar}
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="text-xs font-bold text-slate-900 truncate">
-                              {doc.name}
-                            </h4>
-                            <p className="text-[11px] text-slate-500">
-                              {doc.qualification} • {doc.room}
-                            </p>
-                          </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">{doc.name}</h4>
+                          <p className="text-[10px] text-slate-500">
+                            {doc.qualification} • {doc.room}
+                          </p>
                         </div>
-
-                        <div className="text-right shrink-0">
-                          <span className="text-[10px] font-semibold text-teal-800 bg-teal-100/60 px-2 py-0.5 rounded">
-                            {doc.opdDays}
-                          </span>
-                        </div>
+                        <span className="text-[10px] font-bold text-teal-800 bg-teal-100 px-2 py-0.5 rounded">
+                          {doc.opdDays}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Visit Date & Reason */}
-                <div className="space-y-3">
+                {/* Date & Reason Inputs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   <Input
-                    label={t('appointments.selectDate')}
+                    label={t('appointments.selectDate', 'Select Date')}
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    required
-                    className="h-10 rounded-xl"
+                    className="h-9 rounded-lg"
                   />
-
                   <Input
-                    label={t('appointments.reasonForVisit')}
+                    label={t('appointments.reasonForVisit', 'Reason for Visit')}
                     type="text"
-                    placeholder="Example: Fever, BP check, routine follow-up..."
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    required
-                    className="h-10 rounded-xl"
+                    className="h-9 rounded-lg"
                   />
                 </div>
-              </div>
 
-              {/* =================================
-                  TIME SLOT SELECTION WITH BLURRED BOOKED SLOTS
-              ================================== */}
-              <div className="space-y-4 pt-2 border-t border-slate-100">
-                {/* Time Slots Header & Legend */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-teal-700" />
-                      <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                        {t('appointments.selectTimeSlot')}
-                      </h3>
-                    </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Schedule for <strong>{date}</strong> • Showing live OPD counter bookings
-                    </p>
+                {/* Slot Selection */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">
+                    {t('appointments.selectTimeSlot', 'Select Time Slot')}
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                    {[...RURAL_MORNING_SLOTS, ...RURAL_AFTERNOON_SLOTS].map((slot) => (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => setSelectedSlot(slot)}
+                        className={`py-1.5 px-1 text-center rounded-lg border text-xs font-semibold cursor-pointer ${
+                          selectedSlot === slot
+                            ? 'bg-teal-700 text-white font-bold'
+                            : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    ))}
                   </div>
-
-                  {/* Slot Legend */}
-                  <div className="flex items-center gap-3 text-xs bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 flex-wrap">
-                    <span className="flex items-center gap-1.5 text-emerald-800 font-semibold">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      {freeSlotsCount} Available (Free)
-                    </span>
-                    <span className="text-slate-300">•</span>
-                    <span className="flex items-center gap-1.5 text-slate-400 line-through font-medium">
-                      <span className="h-2 w-2 rounded-full bg-slate-300" />
-                      {bookedSlotsCount} Booked (Locked)
-                    </span>
-                  </div>
-                </div>
-
-                {/* MORNING SLOTS (09:00 AM - 12:30 PM) */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                    <Sun className="h-3.5 w-3.5 text-amber-500" />
-                    <span>Morning OPD Session (09:00 AM – 01:00 PM)</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {morningSlots.map((slot) => {
-                      if (slot.isBooked) {
-                        /* BOOKED SLOT: Blurred, non-selectable, line-through */
-                        return (
-                          <div key={slot.time} className="relative group select-none">
-                            <button
-                              type="button"
-                              disabled
-                              tabIndex={-1}
-                              aria-disabled="true"
-                              className="w-full py-2.5 px-2 rounded-xl border border-dashed border-slate-300 bg-slate-100/70 text-slate-400 text-xs font-semibold filter blur-[0.7px] opacity-40 cursor-not-allowed pointer-events-none select-none line-through transition-all flex flex-col items-center justify-center gap-0.5"
-                            >
-                              <span>{slot.time}</span>
-                              <span className="text-[9px] font-bold text-slate-400 no-underline">
-                                Booked
-                              </span>
-                            </button>
-                            <span className="absolute -top-1.5 -right-1 z-10 px-1.5 py-0.2 rounded bg-slate-200 text-[8px] font-extrabold text-slate-500 uppercase tracking-wider pointer-events-none border border-slate-300 shadow-2xs">
-                              Booked
-                            </span>
-                          </div>
-                        );
-                      }
-
-                      /* FREE SLOT: Sharp, clickable, highlighted when selected */
-                      const isSelected = selectedSlot === slot.time;
-                      return (
-                        <button
-                          key={slot.time}
-                          type="button"
-                          onClick={() => setSelectedSlot(slot.time)}
-                          className={`w-full py-2.5 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
-                            isSelected
-                              ? 'border-2 border-teal-700 bg-teal-700 text-white shadow-md ring-2 ring-teal-500/20 scale-[1.02]'
-                              : 'border-slate-200 bg-white hover:border-teal-500 hover:bg-teal-50/50 text-slate-800 shadow-2xs hover:shadow-xs'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              className={`h-1.5 w-1.5 rounded-full ${
-                                isSelected ? 'bg-emerald-300 animate-pulse' : 'bg-emerald-500'
-                              }`}
-                            />
-                            <span>{slot.time}</span>
-                          </div>
-                          <span
-                            className={`text-[9px] font-semibold ${
-                              isSelected ? 'text-teal-100' : 'text-emerald-700'
-                            }`}
-                          >
-                            {isSelected ? '✓ Selected' : 'Available'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* AFTERNOON SLOTS (02:00 PM - 04:30 PM) */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                    <Moon className="h-3.5 w-3.5 text-indigo-500" />
-                    <span>Afternoon OPD Session (02:00 PM – 05:00 PM)</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {afternoonSlots.map((slot) => {
-                      if (slot.isBooked) {
-                        /* BOOKED SLOT: Blurred, non-selectable, line-through */
-                        return (
-                          <div key={slot.time} className="relative group select-none">
-                            <button
-                              type="button"
-                              disabled
-                              tabIndex={-1}
-                              aria-disabled="true"
-                              className="w-full py-2.5 px-2 rounded-xl border border-dashed border-slate-300 bg-slate-100/70 text-slate-400 text-xs font-semibold filter blur-[0.7px] opacity-40 cursor-not-allowed pointer-events-none select-none line-through transition-all flex flex-col items-center justify-center gap-0.5"
-                            >
-                              <span>{slot.time}</span>
-                              <span className="text-[9px] font-bold text-slate-400 no-underline">
-                                Booked
-                              </span>
-                            </button>
-                            <span className="absolute -top-1.5 -right-1 z-10 px-1.5 py-0.2 rounded bg-slate-200 text-[8px] font-extrabold text-slate-500 uppercase tracking-wider pointer-events-none border border-slate-300 shadow-2xs">
-                              Booked
-                            </span>
-                          </div>
-                        );
-                      }
-
-                      /* FREE SLOT: Sharp, clickable, highlighted when selected */
-                      const isSelected = selectedSlot === slot.time;
-                      return (
-                        <button
-                          key={slot.time}
-                          type="button"
-                          onClick={() => setSelectedSlot(slot.time)}
-                          className={`w-full py-2.5 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
-                            isSelected
-                              ? 'border-2 border-teal-700 bg-teal-700 text-white shadow-md ring-2 ring-teal-500/20 scale-[1.02]'
-                              : 'border-slate-200 bg-white hover:border-teal-500 hover:bg-teal-50/50 text-slate-800 shadow-2xs hover:shadow-xs'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              className={`h-1.5 w-1.5 rounded-full ${
-                                isSelected ? 'bg-emerald-300 animate-pulse' : 'bg-emerald-500'
-                              }`}
-                            />
-                            <span>{slot.time}</span>
-                          </div>
-                          <span
-                            className={`text-[9px] font-semibold ${
-                              isSelected ? 'text-teal-100' : 'text-emerald-700'
-                            }`}
-                          >
-                            {isSelected ? '✓ Selected' : 'Available'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* =================================
-                  BOTTOM SUMMARY & SUBMIT
-              ================================== */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50/60 p-4 shadow-xs">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wide text-teal-800 flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-700" />
-                    Appointment Booking Summary
-                  </span>
-                  <p className="text-xs sm:text-sm font-extrabold text-slate-900">
-                    {bookingPatient.name} • {activeDoctor.name} ({activeDoctor.room})
-                  </p>
-                  <p className="text-xs text-teal-900 font-medium">
-                    {date} at <strong className="font-bold underline">{selectedSlot}</strong> (Confirmed Open Slot)
-                  </p>
                 </div>
 
                 <Button
-                  type="submit"
-                  size="sm"
-                  className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl cursor-pointer shadow-xs"
+                  onClick={() => handleBooking()}
                   isLoading={isLoading}
+                  className="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl cursor-pointer"
                 >
-                  {t('appointments.confirmBooking')}
+                  {t('appointments.confirmBooking', 'Confirm Booking')}
                 </Button>
-              </div>
-            </form>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
 
-
-      {/* =========================================
-          MY APPOINTMENTS (UPCOMING & PREVIOUS)
-      ========================================== */}
-      <Card className="border-slate-200 bg-white shadow-sm overflow-hidden rounded-2xl">
-        <CardContent className="p-0">
-          {/* Header & Tabs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 p-4 bg-slate-50/50">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 text-teal-700">
-                <CalendarDays className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">
-                  {t('appointments.myAppointments', 'My Appointments')}
-                </h2>
-                <p className="text-[11px] text-slate-500">
-                  {bookingPatient.name} • {upcomingAppointments.length} upcoming, {pastAppointments.length} past visits
-                </p>
-              </div>
-            </div>
-
-            {/* Tab switch buttons */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setActiveTab('UPCOMING')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === 'UPCOMING'
-                    ? 'bg-white text-teal-800 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <span>{t('appointments.upcomingAppointments', 'Upcoming & Scheduled')}</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    upcomingAppointments.length > 0
-                      ? 'bg-teal-700 text-white'
-                      : 'bg-slate-200 text-slate-600'
-                  }`}
-                >
-                  {upcomingAppointments.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('PREVIOUS')}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === 'PREVIOUS'
-                    ? 'bg-white text-teal-800 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <span>{t('appointments.pastAppointments', 'Previous Visits')}</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold">
-                  {pastAppointments.length}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* =====================================
-              TAB 1: UPCOMING & SCHEDULED APPOINTMENTS
-          ====================================== */}
-          {activeTab === 'UPCOMING' && (
-            <div>
-              {upcomingAppointments.length === 0 ? (
-                <div className="p-10 text-center space-y-2.5">
-                  <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-2xl bg-teal-50 text-teal-700 border border-teal-200">
-                    <CalendarDays className="h-6 w-6" />
-                  </div>
-                  <p className="text-sm font-bold text-slate-800">No Upcoming Appointments</p>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    You currently do not have any pending appointments scheduled. Select a hospital, doctor, and slot above to book an OPD consultation.
+          {/* =========================================
+              RECENT HOSPITAL VISITS (COLLAPSIBLE DROPDOWN - HIDDEN BY DEFAULT)
+          ========================================== */}
+          <Card className="border-slate-200 bg-white shadow-2xs rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowRecentVisits(!showRecentVisits)}
+              className="w-full p-3 sm:p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer text-left"
+              aria-expanded={showRecentVisits}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+                  <History className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <span>{t('appointments.pastVisits', 'Recent Hospital Visits')}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600">
+                      {previousAppointments.length}
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {currentLang === 'gu'
+                      ? 'જૂની મુલાકાતો અને કાપલીઓ જોવા અહીં દબાવો'
+                      : currentLang === 'hi'
+                      ? 'पुरानी पर्ची और विज़िट देखने के लिए यहाँ दबाएँ'
+                      : 'Tap to view or hide previous visits and slips'}
                   </p>
                 </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {upcomingAppointments.map((apt) => {
-                    const isCheckedIn = apt.status === 'CHECKED_IN';
-                    return (
-                      <div
-                        key={apt.id}
-                        className="p-4 sm:p-5 hover:bg-slate-50/70 transition-colors"
-                      >
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                          {/* Left: Details */}
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2">
-                              {isCheckedIn ? (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-800">
-                                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                                  Active in Hospital • Token #{apt.tokenNumber || 'A-042'}
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-800">
-                                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
-                                  Confirmed • Awaiting Hospital OPD Check-in
-                                </span>
-                              )}
-
-                              <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                                ID: {apt.id}
-                              </span>
-
-                              <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded">
-                                👤 {apt.patientName}
-                              </span>
-                            </div>
-
-                            <div>
-                              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-1.5">
-                                <Building2 className="h-4 w-4 text-teal-700 shrink-0" />
-                                {apt.facilityName || 'Gandhinagar Civil Hospital'}
-                              </h3>
-                              <p className="text-xs font-semibold text-slate-700 mt-0.5 flex items-center gap-2">
-                                <span>{apt.doctorName || 'Dr. Vikramaditya Mehta'}</span>
-                                <span className="text-slate-300">•</span>
-                                <span className="text-teal-700 font-medium">{apt.specialty}</span>
-                              </p>
-                            </div>
-
-                            {/* Date, Time & Guidance */}
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                              <span className="flex items-center gap-1 font-semibold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">
-                                <CalendarDays className="h-3.5 w-3.5 text-teal-700" />
-                                {apt.date}
-                              </span>
-                              <span className="flex items-center gap-1 font-bold text-teal-900 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-lg">
-                                <Clock className="h-3.5 w-3.5 text-teal-700" />
-                                {apt.timeSlot}
-                              </span>
-                              {apt.reasonForVisit && (
-                                <span className="text-[11px] text-slate-500 italic">
-                                  "{apt.reasonForVisit}"
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Status notice */}
-                            {!isCheckedIn ? (
-                              <p className="text-[11px] text-amber-700 flex items-center gap-1 bg-amber-50/60 p-1.5 rounded-lg border border-amber-100">
-                                <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
-                                <span>
-                                  <strong>Hospital arrival pending:</strong> Please arrive at the hospital 15 mins early and click <strong>Self Check-in</strong> to receive your live OPD queue token.
-                                </span>
-                              </p>
-                            ) : (
-                              <p className="text-[11px] text-emerald-800 flex items-center gap-1 bg-emerald-50/70 p-1.5 rounded-lg border border-emerald-100">
-                                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                                <span>
-                                  <strong>Token is active in queue:</strong> Head toward OPD Room. Watch the token screen or monitor live wait times.
-                                </span>
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Right: Actions */}
-                          <div className="flex flex-row lg:flex-col items-center lg:items-end gap-2 shrink-0 pt-2 lg:pt-0">
-                            {!isCheckedIn ? (
-                              <Button
-                                size="sm"
-                                onClick={() => handleCheckIn(apt.id)}
-                                isLoading={checkInLoadingId === apt.id}
-                                className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl cursor-pointer shadow-xs gap-1.5 whitespace-nowrap"
-                              >
-                                <Ticket className="h-3.5 w-3.5" />
-                                Hospital Self Check-in
-                              </Button>
-                            ) : (
-                              <Link to="/patient/tokens">
-                                <Button
-                                  size="sm"
-                                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl cursor-pointer shadow-xs gap-1.5 whitespace-nowrap"
-                                >
-                                  <Ticket className="h-3.5 w-3.5" />
-                                  Track Live Token ↗
-                                </Button>
-                              </Link>
-                            )}
-
-                            <Link to={`/patient/appointments/${apt.id}`}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs font-semibold rounded-xl gap-1 text-slate-700 hover:bg-slate-50 cursor-pointer border-slate-300"
-                              >
-                                <Eye className="h-3.5 w-3.5 text-teal-700" />
-                                View OPD Pass
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* =====================================
-              TAB 2: PREVIOUS APPOINTMENTS
-          ====================================== */}
-          {activeTab === 'PREVIOUS' && (
-            <div>
-              {/* DESKTOP TABLE */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50">
-                      <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-slate-400">Date</th>
-                      <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-slate-400">Hospital</th>
-                      <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-slate-400">Doctor / Dept</th>
-                      <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-slate-400">Time</th>
-                      <th className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-slate-400">Status</th>
-                      <th className="px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-wide text-slate-400">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pastAppointments.map((appointment) => (
-                      <tr
-                        key={appointment.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition"
-                      >
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <CalendarDays className="h-3.5 w-3.5 text-teal-600" />
-                            <span className="text-xs font-semibold text-slate-800">{appointment.date}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                            <span className="text-xs font-medium text-slate-800">{appointment.facilityName || (appointment as any).hospital}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <Stethoscope className="h-3.5 w-3.5 text-slate-400" />
-                            <span className="text-xs text-slate-600">
-                              {appointment.doctorName ? `${appointment.doctorName} • ` : ''}{appointment.specialty || (appointment as any).department}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-slate-400" />
-                            <span className="text-xs text-slate-600">{appointment.timeSlot || (appointment as any).time}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          {appointment.status === 'COMPLETED' ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
-                              <CheckCircle2 className="h-3 w-3" />
-                              Completed
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">
-                              <XCircle className="h-3 w-3" />
-                              Cancelled
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <Link
-                            to={`/patient/appointments/${appointment.id}`}
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-semibold text-slate-600 hover:bg-slate-50"
-                          >
-                            <Eye className="h-3 w-3" />
-                            View
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
 
-              {/* MOBILE HISTORY */}
-              <div className="md:hidden divide-y divide-slate-100">
-                {pastAppointments.map((appointment) => (
-                  <div key={appointment.id} className="p-3">
-                    <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-1 text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 px-2.5 py-1.5 rounded-lg border border-teal-200 transition-colors shrink-0">
+                <span>
+                  {showRecentVisits
+                    ? (currentLang === 'gu' ? 'બંધ કરો' : currentLang === 'hi' ? 'छुपाएं' : 'Hide')
+                    : (currentLang === 'gu' ? 'જુઓ' : currentLang === 'hi' ? 'देखें' : 'View')}
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-teal-700 transition-transform duration-200 ${
+                    showRecentVisits ? 'rotate-180' : ''
+                  }`}
+                />
+              </div>
+            </button>
+
+            {showRecentVisits && (
+              <CardContent className="p-3 sm:p-4 pt-0 border-t border-slate-100">
+                <div className="divide-y divide-slate-100">
+                  {previousAppointments.map((apt) => (
+                    <div key={apt.id} className="py-2.5 flex items-center justify-between gap-2.5">
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 truncate">
-                          {appointment.facilityName || (appointment as any).hospital}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs font-bold text-slate-900">{apt.hospital}</p>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">
+                            {apt.status}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-0.5">
+                          {apt.doctor} • {apt.department} • {apt.date} at {apt.time}
                         </p>
-                        <p className="mt-0.5 text-[10px] text-slate-500">
-                          {appointment.specialty || (appointment as any).department}
-                        </p>
-                      </div>
-
-                      {appointment.status === 'COMPLETED' ? (
-                        <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
-                          Completed
-                        </span>
-                      ) : (
-                        <span className="shrink-0 rounded-full bg-red-50 px-2 py-1 text-[9px] font-semibold text-red-600">
-                          Cancelled
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-2 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-[10px] text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <CalendarDays className="h-3 w-3" />
-                          {appointment.date}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {appointment.timeSlot || (appointment as any).time}
-                        </span>
                       </div>
 
                       <Link
-                        to={`/patient/appointments/${appointment.id}`}
-                        className="flex items-center gap-1 text-[10px] font-semibold text-teal-700"
+                        to={`/patient/appointments/${apt.id}`}
+                        className="px-2.5 py-1 rounded-lg border border-slate-200 text-[10px] font-bold text-teal-700 hover:bg-slate-50 shrink-0 flex items-center gap-1"
                       >
                         <Eye className="h-3 w-3" />
-                        View
+                        <span>{t('appointments.viewDetails', 'View Slip')}</span>
                       </Link>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+                  ))}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
