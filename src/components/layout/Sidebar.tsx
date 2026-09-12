@@ -38,6 +38,8 @@ import {
   FileCheck,
   Home,
   ListTodo,
+  Stethoscope,
+  Settings,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -394,41 +396,117 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       // ==================================================
       case 'DISTRICT_ADMIN':
         return [
+          // 1. Overview
           {
             to: '/district',
-            label: 'Home',
+            label: 'Overview',
             icon: LayoutDashboard,
             color: 'text-blue-600 bg-blue-50',
+            section: 'Overview',
           },
+          {
+            to: '/district/alerts',
+            label: 'Action Center',
+            icon: AlertOctagon,
+            color: 'text-rose-600 bg-rose-50',
+            section: 'Overview',
+          },
+
+          // 2. Facilities & Care
+          {
+            to: '/district/facilities',
+            label: 'Facilities',
+            icon: Building2,
+            color: 'text-cyan-600 bg-cyan-50',
+            section: 'Facilities & Care',
+          },
+          {
+            to: '/district/doctors',
+            label: 'Doctors',
+            icon: Stethoscope,
+            color: 'text-teal-600 bg-teal-50',
+            section: 'Facilities & Care',
+          },
+          {
+            to: '/district/referrals',
+            label: 'Referrals',
+            icon: GitBranch,
+            color: 'text-indigo-600 bg-indigo-50',
+            section: 'Facilities & Care',
+          },
+          {
+            to: '/district/operations',
+            label: 'Queues & OPD',
+            icon: Ticket,
+            color: 'text-orange-600 bg-orange-50',
+            section: 'Facilities & Care',
+          },
+
+          // 3. District Resources
+          {
+            to: '/district/resources',
+            label: 'Resource Planning',
+            icon: Activity,
+            color: 'text-cyan-600 bg-cyan-50',
+            section: 'District Resources',
+          },
+          {
+            to: '/district/medicines',
+            label: 'Medicines',
+            icon: Pill,
+            color: 'text-pink-600 bg-pink-50',
+            section: 'District Resources',
+          },
+          {
+            to: '/district/blood',
+            label: 'Blood Bank',
+            icon: Droplet,
+            color: 'text-red-600 bg-red-50',
+            section: 'District Resources',
+          },
+          {
+            to: '/district/ambulances',
+            label: 'Ambulances',
+            icon: Ambulance,
+            color: 'text-amber-600 bg-amber-50',
+            section: 'District Resources',
+          },
+          {
+            to: '/district/diagnostics',
+            label: 'Diagnostics',
+            icon: FlaskConical,
+            color: 'text-purple-600 bg-purple-50',
+            section: 'District Resources',
+          },
+
+          // 4. Public Health & Insights
           {
             to: '/district/map',
             label: 'District Map',
             icon: Map,
             color: 'text-emerald-600 bg-emerald-50',
-          },
-          {
-            to: '/district/referrals',
-            label: 'Referral Status',
-            icon: GitBranch,
-            color: 'text-indigo-600 bg-indigo-50',
-          },
-          {
-            to: '/district/resources',
-            label: 'Hospital Resources',
-            icon: Activity,
-            color: 'text-cyan-600 bg-cyan-50',
+            section: 'Public Health & Insights',
           },
           {
             to: '/district/disease-trends',
-            label: 'Disease Reports',
+            label: 'Disease Trends',
             icon: TrendingUp,
             color: 'text-rose-600 bg-rose-50',
+            section: 'Public Health & Insights',
           },
           {
             to: '/district/ai',
-            label: 'Health Demand',
+            label: 'Demand Forecast',
             icon: BrainCircuit,
             color: 'text-violet-600 bg-violet-50',
+            section: 'Public Health & Insights',
+          },
+          {
+            to: '/district/reports',
+            label: 'Reports & Exports',
+            icon: FileText,
+            color: 'text-slate-600 bg-slate-100',
+            section: 'Public Health & Insights',
           },
         ];
 
@@ -439,15 +517,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         return [
           {
             to: '/super-admin',
-            label: 'System Home',
+            label: 'Dashboard',
             icon: LayoutDashboard,
             color: 'text-blue-600 bg-blue-50',
           },
           {
             to: '/super-admin/system-health',
-            label: 'System Status',
+            label: 'System Health',
             icon: Server,
             color: 'text-emerald-600 bg-emerald-50',
+          },
+          {
+            to: '/super-admin/facilities',
+            label: 'Facilities',
+            icon: Building2,
+            color: 'text-cyan-600 bg-cyan-50',
           },
           {
             to: '/super-admin/users',
@@ -457,15 +541,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           },
           {
             to: '/super-admin/roles',
-            label: 'User Roles',
+            label: 'Permissions',
             icon: KeyRound,
             color: 'text-amber-600 bg-amber-50',
-          },
-          {
-            to: '/super-admin/facilities',
-            label: 'Hospitals',
-            icon: Building2,
-            color: 'text-cyan-600 bg-cyan-50',
           },
           {
             to: '/super-admin/ai-models',
@@ -475,9 +553,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           },
           {
             to: '/super-admin/audit',
-            label: 'Activity History',
+            label: 'Audit Logs',
             icon: ShieldCheck,
             color: 'text-rose-600 bg-rose-50',
+          },
+          {
+            to: '/super-admin/settings',
+            label: 'Settings',
+            icon: Settings,
+            color: 'text-slate-600 bg-slate-100',
           },
         ];
 
@@ -550,34 +634,49 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             NAVIGATION
         --------------------------------------------- */}
         <div className="flex-1 overflow-y-auto px-3 py-3">
-          <div className="mb-2 px-2.5">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                Menu
-              </span>
-              <div className="h-px flex-1 bg-slate-100" />
+          {!navItems[0]?.section && (
+            <div className="mb-2 px-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  Menu
+                </span>
+                <div className="h-px flex-1 bg-slate-100" />
+              </div>
             </div>
-          </div>
+          )}
 
           <nav className="space-y-1">
-            {navItems.map((item) => {
+            {navItems.map((item, index) => {
               const Icon = item.icon;
+              const showSection =
+                item.section &&
+                (index === 0 || navItems[index - 1].section !== item.section);
 
               return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={onClose}
-                  end={item.to.split('/').length <= 2}
-                  className={({ isActive }) =>
-                    cn(
-                      `group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-200`,
-                      isActive
-                        ? `bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-800 font-semibold shadow-xs`
-                        : `text-slate-600 hover:bg-slate-50 hover:text-slate-900`
-                    )
-                  }
-                >
+                <React.Fragment key={item.to}>
+                  {showSection && (
+                    <div
+                      className={cn(
+                        'px-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400',
+                        index > 0 ? 'pt-3.5 pb-1' : 'pb-1'
+                      )}
+                    >
+                      {item.section}
+                    </div>
+                  )}
+                  <NavLink
+                    to={item.to}
+                    onClick={onClose}
+                    end={item.to.split('/').length <= 2}
+                    className={({ isActive }) =>
+                      cn(
+                        `group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-200`,
+                        isActive
+                          ? `bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-800 font-semibold shadow-xs`
+                          : `text-slate-600 hover:bg-slate-50 hover:text-slate-900`
+                      )
+                    }
+                  >
                   {({ isActive }) => (
                     <>
                       {/* Active Left Indicator */}
@@ -616,8 +715,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     </>
                   )}
                 </NavLink>
-              );
-            })}
+              </React.Fragment>
+            );
+          })}
           </nav>
         </div>
       </aside>
