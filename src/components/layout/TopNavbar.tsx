@@ -19,6 +19,7 @@ import {
   X,
   Search,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
@@ -138,6 +139,17 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
             <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
             <span className="truncate max-w-[65px]">{selectedDistrict}</span>
           </button>
+
+          {/* All Roles Wireframes Demo Link */}
+          <Link
+            to="/demo"
+            className="flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50/90 hover:bg-teal-100 text-teal-900 px-2.5 py-1.5 text-xs font-black shadow-2xs min-h-[38px] transition-colors cursor-pointer"
+            title="View All Roles Mobile Wireframes Poster & Live Launchers"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-teal-700" />
+            <span className="hidden sm:inline">📱 All Roles Wireframes</span>
+            <span className="sm:hidden">📱 Wireframes</span>
+          </Link>
 
           {/* Language Switcher */}
           <div className="relative">
