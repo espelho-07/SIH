@@ -1479,170 +1479,151 @@ export const UserProfilePage: React.FC = () => {
         <DialogContent
           className="bg-white rounded-3xl p-0 overflow-hidden shadow-2xl border border-slate-200"
         >
-          <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 p-6 text-white">
+          <div className="bg-slate-900 p-5 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-white" />
+                <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center">
+                  <Calendar className="h-5 w-5 text-emerald-400" />
                 </div>
                 <div>
-                  <DialogTitle className="text-lg font-bold text-white">
-                    Plan & Declare Doctor Leave
+                  <DialogTitle className="text-base font-bold text-white">
+                    Apply for Leave
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-teal-200 mt-0.5">
-                    Schedule time off and notify patient registration desks across Gandhinagar District.
+                  <DialogDescription className="text-xs text-slate-300 mt-0.5">
+                    Schedule time off and assign a colleague to cover your duties.
                   </DialogDescription>
                 </div>
               </div>
               <button
                 onClick={() => setShowLeaveModal(false)}
-                className="rounded-lg p-1.5 text-teal-200 hover:bg-white/10 hover:text-white cursor-pointer"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          <form onSubmit={handleApplyLeave} className="p-6 space-y-5">
-            {/* Impact Notice */}
-            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold">Automated District Grid Propagation</p>
-                <p className="text-amber-800 text-[11px] mt-0.5">
-                  During your approved leave dates, your status will automatically switch to{' '}
-                  <strong>"ON LEAVE (Not Available)"</strong>. Registration clerks will be prompted to redirect patients to your handover colleague.
-                </p>
-              </div>
+          <form onSubmit={handleApplyLeave} className="p-5 space-y-4">
+            {/* Simple Notice */}
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2.5">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>
+                Your status will show as <strong>On Leave</strong> during this period, and patient visits will be directed to your covering colleague.
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Leave Start Date *</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Start Date *</label>
                 <Input
                   type="date"
                   required
                   value={leaveStartDate}
                   onChange={(e) => setLeaveStartDate(e.target.value)}
-                  className="h-10 text-xs font-semibold"
+                  className="h-9 text-xs font-medium"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Leave End Date *</label>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">End Date *</label>
                 <Input
                   type="date"
                   required
                   value={leaveEndDate}
                   onChange={(e) => setLeaveEndDate(e.target.value)}
-                  className="h-10 text-xs font-semibold"
+                  className="h-9 text-xs font-medium"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Leave Category *</label>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Leave Type *</label>
                 <select
                   value={leaveCategory}
                   onChange={(e) => setLeaveCategory(e.target.value as any)}
-                  className="w-full h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-800 shadow-2xs cursor-pointer"
+                  className="w-full h-9 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 shadow-2xs cursor-pointer focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
                   <option value="CASUAL">Casual Leave (CL)</option>
                   <option value="SICK">Medical / Sick Leave (ML)</option>
-                  <option value="CONFERENCE">National Medical Conference / Summit</option>
-                  <option value="EMERGENCY">Family / Emergency Leave</option>
-                  <option value="EARNED">Privilege / Earned Leave</option>
+                  <option value="CONFERENCE">Conference / CME</option>
+                  <option value="EMERGENCY">Emergency Leave</option>
+                  <option value="EARNED">Earned / Privilege Leave</option>
                 </select>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Handover Colleague (Covering OPD) *</label>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Covering Doctor *</label>
                 <Input
                   value={handoverDoctor}
                   onChange={(e) => setHandoverDoctor(e.target.value)}
-                  placeholder="e.g. Dr. Meena Parmar / Dr. Rajesh Mehta"
+                  placeholder="e.g. Dr. Meena Parmar"
                   required
-                  className="h-10 text-xs font-semibold"
+                  className="h-9 text-xs font-medium"
                 />
               </div>
 
-              <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-bold text-slate-700">
-                  Reason & Description for Leave *
+              <div className="space-y-1 sm:col-span-2">
+                <label className="text-xs font-semibold text-slate-700">
+                  Reason for Leave *
                 </label>
                 <textarea
                   rows={2}
                   required
                   value={leaveReason}
                   onChange={(e) => setLeaveReason(e.target.value)}
-                  placeholder="e.g. Attending 44th National Cardiology Conference at AIIMS Delhi / Family urgent commitment"
-                  className="w-full rounded-xl border border-slate-200 p-3 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-hidden"
+                  placeholder="e.g. Annual leave / Attending medical conference"
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-none"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Emergency Phone During Leave</label>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Emergency Phone</label>
                 <Input
                   value={emergencyPhone}
                   onChange={(e) => setEmergencyPhone(e.target.value)}
-                  placeholder="+91 Mobile Number"
-                  className="h-10 text-xs font-semibold"
+                  placeholder="e.g. +91 98765 43210"
+                  className="h-9 text-xs font-medium"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Special Handover Instructions</label>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Handover Instructions (Optional)</label>
                 <Input
                   value={leaveNotes}
                   onChange={(e) => setLeaveNotes(e.target.value)}
-                  placeholder="e.g. Inpatient ICU rounds delegated to Dr. Meena"
-                  className="h-10 text-xs font-medium"
+                  placeholder="e.g. Inpatient ICU rounds assigned to Dr. Meena"
+                  className="h-9 text-xs font-medium"
                 />
               </div>
             </div>
 
-            {/* Live Operational Impact Preview */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-              <div className="flex items-center justify-between font-bold text-slate-800">
-                <span className="flex items-center gap-1.5">
-                  <Building2 className="h-4 w-4 text-emerald-700" />
-                  Facility Operations Impact Assessment:
-                </span>
-                {leaveImpactPreview.loading ? (
-                  <span className="text-[11px] text-slate-500 font-normal flex items-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin text-emerald-600" />
-                    Simulating facility impact...
+            {/* Quick Coverage Check */}
+            {(leaveStartDate && leaveEndDate) && (
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Building2 className="h-4 w-4 text-slate-500" />
+                  <span>
+                    Dept Coverage: <strong className={leaveImpactPreview.doctorsRemaining === 0 ? 'text-rose-600' : 'text-slate-800'}>
+                      {leaveImpactPreview.doctorsRemaining} on duty
+                    </strong>
+                    {leaveImpactPreview.affectedAppointmentsCount > 0 && (
+                      <span className="ml-2 text-amber-700 font-medium">
+                        • {leaveImpactPreview.affectedAppointmentsCount} appts to reschedule
+                      </span>
+                    )}
                   </span>
-                ) : (
-                  <span className="text-[11px] px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800">
-                    Live Verified
-                  </span>
+                </div>
+                {leaveImpactPreview.loading && (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600" />
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2 rounded-lg bg-white border border-slate-200">
-                  <span className="text-slate-500">Department Specialists After Leave:</span>{' '}
-                  <strong className={leaveImpactPreview.doctorsRemaining === 0 ? 'text-rose-600 font-bold' : 'text-slate-800'}>
-                    {leaveImpactPreview.doctorsRemaining} On Duty
-                  </strong>
-                </div>
-                <div className="p-2 rounded-lg bg-white border border-slate-200">
-                  <span className="text-slate-500">Booked Patient Appointments:</span>{' '}
-                  <strong className={leaveImpactPreview.affectedAppointmentsCount > 0 ? 'text-amber-600 font-bold' : 'text-slate-800'}>
-                    {leaveImpactPreview.affectedAppointmentsCount} to Reschedule
-                  </strong>
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-500">
-                Requests are routed to Facility Operations for review to ensure patient safety and clinical coverage continuity.
-              </p>
-            </div>
+            )}
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowLeaveModal(false)}
-                className="text-xs font-semibold"
+                className="text-xs font-semibold h-9 px-3.5 cursor-pointer"
                 disabled={applyingLeave}
               >
                 Cancel
@@ -1650,17 +1631,17 @@ export const UserProfilePage: React.FC = () => {
               <Button
                 type="submit"
                 disabled={applyingLeave}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-5 h-10 shadow-sm cursor-pointer gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 h-9 shadow-xs cursor-pointer gap-1.5"
               >
                 {applyingLeave ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Submitting Request...
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Submitting...
                   </>
                 ) : (
                   <>
-                    <Check className="h-4 w-4" />
-                    Submit for Facility Review
+                    <Check className="h-3.5 w-3.5" />
+                    Submit Request
                   </>
                 )}
               </Button>

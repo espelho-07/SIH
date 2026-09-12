@@ -17,11 +17,8 @@ import {
   Users,
   FileEdit,
   Building2,
-  Stethoscope,
-  Filter,
   Eye,
   CalendarX,
-  Phone,
 } from 'lucide-react';
 
 export const StaffLeaveOperationsPage: React.FC = () => {
@@ -169,166 +166,144 @@ export const StaffLeaveOperationsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Header & Facility Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-              Facility Operations
-            </span>
-            <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-emerald-600" />
               {activeFacility.name}
             </span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Staff Leave, Availability & Service Coverage
+            Staff Leave & Coverage
           </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-3xl">
-            Review incoming doctor & clinical cadre leave applications, analyze real-time departmental specialist coverage, and prevent service disruption across outpatient queues.
+          <p className="text-sm text-slate-500 mt-0.5">
+            Review doctor leave requests, verify handovers, and ensure uninterrupted patient care.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadLeaves}
-            disabled={loading}
-            className="text-xs h-9 px-3 gap-1.5 border-slate-300"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-emerald-600' : 'text-slate-600'}`} />
-            Refresh Roster
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={loadLeaves}
+          disabled={loading}
+          className="text-xs h-9 px-3 gap-1.5 border-slate-300 self-start sm:self-auto cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-emerald-600' : 'text-slate-600'}`} />
+          Refresh
+        </Button>
       </div>
 
-      {/* KPI Stats Overview */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      {/* Summary KPI Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <Card
-          onClick={() => setStatusFilter('PENDING')}
-          className={`p-4 cursor-pointer transition-all border ${
+          onClick={() => setStatusFilter(statusFilter === 'PENDING' ? 'ALL' : 'PENDING')}
+          className={`p-4 cursor-pointer transition-all border rounded-2xl ${
             statusFilter === 'PENDING'
               ? 'border-amber-400 ring-2 ring-amber-100 bg-amber-50/40'
-              : 'border-slate-200 bg-white hover:border-amber-200'
+              : 'border-slate-200 bg-white hover:border-amber-300'
           }`}
         >
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
             <span>Pending Review</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+            <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-amber-600" />
+            </div>
           </div>
           <div className="text-2xl font-bold text-amber-600 mt-2">
             {kpis.pending}
           </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            Require operational review
+          <div className="text-xs text-slate-400 mt-0.5">
+            Awaiting decision
           </div>
         </Card>
 
         <Card
-          onClick={() => setStatusFilter('CHANGES_REQUIRED')}
-          className={`p-4 cursor-pointer transition-all border ${
-            statusFilter === 'CHANGES_REQUIRED'
-              ? 'border-purple-400 ring-2 ring-purple-100 bg-purple-50/40'
-              : 'border-slate-200 bg-white hover:border-purple-200'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-            <span>Changes Requested</span>
-            <FileEdit className="w-4 h-4 text-purple-500" />
-          </div>
-          <div className="text-2xl font-bold text-purple-700 mt-2">
-            {kpis.changes}
-          </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            Awaiting doctor clarification
-          </div>
-        </Card>
-
-        <Card
-          onClick={() => setStatusFilter('APPROVED')}
-          className={`p-4 cursor-pointer transition-all border ${
+          onClick={() => setStatusFilter(statusFilter === 'APPROVED' ? 'ALL' : 'APPROVED')}
+          className={`p-4 cursor-pointer transition-all border rounded-2xl ${
             statusFilter === 'APPROVED'
               ? 'border-emerald-400 ring-2 ring-emerald-100 bg-emerald-50/40'
-              : 'border-slate-200 bg-white hover:border-emerald-200'
+              : 'border-slate-200 bg-white hover:border-emerald-300'
           }`}
         >
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-            <span>Active Today</span>
-            <UserCheck className="w-4 h-4 text-emerald-600" />
+            <span>On Leave Today</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <UserCheck className="w-4 h-4 text-emerald-600" />
+            </div>
           </div>
           <div className="text-2xl font-bold text-emerald-700 mt-2">
             {kpis.activeToday}
           </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            Staff off duty right now
+          <div className="text-xs text-slate-400 mt-0.5">
+            Doctors off-duty today
           </div>
         </Card>
 
         <Card
-          onClick={() => setStatusFilter('CRITICAL_GAPS')}
-          className={`p-4 cursor-pointer transition-all border ${
+          onClick={() => setStatusFilter(statusFilter === 'CRITICAL_GAPS' ? 'ALL' : 'CRITICAL_GAPS')}
+          className={`p-4 cursor-pointer transition-all border rounded-2xl ${
             statusFilter === 'CRITICAL_GAPS'
               ? 'border-rose-400 ring-2 ring-rose-100 bg-rose-50/40'
-              : 'border-slate-200 bg-white hover:border-rose-200'
+              : 'border-slate-200 bg-white hover:border-rose-300'
           }`}
         >
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-            <span>Critical Coverage Gaps</span>
-            <ShieldAlert className="w-4 h-4 text-rose-600" />
+            <span>Coverage Alerts</span>
+            <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center">
+              <ShieldAlert className="w-4 h-4 text-rose-600" />
+            </div>
           </div>
           <div className="text-2xl font-bold text-rose-600 mt-2">
             {kpis.criticalGaps}
           </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            0 specialists remaining
+          <div className="text-xs text-slate-400 mt-0.5">
+            0 doctors remaining
           </div>
         </Card>
 
-        <Card className="p-4 border-slate-200 bg-white">
+        <Card className="p-4 border border-slate-200 bg-white rounded-2xl">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-            <span>Affected Appointments</span>
-            <Users className="w-4 h-4 text-indigo-500" />
+            <span>Affected Patients</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Users className="w-4 h-4 text-indigo-600" />
+            </div>
           </div>
           <div className="text-2xl font-bold text-slate-900 mt-2">
             {kpis.totalAffectedAppts}
           </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            Patients needing reschedule
+          <div className="text-xs text-slate-400 mt-0.5">
+            Appointments to reschedule
           </div>
         </Card>
       </div>
 
-      {/* Critical Gap Warning Banner if any */}
+      {/* Critical Coverage Gap Warning */}
       {kpis.criticalGaps > 0 && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 shadow-xs">
-          <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <div className="text-sm font-bold text-rose-900">
-              Departmental Service Disruption Risk Detected ({kpis.criticalGaps} request(s))
-            </div>
-            <p className="text-xs text-rose-800 leading-relaxed">
-              At least one active or pending leave request leaves a critical department (e.g. Cardiology) with <strong>zero remaining doctors</strong> on duty. The system has automatically flagged this to the District Capacity Grid and will degrade departmental OPD booking slots upon confirmation unless alternate specialist handover is arranged.
-            </p>
-          </div>
+        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-3">
+          <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+          <p className="text-xs text-rose-900 leading-relaxed">
+            <strong className="font-bold">Coverage Alert:</strong> {kpis.criticalGaps} leave request(s) will leave a department with 0 doctors on duty. Ensure specialist handover is arranged before approving.
+          </p>
         </div>
       )}
 
-      {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
-        {/* Status Tab Filters */}
+      {/* Filter Tabs & Search Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+        {/* Status Pills */}
         <div className="flex flex-wrap items-center gap-1.5">
           {[
             { id: 'ALL', label: 'All Requests', count: leaves.length },
-            { id: 'PENDING', label: 'Pending Review', count: kpis.pending },
-            { id: 'CHANGES_REQUIRED', label: 'Changes Requested', count: kpis.changes },
+            { id: 'PENDING', label: 'Pending', count: kpis.pending },
             { id: 'APPROVED', label: 'Approved', count: leaves.filter((l) => l.status === 'APPROVED').length },
+            { id: 'CHANGES_REQUIRED', label: 'Changes Needed', count: kpis.changes },
             { id: 'CRITICAL_GAPS', label: 'Coverage Gaps', count: kpis.criticalGaps },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                 statusFilter === tab.id
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
@@ -336,10 +311,10 @@ export const StaffLeaveOperationsPage: React.FC = () => {
             >
               <span>{tab.label}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                   statusFilter === tab.id
                     ? 'bg-slate-700 text-white'
-                    : 'bg-slate-200/70 text-slate-700'
+                    : 'bg-slate-100 text-slate-600'
                 }`}
               >
                 {tab.count}
@@ -354,7 +329,7 @@ export const StaffLeaveOperationsPage: React.FC = () => {
             <select
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-medium text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-medium text-slate-800 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
               <option value="ALL">All Departments</option>
               {departments.map((dept) => (
@@ -369,208 +344,161 @@ export const StaffLeaveOperationsPage: React.FC = () => {
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search doctor, specialty, reason..."
+              placeholder="Search doctor or department..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-48 sm:w-60 pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-44 sm:w-56 pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
             />
           </div>
         </div>
       </div>
 
-      {/* Main Leave Requests Table / Cards */}
-      <Card className="border-slate-200 bg-white overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                <th className="p-3.5 pl-5">Doctor / Staff Cadre</th>
-                <th className="p-3.5">Leave Interval</th>
-                <th className="p-3.5">Category & Reason</th>
-                <th className="p-3.5">Handover Doctor</th>
-                <th className="p-3.5">Service Impact</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5 pr-5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-500">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
-                    Loading staff leave rosters and service impact telemetry...
-                  </td>
-                </tr>
-              ) : filteredLeaves.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-500">
-                    <CalendarX className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                    <div className="font-semibold text-slate-700">No leave requests found</div>
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      Try clearing search filters or selecting another status tab.
+      {/* Leave Requests Card List */}
+      <div className="space-y-3">
+        {loading ? (
+          <div className="p-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
+            <p className="text-sm font-medium text-slate-600">Loading staff leaves...</p>
+          </div>
+        ) : filteredLeaves.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
+            <CalendarX className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+            <div className="font-semibold text-slate-700">No leave requests found</div>
+            <div className="text-xs text-slate-400 mt-1">
+              Try adjusting your search or selecting another tab.
+            </div>
+          </div>
+        ) : (
+          filteredLeaves.map((leave) => {
+            const duration = getDurationDays(leave.startDate, leave.endDate);
+            const isCriticalGap = leave.serviceCoverageImpact === 'CRITICAL_GAP';
+            const isLimited = leave.serviceCoverageImpact === 'LIMITED';
+
+            return (
+              <div
+                key={leave.id}
+                className="bg-white rounded-2xl border border-slate-200 p-4 hover:border-slate-300 transition-all shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                {/* Doctor Details */}
+                <div className="flex items-start gap-3 min-w-[220px]">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-sm shrink-0">
+                    {leave.doctorName
+                      .replace('Dr. ', '')
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-slate-900 text-sm">{leave.doctorName}</h3>
+                      {leave.doctorId === 'usr_doc_01' && (
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+                          HOD
+                        </span>
+                      )}
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredLeaves.map((leave) => {
-                  const duration = getDurationDays(leave.startDate, leave.endDate);
-                  const isCriticalGap = leave.serviceCoverageImpact === 'CRITICAL_GAP';
-                  const isLimited = leave.serviceCoverageImpact === 'LIMITED';
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                      {leave.department || 'Cardiology'}
+                    </p>
+                  </div>
+                </div>
 
-                  return (
-                    <tr
-                      key={leave.id}
-                      className="hover:bg-slate-50/80 transition-colors group"
-                    >
-                      {/* Doctor Info */}
-                      <td className="p-3.5 pl-5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs shrink-0">
-                            {leave.doctorName
-                              .replace('Dr. ', '')
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .slice(0, 2)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                              {leave.doctorName}
-                              {leave.doctorId === 'usr_doc_01' && (
-                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                  HOD
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-slate-500 font-medium">
-                              {leave.department || 'Cardiology'} • {leave.facilityName || activeFacility.name}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
+                {/* Dates & Duration */}
+                <div className="min-w-[170px]">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{formatDate(leave.startDate)} – {formatDate(leave.endDate)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                      {duration} {duration === 1 ? 'day' : 'days'}
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500 capitalize">
+                      {leave.category.toLowerCase()} leave
+                    </span>
+                  </div>
+                </div>
 
-                      {/* Interval */}
-                      <td className="p-3.5">
-                        <div className="font-semibold text-slate-800">
-                          {formatDate(leave.startDate)} – {formatDate(leave.endDate)}
-                        </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-slate-400" />
-                          {duration} {duration === 1 ? 'Day' : 'Days'}
-                        </div>
-                      </td>
+                {/* Reason & Handover */}
+                <div className="flex-1 max-w-sm">
+                  <p className="text-xs text-slate-700 truncate" title={leave.reason}>
+                    <span className="text-slate-400 font-medium">Reason:</span> {leave.reason}
+                  </p>
+                  <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                    <span className="text-slate-400 font-medium">Handover:</span>{' '}
+                    <span className="font-semibold text-emerald-800">
+                      {leave.handoverDoctorName || 'Dr. Meena Parmar'}
+                    </span>
+                  </p>
+                </div>
 
-                      {/* Category & Reason */}
-                      <td className="p-3.5 max-w-xs">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase tracking-wide">
-                            {leave.category}
-                          </span>
-                        </div>
-                        <div className="text-xs text-slate-700 truncate" title={leave.reason}>
-                          {leave.reason}
-                        </div>
-                      </td>
+                {/* Impact, Status & Action */}
+                <div className="flex items-center flex-wrap md:flex-nowrap gap-3 shrink-0">
+                  {/* Coverage Impact Badge */}
+                  {isCriticalGap ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                      <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                      0 Remaining
+                    </span>
+                  ) : isLimited ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                      1 Remaining
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      Covered
+                    </span>
+                  )}
 
-                      {/* Handover Doctor */}
-                      <td className="p-3.5">
-                        <div className="font-medium text-slate-800">
-                          {leave.handoverDoctorName || 'Dr. Meena Parmar'}
-                        </div>
-                        {leave.emergencyContact && (
-                          <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                            <Phone className="w-2.5 h-2.5 text-slate-400" />
-                            {leave.emergencyContact}
-                          </div>
-                        )}
-                      </td>
+                  {/* Status Badge */}
+                  {leave.status === 'PENDING' && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
+                      <Clock className="w-3 h-3" />
+                      Pending
+                    </span>
+                  )}
+                  {leave.status === 'CHANGES_REQUIRED' && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800">
+                      <FileEdit className="w-3 h-3" />
+                      Changes
+                    </span>
+                  )}
+                  {leave.status === 'APPROVED' && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Approved
+                    </span>
+                  )}
+                  {leave.status === 'REJECTED' && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800">
+                      <XCircle className="w-3 h-3" />
+                      Rejected
+                    </span>
+                  )}
 
-                      {/* Operational Impact */}
-                      <td className="p-3.5">
-                        <div className="space-y-1">
-                          {isCriticalGap ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                              <ShieldAlert className="w-3 h-3 text-rose-600" />
-                              Critical Gap (0 Remaining)
-                            </span>
-                          ) : isLimited ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                              <AlertTriangle className="w-3 h-3 text-amber-600" />
-                              Limited (1 Remaining)
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              Sufficient Coverage
-                            </span>
-                          )}
-
-                          {leave.affectedAppointmentsCount !== undefined && leave.affectedAppointmentsCount > 0 && (
-                            <div className="text-[10px] font-medium text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 w-fit">
-                              {leave.affectedAppointmentsCount} appts affected
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Status */}
-                      <td className="p-3.5">
-                        {leave.status === 'PENDING' && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                            <Clock className="w-3 h-3" />
-                            Pending Review
-                          </span>
-                        )}
-                        {leave.status === 'CHANGES_REQUIRED' && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                            <FileEdit className="w-3 h-3" />
-                            Changes Needed
-                          </span>
-                        )}
-                        {leave.status === 'APPROVED' && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Approved
-                          </span>
-                        )}
-                        {leave.status === 'REJECTED' && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
-                            <XCircle className="w-3 h-3" />
-                            Rejected
-                          </span>
-                        )}
-                        {leave.status === 'CANCELLED' && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                            <CalendarX className="w-3 h-3" />
-                            Cancelled
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Action */}
-                      <td className="p-3.5 pr-5 text-right">
-                        <Button
-                          size="sm"
-                          variant={leave.status === 'PENDING' ? 'primary' : 'outline'}
-                          className={`text-xs h-8 px-3 gap-1 ${
-                            leave.status === 'PENDING'
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold'
-                              : 'border-slate-300 text-slate-700 hover:bg-slate-100'
-                          }`}
-                          onClick={() => handleOpenReview(leave)}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          {leave.status === 'PENDING' ? 'Review & Decide' : 'View Details'}
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+                  {/* Action Button */}
+                  <Button
+                    size="sm"
+                    variant={leave.status === 'PENDING' ? 'primary' : 'outline'}
+                    className={`text-xs h-8 px-3.5 gap-1.5 cursor-pointer ${
+                      leave.status === 'PENDING'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs'
+                        : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                    }`}
+                    onClick={() => handleOpenReview(leave)}
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    {leave.status === 'PENDING' ? 'Review' : 'View'}
+                  </Button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
 
       {/* Leave Review & Operational Decision Modal */}
       <LeaveReviewModal
