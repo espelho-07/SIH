@@ -472,7 +472,7 @@ export const AppointmentBooking: React.FC = () => {
   });
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 space-y-4 pb-16 font-sans">
+    <div className="w-full space-y-4 pb-12 font-sans">
       {/* ================================================== */}
       {/* TOP HEADER & NAVIGATION TABS */}
       {/* ================================================== */}
