@@ -34,23 +34,23 @@ export const LandingPage: React.FC = () => {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
 
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-sky-700 text-white shadow-sm">
-              <HeartPulse className="h-5 w-5 sm:h-6 sm:w-6" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm">
+              <HeartPulse className="h-6 w-6" />
             </div>
 
-            <div className="min-w-0">
-              <span className="block text-sm sm:text-base font-extrabold tracking-tight text-slate-900 leading-tight truncate">
+            <div>
+              <span className="block text-base font-extrabold tracking-tight text-slate-900 leading-tight">
                 SANJEEVANI-CONNECT
               </span>
 
-              <span className="hidden sm:block text-[11px] font-medium text-slate-500 leading-none truncate">
+              <span className="block text-[11px] font-semibold text-teal-800 leading-none">
                 National Public Health Access & Care Continuity Grid
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3">
             <StatusIndicator />
 
             <EmergencyButton compact />
@@ -59,7 +59,7 @@ export const LandingPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="inline-flex text-xs px-2.5 sm:px-3 h-8 sm:h-9"
+                className="hidden sm:inline-flex"
               >
                 Sign In
               </Button>
@@ -69,51 +69,51 @@ export const LandingPage: React.FC = () => {
       </header>
 
       {/* 2. Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50/80 via-white to-white py-14 sm:py-24 border-b border-slate-200/80">
+      <section className="relative overflow-hidden bg-gradient-to-b from-teal-50/60 via-slate-50 to-white py-16 sm:py-24 border-b border-slate-200">
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
 
-          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3.5 py-1 text-xs font-semibold text-slate-800 border border-slate-200 mb-6 max-w-full truncate">
-            <ShieldCheck className="h-4 w-4 text-sky-700 shrink-0" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-teal-100/80 px-3.5 py-1 text-xs font-bold text-teal-900 border border-teal-200 mb-6">
+            <ShieldCheck className="h-4 w-4 text-teal-700" />
 
-            <span className="truncate">
+            <span>
               Smart India Hackathon 2024–2026 Platform • SIH26133
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight">
             Connected healthcare.
             <br />
 
-            <span className="text-sky-700">
+            <span className="text-teal-700">
               From first contact to complete care.
             </span>
           </h1>
 
-          <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Unifying hospital discovery, live digital queues, closed-loop
             referrals, offline frontline ASHA workflows, and predictive
             resource intelligence into an integrated government healthcare
             ecosystem.
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 max-w-sm sm:max-w-none mx-auto">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
 
-            <Link to="/login" className="w-full sm:w-auto">
+            <Link to="/login">
               <Button
                 size="lg"
-                className="w-full sm:w-auto bg-sky-700 hover:bg-sky-800 text-white font-semibold gap-2 px-6 shadow-xs"
+                className="bg-teal-700 hover:bg-teal-800 text-white font-bold gap-2 px-6"
               >
                 <Search className="h-5 w-5" />
                 Find Healthcare Facilities
               </Button>
             </Link>
 
-            <Link to="/login" className="w-full sm:w-auto">
+            <Link to="/login">
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full sm:w-auto px-6 font-semibold"
+                className="px-6 font-semibold"
               >
                 Authorized Personnel Login
               </Button>
@@ -122,12 +122,12 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Static Role Information */}
-          <div className="mt-14 max-w-5xl mx-auto rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs text-left">
+          <div className="mt-14 max-w-5xl mx-auto rounded-2xl border border-teal-200 bg-white p-5 sm:p-6 shadow-xl shadow-teal-900/5 text-left">
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
 
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-teal-800">
+                <span className="text-xs font-bold uppercase tracking-wider text-teal-800">
                   Platform Roles
                 </span>
 
@@ -587,7 +587,7 @@ export const LandingPage: React.FC = () => {
       {/* 6. Public Footer */}
       <footer className="bg-white border-t border-slate-200 py-10 text-xs text-slate-500">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
 
           <div className="flex items-center gap-2">
 
@@ -597,16 +597,16 @@ export const LandingPage: React.FC = () => {
               SANJEEVANI-CONNECT
             </span>
 
-            <span className="hidden sm:inline">
+            <span>
               • SIH26133 Integrated Healthcare Platform
             </span>
 
           </div>
 
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-5 gap-y-1.5">
+          <div className="flex items-center gap-6">
 
             <span>
-              Emergency: 108 / 102
+              Emergency Services: 108 / 102
             </span>
 
             <span>
@@ -614,7 +614,7 @@ export const LandingPage: React.FC = () => {
             </span>
 
             <span>
-              MoHFW
+              Ministry of Health & Family Welfare
             </span>
 
           </div>

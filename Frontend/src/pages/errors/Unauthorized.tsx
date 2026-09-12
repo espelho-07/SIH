@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const Unauthorized: React.FC = () => {
   const { role } = useAuth();
-  const navigate = useNavigate();
 
   const getHomeLink = () => {
     switch (role) {
@@ -18,10 +17,6 @@ export const Unauthorized: React.FC = () => {
       default: return '/patient';
     }
   };
-
-  useEffect(() => {
-    navigate(getHomeLink(), { replace: true });
-  }, [role, navigate]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">

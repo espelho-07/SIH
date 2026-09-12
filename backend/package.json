@@ -1,62 +1,33 @@
 {
-  "name": "healthcare-accessibility-backend",
+  "name": "healthconnect-backend",
   "version": "1.0.0",
-  "description": "Unified local backend for public healthcare accessibility platform MVP",
+  "description": "Production Node.js + Express + TypeScript + MongoDB Backend for HealthConnect",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "prisma:generate": "prisma generate",
-    "seed": "ts-node src/seed.ts",
-    "test": "jest --runInBand --detectOpenHandles"
+    "test:api": "ts-node src/tests/integrationTest.ts"
   },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
-  },
-  "keywords": [
-    "healthcare",
-    "express",
-    "typescript",
-    "mongodb",
-    "prisma",
-    "postgis",
-    "sih"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.22.0",
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.1",
-    "express-rate-limit": "^7.4.1",
-    "helmet": "^8.0.0",
-    "ioredis": "^5.4.1",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.2",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^9.9.5",
-    "socket.io": "^4.8.3",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "zod": "^3.23.8"
+    "mongoose": "^8.13.0",
+    "socket.io": "^4.8.1",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
+    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
-    "@types/jest": "^29.5.14",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.9.0",
-    "@types/supertest": "^6.0.2",
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.7",
-    "jest": "^29.7.0",
-    "prisma": "^5.22.0",
-    "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.10",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.8.2"
   }
 }

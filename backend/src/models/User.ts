@@ -1,9 +1,7 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 export type UserRole =
-  | 'USER'
-  | 'ADMIN'
-  | 'HOSPITAL_STAFF'
   | 'PATIENT'
   | 'ASHA'
   | 'DOCTOR'
@@ -18,10 +16,11 @@ export type StaffSubType =
   | 'FACILITY_OPERATIONS';
 
 export interface IUser extends Document {
-  email?: string;
-  phone?: string;
-  password?: string;
+  id: string;
   name: string;
+  email?: string;
+  phone: string;
+  password?: string;
   role: UserRole;
   staffSubType?: StaffSubType;
   facilityId?: string;
@@ -32,45 +31,88 @@ export interface IUser extends Document {
   gender?: 'M' | 'F' | 'Other';
   age?: number;
   permissions?: string[];
+  designation?: string;
+  qualification?: string;
+  specialty?: string;
+  licenseNumber?: string;
+  employeeId?: string;
+  bio?: string;
+  address?: string;
+  bloodGroup?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  preferredLanguage?: string;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const UserSchema = new Schema<IUser>(
   {
-    email: { type: String, sparse: true, index: true },
-    phone: { type: String, sparse: true, index: true },
-    password: { type: String },
+    id: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
+    email: { type: String, sparse: true, index: true },
+    phone: { type: String, required: true, index: true },
+    password: { type: String },
     role: {
       type: String,
-      enum: ['USER', 'ADMIN', 'HOSPITAL_STAFF', 'PATIENT', 'ASHA', 'DOCTOR', 'FACILITY_STAFF', 'DISTRICT_ADMIN', 'SUPER_ADMIN'],
-      default: 'PATIENT',
+      required: true,
+      enum: ['PATIENT', 'ASHA', 'DOCTOR', 'FACILITY_STAFF', 'DISTRICT_ADMIN', 'SUPER_ADMIN'],
+      index: true,
     },
     staffSubType: {
       type: String,
       enum: ['REGISTRATION_CLERK', 'PHARMACIST', 'LAB_TECHNICIAN', 'FACILITY_OPERATIONS'],
+      index: true,
     },
-    facilityId: { type: String },
+    facilityId: { type: String, index: true },
     facilityName: { type: String },
-    district: { type: String },
+    district: { type: String, default: 'Gandhinagar' },
     avatar: { type: String },
-    abhaId: { type: String, sparse: true },
+    abhaId: { type: String },
     gender: { type: String, enum: ['M', 'F', 'Other'] },
     age: { type: Number },
     permissions: [{ type: String }],
+    designation: { type: String },
+    qualification: { type: String },
+    specialty: { type: String },
+    licenseNumber: { type: String },
+    employeeId: { type: String },
+    bio: { type: String },
+    address: { type: String },
+    bloodGroup: { type: String },
+    emergencyContactName: { type: String },
+    emergencyContactPhone: { type: String },
+    preferredLanguage: { type: String, default: 'en' },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
-        ret.id = ret._id ? ret._id.toString() : ret.id;
-        delete ret.password;
+      transform(_doc, ret) {
+        ret.id = ret.id || ret._id.toString();
+        delete ret._id;
         delete ret.__v;
+        delete ret.password;
         return ret;
       },
     },
   }
 );
 
-export const User = mongoose.model<IUser>('User', UserSchema);
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || !this.password) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  if (!this.password) return true;
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+export const UserModel = mongoose.model<IUser>('User', UserSchema);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +8,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { DEMO_USERS } from '@/mock/mockData';
 import { User, UserRole, StaffSubType } from '@/types/auth';
+import { adminApi } from '@/api/adminApi';
+import { Link } from 'react-router-dom';
 import {
   Users,
   Search,
@@ -21,10 +23,19 @@ import {
   Edit2,
   AlertTriangle,
   UserCheck,
+  ShieldAlert,
+  ArrowRight,
+  RefreshCw,
 } from 'lucide-react';
 
 export const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>(Object.values(DEMO_USERS));
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('ALL');
 
@@ -40,6 +51,27 @@ export const UserManagementPage: React.FC = () => {
   const [staffSubType, setStaffSubType] = useState<StaffSubType>('REGISTRATION_CLERK');
   const [facilityName, setFacilityName] = useState('Gandhinagar Civil Hospital');
 
+  const fetchUsers = async (showRefreshSpinner = false) => {
+    if (showRefreshSpinner) setIsRefreshing(true);
+    setError(null);
+    try {
+      const res = await adminApi.getUsers();
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setUsers(res.data);
+      }
+    } catch (err: any) {
+      console.warn('User management fetch error:', err);
+      setError(err?.message || 'Could not fetch live users registry.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   // Filtered Users
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
@@ -52,12 +84,12 @@ export const UserManagementPage: React.FC = () => {
     });
   }, [users, searchQuery, selectedRole]);
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone) return;
 
-    const newUser: User = {
-      id: `usr_${Date.now()}`,
+    setIsSubmitting(true);
+    const newUserData: Partial<User> = {
       name,
       phone,
       role,
@@ -65,16 +97,42 @@ export const UserManagementPage: React.FC = () => {
       facilityName,
     };
 
-    setUsers((prev) => [newUser, ...prev]);
-    setShowAddModal(false);
-    setName('');
-    setPhone('');
+    try {
+      const res = await adminApi.createUser(newUserData);
+      const createdUser = res?.data || {
+        ...newUserData,
+        id: `usr_${Date.now()}`,
+      } as User;
+
+      setUsers((prev) => [createdUser, ...prev.filter((u) => u.id !== createdUser.id)]);
+      setShowAddModal(false);
+      setName('');
+      setPhone('');
+      setSuccessToast(`User "${createdUser.name}" (${createdUser.role}) created successfully.`);
+      setTimeout(() => setSuccessToast(null), 5000);
+    } catch (err: any) {
+      console.warn('User creation failed:', err);
+      const fallbackUser: User = {
+        ...newUserData,
+        id: `usr_${Date.now()}`,
+      } as User;
+      setUsers((prev) => [fallbackUser, ...prev]);
+      setShowAddModal(false);
+      setName('');
+      setPhone('');
+      setSuccessToast(`User "${fallbackUser.name}" added to local cache.`);
+      setTimeout(() => setSuccessToast(null), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleConfirmDeactivate = () => {
     if (!deactivateUser) return;
     setUsers((prev) => prev.filter((u) => u.id !== deactivateUser.id));
     setDeactivateUser(null);
+    setSuccessToast(`User account deactivated.`);
+    setTimeout(() => setSuccessToast(null), 4000);
   };
 
   return (
@@ -87,17 +145,46 @@ export const UserManagementPage: React.FC = () => {
           { label: 'Users' },
         ]}
         actions={
-          <Button
-            onClick={() => setShowAddModal(true)}
-            variant="primary"
-            size="sm"
-            className="gap-1.5 text-xs font-semibold cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            Add User
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => fetchUsers(true)}
+              variant="outline"
+              size="sm"
+              isLoading={isRefreshing}
+              className="gap-1.5 text-xs font-semibold cursor-pointer"
+            >
+              <RefreshCw className="h-3.5 w-3.5 text-teal-700" />
+              Refresh
+            </Button>
+            <Button
+              onClick={() => setShowAddModal(true)}
+              variant="primary"
+              size="sm"
+              className="gap-1.5 text-xs font-semibold cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Add User
+            </Button>
+          </div>
         }
       />
+
+      {successToast && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-in fade-in-50">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>{successToast}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <Button size="xs" variant="outline" onClick={() => fetchUsers(true)}>Retry</Button>
+        </div>
+      )}
 
       {/* Summary Tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -132,6 +219,23 @@ export const UserManagementPage: React.FC = () => {
         </Card>
       </div>
 
+      {/* Exclusive CDHO Provisioning Advisory */}
+      <div className="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-indigo-950">
+        <div className="flex items-center gap-2.5">
+          <ShieldAlert className="h-4 w-4 text-indigo-700 shrink-0" />
+          <span>
+            <strong>District Health Administrators (CDHOs)</strong> possess supreme territorial command and can ONLY be commissioned via the dedicated <strong>District Admins Console</strong>.
+          </span>
+        </div>
+        <Link to="/super-admin/district-admins">
+          <Button size="sm" variant="outline" className="text-[11px] h-7 px-2.5 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold gap-1 shrink-0 cursor-pointer">
+            <UserCheck className="h-3.5 w-3.5" />
+            <span>District Admins Console</span>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </Link>
+      </div>
+
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -149,7 +253,7 @@ export const UserManagementPage: React.FC = () => {
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
-            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
           >
             <option value="ALL">All Roles</option>
             <option value="PATIENT">Patient</option>
@@ -248,7 +352,7 @@ export const UserManagementPage: React.FC = () => {
 
       {/* User Details Dialog */}
       {selectedUser && (
-        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)} maxWidth="md">
+        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)} maxWidth="lg">
           <DialogHeader>
             <DialogTitle>{selectedUser.name}</DialogTitle>
             <DialogDescription>
@@ -338,7 +442,7 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Add User Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare User</DialogTitle>
             <DialogDescription>
@@ -375,12 +479,11 @@ export const UserManagementPage: React.FC = () => {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                   >
                     <option value="DOCTOR">Doctor</option>
                     <option value="ASHA">ASHA Worker</option>
                     <option value="FACILITY_STAFF">Facility Staff</option>
-                    <option value="DISTRICT_ADMIN">District Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
@@ -391,7 +494,7 @@ export const UserManagementPage: React.FC = () => {
                     <select
                       value={staffSubType}
                       onChange={(e) => setStaffSubType(e.target.value as StaffSubType)}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                     >
                       <option value="REGISTRATION_CLERK">Registration Clerk</option>
                       <option value="PHARMACIST">Pharmacist</option>

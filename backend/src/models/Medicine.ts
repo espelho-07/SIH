@@ -1,55 +1,48 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IMedicine extends Document {
-  medicineId?: string;
-  facilityId?: string;
-  name: string;
-  medicineName?: string;
+  id: string;
+  facilityId: string;
+  medicineName: string;
   genericName: string;
   category: string;
-  batchNumber?: string;
-  availableQuantity?: number;
-  minimumStockThreshold?: number;
+  batchNumber: string;
+  availableQuantity: number;
+  minimumStockThreshold: number;
   unit: string;
-  expiryDate?: string;
-  status?: 'IN_STOCK' | 'LOW_STOCK' | 'EXPIRING_SOON' | 'OUT_OF_STOCK' | 'QUARANTINED';
+  expiryDate: string;
+  status: 'IN_STOCK' | 'LOW_STOCK' | 'EXPIRING_SOON' | 'OUT_OF_STOCK' | 'QUARANTINED';
   quarantineReason?: string;
-  description?: string;
-  lastUpdated?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  lastUpdated: string;
 }
 
 const MedicineSchema = new Schema<IMedicine>(
   {
-    medicineId: { type: String, index: true, sparse: true },
-    facilityId: { type: String, default: 'fac_civil_01', index: true },
-    name: { type: String, required: true, index: true },
-    medicineName: { type: String },
+    id: { type: String, required: true, unique: true, index: true },
+    facilityId: { type: String, required: true, index: true },
+    medicineName: { type: String, required: true, index: true },
     genericName: { type: String, required: true, index: true },
-    category: { type: String, required: true, index: true },
-    batchNumber: { type: String, default: 'BATCH-2026' },
-    availableQuantity: { type: Number, default: 100 },
+    category: { type: String, required: true },
+    batchNumber: { type: String, required: true, index: true },
+    availableQuantity: { type: Number, required: true, min: 0 },
     minimumStockThreshold: { type: Number, default: 20 },
     unit: { type: String, default: 'Tablets' },
-    expiryDate: { type: String, default: '2026-12-31' },
+    expiryDate: { type: String, required: true },
     status: {
       type: String,
       enum: ['IN_STOCK', 'LOW_STOCK', 'EXPIRING_SOON', 'OUT_OF_STOCK', 'QUARANTINED'],
       default: 'IN_STOCK',
+      index: true,
     },
     quarantineReason: { type: String },
-    description: { type: String },
     lastUpdated: { type: String, default: () => new Date().toISOString() },
-    isActive: { type: Boolean, default: true, index: true },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
-        ret.id = ret.medicineId || (ret._id ? ret._id.toString() : ret.id);
-        ret.medicineName = ret.medicineName || ret.name;
+      transform(_doc, ret) {
+        ret.id = ret.id || ret._id.toString();
+        delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -57,4 +50,4 @@ const MedicineSchema = new Schema<IMedicine>(
   }
 );
 
-export const Medicine = mongoose.model<IMedicine>('Medicine', MedicineSchema);
+export const MedicineModel = mongoose.model<IMedicine>('Medicine', MedicineSchema);

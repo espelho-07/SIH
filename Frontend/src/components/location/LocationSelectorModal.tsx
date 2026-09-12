@@ -83,7 +83,7 @@ export const LocationSelectorModal: React.FC = () => {
   const activeHospitalName = stagedHospital?.name || selectedFacility;
 
   return (
-    <Dialog open={isLocationModalOpen} onOpenChange={(open) => !open && closeLocationModal()} maxWidth="2xl">
+    <Dialog open={isLocationModalOpen} onOpenChange={(open) => !open && closeLocationModal()} maxWidth="3xl">
       <div className="flex flex-col max-h-[85vh] -m-6 overflow-hidden bg-white rounded-2xl">
         {/* Modern Clean Header */}
         <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 bg-white">

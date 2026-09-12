@@ -10,7 +10,7 @@ export const CallingAlertModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-teal-950/80 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 text-center shadow-2xl border-4 border-teal-500 space-y-6">
+      <div className="w-full max-w-xl sm:max-w-2xl rounded-3xl bg-white p-6 sm:p-8 text-center shadow-2xl border-4 border-teal-500 space-y-6">
         {/* Animated Icon */}
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-teal-100 text-teal-700 animate-bounce">
           <BellRing className="h-10 w-10 text-teal-700" />

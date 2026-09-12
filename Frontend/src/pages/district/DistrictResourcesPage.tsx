@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_FACILITIES, INITIAL_BLOOD_INVENTORY } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { Facility } from '@/types/facility';
 import {
   Bed,
   Droplet,
@@ -16,6 +18,7 @@ import {
 
 export const DistrictResourcesPage: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferSuccess, setTransferSuccess] = useState<string | null>(null);
 
@@ -26,16 +29,28 @@ export const DistrictResourcesPage: React.FC = () => {
   const [quantity, setQuantity] = useState('10');
   const [transferReason, setTransferReason] = useState('Emergency backup replenishment');
 
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setFacilities(res.data);
+        setFromFacility(res.data[0].id);
+        if (res.data.length > 1) {
+          setToFacility(res.data[1].id);
+        }
+      }
+    }).catch(console.warn);
+  }, []);
+
   // Summary Metrics
-  const totalBeds = INITIAL_FACILITIES.reduce((acc, f) => acc + f.totalBeds, 0);
-  const availableBeds = INITIAL_FACILITIES.reduce((acc, f) => acc + f.availableBeds, 0);
-  const totalIcu = INITIAL_FACILITIES.reduce((acc, f) => acc + (f.icuBedsAvailable || 0), 0);
+  const totalBeds = facilities.reduce((acc, f) => acc + (f.totalBeds || 0), 0);
+  const availableBeds = facilities.reduce((acc, f) => acc + (f.availableBeds || 0), 0);
+  const totalIcu = facilities.reduce((acc, f) => acc + (f.icuBedsAvailable || 0), 0);
   const totalBloodUnits = INITIAL_BLOOD_INVENTORY.totalUnits;
 
   const handleExecuteTransfer = (e: React.FormEvent) => {
     e.preventDefault();
-    const fromName = INITIAL_FACILITIES.find((f) => f.id === fromFacility)?.name || 'Central Store';
-    const toName = INITIAL_FACILITIES.find((f) => f.id === toFacility)?.name || 'Destination Facility';
+    const fromName = facilities.find((f) => f.id === fromFacility)?.name || 'Central Store';
+    const toName = facilities.find((f) => f.id === toFacility)?.name || 'Destination Facility';
 
     setTransferSuccess(
       `Dispatched ${quantity} units of ${resourceType.replace(/_/g, ' ')} from ${fromName} to ${toName}. Dispatch order generated.`
@@ -205,7 +220,7 @@ export const DistrictResourcesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {INITIAL_FACILITIES.map((fac) => {
+              {facilities.map((fac) => {
                 const occ = Math.round(((fac.totalBeds - fac.availableBeds) / (fac.totalBeds || 1)) * 100);
                 return (
                   <tr key={fac.id} className="hover:bg-slate-50/70 transition-colors">
@@ -238,7 +253,7 @@ export const DistrictResourcesPage: React.FC = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          setFromFacility('fac_civil_01');
+                          setFromFacility(facilities[0]?.id || 'fac_civil_01');
                           setToFacility(fac.id);
                           setShowTransferModal(true);
                         }}
@@ -258,7 +273,7 @@ export const DistrictResourcesPage: React.FC = () => {
       {/* Transfer Resources Modal */}
       {showTransferModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg p-6 bg-white border-slate-200 shadow-xl space-y-4">
+          <Card className="w-full max-w-2xl sm:max-w-3xl p-6 sm:p-8 bg-white border-slate-200 shadow-xl space-y-4 rounded-3xl">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2 text-teal-800 font-bold text-base">
                 <RefreshCw className="h-5 w-5" />
@@ -278,7 +293,7 @@ export const DistrictResourcesPage: React.FC = () => {
                 <select
                   value={resourceType}
                   onChange={(e) => setResourceType(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
                   <option value="OXYGEN_CYLINDERS">D-Type Oxygen Cylinders (46.7L)</option>
                   <option value="BLOOD_UNITS_O_POS">Blood Units (O-Positive PRBC)</option>
@@ -294,9 +309,9 @@ export const DistrictResourcesPage: React.FC = () => {
                   <select
                     value={fromFacility}
                     onChange={(e) => setFromFacility(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   >
-                    {INITIAL_FACILITIES.map((f) => (
+                    {facilities.map((f) => (
                       <option key={f.id} value={f.id}>
                         {f.name}
                       </option>
@@ -309,9 +324,9 @@ export const DistrictResourcesPage: React.FC = () => {
                   <select
                     value={toFacility}
                     onChange={(e) => setToFacility(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   >
-                    {INITIAL_FACILITIES.map((f) => (
+                    {facilities.map((f) => (
                       <option key={f.id} value={f.id}>
                         {f.name}
                       </option>
@@ -328,12 +343,12 @@ export const DistrictResourcesPage: React.FC = () => {
                     min="1"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Authorization Priority</label>
-                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700">
+                  <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700">
                     <option>High Priority (Immediate Dispatch)</option>
                     <option>Routine Rebalancing</option>
                   </select>

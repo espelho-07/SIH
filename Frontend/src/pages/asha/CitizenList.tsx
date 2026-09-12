@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_ASHA_PATIENTS } from '@/mock/mockData';
 import { AshaPatient } from '@/types/asha';
+import { ashaApi } from '@/api/ashaApi';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -23,22 +24,33 @@ import {
 } from 'lucide-react';
 
 export const CitizenList: React.FC = () => {
+  const [patients, setPatients] = useState<AshaPatient[]>(INITIAL_ASHA_PATIENTS);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
 
-  const counts = useMemo(() => {
-    return {
-      all: INITIAL_ASHA_PATIENTS.length,
-      maternal: INITIAL_ASHA_PATIENTS.filter((p) => p.category === 'MATERNAL').length,
-      infant: INITIAL_ASHA_PATIENTS.filter((p) => p.category === 'INFANT').length,
-      ncd: INITIAL_ASHA_PATIENTS.filter((p) => p.category?.startsWith('NCD')).length,
-      highRisk: INITIAL_ASHA_PATIENTS.filter((p) => p.isHighRisk).length,
-      offline: INITIAL_ASHA_PATIENTS.filter((p) => p.registeredOffline || p.syncStatus === 'LOCAL_PENDING').length,
-    };
+  useEffect(() => {
+    ashaApi.getPatients().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setPatients(res.data);
+      }
+    }).catch((err) => {
+      console.warn('Live asha patients fetch failed:', err);
+    });
   }, []);
 
+  const counts = useMemo(() => {
+    return {
+      all: patients.length,
+      maternal: patients.filter((p) => p.category === 'MATERNAL').length,
+      infant: patients.filter((p) => p.category === 'INFANT').length,
+      ncd: patients.filter((p) => p.category?.startsWith('NCD')).length,
+      highRisk: patients.filter((p) => p.isHighRisk).length,
+      offline: patients.filter((p) => p.registeredOffline || p.syncStatus === 'LOCAL_PENDING').length,
+    };
+  }, [patients]);
+
   const filteredPatients = useMemo(() => {
-    return INITIAL_ASHA_PATIENTS.filter((p) => {
+    return patients.filter((p) => {
       if (categoryFilter === 'MATERNAL' && p.category !== 'MATERNAL') return false;
       if (categoryFilter === 'INFANT' && p.category !== 'INFANT') return false;
       if (categoryFilter === 'NCD' && !p.category?.startsWith('NCD')) return false;
@@ -57,7 +69,7 @@ export const CitizenList: React.FC = () => {
       }
       return true;
     });
-  }, [categoryFilter, search]);
+  }, [patients, categoryFilter, search]);
 
   return (
     <div className="space-y-6">

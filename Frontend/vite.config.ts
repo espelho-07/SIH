@@ -23,5 +23,20 @@ export default defineConfig({
     watch: {
       ignored: ['**/*.zip', '**/.git/**', '**/temp_*/**', '**/temp*/**'],
     },
+    proxy: {
+      '/pyapi': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/pyapi/, '/api'),
+      },
+      '/api/v1': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://localhost:5001',
+        ws: true,
+      },
+    },
   },
 })

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import {
@@ -15,189 +16,15 @@ import {
   ShieldCheck,
   FlaskConical,
   Activity,
-  Zap,
-  ArrowRight,
-  Loader2,
-  Lock,
 } from 'lucide-react';
 import { UserRole, StaffSubType } from '@/types/auth';
 import { authApi } from '@/api/authApi';
 
-interface QuickRoleConfig {
-  id: string;
-  name: string;
-  role: UserRole;
-  staffSubType?: StaffSubType;
-  personName: string;
-  department: string;
-  badge: string;
-  route: string;
-  email: string;
-  icon: React.ElementType;
-  bgClass: string;
-  borderClass: string;
-  hoverClass: string;
-  iconBgClass: string;
-  badgeClass: string;
-}
-
-const QUICK_ROLES: QuickRoleConfig[] = [
-  {
-    id: 'patient',
-    name: 'Citizen / Patient',
-    role: 'PATIENT',
-    personName: 'Rameshwar Sharma',
-    department: 'Patient Portal & Tokens',
-    badge: 'Citizen',
-    route: '/patient',
-    email: 'ramesh.sharma@example.in',
-    icon: HeartPulse,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'doctor',
-    name: 'Doctor (OPD Specialist)',
-    role: 'DOCTOR',
-    personName: 'Dr. Arvind Patel',
-    department: 'Cardiology & General Medicine',
-    badge: 'Doctor',
-    route: '/doctor',
-    email: 'dr.arvind.patel@gujarat.gov.in',
-    icon: Stethoscope,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'asha',
-    name: 'ASHA / Frontline Worker',
-    role: 'ASHA',
-    personName: 'Sunita Devi',
-    department: 'Frontline Community Health',
-    badge: 'Frontline',
-    route: '/asha',
-    email: 'sunita.asha@gujarat.health.gov.in',
-    icon: UsersRound,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'clerk',
-    name: 'Registration Counter',
-    role: 'FACILITY_STAFF',
-    staffSubType: 'REGISTRATION_CLERK',
-    personName: 'Rajesh Verma',
-    department: 'Counter 03 & Token Issuer',
-    badge: 'Registration',
-    route: '/registration-clerk',
-    email: 'rajesh.reg@civilhospital.in',
-    icon: ClipboardList,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'pharmacist',
-    name: 'Hospital Pharmacist',
-    role: 'FACILITY_STAFF',
-    staffSubType: 'PHARMACIST',
-    personName: 'Priya Nair',
-    department: 'Central Pharmacy & Stock',
-    badge: 'Pharmacy',
-    route: '/pharmacist',
-    email: 'priya.pharma@civilhospital.in',
-    icon: Pill,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'lab',
-    name: 'Diagnostic Lab Tech',
-    role: 'FACILITY_STAFF',
-    staffSubType: 'LAB_TECHNICIAN',
-    personName: 'Amit Shah',
-    department: 'Pathology & Diagnostic Orders',
-    badge: 'Diagnostics',
-    route: '/lab-technician',
-    email: 'amit.lab@civilhospital.in',
-    icon: FlaskConical,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'ops',
-    name: 'Facility Operations',
-    role: 'FACILITY_STAFF',
-    staffSubType: 'FACILITY_OPERATIONS',
-    personName: 'Vikram Joshi',
-    department: 'Bed Telemetry & Ambulance Fleet',
-    badge: 'Operations',
-    route: '/facility-operations',
-    email: 'vikram.ops@civilhospital.in',
-    icon: Activity,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'district',
-    name: 'District Health Admin',
-    role: 'DISTRICT_ADMIN',
-    personName: 'Dr. Meenakshi Sundaram, IAS',
-    department: 'CDHO Gandhinagar Command',
-    badge: 'District Admin',
-    route: '/district',
-    email: 'cdho.gandhinagar@gujarat.gov.in',
-    icon: Building2,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-  {
-    id: 'superadmin',
-    name: 'Super Admin (System)',
-    role: 'SUPER_ADMIN',
-    personName: 'Alok Mukherjee',
-    department: 'NIC / National Health Tech',
-    badge: 'Super Admin',
-    route: '/super-admin',
-    email: 'alok.systems@nic.in',
-    icon: ShieldCheck,
-    bgClass: 'bg-white',
-    borderClass: 'border-slate-200/90',
-    hoverClass: 'hover:border-sky-400 hover:bg-slate-50/70 hover:shadow-xs',
-    iconBgClass: 'bg-sky-50 text-sky-700 border border-sky-100',
-    badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
-  },
-];
-
 export const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, verifyOtp, quickSwitchRole } = useAuth();
+  const { login, verifyOtp } = useAuth();
 
   const [authMode, setAuthMode] = useState<'PATIENT' | 'STAFF'>('PATIENT');
-  const [activeLoggingRole, setActiveLoggingRole] = useState<string | null>(null);
 
   // =====================================================
   // PATIENT OTP STATES
@@ -213,49 +40,9 @@ export const Login: React.FC = () => {
   const [staffRole, setStaffRole] = useState<UserRole>('DOCTOR');
   const [staffSubType, setStaffSubType] = useState<StaffSubType>('PHARMACIST');
   const [identifier, setIdentifier] = useState('dr.arvind.patel@gujarat.gov.in');
-  const [password, setPassword] = useState('password123');
+  const [password, setPassword] = useState('••••••••••••');
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
-
-  // =====================================================
-  // 1-CLICK INSTANT AUTHENTICATION HANDLER
-  // =====================================================
-  const handleDirectRoleLogin = async (target: QuickRoleConfig) => {
-    setActiveLoggingRole(target.id);
-    setIsLoading(true);
-    setLoginError('');
-
-    try {
-      if (target.role === 'PATIENT') {
-        try {
-          await verifyOtp({ phone: '9876543210', otp: '123456' });
-        } catch (err) {
-          console.warn('Backend OTP login fallback to session:', err);
-          quickSwitchRole('PATIENT');
-        }
-      } else {
-        try {
-          await login({
-            identifier: target.email,
-            password: 'password123',
-            role: target.role,
-            staffSubType: target.staffSubType,
-          });
-        } catch (err) {
-          console.warn('Backend staff login fallback to session:', err);
-          quickSwitchRole(target.role, target.staffSubType);
-        }
-      }
-
-      navigate(target.route);
-    } catch (err) {
-      console.error('Direct login error:', err);
-      setLoginError('Could not authenticate role. Please check backend connection.');
-    } finally {
-      setIsLoading(false);
-      setActiveLoggingRole(null);
-    }
-  };
 
   // =====================================================
   // PATIENT - SEND OTP
@@ -274,6 +61,7 @@ export const Login: React.FC = () => {
     try {
       await authApi.sendPatientOtp({ phone });
       setOtpSent(true);
+      // Demo OTP
       setOtp('123456');
     } catch {
       setOtpError('Failed to send OTP. Please try again.');
@@ -323,6 +111,9 @@ export const Login: React.FC = () => {
         staffSubType: staffRole === 'FACILITY_STAFF' ? staffSubType : undefined,
       });
 
+      // -----------------------------------------------
+      // ROLE BASED NAVIGATION
+      // -----------------------------------------------
       if (staffRole === 'ASHA') {
         navigate('/asha');
       } else if (staffRole === 'DOCTOR') {
@@ -348,7 +139,7 @@ export const Login: React.FC = () => {
   };
 
   // =====================================================
-  // POPULATE DEMO CREDENTIALS IN FORM
+  // STAFF DEMO CREDENTIALS
   // =====================================================
   const setDemoCredentials = (role: UserRole, subType?: StaffSubType) => {
     setAuthMode('STAFF');
@@ -378,141 +169,50 @@ export const Login: React.FC = () => {
       setIdentifier('alok.systems@nic.in');
     }
 
-    setPassword('password123');
+    setPassword('••••••••••••');
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-10 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* =================================================
           HEADER
       ================================================= */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-2xl text-center px-4">
-        <Link to="/" className="inline-flex items-center gap-2.5 mb-3 group">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-700 text-white shadow-md group-hover:bg-sky-800 transition-all group-hover:scale-105">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        <Link to="/" className="inline-flex items-center gap-2.5 mb-4 group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-700 text-white shadow-md group-hover:bg-teal-800 transition-colors">
             <HeartPulse className="h-7 w-7" />
           </div>
         </Link>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
           SANJEEVANI-CONNECT
-        </h1>
-        <p className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wider">
-          Integrated Public Healthcare Access & Telemetry Platform
+        </h2>
+        <p className="text-xs font-semibold text-teal-800 mt-1 uppercase tracking-wider">
+          Integrated Public Healthcare Access Platform
         </p>
       </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-3xl px-4 space-y-6">
-        {/* =================================================
-            1-CLICK INSTANT ROLE LOGIN BAR (DIRECT ACCESS)
-        ================================================= */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4 pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-700 text-white shadow-xs">
-                <Zap className="h-4 w-4 fill-current" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <span>1-Click Role Direct Login</span>
-                  <span className="rounded-full bg-sky-50 text-sky-800 border border-sky-200/80 px-2 py-0.5 text-[10px] font-semibold">
-                    Instant Access
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  Select any ecosystem role below to authenticate and enter the workspace
-                </p>
-              </div>
-            </div>
-            <div className="text-xs text-slate-400 flex items-center gap-1.5 self-start sm:self-auto shrink-0 font-medium">
-              <Lock className="h-3.5 w-3.5 text-slate-500" />
-              <span>Auth Guard Active</span>
-            </div>
-          </div>
-
-          {/* 9 ROLES GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
-            {QUICK_ROLES.map((roleItem) => {
-              const IconComp = roleItem.icon;
-              const isLoggingThis = activeLoggingRole === roleItem.id;
-
-              return (
-                <button
-                  key={roleItem.id}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleDirectRoleLogin(roleItem)}
-                  className={`group relative flex items-start gap-2.5 sm:gap-3 rounded-xl border p-2.5 sm:p-3 text-left transition-all duration-150 ${roleItem.bgClass} ${roleItem.borderClass} ${roleItem.hoverClass} disabled:opacity-50 disabled:pointer-events-none cursor-pointer`}
-                >
-                  <div
-                    className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl shadow-sm transition-transform group-hover:scale-105 ${roleItem.iconBgClass}`}
-                  >
-                    {isLoggingThis ? (
-                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                    ) : (
-                      <IconComp className="h-4 w-4 sm:h-5 sm:w-5" />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1 pr-3">
-                    <div className="flex items-center justify-between gap-1 mb-0.5">
-                      <span className="text-xs font-black text-slate-900 group-hover:text-teal-900 truncate">
-                        {roleItem.name}
-                      </span>
-                      <span
-                        className={`rounded-md border px-1.5 py-0.2 text-[9px] font-bold shrink-0 ${roleItem.badgeClass}`}
-                      >
-                        {roleItem.badge}
-                      </span>
-                    </div>
-
-                    <p className="text-[11px] font-semibold text-slate-700 truncate">
-                      {roleItem.personName}
-                    </p>
-                    <p className="text-[10px] text-slate-500 truncate">
-                      {roleItem.department}
-                    </p>
-                  </div>
-
-                  <div className="absolute right-2.5 bottom-2 text-slate-400 group-hover:text-teal-700 group-hover:translate-x-0.5 transition-all">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {loginError && (
-            <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-2.5 text-xs text-red-700 text-center font-medium">
-              {loginError}
-            </div>
-          )}
-        </div>
-
-        {/* =================================================
-            OPTIONAL MANUAL CREDENTIALS CARD
-        ================================================= */}
-        <Card className="shadow-md border-slate-200">
-          <CardHeader className="pb-3 border-b border-slate-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Or Sign In Manually
-              </span>
-            </div>
+      {/* =================================================
+          LOGIN CARD
+      ================================================= */}
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg px-4">
+        <Card className="shadow-xl border-slate-200">
+          <CardHeader className="pb-4">
             <Tabs
               value={authMode}
               onValueChange={(value) => setAuthMode(value as 'PATIENT' | 'STAFF')}
             >
               <TabsList className="w-full grid grid-cols-2">
                 <TabsTrigger value="PATIENT" className="w-full justify-center">
-                  Citizen / Patient (OTP)
+                  Citizen / Patient
                 </TabsTrigger>
                 <TabsTrigger value="STAFF" className="w-full justify-center">
-                  Authorized Personnel (Password)
+                  Authorized Staff
                 </TabsTrigger>
               </TabsList>
             </Tabs>
           </CardHeader>
 
-          <CardContent className="pt-4">
+          <CardContent>
             {/* =================================================
                 CITIZEN / PATIENT LOGIN
             ================================================= */}
@@ -525,7 +225,7 @@ export const Login: React.FC = () => {
                         Citizen Mobile Login
                       </p>
                       <p className="text-xs text-slate-500">
-                        Enter your registered mobile number to receive verification OTP.
+                        Enter your 10-digit mobile number to access your queue tokens and health records.
                       </p>
                     </div>
 
@@ -551,7 +251,7 @@ export const Login: React.FC = () => {
                   </form>
                 ) : (
                   <form onSubmit={handleVerifyOtp} className="space-y-4">
-                    <div className="rounded-xl bg-teal-50 border border-teal-200 p-3.5 text-xs text-teal-900 flex items-center justify-between">
+                    <div className="rounded-xl bg-[#E8F2FA] border border-[#C6E0F2] p-3.5 text-xs text-[#1D6394] flex items-center justify-between">
                       <span>OTP dispatched to +91 {phone}</span>
                       <button
                         type="button"
@@ -560,7 +260,7 @@ export const Login: React.FC = () => {
                           setOtp('');
                           setOtpError('');
                         }}
-                        className="text-teal-700 font-bold underline hover:text-teal-900"
+                        className="text-[#2B6CB0] font-bold underline hover:text-[#1B365D]"
                       >
                         Change
                       </button>
@@ -607,49 +307,45 @@ export const Login: React.FC = () => {
 
                 {/* STAFF ROLE SELECT */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                    Select Your Operational Role
-                  </label>
-                  <select
+                  <Select
+                    label="Select Your Operational Role"
                     value={staffRole}
-                    onChange={(e) => {
-                      const role = e.target.value as UserRole;
+                    onValueChange={(val) => {
+                      const role = val as UserRole;
                       setStaffRole(role);
                       setLoginError('');
                       if (role === 'FACILITY_STAFF') {
                         setStaffSubType('PHARMACIST');
                       }
                     }}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
-                  >
-                    <option value="ASHA">ASHA / ANM / CHO (Frontline)</option>
-                    <option value="DOCTOR">Doctor / Medical Specialist</option>
-                    <option value="FACILITY_STAFF">Hospital Facility Staff</option>
-                    <option value="DISTRICT_ADMIN">District Health Admin</option>
-                    <option value="SUPER_ADMIN">Super Admin (Technical Center)</option>
-                  </select>
+                    options={[
+                      { value: 'ASHA', label: 'ASHA / ANM / CHO (Frontline)', sublabel: 'Community field surveys and maternal care' },
+                      { value: 'DOCTOR', label: 'Doctor / Medical Specialist', sublabel: 'OPD consultations, triage, and e-prescriptions' },
+                      { value: 'FACILITY_STAFF', label: 'Hospital Facility Staff', sublabel: 'Registration, pharmacy dispensary, and lab' },
+                      { value: 'DISTRICT_ADMIN', label: 'District Health Admin', sublabel: 'District monitoring, shortages, and leaves' },
+                      { value: 'SUPER_ADMIN', label: 'Super Admin (Technical Center)', sublabel: 'Platform config and system audit logs' },
+                    ]}
+                  />
                 </div>
 
                 {/* FACILITY STAFF SUBTYPE */}
                 {staffRole === 'FACILITY_STAFF' && (
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-                      Staff Subtype & Permissions
-                    </label>
-                    <select
+                    <Select
+                      label="Staff Subtype & Permissions"
                       value={staffSubType}
-                      onChange={(e) => {
-                        const subtype = e.target.value as StaffSubType;
+                      onValueChange={(val) => {
+                        const subtype = val as StaffSubType;
                         setStaffSubType(subtype);
                         setDemoCredentials('FACILITY_STAFF', subtype);
                       }}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
-                    >
-                      <option value="REGISTRATION_CLERK">Registration Clerk (Counter & Tokens)</option>
-                      <option value="PHARMACIST">Pharmacist (Dispensing & Stock)</option>
-                      <option value="LAB_TECHNICIAN">Lab Technician (Diagnostics)</option>
-                      <option value="FACILITY_OPERATIONS">Facility Operations (Beds & Fleet)</option>
-                    </select>
+                      options={[
+                        { value: 'REGISTRATION_CLERK', label: 'Registration Clerk (Counter & Tokens)', sublabel: 'Patient registration & OPD token issuance' },
+                        { value: 'PHARMACIST', label: 'Pharmacist (Dispensing & Stock)', sublabel: 'Prescription fulfillment & dispensary stock' },
+                        { value: 'LAB_TECHNICIAN', label: 'Lab Technician (Diagnostics)', sublabel: 'Lab test queue, sample processing & reports' },
+                        { value: 'FACILITY_OPERATIONS', label: 'Facility Operations (Beds & Fleet)', sublabel: 'Bed capacity, ambulance dispatch & staff leaves' },
+                      ]}
+                    />
                   </div>
                 )}
 
@@ -686,6 +382,145 @@ export const Login: React.FC = () => {
                 >
                   Authenticate & Open Dashboard
                 </Button>
+
+                {/* QUICK DEMO ACCESS */}
+                <div className="mt-6 pt-5 border-t border-[#E2EDF3]">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Quick Demo Access
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Select a role to auto-fill credentials
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-[#E1EFFA] border border-[#C6E0F2] px-2.5 py-1 text-[10px] font-bold text-[#1D6394]">
+                      DEMO
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {/* DOCTOR */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('DOCTOR')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-[#2B6CB0] hover:bg-[#E1EFFA] hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E1EFFA] text-[#1D6394] group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
+                        <Stethoscope className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">Doctor</p>
+                        <p className="text-[10px] text-slate-400 truncate">Medical</p>
+                      </div>
+                    </button>
+
+                    {/* ASHA */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('ASHA')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-[#2B6CB0] hover:bg-[#E8F2FA] hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E1EFFA] text-[#2B6CB0] group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
+                        <UsersRound className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">ASHA</p>
+                        <p className="text-[10px] text-slate-400 truncate">Frontline</p>
+                      </div>
+                    </button>
+
+                    {/* PHARMACIST */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('FACILITY_STAFF', 'PHARMACIST')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-200 transition-colors">
+                        <Pill className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-amber-700 truncate">Pharmacist</p>
+                        <p className="text-[10px] text-slate-400 truncate">Pharmacy</p>
+                      </div>
+                    </button>
+
+                    {/* REGISTRATION */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('FACILITY_STAFF', 'REGISTRATION_CLERK')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 group-hover:bg-violet-200 transition-colors">
+                        <ClipboardList className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-violet-700 truncate">Register</p>
+                        <p className="text-[10px] text-slate-400 truncate">Counter</p>
+                      </div>
+                    </button>
+
+                    {/* LAB TECHNICIAN */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('FACILITY_STAFF', 'LAB_TECHNICIAN')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-purple-300 hover:bg-purple-50 hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-200 transition-colors">
+                        <FlaskConical className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-purple-700 truncate">Lab Tech</p>
+                        <p className="text-[10px] text-slate-400 truncate">Diagnostics</p>
+                      </div>
+                    </button>
+
+                    {/* FACILITY OPERATIONS */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('FACILITY_STAFF', 'FACILITY_OPERATIONS')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-[#2B6CB0] hover:bg-[#E8F2FA] hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E1EFFA] text-[#1D6394] group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
+                        <Activity className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">Facility Ops</p>
+                        <p className="text-[10px] text-slate-400 truncate">Operations</p>
+                      </div>
+                    </button>
+
+                    {/* DISTRICT ADMIN */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('DISTRICT_ADMIN')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200 transition-colors">
+                        <Building2 className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-700 truncate">District</p>
+                        <p className="text-[10px] text-slate-400 truncate">Admin</p>
+                      </div>
+                    </button>
+
+                    {/* SUPER ADMIN */}
+                    <button
+                      type="button"
+                      onClick={() => setDemoCredentials('SUPER_ADMIN')}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:shadow-sm"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-600 group-hover:bg-rose-200 transition-colors">
+                        <ShieldCheck className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 group-hover:text-rose-700 truncate">Super Admin</p>
+                        <p className="text-[10px] text-slate-400 truncate">Technical</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
               </form>
             )}
           </CardContent>

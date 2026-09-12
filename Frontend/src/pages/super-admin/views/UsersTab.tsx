@@ -13,7 +13,11 @@ import {
   Phone,
   Building2,
   CheckCircle2,
+  ShieldAlert,
+  UserCheck,
+  ArrowRight,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface UsersTabProps {
   users: User[];
@@ -65,6 +69,23 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
 
   return (
     <div className="space-y-6">
+      {/* Exclusive CDHO Provisioning Advisory */}
+      <div className="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-indigo-950">
+        <div className="flex items-center gap-2.5">
+          <ShieldAlert className="h-4 w-4 text-indigo-700 shrink-0" />
+          <span>
+            <strong>District Health Administrators (CDHOs)</strong> possess supreme territorial command and can ONLY be commissioned via the dedicated <strong>District Admins Console</strong>.
+          </span>
+        </div>
+        <Link to="/super-admin/district-admins">
+          <Button size="sm" variant="outline" className="text-[11px] h-7 px-2.5 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold gap-1 shrink-0 cursor-pointer">
+            <UserCheck className="h-3.5 w-3.5" />
+            <span>District Admins Console</span>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </Link>
+      </div>
+
       {/* Top Search, Role Filter & Primary Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -82,7 +103,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
-            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
           >
             <option value="ALL">All Roles</option>
             <option value="PATIENT">Patient</option>
@@ -167,7 +188,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
 
       {/* Add User Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare User</DialogTitle>
             <DialogDescription>
@@ -204,12 +225,11 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                   >
                     <option value="DOCTOR">Doctor</option>
                     <option value="ASHA">ASHA Worker</option>
                     <option value="FACILITY_STAFF">Facility Staff</option>
-                    <option value="DISTRICT_ADMIN">District Admin</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
@@ -220,7 +240,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
                     <select
                       value={staffSubType}
                       onChange={(e) => setStaffSubType(e.target.value as StaffSubType)}
-                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                      className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                     >
                       <option value="REGISTRATION_CLERK">Registration Clerk</option>
                       <option value="PHARMACIST">Pharmacist</option>

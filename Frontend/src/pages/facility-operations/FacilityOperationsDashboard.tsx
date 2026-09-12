@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  BedDouble,
   Truck,
   ArrowRight,
   Megaphone,
@@ -25,6 +24,7 @@ import {
   SlidersHorizontal,
   ChevronRight,
   ArrowUpRight,
+  Calendar,
 } from 'lucide-react';
 
 export const FacilityOperationsDashboard: React.FC = () => {
@@ -139,65 +139,80 @@ export const FacilityOperationsDashboard: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Toast Notice */}
       {actionNotice && (
-        <div className="rounded-xl bg-sky-50 border border-sky-200 p-3.5 text-xs font-semibold text-sky-900 flex items-center justify-between animate-in fade-in-50">
+        <div className="rounded-xl bg-teal-50 border border-teal-200 p-3.5 text-xs font-semibold text-teal-900 flex items-center justify-between animate-in fade-in-50">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-sky-700 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-teal-700 shrink-0" />
             <span>{actionNotice}</span>
           </div>
           <button
             onClick={() => setActionNotice(null)}
-            className="text-sky-700 hover:text-sky-950 font-bold cursor-pointer"
+            className="text-teal-700 hover:text-teal-950 font-bold cursor-pointer"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Top Global Facility Operational Header - Clean Healthcare Surface */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
+      {/* Top Global Facility Operational Header - Clean Green Theme */}
+      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="bg-sky-50 text-sky-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-sky-200/80">
+            <span className="bg-teal-100 text-teal-900 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-300">
               Operations Control Center
             </span>
-            <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${statusMeta.bg}`}>
+            <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${statusMeta.bg}`}>
               <span className={`h-2 w-2 rounded-full ${statusMeta.dot}`} />
               <span>{statusMeta.label}</span>
             </div>
-            <span className="text-xs text-slate-500 font-medium">
+            <span className="text-xs text-slate-500">
               Updated {new Date(summary?.lastStatusUpdate || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {summary?.updatedBy || 'Operations Desk'}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
             {summary?.facilityName || 'Gandhinagar Civil Hospital'}
           </h1>
-          <p className="text-xs text-slate-500 font-medium max-w-2xl">
+          <p className="text-xs text-slate-600 max-w-2xl">
             Live operations matrix: Monitoring capacity freshness, clinical departmental bottlenecks, queue velocity, and emergency referrals.
           </p>
         </div>
 
         {/* Global Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <Link to="/facility-operations/staff-leave">
+            <Button
+              variant="outline"
+              className="border-teal-300 text-teal-800 hover:bg-teal-100 font-bold text-xs gap-1.5 min-h-[40px] px-3.5 rounded-xl shadow-xs cursor-pointer relative"
+            >
+              <Calendar className="h-4 w-4 text-teal-700" />
+              <span>Staff Leave & Coverage</span>
+              {(summary?.telemetry.pendingStaffLeavesCount || 0) > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-amber-500 text-white animate-pulse">
+                  {summary?.telemetry.pendingStaffLeavesCount}
+                </span>
+              )}
+            </Button>
+          </Link>
+
           <Button
             onClick={() => setStatusModalOpen(true)}
-            className="bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
+            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer"
           >
-            <SlidersHorizontal className="h-4 w-4 text-sky-200" />
+            <SlidersHorizontal className="h-4 w-4 text-teal-200" />
             Update Facility Status
           </Button>
 
           <Button
             onClick={() => setBroadcastModalOpen(true)}
-            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-xs gap-2 min-h-[42px] px-4 cursor-pointer shadow-xs"
           >
-            <Megaphone className="h-4 w-4 text-sky-700" />
+            <Megaphone className="h-4 w-4 text-teal-400" />
             Broadcast Notice
           </Button>
 
           <Button
             onClick={handleRefresh}
             variant="ghost"
-            className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl p-2 h-10 w-10 min-h-[40px] cursor-pointer"
+            className="text-slate-400 hover:text-white hover:bg-slate-800 p-2 h-10 w-10 min-h-[40px] cursor-pointer"
             title="Refresh live telemetry"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -245,13 +260,13 @@ export const FacilityOperationsDashboard: React.FC = () => {
       )}
 
       {/* Real-time Telemetry Pulse Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Waiting Queue */}
         <Link to="/facility-operations/queues" className="group">
-          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Queue Load</span>
-              <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center group-hover:bg-sky-700 group-hover:text-white transition-colors">
+              <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors">
                 <Clock className="h-4 w-4" />
               </div>
             </div>
@@ -260,48 +275,21 @@ export const FacilityOperationsDashboard: React.FC = () => {
                 {summary?.telemetry.totalWaitingQueue || 0}
               </p>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-xs font-semibold text-sky-700">
+                <span className="text-xs font-semibold text-teal-700">
                   ~{summary?.telemetry.avgQueueWaitMinutes || 0}m avg wait
                 </span>
               </div>
             </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
               <span>View all queues</span>
               <ChevronRight className="h-3 w-3" />
             </div>
           </Card>
         </Link>
 
-        {/* Bed Capacity */}
-        <Link to="/facility-operations/resources" className="group">
-          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bed Capacity</span>
-              <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-700 group-hover:text-white transition-colors">
-                <BedDouble className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="mt-2">
-              <p className="text-2xl sm:text-3xl font-black text-slate-900">
-                {summary?.telemetry.bedsAvailable || 0} <span className="text-sm font-semibold text-slate-400">/ {summary?.telemetry.bedsTotal || 0}</span>
-              </p>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-xs font-semibold text-emerald-700">
-                  {summary?.telemetry.icuAvailable || 0} ICU Free
-                </span>
-                <span className="text-[11px] text-slate-400">• {(Math.round(((summary?.telemetry.bedsOccupied || 0) / (summary?.telemetry.bedsTotal || 1)) * 100))}% full</span>
-              </div>
-            </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
-              <span>Inspect wards</span>
-              <ChevronRight className="h-3 w-3" />
-            </div>
-          </Card>
-        </Link>
-
         {/* Ambulances Ready */}
-        <Link to="/facility-operations/resources" className="group">
-          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+        <Link to="/facility-operations/referrals" className="group">
+          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ambulances</span>
               <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center group-hover:bg-blue-700 group-hover:text-white transition-colors">
@@ -316,7 +304,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                 {(summary?.telemetry.ambulancesTotal || 0) - (summary?.telemetry.ambulancesReady || 0)} On Active Run
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
               <span>Fleet telemetry</span>
               <ChevronRight className="h-3 w-3" />
             </div>
@@ -325,7 +313,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
 
         {/* Pending Referrals */}
         <Link to="/facility-operations/referrals" className="group">
-          <Card className="p-4 border-slate-200 hover:border-sky-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Inbound Transfers</span>
               <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center group-hover:bg-indigo-700 group-hover:text-white transition-colors">
@@ -340,34 +328,44 @@ export const FacilityOperationsDashboard: React.FC = () => {
                 Awaiting Bed Allocation
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 group-hover:text-sky-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
               <span>Coordinate transfers</span>
               <ChevronRight className="h-3 w-3" />
             </div>
           </Card>
         </Link>
 
-        {/* Staff Active */}
-        <Card className="p-4 border-slate-200 h-full flex flex-col justify-between col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Staff On Duty</span>
-            <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center">
-              <UserCheck className="h-4 w-4" />
+        {/* Staff Duty & Leave Roster */}
+        <Link to="/facility-operations/staff-leave" className="group col-span-2 lg:col-span-1">
+          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Staff On Duty</span>
+              <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors">
+                <UserCheck className="h-4 w-4" />
+              </div>
             </div>
-          </div>
-          <div className="mt-2">
-            <p className="text-2xl sm:text-3xl font-black text-slate-900">
-              {summary?.telemetry.staffOnDutyCount || 0}
-            </p>
-            <span className="text-xs font-semibold text-emerald-700 mt-1 block flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Morning Shift Active
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium pt-2 border-t border-slate-100">
-            Doctors, Nurses & Techs
-          </div>
-        </Card>
+            <div className="mt-2">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">
+                {summary?.telemetry.staffOnDutyCount || 0}
+              </p>
+              {(summary?.telemetry.pendingStaffLeavesCount || 0) > 0 ? (
+                <span className="text-xs font-bold text-amber-700 mt-1 flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                  {summary?.telemetry.pendingStaffLeavesCount} Leave Pending
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-emerald-700 mt-1 flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Roster Optimal
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+              <span>Manage staff & leave</span>
+              <ChevronRight className="h-3 w-3" />
+            </div>
+          </Card>
+        </Link>
       </div>
 
       {/* Main Split: Department Matrix & Operations Feed */}
@@ -381,7 +379,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
             </div>
             <Link
               to="/facility-operations/services"
-              className="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1"
+              className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1"
             >
               Full Service Matrix <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
@@ -433,7 +431,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                       <div>
                         <span className="text-slate-400 text-[10px] uppercase font-bold block">Current Wait</span>
                         <span className="font-bold text-slate-800 flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-sky-600" />
+                          <Clock className="h-3 w-3 text-teal-600" />
                           {service.currentWaitMinutes} mins
                         </span>
                       </div>
@@ -450,7 +448,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                   <div className="pt-3 mt-2 border-t border-slate-100 flex items-center justify-end">
                     <button
                       onClick={() => setSelectedService(service)}
-                      className="text-xs font-bold text-sky-700 hover:text-sky-900 hover:underline cursor-pointer"
+                      className="text-xs font-bold text-teal-700 hover:text-teal-900 hover:underline cursor-pointer"
                     >
                       Change Status →
                     </button>
@@ -470,7 +468,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
             </div>
             <Link
               to="/facility-operations/alerts"
-              className="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1"
+              className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1"
             >
               Alerts Center <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
@@ -516,7 +514,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
                   <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-100">
                     <Link
                       to={issue.actionPath}
-                      className="text-[11px] font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1"
+                      className="text-[11px] font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1"
                     >
                       {issue.actionLabel} →
                     </Link>
@@ -535,7 +533,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
           {/* Active Announcements */}
           <div className="pt-2">
             <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Megaphone className="h-3.5 w-3.5 text-sky-700" /> Active Bulletins
+              <Megaphone className="h-3.5 w-3.5 text-teal-700" /> Active Bulletins
             </h3>
             <div className="space-y-2">
               {summary?.announcements.slice(0, 2).map((ann) => (

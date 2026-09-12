@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useLocationContext } from '@/contexts/LocationContext';
-import { INITIAL_EQUIPMENT, INITIAL_FACILITIES } from '@/mock/mockData';
+import { INITIAL_EQUIPMENT } from '@/mock/mockData';
+import { resourceApi } from '@/api/resourceApi';
+import { EquipmentItem } from '@/types/resources';
 import {
   FlaskConical,
   Activity,
@@ -87,6 +89,7 @@ const MOCK_LAB_CATEGORIES: LabTestCategory[] = [
 
 export const DistrictDiagnosticsPage: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
+  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>(INITIAL_EQUIPMENT);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [showIssueModal, setShowIssueModal] = useState(false);
@@ -96,7 +99,16 @@ export const DistrictDiagnosticsPage: React.FC = () => {
   const [selectedMachine, setSelectedMachine] = useState(INITIAL_EQUIPMENT[0]?.name || '');
   const [faultDescription, setFaultDescription] = useState('Calibration deviation detected');
 
-  const filteredEquipment = INITIAL_EQUIPMENT.filter((eq) => {
+  useEffect(() => {
+    resourceApi.getEquipment().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setEquipmentList(res.data);
+        setSelectedMachine(res.data[0].name);
+      }
+    }).catch(console.warn);
+  }, []);
+
+  const filteredEquipment = equipmentList.filter((eq) => {
     const matchesSearch =
       eq.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       eq.facilityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,9 +119,9 @@ export const DistrictDiagnosticsPage: React.FC = () => {
   });
 
   const totalTests = MOCK_LAB_CATEGORIES.reduce((acc, c) => acc + c.testsToday, 0);
-  const totalEquipment = INITIAL_EQUIPMENT.length;
-  const operationalCount = INITIAL_EQUIPMENT.filter((e) => e.status === 'OPERATIONAL').length;
-  const maintenanceCount = INITIAL_EQUIPMENT.filter((e) => e.status !== 'OPERATIONAL').length;
+  const totalEquipment = equipmentList.length;
+  const operationalCount = equipmentList.filter((e) => e.status === 'OPERATIONAL').length;
+  const maintenanceCount = equipmentList.filter((e) => e.status !== 'OPERATIONAL').length;
 
   const handleReportIssue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -318,7 +330,7 @@ export const DistrictDiagnosticsPage: React.FC = () => {
       {/* Equipment Issue Modal */}
       {showIssueModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6 bg-white border-slate-200 shadow-xl space-y-4">
+          <Card className="w-full max-w-2xl sm:max-w-3xl p-6 sm:p-8 bg-white border-slate-200 shadow-xl space-y-4 rounded-3xl">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2 text-teal-800 font-bold text-base">
                 <Wrench className="h-5 w-5" />
@@ -338,9 +350,9 @@ export const DistrictDiagnosticsPage: React.FC = () => {
                 <select
                   value={selectedMachine}
                   onChange={(e) => setSelectedMachine(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
-                  {INITIAL_EQUIPMENT.map((e) => (
+                  {equipmentList.map((e) => (
                     <option key={e.id} value={e.name}>
                       {e.name} ({e.facilityName})
                     </option>
@@ -350,7 +362,7 @@ export const DistrictDiagnosticsPage: React.FC = () => {
 
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Maintenance Type</label>
-                <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700">
+                <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700">
                   <option>Preventive Maintenance (PM)</option>
                   <option>Corrective Repair / Breakdown</option>
                   <option>NABL / AERB Calibration</option>

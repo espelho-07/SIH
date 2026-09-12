@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -6,19 +6,27 @@ import { Drawer } from '@/components/ui/BottomSheet';
 import { MapView } from '@/components/map/MapView';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
 import { Facility } from '@/types/facility';
 import { Building2, Navigation, Phone, ShieldCheck, Bed, Stethoscope, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const DistrictMapView: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
+  const [facilityList, setFacilityList] = useState<Facility[]>(INITIAL_FACILITIES);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [filterType, setFilterType] = useState<string>('ALL');
 
-  const facilities = INITIAL_FACILITIES.filter((f) => {
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setFacilityList(res.data);
+    }).catch(console.warn);
+  }, []);
+
+  const facilities = facilityList.filter((f) => {
     if (filterType === 'ALL') return true;
     if (filterType === 'EMERGENCY') return f.emergencyAvailable;
-    if (filterType === 'CRITICAL_BEDS') return f.availableBeds <= 10;
+    if (filterType === 'CRITICAL_BEDS') return (f.availableBeds || 0) <= 10;
     return f.type === filterType;
   });
 

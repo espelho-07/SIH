@@ -41,9 +41,10 @@ import { FrontlineFacilitiesPage } from '@/pages/asha/FrontlineFacilitiesPage';
 
 // Doctor Pages
 import { DoctorDashboard } from '@/pages/doctor/DoctorDashboard';
-import { DoctorQueue } from '@/pages/doctor/DoctorQueue';
 import { PatientClinicalWorkspace } from '@/pages/doctor/PatientClinicalWorkspace';
+import { PatientHistoryPage } from '@/pages/doctor/PatientHistoryPage';
 import { ReferralCreationWizard } from '@/pages/doctor/ReferralCreationWizard';
+import { DoctorReferralHub } from '@/pages/doctor/DoctorReferralHub';
 import TeleconsultationRoomDoctor from '@/pages/doctor/TeleconsultationRoom';
 
 // Facility Staff Pages
@@ -52,7 +53,6 @@ import { StaffDashboard } from '@/pages/staff/StaffDashboard';
 // Registration Clerk Pages
 import { RegistrationClerkDashboard } from '@/pages/registration-clerk/RegistrationClerkDashboard';
 import { PatientRegistrationWizard } from '@/pages/registration-clerk/PatientRegistrationWizard';
-import { PatientSearchPage } from '@/pages/registration-clerk/PatientSearchPage';
 import { PatientSummaryPage } from '@/pages/registration-clerk/PatientSummaryPage';
 import { AppointmentDeskPage } from '@/pages/registration-clerk/AppointmentDeskPage';
 import { QueueCounterPage } from '@/pages/registration-clerk/QueueCounterPage';
@@ -76,9 +76,9 @@ import { LabHistoryPage } from '@/pages/lab-technician/LabHistoryPage';
 // Facility Operations Pages
 import { FacilityOperationsDashboard } from '@/pages/facility-operations/FacilityOperationsDashboard';
 import { ServicesOperationsPage } from '@/pages/facility-operations/ServicesOperationsPage';
+import { StaffLeaveOperationsPage } from '@/pages/facility-operations/StaffLeaveOperationsPage';
 import { QueuesOperationsPage } from '@/pages/facility-operations/QueuesOperationsPage';
 import { ReferralOperationsPage } from '@/pages/facility-operations/ReferralOperationsPage';
-import { ResourceOperationsPage } from '@/pages/facility-operations/ResourceOperationsPage';
 import { AlertsCenterPage } from '@/pages/facility-operations/AlertsCenterPage';
 
 // District Admin Pages
@@ -86,7 +86,6 @@ import { DistrictCommandDashboard } from '@/pages/district/DistrictCommandDashbo
 import { DistrictFacilitiesPage } from '@/pages/district/DistrictFacilitiesPage';
 import { DistrictFacilityDetailPage } from '@/pages/district/DistrictFacilityDetailPage';
 import { DistrictDoctorsPage } from '@/pages/district/DistrictDoctorsPage';
-import { DistrictOperationsPage } from '@/pages/district/DistrictOperationsPage';
 import { DistrictResourcesPage } from '@/pages/district/DistrictResourcesPage';
 import { DistrictMedicinesPage } from '@/pages/district/DistrictMedicinesPage';
 import { DistrictBloodPage } from '@/pages/district/DistrictBloodPage';
@@ -98,17 +97,20 @@ import { DiseaseTrends } from '@/pages/district/DiseaseTrends';
 import { AiDemandIntelligence } from '@/pages/district/AiDemandIntelligence';
 import { DistrictAlertsPage } from '@/pages/district/DistrictAlertsPage';
 import { DistrictReportsPage } from '@/pages/district/DistrictReportsPage';
+import { DistrictResourceIntelligencePage } from '@/pages/district/DistrictResourceIntelligencePage';
 
 // Super Admin Pages
 import { SuperAdminDashboard } from '@/pages/super-admin/SuperAdminDashboard';
 import { TechnicalCenterPage } from '@/pages/super-admin/TechnicalCenterPage';
 import { SystemHealthPage } from '@/pages/super-admin/SystemHealthPage';
 import { FacilityGovernancePage } from '@/pages/super-admin/FacilityGovernancePage';
+import { DistrictAdminsPage } from '@/pages/super-admin/DistrictAdminsPage';
 import { UserManagementPage } from '@/pages/super-admin/UserManagementPage';
 import { RolesPermissionsPage } from '@/pages/super-admin/RolesPermissionsPage';
 import { AiModelRegistryPage } from '@/pages/super-admin/AiModelRegistryPage';
 import { AuditLogsPage } from '@/pages/super-admin/AuditLogsPage';
 import { SuperAdminSettingsPage } from '@/pages/super-admin/SuperAdminSettingsPage';
+import { UserProfilePage } from '@/pages/profile/UserProfilePage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -117,7 +119,31 @@ export const AppRoutes: React.FC = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/patient/login" element={<Login />} />
-      <Route path="/403" element={<Navigate to="/patient" replace />} />
+      <Route path="/403" element={<Unauthorized />} />
+
+      {/* Universal Profile Route for all authenticated roles */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute allowedRoles={['PATIENT', 'ASHA', 'DOCTOR', 'FACILITY_STAFF', 'DISTRICT_ADMIN', 'SUPER_ADMIN']}>
+            <AppShell>
+              <UserProfilePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Doctor Roster & Monthly Planner Route */}
+      <Route
+        path="/doctor/roster"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <UserProfilePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
 
       {/* 1. PATIENT / CITIZEN ROUTES */}
       <Route
@@ -199,6 +225,14 @@ export const AppRoutes: React.FC = () => {
             </AppShell>
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/patient/referral"
+        element={<Navigate to="/patient/referrals" replace />}
+      />
+      <Route
+        path="/patient/health-records"
+        element={<Navigate to="/patient/records" replace />}
       />
       <Route
         path="/patient/referrals/:id"
@@ -412,9 +446,7 @@ export const AppRoutes: React.FC = () => {
         path="/doctor/queue"
         element={
           <ProtectedRoute allowedRoles={['DOCTOR']}>
-            <AppShell>
-              <DoctorQueue />
-            </AppShell>
+            <Navigate to="/doctor/patients" replace />
           </ProtectedRoute>
         }
       />
@@ -439,11 +471,41 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/doctor/patients/:id/history"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <PatientHistoryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/patients/history"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <PatientHistoryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/history"
+        element={
+          <ProtectedRoute allowedRoles={['DOCTOR']}>
+            <AppShell>
+              <PatientHistoryPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/doctor/referrals"
         element={
           <ProtectedRoute allowedRoles={['DOCTOR']}>
             <AppShell>
-              <ReferralCreationWizard />
+              <DoctorReferralHub />
             </AppShell>
           </ProtectedRoute>
         }
@@ -564,13 +626,7 @@ export const AppRoutes: React.FC = () => {
       />
       <Route
         path="/registration-clerk/patients"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <PatientSearchPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/registration-clerk" replace />}
       />
       <Route
         path="/registration-clerk/patients/:id"
@@ -749,6 +805,16 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/facility-operations/staff-leave"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <StaffLeaveOperationsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/facility-operations/queues"
         element={
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
@@ -772,9 +838,7 @@ export const AppRoutes: React.FC = () => {
         path="/facility-operations/resources"
         element={
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <ResourceOperationsPage />
-            </AppShell>
+            <Navigate to="/facility-operations" replace />
           </ProtectedRoute>
         }
       />
@@ -842,13 +906,7 @@ export const AppRoutes: React.FC = () => {
       />
       <Route
         path="/district/operations"
-        element={
-          <ProtectedRoute allowedRoles={['DISTRICT_ADMIN']}>
-            <AppShell>
-              <DistrictOperationsPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/district" replace />}
       />
       <Route
         path="/district/resources"
@@ -941,6 +999,20 @@ export const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/district/resource-intelligence"
+        element={
+          <ProtectedRoute allowedRoles={['DISTRICT_ADMIN', 'SUPER_ADMIN']}>
+            <AppShell>
+              <DistrictResourceIntelligencePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/district/intelligence"
+        element={<Navigate to="/district/resource-intelligence" replace />}
+      />
+      <Route
         path="/district/reports"
         element={
           <ProtectedRoute allowedRoles={['DISTRICT_ADMIN']}>
@@ -953,11 +1025,13 @@ export const AppRoutes: React.FC = () => {
 
       {/* District Admin Aliases (/district-admin/* -> /district/*) */}
       <Route path="/district-admin" element={<Navigate to="/district" replace />} />
+      <Route path="/district-admin/resource-intelligence" element={<Navigate to="/district/resource-intelligence" replace />} />
+      <Route path="/district-admin/intelligence" element={<Navigate to="/district/resource-intelligence" replace />} />
       <Route path="/district-admin/facilities" element={<Navigate to="/district/facilities" replace />} />
       <Route path="/district-admin/facilities/:id" element={<Navigate to="/district/facilities/:id" replace />} />
       <Route path="/district-admin/doctors" element={<Navigate to="/district/doctors" replace />} />
       <Route path="/district-admin/referrals" element={<Navigate to="/district/referrals" replace />} />
-      <Route path="/district-admin/operations" element={<Navigate to="/district/operations" replace />} />
+      <Route path="/district-admin/operations" element={<Navigate to="/district" replace />} />
       <Route path="/district-admin/resources" element={<Navigate to="/district/resources" replace />} />
       <Route path="/district-admin/medicines" element={<Navigate to="/district/medicines" replace />} />
       <Route path="/district-admin/blood" element={<Navigate to="/district/blood" replace />} />
@@ -997,6 +1071,16 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
             <AppShell>
               <FacilityGovernancePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin/district-admins"
+        element={
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+            <AppShell>
+              <DistrictAdminsPage />
             </AppShell>
           </ProtectedRoute>
         }

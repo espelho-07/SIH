@@ -22,6 +22,9 @@ export const tokenApi = {
     facilityId: string;
     departmentId: string;
     priority?: 'ROUTINE' | 'URGENT' | 'EMERGENCY';
+    doctorId?: string;
+    doctorName?: string;
+    roomNumber?: string;
   }) => apiRequest<Token>('/tokens', 'POST', data),
 
   getById: (tokenId: string) =>
@@ -32,14 +35,26 @@ export const tokenApi = {
 };
 
 export const appointmentApi = {
-  getAll: (patientId?: string) =>
-    apiRequest<Appointment[]>('/appointments', 'GET', { patientId }),
+  getAll: (patientId?: string, facilityId?: string) =>
+    apiRequest<Appointment[]>('/appointments', 'GET', { patientId, facilityId }),
 
   book: (data: Partial<Appointment>) =>
     apiRequest<Appointment>('/appointments', 'POST', data),
 
-  checkIn: (appointmentId: string) =>
-    apiRequest<{ appointment: Appointment; token: Token }>(`/appointments/${appointmentId}/check-in`, 'POST'),
+  assignDoctor: (
+    appointmentId: string,
+    data: {
+      doctorId: string;
+      doctorName: string;
+      specialty?: string;
+      roomNumber?: string;
+      departmentId?: string;
+      departmentName?: string;
+    }
+  ) => apiRequest<Appointment>(`/appointments/${appointmentId}/assign-doctor`, 'PATCH', data),
+
+  checkIn: (appointmentId: string, data?: { roomNumber?: string; doctorId?: string; doctorName?: string }) =>
+    apiRequest<{ appointment: Appointment; token: Token }>(`/appointments/${appointmentId}/check-in`, 'POST', data),
 
   cancel: (appointmentId: string) =>
     apiRequest<Appointment>(`/appointments/${appointmentId}/cancel`, 'PATCH'),

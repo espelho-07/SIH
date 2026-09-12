@@ -248,7 +248,7 @@ export const SuperAdminSettingsPage: React.FC = () => {
               <select
                 value={logLevel}
                 onChange={(e) => setLogLevel(e.target.value)}
-                className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
               >
                 <option value="DEBUG">Detailed (For technical testing and troubleshooting)</option>
                 <option value="INFO">Normal (Recommended for everyday hospital use)</option>
@@ -265,7 +265,7 @@ export const SuperAdminSettingsPage: React.FC = () => {
               <select
                 value={auditRetentionDays}
                 onChange={(e) => setAuditRetentionDays(e.target.value)}
-                className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
               >
                 <option value="90">3 Months (Short-term storage)</option>
                 <option value="365">1 Year (Standard hospital practice)</option>

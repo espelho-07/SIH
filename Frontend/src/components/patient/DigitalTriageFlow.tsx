@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Phone,
@@ -21,6 +21,8 @@ import {
   Home,
 } from 'lucide-react';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { Facility } from '@/types/facility';
 
 // ────────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -242,10 +244,11 @@ const ResultScreen: React.FC<{
   result: TriageResult;
   onReset: () => void;
   onClose?: () => void;
-}> = ({ result, onReset, onClose }) => {
+  facilities?: Facility[];
+}> = ({ result, onReset, onClose, facilities = INITIAL_FACILITIES }) => {
   const meta = CARE_LEVEL_META[result.careLevel];
   const facility = result.recommendedFacilityId
-    ? INITIAL_FACILITIES.find((f) => f.id === result.recommendedFacilityId)
+    ? facilities.find((f) => f.id === result.recommendedFacilityId) || INITIAL_FACILITIES.find((f) => f.id === result.recommendedFacilityId)
     : null;
 
   return (
@@ -376,17 +379,30 @@ const ResultScreen: React.FC<{
 // ────────────────────────────────────────────────────────────────────────────────
 
 interface DigitalTriageFlowProps {
+  onComplete?: (result: TriageResult) => void;
   onClose?: () => void;
+  initialBodyArea?: BodyAreaId;
 }
 
 type TriageStep = 'AREA' | 'DURATION' | 'SEVERITY' | 'RESULT' | 'EMERGENCY_INTERCEPT';
 
-export const DigitalTriageFlow: React.FC<DigitalTriageFlowProps> = ({ onClose }) => {
-  const [step, setStep] = useState<TriageStep>('AREA');
-  const [selectedArea, setSelectedArea] = useState<BodyAreaId | null>(null);
+export const DigitalTriageFlow: React.FC<DigitalTriageFlowProps> = ({
+  onComplete,
+  onClose,
+  initialBodyArea,
+}) => {
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
+  const [step, setStep] = useState<TriageStep>(initialBodyArea ? 'DURATION' : 'AREA');
+  const [selectedArea, setSelectedArea] = useState<BodyAreaId | null>(initialBodyArea ?? null);
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
   const [bypassedIntercept, setBypassedIntercept] = useState(false);
   const [result, setResult] = useState<TriageResult | null>(null);
+
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setFacilities(res.data);
+    }).catch(console.warn);
+  }, []);
 
   const reset = useCallback(() => {
     setStep('AREA');
@@ -578,7 +594,7 @@ export const DigitalTriageFlow: React.FC<DigitalTriageFlowProps> = ({ onClose })
 
       {/* RESULT */}
       {step === 'RESULT' && result && (
-        <ResultScreen result={result} onReset={reset} onClose={onClose} />
+        <ResultScreen result={result} onReset={reset} onClose={onClose} facilities={facilities} />
       )}
     </div>
   );

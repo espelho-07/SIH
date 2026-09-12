@@ -1,6 +1,7 @@
 import { AshaVisit, VisitStatus } from '@/types/asha';
 import { INITIAL_ASHA_VISITS } from '@/mock/mockData';
 import { Vitals } from '@/types/clinical';
+import { ashaApi } from '@/api/ashaApi';
 
 const STORAGE_KEY = 'sanjeevani_asha_visits';
 const EVENT_KEY = 'sanjeevani_visits_updated';
@@ -56,8 +57,10 @@ export function saveStoredAshaVisit(visit: AshaVisit): AshaVisit[] {
   if (index >= 0) {
     updated = [...current];
     updated[index] = { ...updated[index], ...visit };
+    ashaApi.updateVisit(visit).catch((e) => console.warn('Asha visit backend update failed:', e));
   } else {
     updated = [visit, ...current];
+    ashaApi.scheduleVisit(visit).catch((e) => console.warn('Asha visit backend create failed:', e));
   }
 
   if (typeof window !== 'undefined') {

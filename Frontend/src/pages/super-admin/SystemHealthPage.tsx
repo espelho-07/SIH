@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { INITIAL_SYSTEM_HEALTH } from '@/mock/mockData';
-import { SystemHealthService } from '@/types/admin';
+import { SystemHealthService, SystemHealthOverview } from '@/types/admin';
+import { adminApi } from '@/api/adminApi';
 import {
   Server,
   Activity,
@@ -17,25 +18,39 @@ import {
   ShieldCheck,
   Zap,
   Info,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const SystemHealthPage: React.FC = () => {
-  const [health, setHealth] = useState(INITIAL_SYSTEM_HEALTH);
+  const [health, setHealth] = useState<SystemHealthOverview>(INITIAL_SYSTEM_HEALTH);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<SystemHealthService | null>(null);
 
+  const fetchHealth = async (showRefreshingSpinner = false) => {
+    if (showRefreshingSpinner) setIsRefreshing(true);
+    setError(null);
+    try {
+      const res = await adminApi.getSystemHealth();
+      if (res?.data) {
+        setHealth(res.data);
+      }
+    } catch (err: any) {
+      console.warn('System health fetch error:', err);
+      setError(err?.message || 'Could not fetch live system health telemetry.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHealth();
+  }, []);
+
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setHealth((prev) => ({
-      ...prev,
-      services: prev.services.map((s) => ({
-        ...s,
-        latencyMs: Math.floor(Math.random() * 20) + 12,
-        lastChecked: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      })),
-    }));
-    setIsRefreshing(false);
+    await fetchHealth(true);
   };
 
   return (
@@ -197,7 +212,7 @@ export const SystemHealthPage: React.FC = () => {
 
       {/* Service Details Inspection Dialog */}
       {selectedService && (
-        <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)} maxWidth="md">
+        <Dialog open={!!selectedService} onOpenChange={() => setSelectedService(null)} maxWidth="lg">
           <DialogHeader>
             <DialogTitle>{selectedService.name}</DialogTitle>
             <DialogDescription>

@@ -136,12 +136,12 @@ export const QueueCounterPage: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Notice Banner */}
       {actionNotice && (
-        <div className="rounded-xl bg-sky-50 border border-sky-200 p-4 text-xs font-semibold text-sky-900 flex items-center justify-between">
+        <div className="rounded-xl bg-teal-50 border border-teal-200 p-4 text-xs font-semibold text-teal-900 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-sky-700 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-teal-700 shrink-0" />
             <span>{actionNotice}</span>
           </div>
-          <button onClick={() => setActionNotice(null)} className="text-sky-700 font-bold">
+          <button onClick={() => setActionNotice(null)} className="text-teal-700 font-bold">
             Dismiss
           </button>
         </div>
@@ -153,9 +153,9 @@ export const QueueCounterPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <Link
               to="/registration-clerk"
-              className="text-xs font-semibold text-slate-500 hover:text-sky-700"
+              className="text-xs font-semibold text-slate-500 hover:text-teal-700"
             >
-              ← Front Desk
+              ? Front Desk
             </Link>
           </div>
           <h1 className="text-xl font-black text-slate-900 mt-1">OPD Token Counter Desk</h1>
@@ -177,7 +177,7 @@ export const QueueCounterPage: React.FC = () => {
           </Button>
           <Button
             onClick={() => setWalkInModalOpen(true)}
-            className="bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 cursor-pointer shadow-sm"
+            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 cursor-pointer shadow-sm"
           >
             <Ticket className="h-4 w-4" />
             Issue Walk-in Token
@@ -187,28 +187,28 @@ export const QueueCounterPage: React.FC = () => {
 
       {/* Hero Counter Calling Display */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Calling Banner (7 cols) - Clean Healthcare Calling Station */}
-        <div className="md:col-span-7 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs flex flex-col justify-between">
+        {/* Calling Banner (7 cols) */}
+        <div className="md:col-span-7 rounded-2xl bg-gradient-to-r from-teal-800 to-teal-950 p-6 text-white shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="bg-sky-50 text-sky-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-sky-200/80 flex items-center gap-1.5">
-                <Volume2 className="h-3 w-3 text-sky-700 animate-pulse" />
+              <span className="bg-teal-700/80 text-teal-100 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-600/50 flex items-center gap-1.5">
+                <Volume2 className="h-3 w-3 text-teal-200 animate-pulse" />
                 Live OPD Counter 1
               </span>
-              <span className="text-xs text-slate-500 font-mono">Room 4 • Dr. Arvind Patel</span>
+              <span className="text-xs text-teal-200 font-mono">Room 4 � Dr. Arvind Patel</span>
             </div>
 
             <div className="my-5 text-center">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+              <span className="text-xs font-bold uppercase tracking-widest text-teal-200/80 block">
                 Currently Calling Token
               </span>
-              <div className="text-5xl md:text-6xl font-black text-slate-900 font-mono tracking-tight my-1">
-                {currentCalledToken?.tokenNumber || queue?.currentTokenNumber || '—'}
+              <div className="text-5xl md:text-6xl font-black text-white font-mono tracking-tight my-1">
+                {currentCalledToken?.tokenNumber || queue?.currentTokenNumber || '�'}
               </div>
-              <p className="text-base font-bold text-sky-900">
+              <p className="text-sm font-bold text-teal-100">
                 {currentCalledToken?.patientName || 'Govindbhai Prajapati'}
               </p>
-              <span className="text-xs text-slate-500 font-medium">
+              <span className="text-xs text-teal-200/80">
                 General Medicine OPD Consultation
               </span>
             </div>
@@ -217,9 +217,9 @@ export const QueueCounterPage: React.FC = () => {
           <Button
             onClick={handleCallNext}
             disabled={callingNext || waitingTokens.length === 0}
-            className="w-full bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs gap-2 min-h-[44px] rounded-xl cursor-pointer shadow-xs transition-colors"
+            className="w-full bg-white text-teal-950 hover:bg-teal-50 font-black text-xs gap-2 min-h-[44px] cursor-pointer shadow-sm"
           >
-            <Volume2 className="h-4 w-4 text-sky-200" />
+            <Volume2 className="h-4 w-4 text-teal-700" />
             {callingNext ? 'Calling Token...' : `Call Next Token (${waitingTokens.length} Waiting)`}
           </Button>
         </div>
@@ -228,7 +228,7 @@ export const QueueCounterPage: React.FC = () => {
         <div className="md:col-span-5 grid grid-cols-2 gap-4">
           <Card className="p-4 border-slate-200 flex flex-col justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase">Waiting Patients</span>
-            <p className="text-3xl font-black text-sky-700 my-1">{waitingTokens.length}</p>
+            <p className="text-3xl font-black text-teal-700 my-1">{waitingTokens.length}</p>
             <span className="text-[11px] text-slate-400">Across active clinics</span>
           </Card>
 
@@ -270,7 +270,7 @@ export const QueueCounterPage: React.FC = () => {
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800 font-medium"
+              className="h-8 rounded-lg border border-slate-300 bg-white shadow-2xs cursor-pointer px-2.5 text-xs text-slate-800 font-medium"
             >
               <option value="ALL">All Departments</option>
               <option value="dep_med">General Medicine OPD</option>
@@ -298,7 +298,7 @@ export const QueueCounterPage: React.FC = () => {
                       #{idx + 1}
                     </span>
 
-                    <span className="font-mono font-black text-sm bg-sky-100/80 text-sky-950 px-2.5 py-1 rounded-lg border border-sky-200">
+                    <span className="font-mono font-black text-sm bg-teal-100/70 text-teal-950 px-2.5 py-1 rounded-lg border border-teal-200">
                       {t.tokenNumber}
                     </span>
 
@@ -360,7 +360,7 @@ export const QueueCounterPage: React.FC = () => {
       {/* Manual Walk-In Token Modal */}
       {walkInModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-100">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="w-full max-w-2xl sm:max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
             <div className="bg-teal-700 px-6 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Ticket className="h-5 w-5 text-teal-200" />
@@ -418,7 +418,7 @@ export const QueueCounterPage: React.FC = () => {
                 <select
                   value={walkInDept}
                   onChange={(e) => setWalkInDept(e.target.value)}
-                  className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 font-semibold"
+                  className="w-full h-10 rounded-xl border border-slate-300 bg-white shadow-2xs px-3 text-xs text-slate-900 font-semibold cursor-pointer"
                 >
                   <option value="dep_med">General Medicine OPD (Room 4 � Dr. Arvind Patel)</option>
                   <option value="dep_cardio">Cardiology Clinic (Room 6 � Dr. Arvind Patel)</option>

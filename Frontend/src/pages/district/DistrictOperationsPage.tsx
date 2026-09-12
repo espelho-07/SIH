@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_FACILITIES, INITIAL_LIVE_QUEUE } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { appointmentApi, queueApi } from '@/api/queueApi';
+import { Facility } from '@/types/facility';
+import { Appointment } from '@/types/queue';
 import {
   Ticket,
   Users,
@@ -73,106 +77,41 @@ const MOCK_OPD_COUNTERS: OpdCounter[] = [
   },
   {
     id: 'cnt_05',
-    name: 'Counter 5 (Room 2)',
-    department: 'NCD & Diabetes Clinic',
-    doctorName: 'Dr. Hetal Chavda',
-    nowServing: 'N-011',
+    name: 'Counter 5 (Room 3)',
+    department: 'Pulmonology',
+    doctorName: 'Dr. Anjali Mehta',
+    nowServing: 'C-006',
     waitingCount: 4,
     avgWaitMin: 10,
     status: 'NORMAL',
   },
 ];
 
-interface AppointmentItem {
-  id: string;
-  patientName: string;
-  age: number;
-  gender: string;
-  slot: string;
-  tokenNumber: string;
-  facilityName: string;
-  doctorName: string;
-  department: string;
-  status: 'WAITING' | 'IN_CONSULTATION' | 'COMPLETED' | 'CONFIRMED';
-  type: 'IN_PERSON' | 'TELECONSULT';
-}
-
-const MOCK_APPOINTMENTS: AppointmentItem[] = [
-  {
-    id: 'apt_01',
-    patientName: 'Rameshwar Sharma',
-    age: 48,
-    gender: 'M',
-    slot: '10:00 AM',
-    tokenNumber: 'A-042',
-    facilityName: 'Gandhinagar Civil Hospital',
-    doctorName: 'Dr. Arvind Patel',
-    department: 'Cardiology',
-    status: 'IN_CONSULTATION',
-    type: 'IN_PERSON',
-  },
-  {
-    id: 'apt_02',
-    patientName: 'Kavitaben Patel',
-    age: 34,
-    gender: 'F',
-    slot: '10:15 AM',
-    tokenNumber: 'G-029',
-    facilityName: 'Gandhinagar Civil Hospital',
-    doctorName: 'Dr. Neha Vaghela',
-    department: 'Obstetrics',
-    status: 'IN_CONSULTATION',
-    type: 'IN_PERSON',
-  },
-  {
-    id: 'apt_03',
-    patientName: 'Haresh Solanki',
-    age: 52,
-    gender: 'M',
-    slot: '10:30 AM',
-    tokenNumber: 'O-015',
-    facilityName: 'Gandhinagar Civil Hospital',
-    doctorName: 'Dr. Suresh Joshi',
-    department: 'Orthopedics',
-    status: 'WAITING',
-    type: 'IN_PERSON',
-  },
-  {
-    id: 'apt_04',
-    patientName: 'Meenaxi Varma',
-    age: 29,
-    gender: 'F',
-    slot: '11:00 AM',
-    tokenNumber: 'T-004',
-    facilityName: 'Pethapur Primary Health Centre',
-    doctorName: 'Dr. Arvind Patel',
-    department: 'Cardiology (Tele)',
-    status: 'CONFIRMED',
-    type: 'TELECONSULT',
-  },
-  {
-    id: 'apt_05',
-    patientName: 'Devang Joshi',
-    age: 8,
-    gender: 'M',
-    slot: '09:30 AM',
-    tokenNumber: 'P-012',
-    facilityName: 'Mansa Community Health Centre',
-    doctorName: 'Dr. Meena Parmar',
-    department: 'Pediatrics',
-    status: 'COMPLETED',
-    type: 'IN_PERSON',
-  },
-];
-
 export const DistrictOperationsPage: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
   const [selectedFacilityId, setSelectedFacilityId] = useState<string>('fac_civil_01');
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentFilter, setAppointmentFilter] = useState<string>('ALL');
 
-  const selectedFacility = INITIAL_FACILITIES.find((f) => f.id === selectedFacilityId) || INITIAL_FACILITIES[0];
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setFacilities(res.data);
+        setSelectedFacilityId(res.data[0].id);
+      }
+    }).catch(console.warn);
 
-  const filteredAppointments = MOCK_APPOINTMENTS.filter((apt) => {
+    appointmentApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setAppointments(res.data);
+      }
+    }).catch(console.warn);
+  }, []);
+
+  const selectedFacility = facilities.find((f) => f.id === selectedFacilityId) || facilities[0];
+
+  const filteredAppointments = appointments.filter((apt) => {
     if (appointmentFilter === 'ALL') return true;
     return apt.status === appointmentFilter;
   });
@@ -359,39 +298,45 @@ export const DistrictOperationsPage: React.FC = () => {
         </div>
 
         <div className="divide-y divide-slate-100 text-xs">
-          {filteredAppointments.map((apt) => (
-            <div key={apt.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 font-mono font-bold text-teal-800 text-xs">
-                  {apt.tokenNumber}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900">{apt.patientName}</span>
-                    <span className="text-slate-400 font-normal">
-                      ({apt.age}Y • {apt.gender})
-                    </span>
-                    {apt.type === 'TELECONSULT' && (
-                      <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 text-[10px] font-bold">
-                        Video
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-slate-500 text-[11px] mt-0.5">
-                    {apt.department} • {apt.doctorName}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 self-end sm:self-center">
-                <div className="text-right text-[11px]">
-                  <span className="text-slate-500 block">Slot Time</span>
-                  <span className="font-semibold text-slate-800">{apt.slot}</span>
-                </div>
-                <StatusBadge status={apt.status} />
-              </div>
+          {filteredAppointments.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 text-xs font-medium">
+              No appointments found for selected filter.
             </div>
-          ))}
+          ) : (
+            filteredAppointments.map((apt: any) => (
+              <div key={apt.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 font-mono font-bold text-teal-800 text-xs">
+                    {apt.tokenNumber || 'A-01'}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900">{apt.patientName}</span>
+                      <span className="text-slate-400 font-normal">
+                        ({apt.patientAge || apt.age || 45}Y • {apt.patientGender || apt.gender || 'M'})
+                      </span>
+                      {apt.type === 'TELECONSULT' && (
+                        <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 text-[10px] font-bold">
+                          Video
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-0.5">
+                      {apt.specialty || apt.department || 'General Medicine'} • {apt.doctorName}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 self-end sm:self-center">
+                  <div className="text-right text-[11px]">
+                    <span className="text-slate-500 block">Slot Time</span>
+                    <span className="font-semibold text-slate-800">{apt.timeSlot || apt.slot || '10:00 AM'}</span>
+                  </div>
+                  <StatusBadge status={apt.status} />
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </Card>
     </div>

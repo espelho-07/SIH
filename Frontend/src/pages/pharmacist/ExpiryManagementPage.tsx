@@ -322,7 +322,7 @@ export const ExpiryManagementPage: React.FC = () => {
       {/* 5. Quarantine Modal */}
       {quarantineModalMed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-150">
+          <div className="w-full max-w-2xl sm:max-w-3xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-purple-100 text-purple-800">
@@ -367,7 +367,7 @@ export const ExpiryManagementPage: React.FC = () => {
                 <select
                   value={quarantineReason}
                   onChange={(e) => setQuarantineReason(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 shadow-2xs rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700 cursor-pointer"
                 >
                   <option value="Near expiry safety hold (<30 days)">Near expiry safety hold (&lt;30 days)</option>
                   <option value="Expired drug - Awaiting disposal">Expired drug - Awaiting disposal</option>

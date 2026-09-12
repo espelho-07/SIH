@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -346,7 +346,7 @@ export const ResultEntryPage: React.FC = () => {
                               e.target.value as 'NORMAL' | 'ABNORMAL' | 'CRITICAL'
                             )
                           }
-                          className={`rounded-lg px-2 py-1.5 text-xs font-bold border transition-colors ${
+                          className={`rounded-lg px-2 py-1.5 text-xs font-bold border cursor-pointer shadow-2xs transition-colors ${
                             param.status === 'CRITICAL'
                               ? 'border-rose-300 bg-rose-50 text-rose-800'
                               : param.status === 'ABNORMAL'

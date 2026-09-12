@@ -1,60 +1,58 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPatient extends Document {
-  userId?: mongoose.Types.ObjectId;
-  abhaId?: string;
+  id: string;
   name: string;
   phone: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
-  dob?: Date;
-  age?: number;
-  bloodGroup?: string;
-  address: {
-    street?: string;
-    village?: string;
-    block?: string;
-    district: string;
-    state: string;
-    pincode: string;
-  };
-  assignedAshaId?: mongoose.Types.ObjectId;
+  gender: 'M' | 'F' | 'Other';
+  age: number;
+  dob?: string;
+  abhaId?: string;
+  abhaVerified?: boolean;
+  address?: string;
+  district?: string;
+  pincode?: string;
   emergencyContact?: {
     name: string;
-    relation: string;
     phone: string;
+    relationship: string;
   };
-  isHighRisk: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  registeredAt: string;
+  lastVisitAt?: string;
 }
 
 const PatientSchema = new Schema<IPatient>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User' },
-    abhaId: { type: String, index: true, sparse: true },
-    name: { type: String, required: true },
+    id: { type: String, required: true, unique: true, index: true },
+    name: { type: String, required: true, index: true },
     phone: { type: String, required: true, index: true },
-    gender: { type: String, enum: ['MALE', 'FEMALE', 'OTHER'], required: true },
-    dob: { type: Date },
-    age: { type: Number },
-    bloodGroup: { type: String },
-    address: {
-      street: { type: String },
-      village: { type: String },
-      block: { type: String },
-      district: { type: String, required: true },
-      state: { type: String, required: true },
-      pincode: { type: String, required: true },
-    },
-    assignedAshaId: { type: Schema.Types.ObjectId, ref: 'User' },
+    gender: { type: String, enum: ['M', 'F', 'Other'], required: true },
+    age: { type: Number, required: true },
+    dob: { type: String },
+    abhaId: { type: String, sparse: true, index: true },
+    abhaVerified: { type: Boolean, default: false },
+    address: { type: String },
+    district: { type: String, default: 'Gandhinagar', index: true },
+    pincode: { type: String },
     emergencyContact: {
       name: { type: String },
-      relation: { type: String },
       phone: { type: String },
+      relationship: { type: String },
     },
-    isHighRisk: { type: Boolean, default: false },
+    registeredAt: { type: String, default: () => new Date().toISOString() },
+    lastVisitAt: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      transform(_doc, ret) {
+        ret.id = ret.id || ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
 );
 
-export const Patient = mongoose.model<IPatient>('Patient', PatientSchema);
+export const PatientModel = mongoose.model<IPatient>('Patient', PatientSchema);

@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_MEDICINES, INITIAL_FACILITIES } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { pharmacyApi } from '@/api/pharmacyApi';
+import { Facility } from '@/types/facility';
+import { MedicineInventoryItem } from '@/types/resources';
+
+type MedicineStock = MedicineInventoryItem;
 import {
   Pill,
   Search,
@@ -22,20 +28,46 @@ export const DistrictMedicinesPage: React.FC = () => {
   const [showIndentModal, setShowIndentModal] = useState(false);
   const [indentSuccess, setIndentSuccess] = useState<string | null>(null);
 
+  // Dynamic Data State
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
+  const [medicines, setMedicines] = useState<MedicineStock[]>(INITIAL_MEDICINES);
+  const [selectedFacilityFilter, setSelectedFacilityFilter] = useState<string>('ALL');
+
   // Form State
   const [selectedDrug, setSelectedDrug] = useState(INITIAL_MEDICINES[0]?.medicineName || '');
   const [targetFacility, setTargetFacility] = useState(INITIAL_FACILITIES[0]?.id || '');
   const [indentQty, setIndentQty] = useState('500');
 
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setFacilities(res.data);
+        setTargetFacility(res.data[0].id);
+      }
+    }).catch(console.warn);
+  }, []);
+
+  useEffect(() => {
+    const facId = selectedFacilityFilter === 'ALL' ? undefined : selectedFacilityFilter;
+    pharmacyApi.getInventory(facId).then((res) => {
+      if (res.data && res.data.length > 0) {
+        setMedicines(res.data);
+        if (!selectedDrug && res.data[0]?.medicineName) {
+          setSelectedDrug(res.data[0].medicineName);
+        }
+      }
+    }).catch(console.warn);
+  }, [selectedFacilityFilter]);
+
   // Categories list
   const categories = ['ALL', 'Antibiotic', 'Cardiovascular', 'Antidiabetic', 'Analgesic', 'Emergency'];
 
   // Filter medicines
-  const filteredMedicines = INITIAL_MEDICINES.filter((med) => {
+  const filteredMedicines = medicines.filter((med) => {
     const matchesSearch =
       med.medicineName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       med.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      med.batchNumber.toLowerCase().includes(searchTerm.toLowerCase());
+      (med.batchNumber && med.batchNumber.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesCategory = categoryFilter === 'ALL' || med.category.toLowerCase().includes(categoryFilter.toLowerCase());
 
@@ -48,10 +80,10 @@ export const DistrictMedicinesPage: React.FC = () => {
   });
 
   // KPIs
-  const totalItems = INITIAL_MEDICINES.length;
-  const criticalStockouts = INITIAL_MEDICINES.filter((m) => m.status === 'OUT_OF_STOCK').length;
-  const lowStockCount = INITIAL_MEDICINES.filter((m) => m.status === 'LOW_STOCK').length;
-  const inStockCount = INITIAL_MEDICINES.filter((m) => m.status === 'IN_STOCK').length;
+  const totalItems = medicines.length;
+  const criticalStockouts = medicines.filter((m) => m.status === 'OUT_OF_STOCK').length;
+  const lowStockCount = medicines.filter((m) => m.status === 'LOW_STOCK').length;
+  const inStockCount = medicines.filter((m) => m.status === 'IN_STOCK').length;
 
   const handleCreateIndent = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,11 +174,24 @@ export const DistrictMedicinesPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={selectedFacilityFilter}
+              onChange={(e) => setSelectedFacilityFilter(e.target.value)}
+              className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-hidden"
+            >
+              <option value="ALL">All District Facilities</option>
+              {facilities.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-hidden"
+              className="px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-semibold shadow-2xs focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">All Stock Statuses</option>
               <option value="ADEQUATE">Adequate Stock Only</option>
@@ -247,7 +292,7 @@ export const DistrictMedicinesPage: React.FC = () => {
       {/* Emergency Indent Modal */}
       {showIndentModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6 bg-white border-slate-200 shadow-xl space-y-4">
+          <Card className="w-full max-w-2xl sm:max-w-3xl p-6 sm:p-8 bg-white border-slate-200 shadow-xl space-y-4 rounded-3xl">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2 text-teal-800 font-bold text-base">
                 <Package className="h-5 w-5" />
@@ -267,9 +312,9 @@ export const DistrictMedicinesPage: React.FC = () => {
                 <select
                   value={selectedDrug}
                   onChange={(e) => setSelectedDrug(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
-                  {INITIAL_MEDICINES.map((m) => (
+                  {medicines.map((m) => (
                     <option key={m.id} value={m.medicineName}>
                       {m.medicineName} ({m.category})
                     </option>
@@ -282,10 +327,10 @@ export const DistrictMedicinesPage: React.FC = () => {
                 <select
                   value={targetFacility}
                   onChange={(e) => setTargetFacility(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                 >
                   <option value="central_warehouse">Gandhinagar District Drug Warehouse</option>
-                  {INITIAL_FACILITIES.map((f) => (
+                  {facilities.map((f) => (
                     <option key={f.id} value={f.id}>
                       {f.name}
                     </option>
@@ -302,12 +347,12 @@ export const DistrictMedicinesPage: React.FC = () => {
                     step="50"
                     value={indentQty}
                     onChange={(e) => setIndentQty(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700"
                   />
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Procurement Track</label>
-                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-teal-700">
+                  <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-teal-700">
                     <option>GMSCL Fast-Track (48h)</option>
                     <option>Local Emergency Purchase</option>
                   </select>

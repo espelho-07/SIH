@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, StaffSubType } from '@/types/auth';
+import { UserRole } from '@/types/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,29 +9,8 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { user, isAuthenticated, isLoading, role, quickSwitchRole } = useAuth();
+  const { user, isAuthenticated, isLoading, role } = useAuth();
   const location = useLocation();
-
-  useEffect(() => {
-    if (!allowedRoles || allowedRoles.length === 0) return;
-
-    if (!role || !allowedRoles.includes(role)) {
-      const targetRole = allowedRoles[0];
-      let subType: StaffSubType | undefined = undefined;
-
-      if (location.pathname.startsWith('/pharmacist')) {
-        subType = 'PHARMACIST';
-      } else if (location.pathname.startsWith('/registration-clerk')) {
-        subType = 'REGISTRATION_CLERK';
-      } else if (location.pathname.startsWith('/lab-technician')) {
-        subType = 'LAB_TECHNICIAN';
-      } else if (location.pathname.startsWith('/facility-operations')) {
-        subType = 'FACILITY_OPERATIONS';
-      }
-
-      quickSwitchRole(targetRole, subType);
-    }
-  }, [allowedRoles, role, location.pathname, quickSwitchRole]);
 
   if (isLoading) {
     return (
@@ -47,9 +26,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
   }
 
   if (!isAuthenticated || !user) {
-    quickSwitchRole(allowedRoles?.[0] || 'PATIENT');
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Never redirect to /403 forbidden error - render requested healthcare view
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    return <Navigate to="/403" replace />;
+  }
+
   return <>{children}</>;
 };

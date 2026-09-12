@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useLocationContext } from '@/contexts/LocationContext';
+import { operationsApi } from '@/api/operationsApi';
+import { aiApi } from '@/api/aiApi';
 import {
   AlertOctagon,
   AlertTriangle,
@@ -100,6 +102,28 @@ export const DistrictAlertsPage: React.FC = () => {
   const [alerts, setAlerts] = useState<DistrictAlert[]>(INITIAL_DISTRICT_ALERTS);
   const [severityFilter, setSeverityFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+
+  useEffect(() => {
+    Promise.allSettled([operationsApi.getIssues(), aiApi.getDashboard()]).then(([issuesRes, aiRes]) => {
+      let combinedAlerts = [...INITIAL_DISTRICT_ALERTS];
+      if (issuesRes.status === 'fulfilled' && issuesRes.value.data && issuesRes.value.data.length > 0) {
+        const liveIssues: DistrictAlert[] = issuesRes.value.data.map((iss) => ({
+          id: iss.id,
+          title: iss.title,
+          category: (iss.category as any) || 'STOCK',
+          severity: iss.severity as any,
+          facilityName: iss.facilityName || 'Civil Hospital',
+          block: iss.location || selectedDistrict,
+          description: iss.description,
+          recommendedAction: `Assigned to ${iss.assignedTo || 'Operations team'}`,
+          timestamp: 'Just now',
+          status: iss.status === 'RESOLVED' ? 'RESOLVED' : 'ACTIVE',
+        }));
+        combinedAlerts = [...liveIssues, ...combinedAlerts.filter((a) => !liveIssues.some((l) => l.id === a.id))];
+      }
+      setAlerts(combinedAlerts);
+    }).catch(console.warn);
+  }, [selectedDistrict]);
 
   const filteredAlerts = alerts.filter((alt) => {
     const matchesSeverity = severityFilter === 'ALL' || alt.severity === severityFilter;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Mic,
@@ -25,6 +26,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
 import { INITIAL_MEDICAL_STORES } from '@/mock/medicalStoresData';
+import { facilityApi } from '@/api/facilityApi';
 import { Facility } from '@/types';
 import { DigitalTriageFlow } from '@/components/patient/DigitalTriageFlow';
 
@@ -73,6 +75,7 @@ interface SymptomConfig {
   isEmergency: boolean;
   keywords: string[];
   assistantGujaratiSpeech: string;
+  assistantHindiSpeech: string;
   assistantEnglishAdvice: string;
 }
 
@@ -90,6 +93,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['fracture', 'bone', 'haadku', 'hadku', 'tut', 'bhangyu', 'leg', 'hand', 'fall'],
     assistantGujaratiSpeech:
       'હાડકું કે ફ્રેક્ચર માટે ગાંધીનગર સિવિલ હોસ્પિટલ સૌથી ઉત્તમ છે. ત્યાં 3 ઓર્થોપેડિક સર્જન હાજર છે, ડિજિટલ એક્સ-રે ચાલુ છે અને 48 બેડ ખાલી છે.',
+    assistantHindiSpeech:
+      'हड्डी की चोट या फ्रैक्चर के लिए गांधीनगर सिविल अस्पताल सबसे उपयुक्त है। वहां 3 ऑर्थोपेडिक सर्जन मौजूद हैं, डिजिटल एक्स-रे चालू है और 48 बेड उपलब्ध हैं।',
     assistantEnglishAdvice:
       'For suspected bone fracture, you need an active Orthopedics specialist and Digital X-Ray. Gandhinagar Civil Hospital has 3 Orthopedic surgeons on duty, active X-Ray, and 48 available beds.',
   },
@@ -106,6 +111,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['fever', 'bukhar', 'taav', 'tav', 'sardi', 'khasi', 'cold', 'body pain', 'shardi'],
     assistantGujaratiSpeech:
       'તાવ અને શરદી માટે જનરલ મેડિસિન OPD ખુલ્લી છે. ગાંધીનગર સિવિલ હોસ્પિટલમાં 5 ડોક્ટર હાજર છે અને અંદાજે વેઇટિંગ ટાઈમ માત્ર 20 મિનિટ છે.',
+    assistantHindiSpeech:
+      'बुखार और सर्दी के लिए जनरल मेडिसिन ओपीडी खुली है। गांधीनगर सिविल अस्पताल में 5 डॉक्टर मौजूद हैं और अनुमानित प्रतीक्षा समय केवल 20 मिनट है।',
     assistantEnglishAdvice:
       'General Medicine OPD is active. Gandhinagar Civil Hospital has 5 general physicians on duty with approximately 20 mins wait time.',
   },
@@ -122,6 +129,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['chest', 'heart', 'dil', 'chhati', 'cardiac', 'attack', 'pain', 'pressure', 'breath'],
     assistantGujaratiSpeech:
       'છાતીમાં દુખાવો ગંભીર ઈમરજન્સી હોઈ શકે છે! ગાંધીનગર સિવિલ હોસ્પિટલમાં 24x7 ઈમરજન્સી, 2 કાર્ડિયોલોજિસ્ટ અને 6 ICU બેડ ઉપલબ્ધ છે. તરત પહોંચો અથવા 108 પર કૉલ કરો!',
+    assistantHindiSpeech:
+      'सीने में दर्द एक गंभीर आपातकाल हो सकता है! गांधीनगर सिविल अस्पताल में 24x7 आपातकालीन सेवा, 2 हृदय रोग विशेषज्ञ और 6 आईसीयू बेड उपलब्ध हैं। तुरंत पहुंचे या 108 पर कॉल करें!',
     assistantEnglishAdvice:
       'Chest pain is a high medical emergency! Gandhinagar Civil Hospital has 24x7 Emergency, 2 on-duty cardiologists, and 6 ICU beds ready. Call 108 or proceed immediately!',
   },
@@ -138,6 +147,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['delivery', 'pregnant', 'pregnancy', 'prasuti', 'labor', 'delivery pain', 'gynae', 'balka'],
     assistantGujaratiSpeech:
       'પ્રસુતિ અને ડિલિવરી માટે ગાંધીનગર સિવિલ હોસ્પિટલનું મેટરનિટી યુનિટ તૈયાર છે. સ્પેશિયાલિસ્ટ ડોક્ટર્સ હાજર છે અને 48 જનરલ બેડ ઉપલબ્ધ છે.',
+    assistantHindiSpeech:
+      'प्रसव और डिलीवरी के लिए गांधीनगर सिविल अस्पताल की प्रसूति इकाई पूरी तरह तैयार है। विशेषज्ञ डॉक्टर मौजूद हैं और 48 जनरल बेड उपलब्ध हैं।',
     assistantEnglishAdvice:
       'Maternity & Labor Unit is fully operational. Civil Hospital has specialist gynecologists on call and 48 available general beds.',
   },
@@ -154,6 +165,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['accident', 'injury', 'chot', 'eja', 'trauma', 'khoon', 'blood', 'head', 'road'],
     assistantGujaratiSpeech:
       'અકસ્માત અને ઈજા માટે સિવિલ હોસ્પિટલનું 24x7 ટ્રોમા સેન્ટર ખુલ્લું છે. બ્લડ બેંક, સીટી સ્કેન અને 6 ICU બેડ તૈયાર છે.',
+    assistantHindiSpeech:
+      'दुर्घटना और चोट के लिए सिविल अस्पताल का 24x7 ट्रॉमा सेंटर खुला है। ब्लड बैंक, सीटी स्कैन और 6 आईसीयू बेड तैयार हैं।',
     assistantEnglishAdvice:
       '24x7 Emergency Trauma Center is active at Civil Hospital with on-site CT scan, operational Blood Bank, and 6 available ICU beds.',
   },
@@ -170,6 +183,8 @@ const SYMPTOM_CONFIGS: Record<SymptomType, SymptomConfig> = {
     keywords: ['child', 'baby', 'balak', 'bacha', 'pediatric', 'infant', 'kid'],
     assistantGujaratiSpeech:
       'બાળકની સારવાર માટે પીડિયાટ્રિક્સ OPD ચાલુ છે. ગાંધીનગર સિવિલ હોસ્પિટલમાં 4 બાળ રોગ નિષ્ણાત ડોક્ટર હાજર છે (વેઇટિંગ સમય: 15 મિનિટ).',
+    assistantHindiSpeech:
+      'बच्चों के इलाज के लिए बाल रोग ओपीडी चालू है। गांधीनगर सिविल अस्पताल में 4 बाल रोग विशेषज्ञ डॉक्टर मौजूद हैं (प्रतीक्षा समय: 15 मिनट)।',
     assistantEnglishAdvice:
       'Pediatrics OPD is active. Gandhinagar Civil Hospital has 4 child specialists on duty with 15 mins estimated wait time.',
   },
@@ -186,6 +201,10 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
   onClose,
   defaultTab = 'ASSISTANT',
 }) => {
+  const { i18n, t } = useTranslation();
+  const currentLang = i18n.language || 'en';
+  const speechLang = currentLang === 'hi' ? 'hi-IN' : currentLang === 'gu' ? 'gu-IN' : 'en-IN';
+
   const [activeTab, setActiveTab] = useState<'ASSISTANT' | 'STORES' | 'TRIAGE'>(defaultTab);
   const [selectedSymptom, setSelectedSymptom] = useState<SymptomType>('FRACTURE');
   const [isListening, setIsListening] = useState(false);
@@ -194,6 +213,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFacilityId, setSelectedFacilityId] = useState<string>('fac_civil_01');
   const [storeSearch, setStoreSearch] = useState('');
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
@@ -206,7 +226,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
       const recognition = new SpeechRecognition() as SpeechRecognitionInstance;
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'gu-IN'; // Default to Gujarati, also catches Hindi/English phonetics
+      recognition.lang = speechLang;
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -240,7 +260,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [speechLang]);
 
   // Speak assistant recommendation in Gujarati/Hindi/English
   const speakVoice = (text: string) => {
@@ -250,7 +270,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.92;
       utterance.pitch = 1.0;
-      utterance.lang = 'gu-IN'; // Browser will fallback gracefully if gu-IN not installed
+      utterance.lang = speechLang;
       window.speechSynthesis.speak(utterance);
     } catch {
       // Ignore speech synthesis errors gracefully
@@ -262,10 +282,15 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
     if (isOpen && activeTab === 'ASSISTANT') {
       const config = SYMPTOM_CONFIGS[selectedSymptom];
       if (config) {
-        speakVoice(config.assistantGujaratiSpeech);
+        const speechText = currentLang === 'hi'
+          ? config.assistantHindiSpeech
+          : currentLang === 'gu'
+          ? config.assistantGujaratiSpeech
+          : config.assistantEnglishAdvice;
+        speakVoice(speechText);
       }
     }
-  }, [selectedSymptom, isOpen, activeTab, isVoiceMuted]);
+  }, [selectedSymptom, isOpen, activeTab, isVoiceMuted, currentLang]);
 
   // Handle voice mic toggle
   const toggleListening = () => {
@@ -310,12 +335,18 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
   // Find best matched hospital based on symptom
   const activeConfig = SYMPTOM_CONFIGS[selectedSymptom];
 
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setFacilities(res.data);
+    }).catch(console.warn);
+  }, []);
+
   // Best facility selection logic
-  const bestFacility: Facility =
-    INITIAL_FACILITIES.find((f) => f.id === selectedFacilityId) || INITIAL_FACILITIES[0];
+  const bestFacility =
+    facilities.find((f) => f.id === selectedFacilityId) || facilities[0] || INITIAL_FACILITIES[0];
 
   // Alternative facilities nearby
-  const alternativeFacilities = INITIAL_FACILITIES.filter((f) => f.id !== bestFacility.id);
+  const alternativeFacilities = facilities.filter((f) => f.id !== bestFacility.id);
 
   // Department / doctor count inside bestFacility
   const matchedDepartment = bestFacility.departments?.find(
@@ -338,23 +369,23 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/65 backdrop-blur-xs p-3 sm:p-5 animate-in fade-in duration-200">
       <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl bg-white shadow-2xl border border-teal-200/80 flex flex-col font-sans">
         {/* ================================================== */}
-        {/* MODAL HEADER - Clean Healthcare Surface */}
+        {/* MODAL HEADER */}
         {/* ================================================== */}
-        <div className="flex items-center justify-between border-b border-slate-200/90 px-4 sm:px-6 py-3.5 bg-white">
+        <div className="flex items-center justify-between border-b border-teal-100 px-4 sm:px-6 py-3.5 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 text-white">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-200/80 text-teal-700 shadow-xs">
-              <Sparkles className="h-5 w-5 text-teal-700" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white shadow-sm">
+              <Sparkles className="h-5 w-5 text-teal-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+                <h3 className="text-base sm:text-lg font-bold tracking-tight text-white">
                   Sanjeevani Voice & Hospital Assistant
                 </h3>
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                  <Activity className="h-3 w-3 text-emerald-600" /> Live Triage
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                  <Activity className="h-3 w-3" /> Live Triage
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-teal-200/90 font-medium">
                 Ask in Gujarati, Hindi, or English • Recommends hospitals with verified doctors & beds
               </p>
             </div>
@@ -368,11 +399,11 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
               title={isVoiceMuted ? 'Turn on voice audio' : 'Mute voice audio'}
               className={`rounded-xl p-2 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
                 isVoiceMuted
-                  ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                  : 'bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                  ? 'bg-white/10 text-slate-300 hover:bg-white/20'
+                  : 'bg-emerald-500/25 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/35'
               }`}
             >
-              {isVoiceMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-emerald-700" />}
+              {isVoiceMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-emerald-300" />}
               <span className="hidden sm:inline">{isVoiceMuted ? 'Muted' : 'Voice On'}</span>
             </button>
 
@@ -380,7 +411,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+              className="rounded-xl p-2 text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>

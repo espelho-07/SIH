@@ -4,6 +4,7 @@ import { User, UserRole, StaffSubType } from '@/types/auth';
 import { FacilityMatchRequest } from '@/types/facility';
 import { CreateReferralRequest } from '@/types/referral';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
+import { IntelligenceService } from '@/services/intelligenceService';
 
 // Intercepts mock requests and returns structured ApiResponse format
 export async function handleMockRequest(url: string, method: string = 'GET', data?: unknown): Promise<ApiResponse<unknown> | null> {
@@ -66,7 +67,15 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   // 2. FACILITIES
-  if (cleanUrl === '/api/v1/facilities' || cleanUrl.includes('/facilities/nearby') || cleanUrl.includes('/facilities/search')) {
+  if (cleanUrl === '/facilities' || cleanUrl === '/api/v1/facilities' || cleanUrl.includes('/facilities/nearby') || cleanUrl.includes('/facilities/search')) {
+    if (method === 'POST') {
+      const createdFac = mockState.addFacility(data as any);
+      return {
+        success: true,
+        message: `Government facility ${createdFac.name} registered successfully in ${createdFac.district}`,
+        data: createdFac,
+      };
+    }
     return {
       success: true,
       message: 'Facilities retrieved',
@@ -94,7 +103,80 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
-  // 2b. FACILITY OPERATIONS (FACILITY_OPERATIONS)
+  // 2a. DOCTORS & SPECIALISTS MANAGEMENT
+  if (cleanUrl === '/doctors' || cleanUrl === '/api/v1/doctors') {
+    if (method === 'POST') {
+      const newDoc = mockState.addDoctor(data as any);
+      return {
+        success: true,
+        message: `Doctor ${newDoc.name} (${newDoc.specialty}) registered successfully`,
+        data: newDoc,
+      };
+    }
+    return {
+      success: true,
+      message: 'Doctors retrieved',
+      data: mockState.doctors,
+    };
+  }
+
+  const docStatusMatch = cleanUrl.match(/\/doctors\/(doc_[a-z0-9_]+)\/status$/);
+  if (docStatusMatch && (method === 'PATCH' || method === 'POST')) {
+    const body = (data || {}) as { status: any };
+    const updated = mockState.updateDoctorStatus(docStatusMatch[1], body.status);
+    return {
+      success: true,
+      message: 'Doctor duty status updated successfully',
+      data: updated,
+    };
+  }
+
+  // 2b. BLOOD CENTERS & STORAGE UNITS
+  if (cleanUrl === '/blood-centres' || cleanUrl === '/api/v1/blood-centres') {
+    if (method === 'POST') {
+      const newCenter = mockState.addBloodCenter(data as any);
+      return {
+        success: true,
+        message: `Blood institution ${newCenter.name} registered successfully`,
+        data: newCenter,
+      };
+    }
+    return {
+      success: true,
+      message: 'Blood centers retrieved',
+      data: mockState.bloodCenters,
+    };
+  }
+
+  // 2c. DISTRICT HEALTH ADMINISTRATORS (SUPER ADMIN EXCLUSIVE APPOINTMENTS)
+  if (cleanUrl === '/district-admins' || cleanUrl === '/api/v1/district-admins') {
+    if (method === 'POST') {
+      const newAdmin = mockState.provisionDistrictAdmin(data as any);
+      return {
+        success: true,
+        message: `District Administrator ${newAdmin.name} appointed for ${newAdmin.district} District jurisdiction`,
+        data: newAdmin,
+      };
+    }
+    return {
+      success: true,
+      message: 'District administrators retrieved',
+      data: mockState.districtAdmins,
+    };
+  }
+
+  const adminStatusMatch = cleanUrl.match(/\/district-admins\/(usr_dist_[a-z0-9_]+)\/status$/);
+  if (adminStatusMatch && (method === 'PATCH' || method === 'POST')) {
+    const body = (data || {}) as { status: any };
+    const updated = mockState.updateDistrictAdminStatus(adminStatusMatch[1], body.status);
+    return {
+      success: true,
+      message: 'District Administrator status updated',
+      data: updated,
+    };
+  }
+
+  // 2d. FACILITY OPERATIONS (FACILITY_OPERATIONS)
   if (cleanUrl.includes('/operations') || cleanUrl.includes('/facilities/fac_civil_01') || cleanUrl.includes('/facility-operations')) {
     const facId = 'fac_civil_01';
 
@@ -176,6 +258,159 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
       };
     }
 
+    // Staff Leaves Management
+    if (cleanUrl.includes('/leaves')) {
+      const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+      const queryFacilityId = queryParams.get('facilityId') || facId;
+      const queryStatus = queryParams.get('status') || undefined;
+      const queryDoctorId = queryParams.get('doctorId') || undefined;
+
+      // Evaluate operational impact preview
+      if (cleanUrl.includes('/impact')) {
+        const docId = queryParams.get('doctorId') || ((data as any)?.doctorId) || 'usr_doc_01';
+        const start = queryParams.get('startDate') || ((data as any)?.startDate) || '';
+        const end = queryParams.get('endDate') || ((data as any)?.endDate) || '';
+        const impact = mockState.evaluateLeaveImpact(docId, start, end, queryFacilityId);
+        return {
+          success: true,
+          message: 'Staff leave operational impact evaluated',
+          data: impact,
+        };
+      }
+
+      // Action: Approve
+      const approveMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/approve/);
+      if (approveMatch && method === 'POST') {
+        const body = (data || {}) as { reviewerName?: string };
+        try {
+          const approved = mockState.approveDoctorLeave(approveMatch[1], body.reviewerName || 'Facility Operations Coordinator');
+          return {
+            success: true,
+            message: `Leave approved for ${approved.doctorName}. Operational availability and service coverage updated.`,
+            data: approved,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to approve leave',
+            data: null,
+          };
+        }
+      }
+
+      // Action: Reject
+      const rejectMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/reject/);
+      if (rejectMatch && method === 'POST') {
+        const body = (data || {}) as { reason: string; reviewerName?: string };
+        try {
+          const rejected = mockState.rejectDoctorLeave(
+            rejectMatch[1],
+            body.reason || 'Service coverage constraints',
+            body.reviewerName || 'Facility Operations Coordinator'
+          );
+          return {
+            success: true,
+            message: `Leave request rejected for ${rejected.doctorName}. Doctor notified.`,
+            data: rejected,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to reject leave',
+            data: null,
+          };
+        }
+      }
+
+      // Action: Request Changes
+      const changesMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/request-changes/);
+      if (changesMatch && method === 'POST') {
+        const body = (data || {}) as { note: string; reviewerName?: string };
+        try {
+          const updated = mockState.requestChangesDoctorLeave(
+            changesMatch[1],
+            body.note || 'Please arrange alternate specialist handover',
+            body.reviewerName || 'Facility Operations Coordinator'
+          );
+          return {
+            success: true,
+            message: `Clarification requested for ${updated.doctorName}. Leave returned with reviewer notes.`,
+            data: updated,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to request changes',
+            data: null,
+          };
+        }
+      }
+
+      // Action: Cancel / Withdraw
+      const cancelMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/cancel/);
+      if (cancelMatch && method === 'POST') {
+        const body = (data || {}) as { actor?: string };
+        const cancelled = mockState.cancelDoctorLeave(cancelMatch[1], body.actor || 'Doctor');
+        return {
+          success: cancelled,
+          message: cancelled ? 'Leave schedule withdrawn. Staff duty availability restored.' : 'Leave not found or already cancelled',
+          data: { cancelled },
+        };
+      }
+
+      // Single Leave Details
+      const singleMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)$/);
+      if (singleMatch && method === 'GET') {
+        const leave = mockState.getLeaveById(singleMatch[1]);
+        if (!leave) {
+          return {
+            success: false,
+            message: 'Leave record not found',
+            data: null,
+          };
+        }
+        return {
+          success: true,
+          message: 'Leave details retrieved',
+          data: leave,
+        };
+      }
+
+      // Create new leave (Doctor or Staff applying)
+      if (method === 'POST') {
+        const body = (data || {}) as any;
+        try {
+          const created = mockState.addDoctorLeave(body, body.actor || 'Doctor');
+          return {
+            success: true,
+            message: `Leave request registered successfully with ID ${created.id} and routed for Facility Operations review`,
+            data: created,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to submit leave request',
+            data: null,
+          };
+        }
+      }
+
+      // List facility leaves or doctor leaves
+      if (queryDoctorId) {
+        return {
+          success: true,
+          message: 'Doctor leaves retrieved',
+          data: mockState.getDoctorLeaves(queryDoctorId),
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Facility staff leave records retrieved',
+        data: mockState.getFacilityLeaves(queryFacilityId, queryStatus),
+      };
+    }
+
     // Queue Delay Broadcast
     if (cleanUrl.includes('/queues/delay') && (method === 'PATCH' || method === 'POST')) {
       const body = (data || {}) as { departmentId: string; delayMinutes: number };
@@ -214,12 +449,30 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   if (cleanUrl.includes('/tokens') && method === 'POST') {
-    const body = (data || {}) as { patientName?: string; patientPhone?: string; facilityId?: string; departmentId?: string };
+    const body = (data || {}) as {
+      patientName?: string;
+      patientPhone?: string;
+      facilityId?: string;
+      departmentId?: string;
+      priority?: 'ROUTINE' | 'URGENT' | 'EMERGENCY';
+      doctorId?: string;
+      doctorName?: string;
+      roomNumber?: string;
+    };
     const token = mockState.generateToken(
       body.patientName || 'Rameshwar Sharma',
       body.patientPhone || '9876543210',
       body.facilityId || 'fac_civil_01',
-      body.departmentId || 'dep_med'
+      body.departmentId || 'dep_med',
+      body.priority || 'ROUTINE',
+      45,
+      'M',
+      'usr_pat_01',
+      undefined,
+      undefined,
+      body.doctorId,
+      body.doctorName,
+      body.roomNumber
     );
     return {
       success: true,
@@ -284,6 +537,26 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
       message: `Found ${results.length} patient records`,
       data: results,
     };
+  }
+
+  if (cleanUrl.includes('/appointments') && cleanUrl.includes('/assign-doctor') && (method === 'PATCH' || method === 'POST')) {
+    const parts = cleanUrl.split('/');
+    const aptIndex = parts.findIndex((p) => p === 'appointments');
+    const aptId = aptIndex !== -1 ? parts[aptIndex + 1] : '';
+    try {
+      const updatedApt = mockState.assignDoctorToAppointment(aptId, (data || {}) as any);
+      return {
+        success: true,
+        message: `Doctor ${updatedApt.doctorName} assigned to patient ${updatedApt.patientName}`,
+        data: updatedApt,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || 'Failed to assign doctor',
+        data: null,
+      };
+    }
   }
 
   if (cleanUrl.includes('/appointments') && cleanUrl.includes('/check-in') && method === 'POST') {
@@ -511,18 +784,52 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
-  // 5. REFERRALS
-  if (cleanUrl === '/api/v1/referrals' && method === 'GET') {
+  // 5. REFERRALS & CLOSED-LOOP TRANSFER COORDINATION
+  if ((cleanUrl === '/referrals' || cleanUrl === '/api/v1/referrals' || cleanUrl.endsWith('/referrals')) && method === 'GET') {
+    const queryString = url.includes('?') ? url.split('?')[1] : '';
+    const queryParams = new URLSearchParams(queryString);
+    const facilityId = queryParams.get('facilityId') || (data as any)?.facilityId;
+    const toFacilityId = queryParams.get('toFacilityId') || (data as any)?.toFacilityId;
+    const fromFacilityId = queryParams.get('fromFacilityId') || (data as any)?.fromFacilityId;
+    const fromDoctorId = queryParams.get('fromDoctorId') || (data as any)?.fromDoctorId;
+    const patientId = queryParams.get('patientId') || (data as any)?.patientId;
+    const status = queryParams.get('status') || (data as any)?.status;
+    const priority = queryParams.get('priority') || (data as any)?.priority;
+
+    const list = mockState.getReferrals({
+      facilityId: facilityId || undefined,
+      toFacilityId: toFacilityId || undefined,
+      fromFacilityId: fromFacilityId || undefined,
+      fromDoctorId: fromDoctorId || undefined,
+      patientId: patientId || undefined,
+      status: status || undefined,
+      priority: priority || undefined,
+    });
+
     return {
       success: true,
       message: 'Referrals retrieved',
-      data: mockState.referrals,
-      meta: { page: 1, limit: 10, total: mockState.referrals.length },
+      data: list,
+      meta: { page: 1, limit: 50, total: list.length },
     };
   }
 
-  if (cleanUrl === '/api/v1/referrals' && method === 'POST') {
-    const created = mockState.createReferral(data as CreateReferralRequest);
+  if ((cleanUrl === '/referrals' || cleanUrl === '/api/v1/referrals' || cleanUrl.endsWith('/referrals')) && method === 'POST') {
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user') || localStorage.getItem('sanjeevani_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const reqData = data as CreateReferralRequest;
+    const created = mockState.createReferral(reqData, {
+      name: reqData.fromDoctorName || currentUser?.name || 'Dr. Neha Vaghela',
+      role: currentUser?.designation || 'Medical Officer',
+      facilityId: reqData.fromFacilityId || currentUser?.facilityId,
+      facilityName: reqData.fromFacilityName || currentUser?.facilityName,
+      doctorId: reqData.fromDoctorId || currentUser?.id,
+    });
+
     return {
       success: true,
       message: `Referral ${created.referralCode} dispatched successfully`,
@@ -530,21 +837,186 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
     };
   }
 
-  if (cleanUrl.includes('/referrals') && cleanUrl.includes('/accept')) {
-    const ref = mockState.referrals[0];
-    ref.status = 'ACCEPTED';
-    ref.events.push({
-      id: `ev_${Date.now()}`,
-      status: 'ACCEPTED',
-      timestamp: new Date().toISOString(),
-      actorName: 'Receiving Medical Specialist',
-      actorRole: 'SPECIALIST',
-      facilityName: ref.toFacilityName,
+  // Specific Action Routes (Check before generic ID match)
+  const reviewMatch = cleanUrl.match(/\/referrals\/([^/]+)\/review$/);
+  if (reviewMatch && method === 'POST') {
+    const id = reviewMatch[1];
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.reviewReferral(id, {
+      name: currentUser?.name || 'Vikram Joshi',
+      role: 'Facility Operations Lead',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
     });
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} is now under review`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const acceptMatch = cleanUrl.match(/\/referrals\/([^/]+)\/accept$/);
+  if (acceptMatch && method === 'POST') {
+    const id = acceptMatch[1];
+    const { appointmentSlot, appointmentId } = (data || {}) as { appointmentSlot?: string; appointmentId?: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.acceptReferral(id, appointmentSlot, appointmentId, {
+      name: currentUser?.name || 'Vikram Joshi (Operations Lead)',
+      role: 'Facility Operations Lead',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} accepted and scheduled`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const rejectMatch = cleanUrl.match(/\/referrals\/([^/]+)\/reject$/);
+  if (rejectMatch && method === 'POST') {
+    const id = rejectMatch[1];
+    const { reason } = (data || {}) as { reason: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.rejectReferral(id, reason || 'Specialist / Bed Capacity Unavailable', {
+      name: currentUser?.name || 'Vikram Joshi (Operations Lead)',
+      role: 'Facility Operations',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} diverted with recorded reason`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const clarReqMatch = cleanUrl.match(/\/referrals\/([^/]+)\/clarification-request$/);
+  if (clarReqMatch && method === 'POST') {
+    const id = clarReqMatch[1];
+    const { message } = (data || {}) as { message: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.requestClarification(id, message, {
+      name: currentUser?.name || 'Vikram Joshi (Operations Lead)',
+      role: 'Facility Operations',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: 'Clarification query dispatched to referring doctor', data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const clarResMatch = cleanUrl.match(/\/referrals\/([^/]+)\/clarification-response$/);
+  if (clarResMatch && method === 'POST') {
+    const id = clarResMatch[1];
+    const { message } = (data || {}) as { message: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.provideClarification(id, message, {
+      name: currentUser?.name || 'Dr. Neha Vaghela',
+      role: 'Referring Doctor',
+    });
+    if (updated) {
+      return { success: true, message: 'Clarification response submitted to receiving facility', data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const arrivalMatch = cleanUrl.match(/\/referrals\/([^/]+)\/confirm-arrival$/);
+  if (arrivalMatch && method === 'POST') {
+    const id = arrivalMatch[1];
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.confirmArrival(id, {
+      name: currentUser?.name || 'Casualty Desk',
+      role: 'Registration Clerk',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Arrival confirmed for referral ${updated.referralCode}`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const outcomeMatch = cleanUrl.match(/\/referrals\/([^/]+)\/outcome$/);
+  if (outcomeMatch && method === 'POST') {
+    const id = outcomeMatch[1];
+    const { outcomeNotes } = (data || {}) as { outcomeNotes: string };
+    let currentUser: User | null = null;
+    try {
+      const savedUser = localStorage.getItem('healthconnect_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    const updated = mockState.recordReferralOutcome(id, outcomeNotes || 'Consultation concluded.', {
+      name: currentUser?.name || 'Dr. Arvind Patel',
+      role: 'Attending Specialist',
+      facilityName: currentUser?.facilityName || 'Gandhinagar Civil Hospital',
+    });
+    if (updated) {
+      return { success: true, message: `Consultation outcome recorded for referral ${updated.referralCode}`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  const closeMatch = cleanUrl.match(/\/referrals\/([^/]+)\/close$/);
+  if (closeMatch && method === 'POST') {
+    const id = closeMatch[1];
+    const updated = mockState.closeReferral(id);
+    if (updated) {
+      return { success: true, message: `Referral ${updated.referralCode} closed`, data: updated };
+    }
+    return { success: false, message: 'Referral not found', data: null as any };
+  }
+
+  // Generic single referral match: GET /referrals/:id
+  const singleRefMatch = cleanUrl.match(/\/referrals\/([^/]+)$/);
+  if (singleRefMatch && method === 'GET') {
+    const id = singleRefMatch[1];
+    const ref = mockState.getReferralById(id);
+    if (ref) {
+      return {
+        success: true,
+        message: 'Referral details retrieved',
+        data: ref,
+      };
+    }
+    return {
+      success: false,
+      message: `Referral with ID ${id} not found`,
+      data: null as any,
+    };
+  }
+
+  // Notifications endpoint
+  if ((cleanUrl === '/notifications' || cleanUrl.endsWith('/notifications')) && method === 'GET') {
     return {
       success: true,
-      message: 'Referral accepted and priority slot booked',
-      data: ref,
+      message: 'Notifications retrieved',
+      data: mockState.notifications,
     };
   }
 
@@ -583,6 +1055,27 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   if (cleanUrl.includes('/medicines') || cleanUrl.includes('/medicine-inventory')) {
+    if (method === 'POST') {
+      const newMed = mockState.addMedicine((data || {}) as any);
+      return {
+        success: true,
+        message: 'Medicine added successfully to pharmacy formulary',
+        data: newMed,
+      };
+    }
+
+    if (method === 'DELETE') {
+      const parts = cleanUrl.split('/');
+      const medIndex = parts.findIndex((p) => p === 'medicines');
+      const medId = medIndex !== -1 ? parts[medIndex + 1] : parts[parts.length - 1];
+      const deleted = mockState.deleteMedicine(medId);
+      return {
+        success: deleted,
+        message: deleted ? 'Medicine removed from inventory successfully' : 'Medicine not found',
+        data: { id: medId },
+      };
+    }
+
     if (method === 'PATCH' && cleanUrl.includes('/quarantine')) {
       const parts = cleanUrl.split('/');
       const medIndex = parts.findIndex((p) => p === 'medicines');
@@ -761,6 +1254,117 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
   }
 
   // 8. AI & DISTRICT DEMAND INTELLIGENCE
+  if (cleanUrl.includes('/district/intelligence/summary')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    const timeRange = (queryParams.get('timeRange') as any) || 'TODAY';
+    return {
+      success: true,
+      message: 'District health resource intelligence summary retrieved',
+      data: IntelligenceService.getDistrictSummary(district, timeRange),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/areas')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Area & village healthcare intelligence profiles retrieved',
+      data: IntelligenceService.getAreaProfiles(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/facilities')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Facility capacity & service gap profiles retrieved',
+      data: IntelligenceService.getFacilityGapProfiles(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/specialist-gaps')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Specialist shortage intelligence retrieved',
+      data: IntelligenceService.getSpecialistGaps(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/equipment-gaps')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Equipment gap intelligence retrieved',
+      data: IntelligenceService.getEquipmentGaps(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/medicine-shortages')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Medicine shortage intelligence retrieved',
+      data: IntelligenceService.getMedicineShortages(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/diagnostic-gaps')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Diagnostic service gap intelligence retrieved',
+      data: IntelligenceService.getDiagnosticGaps(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/recommendations')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Evidence-backed capacity planning recommendations retrieved',
+      data: IntelligenceService.getRecommendations(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/unused-resources')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Unused & underutilized resources retrieved',
+      data: IntelligenceService.getUnusedResources(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/doctor-requirements')) {
+    const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const district = queryParams.get('district') || 'Gandhinagar';
+    return {
+      success: true,
+      message: 'Hospital-wise doctor requirements retrieved',
+      data: IntelligenceService.getHospitalDoctorRequirements(district),
+    };
+  }
+
+  if (cleanUrl.includes('/district/intelligence/query') && method === 'POST') {
+    const body = (data || {}) as { query?: string; district?: string };
+    const answer = IntelligenceService.queryDistrictIntelligence(body.query || '', body.district || 'Gandhinagar');
+    return {
+      success: true,
+      message: 'Grounded intelligence query executed successfully',
+      data: answer,
+    };
+  }
+
   if (cleanUrl.includes('/ai/dashboard') || cleanUrl.includes('/disease-trends') || cleanUrl.includes('/outbreak-alerts')) {
     return {
       success: true,

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_AMBULANCES, INITIAL_FACILITIES } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { resourceApi } from '@/api/resourceApi';
+import { Facility } from '@/types/facility';
 import { Ambulance as AmbulanceType } from '@/types/resources';
 import {
   Ambulance,
@@ -18,8 +21,11 @@ import {
 
 export const DistrictAmbulancesPage: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
+  const [ambulances, setAmbulances] = useState<AmbulanceType[]>(INITIAL_AMBULANCES);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
+  const [facilityFilter, setFacilityFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [showDispatchModal, setShowDispatchModal] = useState(false);
   const [dispatchSuccess, setDispatchSuccess] = useState<string | null>(null);
@@ -29,8 +35,23 @@ export const DistrictAmbulancesPage: React.FC = () => {
   const [emergencySeverity, setEmergencySeverity] = useState('HIGH');
   const [destinationHospital, setDestinationHospital] = useState(INITIAL_FACILITIES[0]?.id || '');
 
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setFacilities(res.data);
+        setDestinationHospital(res.data[0].id);
+      }
+    }).catch(console.warn);
+
+    resourceApi.getAmbulances().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setAmbulances(res.data);
+      }
+    }).catch(console.warn);
+  }, []);
+
   // Filter ambulances
-  const filteredAmbulances = INITIAL_AMBULANCES.filter((amb) => {
+  const filteredAmbulances = ambulances.filter((amb) => {
     const matchesSearch =
       amb.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       amb.facilityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,14 +59,15 @@ export const DistrictAmbulancesPage: React.FC = () => {
 
     const matchesStatus = statusFilter === 'ALL' || amb.status === statusFilter;
     const matchesType = typeFilter === 'ALL' || amb.type === typeFilter;
+    const matchesFacility = facilityFilter === 'ALL' || amb.facilityId === facilityFilter;
 
-    return matchesSearch && matchesStatus && matchesType;
+    return matchesSearch && matchesStatus && matchesType && matchesFacility;
   });
 
-  const totalAmbulances = INITIAL_AMBULANCES.length;
-  const availableCount = INITIAL_AMBULANCES.filter((a) => a.status === 'AVAILABLE').length;
-  const inTransitCount = INITIAL_AMBULANCES.filter((a) => a.status === 'IN_TRANSIT').length;
-  const maintenanceCount = INITIAL_AMBULANCES.filter((a) => a.status === 'MAINTENANCE').length;
+  const totalAmbulances = ambulances.length;
+  const availableCount = ambulances.filter((a) => a.status === 'AVAILABLE').length;
+  const inTransitCount = ambulances.filter((a) => a.status === 'IN_TRANSIT').length;
+  const maintenanceCount = ambulances.filter((a) => a.status === 'MAINTENANCE').length;
 
   const handleDispatch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,7 +190,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-hidden"
+              className="px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-semibold shadow-2xs focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">All Ambulance Types</option>
               <option value="ADVANCED_LIFE_SUPPORT">Advanced Life Support (ALS)</option>
@@ -272,7 +294,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
       {/* Dispatch Modal */}
       {showDispatchModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6 bg-white border-slate-200 shadow-xl space-y-4">
+          <Card className="w-full max-w-2xl sm:max-w-3xl p-6 sm:p-8 bg-white border-slate-200 shadow-xl space-y-4 rounded-3xl">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2 text-rose-700 font-bold text-base">
                 <Ambulance className="h-5 w-5" />
@@ -304,7 +326,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
                   <select
                     value={emergencySeverity}
                     onChange={(e) => setEmergencySeverity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600"
                   >
                     <option value="CRITICAL">Critical (Cardiac/Trauma)</option>
                     <option value="HIGH">High (Maternal/Pediatric)</option>
@@ -314,7 +336,7 @@ export const DistrictAmbulancesPage: React.FC = () => {
 
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Required Unit</label>
-                  <select className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600">
+                  <select className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600">
                     <option>Closest ALS Unit</option>
                     <option>Closest BLS Unit</option>
                   </select>
@@ -326,9 +348,9 @@ export const DistrictAmbulancesPage: React.FC = () => {
                 <select
                   value={destinationHospital}
                   onChange={(e) => setDestinationHospital(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium focus:outline-hidden focus:border-rose-600"
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-medium shadow-2xs focus:outline-hidden focus:border-rose-600"
                 >
-                  {INITIAL_FACILITIES.map((f) => (
+                  {facilities.map((f) => (
                     <option key={f.id} value={f.id}>
                       {f.name} ({f.availableBeds} beds free)
                     </option>

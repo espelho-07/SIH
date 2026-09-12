@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/Dialog';
 import { INITIAL_AUDIT_LOGS } from '@/mock/mockData';
 import { AuditLog } from '@/types/admin';
+import { adminApi } from '@/api/adminApi';
 import {
   ShieldCheck,
   Search,
@@ -30,6 +31,7 @@ import {
   Calendar,
   FileText,
   UserCheck,
+  RefreshCw,
 } from 'lucide-react';
 
 const formatActionName = (action: string): string => {
@@ -51,12 +53,39 @@ const formatActionName = (action: string): string => {
 };
 
 export const AuditLogsPage: React.FC = () => {
-  const [logs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const [logs, setLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAction, setSelectedAction] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [selectedResource, setSelectedResource] = useState('ALL');
   const [inspectingLog, setInspectingLog] = useState<AuditLog | null>(null);
+
+  const fetchLogs = async (showRefreshSpinner = false) => {
+    if (showRefreshSpinner) setIsRefreshing(true);
+    setError(null);
+    try {
+      const res = await adminApi.getAuditLogs(
+        selectedAction !== 'ALL' ? { action: selectedAction } : undefined
+      );
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setLogs(res.data);
+      }
+    } catch (err: any) {
+      console.warn('Audit logs fetch error:', err);
+      setError(err?.message || 'Could not fetch live audit logs.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchLogs();
+  }, [selectedAction]);
 
   // Distinct action types
   const actionTypes = useMemo(() => {
@@ -115,17 +144,39 @@ export const AuditLogsPage: React.FC = () => {
           { label: 'Audit Logs' },
         ]}
         actions={
-          <Button
-            onClick={handleExport}
-            variant="outline"
-            size="sm"
-            className="text-xs gap-1.5 cursor-pointer"
-          >
-            <Download className="h-3.5 w-3.5 text-teal-700" />
-            Export Audit Trail (.JSON)
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => fetchLogs(true)}
+              variant="outline"
+              size="sm"
+              isLoading={isRefreshing}
+              className="text-xs gap-1.5 cursor-pointer"
+            >
+              <RefreshCw className="h-3.5 w-3.5 text-teal-700" />
+              Refresh
+            </Button>
+            <Button
+              onClick={handleExport}
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5 cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5 text-teal-700" />
+              Export Audit Trail (.JSON)
+            </Button>
+          </div>
         }
       />
+
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <Button size="xs" variant="outline" onClick={() => fetchLogs(true)}>Retry</Button>
+        </div>
+      )}
 
       {/* Top 4 Operational Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -192,7 +243,7 @@ export const AuditLogsPage: React.FC = () => {
             <select
               value={selectedAction}
               onChange={(e) => setSelectedAction(e.target.value)}
-              className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+              className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
             >
               <option value="ALL">All Event Types</option>
               {actionTypes.map((act) => (
@@ -207,7 +258,7 @@ export const AuditLogsPage: React.FC = () => {
             <select
               value={selectedResource}
               onChange={(e) => setSelectedResource(e.target.value)}
-              className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+              className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
             >
               <option value="ALL">All Target Resources</option>
               {resourceTypes.map((res) => (
@@ -222,7 +273,7 @@ export const AuditLogsPage: React.FC = () => {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+              className="w-full flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
               <option value="SUCCESS">Success Only</option>
@@ -330,8 +381,8 @@ export const AuditLogsPage: React.FC = () => {
 
       {/* Inspect Event Modal */}
       {inspectingLog && (
-        <Dialog open={Boolean(inspectingLog)} onOpenChange={(open) => !open && setInspectingLog(null)}>
-          <DialogContent className="max-w-xl">
+        <Dialog open={Boolean(inspectingLog)} onOpenChange={(open) => !open && setInspectingLog(null)} maxWidth="2xl">
+          <DialogContent className="space-y-4">
             <DialogHeader>
               <div className="flex items-center gap-2 text-teal-700 mb-1">
                 <ShieldCheck className="h-5 w-5" />

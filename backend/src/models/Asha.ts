@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
+import { VitalsSchema, IVitals } from './Encounter';
 
 // ASHA Patient
 export interface IAshaPatient extends Document {
@@ -24,47 +25,54 @@ export interface IAshaPatient extends Document {
   syncStatus?: 'SYNCED' | 'LOCAL_PENDING';
   lastVisitDate?: string;
   nextFollowUpDate?: string;
-  latestVitals?: any;
+  latestVitals?: IVitals;
   category?: 'MATERNAL' | 'INFANT' | 'NCD_HYPERTENSION' | 'NCD_DIABETES' | 'ELDERLY' | 'GENERAL';
   gestationalWeek?: number;
   immunizationStage?: string;
   createdAt: string;
 }
 
-const AshaPatientSchema = new Schema(
+const AshaPatientSchema = new Schema<IAshaPatient>(
   {
-    id: { type: String, index: true },
-    ashaId: { type: String, default: 'usr_asha_01' },
-    ashaName: { type: String, default: 'Sunita Devi' },
-    name: { type: String, required: true },
+    id: { type: String, required: true, unique: true, index: true },
+    ashaId: { type: String, default: 'usr_asha_01', index: true },
+    ashaName: { type: String, default: 'Geetaben Parmar' },
+    name: { type: String, required: true, index: true },
     age: { type: Number, required: true },
-    gender: { type: String, enum: ['M', 'F', 'Other'], default: 'F' },
-    phone: { type: String, required: true },
-    village: { type: String, default: 'Pethapur' },
-    wardNumber: { type: String, default: 'Ward 4' },
-    address: { type: String, default: 'Near Primary School, Pethapur' },
+    gender: { type: String, enum: ['M', 'F', 'Other'], required: true },
+    phone: { type: String, required: true, index: true },
+    village: { type: String, default: 'Pethapur', index: true },
+    wardNumber: { type: String },
+    address: { type: String, default: 'Village Main Road, Pethapur' },
     householdId: { type: String },
     householdHeadName: { type: String },
-    emergencyContactName: { type: String, default: 'Family' },
-    emergencyContactPhone: { type: String, default: '9825000000' },
+    emergencyContactName: { type: String, default: 'Family Guardian' },
+    emergencyContactPhone: { type: String, default: '9876500000' },
     abhaId: { type: String },
-    bloodGroup: { type: String, default: 'B+' },
-    isHighRisk: { type: Boolean, default: false },
-    highRiskReasons: { type: [String], default: [] },
+    bloodGroup: { type: String },
+    isHighRisk: { type: Boolean, default: false, index: true },
+    highRiskReasons: [{ type: String }],
     registeredOffline: { type: Boolean, default: false },
-    syncStatus: { type: String, default: 'SYNCED' },
+    syncStatus: { type: String, enum: ['SYNCED', 'LOCAL_PENDING'], default: 'SYNCED' },
     lastVisitDate: { type: String },
     nextFollowUpDate: { type: String },
-    latestVitals: { type: Schema.Types.Mixed },
-    category: { type: String, default: 'GENERAL' },
+    latestVitals: VitalsSchema,
+    category: {
+      type: String,
+      enum: ['MATERNAL', 'INFANT', 'NCD_HYPERTENSION', 'NCD_DIABETES', 'ELDERLY', 'GENERAL'],
+      default: 'GENERAL',
+      index: true,
+    },
     gestationalWeek: { type: Number },
     immunizationStage: { type: String },
+    createdAt: { type: String, default: () => new Date().toISOString() },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
+      transform(_doc, ret) {
         ret.id = ret.id || ret._id.toString();
+        delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -72,8 +80,10 @@ const AshaPatientSchema = new Schema(
   }
 );
 
+export const AshaPatientModel = mongoose.model<IAshaPatient>('AshaPatient', AshaPatientSchema);
+
 // ASHA Visit
-export interface IAshaVisitDoc extends Document {
+export interface IAshaVisit extends Document {
   id: string;
   patientId: string;
   patientName: string;
@@ -85,7 +95,7 @@ export interface IAshaVisitDoc extends Document {
   visitType?: string;
   purpose: string;
   notes: string;
-  vitalsRecorded?: any;
+  vitalsRecorded?: IVitals;
   screeningConducted?: boolean;
   requiresReferral?: boolean;
   referralReason?: string;
@@ -101,29 +111,29 @@ export interface IAshaVisitDoc extends Document {
   prescribedDays?: number;
   doctorInstructions?: string;
   prescribedChecks?: string[];
-  priority?: string;
+  priority?: 'ROUTINE' | 'PRIORITY' | 'URGENT' | 'HIGH';
 }
 
-const AshaVisitSchema = new Schema(
+const AshaVisitSchema = new Schema<IAshaVisit>(
   {
-    id: { type: String, index: true },
+    id: { type: String, required: true, unique: true, index: true },
     patientId: { type: String, required: true, index: true },
     patientName: { type: String, required: true },
     patientPhone: { type: String },
-    village: { type: String, default: 'Pethapur' },
+    village: { type: String },
     address: { type: String },
-    visitDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
-    timeSlot: { type: String, default: '10:00 AM' },
+    visitDate: { type: String, required: true },
+    timeSlot: { type: String },
     visitType: { type: String, default: 'ROUTINE_CHECKUP' },
-    purpose: { type: String, default: 'Home health checkup' },
+    purpose: { type: String, required: true },
     notes: { type: String, default: '' },
-    vitalsRecorded: { type: Schema.Types.Mixed },
+    vitalsRecorded: VitalsSchema,
     screeningConducted: { type: Boolean, default: false },
     requiresReferral: { type: Boolean, default: false },
     referralReason: { type: String },
     actionTaken: { type: String },
-    status: { type: String, default: 'SCHEDULED' },
-    isCompleted: { type: Boolean, default: false },
+    status: { type: String, default: 'SCHEDULED', index: true },
+    isCompleted: { type: Boolean, default: false, index: true },
     completedAt: { type: String },
     nextScheduledDate: { type: String },
     prescribedByDoctorName: { type: String },
@@ -132,14 +142,15 @@ const AshaVisitSchema = new Schema(
     prescriptionDate: { type: String },
     prescribedDays: { type: Number },
     doctorInstructions: { type: String },
-    prescribedChecks: { type: [String] },
-    priority: { type: String, default: 'ROUTINE' },
+    prescribedChecks: [{ type: String }],
+    priority: { type: String, enum: ['ROUTINE', 'PRIORITY', 'URGENT', 'HIGH'], default: 'ROUTINE' },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
+      transform(_doc, ret) {
         ret.id = ret.id || ret._id.toString();
+        delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -147,44 +158,55 @@ const AshaVisitSchema = new Schema(
   }
 );
 
-// Follow-up Task
-export interface IFollowUpTaskDoc extends Document {
+export const AshaVisitModel = mongoose.model<IAshaVisit>('AshaVisit', AshaVisitSchema);
+
+// ASHA FollowUpTask
+export interface IFollowUpTask extends Document {
   id: string;
   patientId: string;
   patientName: string;
-  patientPhone: string;
-  village: string;
-  category: string;
-  title: string;
-  description: string;
+  patientPhone?: string;
+  village?: string;
+  category?: 'ANC' | 'IMMUNIZATION' | 'NCD' | 'POST_DISCHARGE' | 'TB_FOLLOWUP' | string;
+  title?: string;
+  taskType?: string;
+  description?: string;
   dueDate: string;
-  urgency: string;
+  urgency?: 'OVERDUE' | 'DUE_TODAY' | 'UPCOMING' | string;
   isCompleted: boolean;
   completedAt?: string;
-  actionRequired: string;
+  actionRequired?: string;
+  priority?: 'ROUTINE' | 'HIGH' | 'CRITICAL';
+  notes?: string;
+  ashaId?: string;
 }
 
-const FollowUpTaskSchema = new Schema(
+const FollowUpTaskSchema = new Schema<IFollowUpTask>(
   {
-    id: { type: String, index: true },
-    patientId: { type: String, required: true },
+    id: { type: String, required: true, unique: true, index: true },
+    patientId: { type: String, required: true, index: true },
     patientName: { type: String, required: true },
-    patientPhone: { type: String, default: '9825000000' },
-    village: { type: String, default: 'Pethapur' },
-    category: { type: String, default: 'NCD' },
-    title: { type: String, required: true },
-    description: { type: String, default: '' },
-    dueDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
-    urgency: { type: String, default: 'DUE_TODAY' },
-    isCompleted: { type: Boolean, default: false },
+    patientPhone: { type: String },
+    village: { type: String },
+    category: { type: String },
+    title: { type: String },
+    taskType: { type: String },
+    description: { type: String },
+    dueDate: { type: String, required: true },
+    urgency: { type: String },
+    isCompleted: { type: Boolean, default: false, index: true },
     completedAt: { type: String },
-    actionRequired: { type: String, default: 'Conduct home check' },
+    actionRequired: { type: String },
+    priority: { type: String, enum: ['ROUTINE', 'HIGH', 'CRITICAL'], default: 'ROUTINE' },
+    notes: { type: String, default: '' },
+    ashaId: { type: String, index: true },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
+      transform(_doc, ret) {
         ret.id = ret.id || ret._id.toString();
+        delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -192,55 +214,69 @@ const FollowUpTaskSchema = new Schema(
   }
 );
 
+export const FollowUpTaskModel = mongoose.model<IFollowUpTask>('FollowUpTask', FollowUpTaskSchema);
+
 // Frontline Referral
-export interface IFrontlineReferralDoc extends Document {
+export interface IFrontlineReferral extends Document {
   id: string;
   referralNumber: string;
   patientId: string;
   patientName: string;
   patientAge: number;
-  patientGender: 'M' | 'F' | 'Other';
+  patientGender: string;
   patientPhone: string;
   village: string;
-  targetFacilityId: string;
-  targetFacilityName: string;
-  targetFacilityType: string;
-  department: string;
+  ashaId?: string;
+  ashaName?: string;
+  facilityId?: string;
+  facilityName?: string;
+  targetFacilityId?: string;
+  targetFacilityName?: string;
+  targetFacilityType?: string;
+  department?: string;
   reason: string;
-  priority: string;
-  ambulanceRequested: boolean;
+  priority: 'ROUTINE' | 'URGENT' | 'EMERGENCY' | string;
+  ambulanceRequested?: boolean;
   ambulanceStatus?: string;
-  status: string;
+  status: 'INITIATED' | 'IN_TRANSIT' | 'ACCEPTED_AT_PHC' | 'CONSULTED' | 'COUNTER_REFERRED' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED' | string;
   doctorFeedback?: string;
+  notes?: string;
   createdAt: string;
 }
 
-const FrontlineReferralSchema = new Schema(
+const FrontlineReferralSchema = new Schema<IFrontlineReferral>(
   {
-    id: { type: String, index: true },
-    referralNumber: { type: String, required: true, index: true },
-    patientId: { type: String, required: true },
+    id: { type: String, required: true, unique: true, index: true },
+    referralNumber: { type: String, required: true, unique: true, index: true },
+    patientId: { type: String, required: true, index: true },
     patientName: { type: String, required: true },
-    patientAge: { type: Number, default: 40 },
-    patientGender: { type: String, enum: ['M', 'F', 'Other'], default: 'F' },
-    patientPhone: { type: String, default: '9825000000' },
-    village: { type: String, default: 'Pethapur' },
-    targetFacilityId: { type: String, default: 'fac_civil_01' },
-    targetFacilityName: { type: String, default: 'Gandhinagar Civil Hospital' },
-    targetFacilityType: { type: String, default: 'DISTRICT_HOSPITAL' },
-    department: { type: String, default: 'General Medicine' },
+    patientAge: { type: Number, required: true },
+    patientGender: { type: String, required: true },
+    patientPhone: { type: String, required: true },
+    village: { type: String, required: true },
+    ashaId: { type: String, index: true },
+    ashaName: { type: String },
+    facilityId: { type: String, index: true },
+    facilityName: { type: String },
+    targetFacilityId: { type: String, index: true },
+    targetFacilityName: { type: String },
+    targetFacilityType: { type: String },
+    department: { type: String },
     reason: { type: String, required: true },
-    priority: { type: String, enum: ['ROUTINE', 'URGENT', 'EMERGENCY'], default: 'ROUTINE' },
+    priority: { type: String, default: 'ROUTINE' },
     ambulanceRequested: { type: Boolean, default: false },
-    ambulanceStatus: { type: String, default: 'NOT_REQUIRED' },
-    status: { type: String, default: 'INITIATED' },
+    ambulanceStatus: { type: String },
+    status: { type: String, default: 'INITIATED', index: true },
     doctorFeedback: { type: String },
+    notes: { type: String },
+    createdAt: { type: String, default: () => new Date().toISOString() },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
+      transform(_doc, ret) {
         ret.id = ret.id || ret._id.toString();
+        delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -248,27 +284,50 @@ const FrontlineReferralSchema = new Schema(
   }
 );
 
+export const FrontlineReferralModel = mongoose.model<IFrontlineReferral>('FrontlineReferral', FrontlineReferralSchema);
+
 // Screening Session
-const ScreeningSessionSchema = new Schema(
+export interface IScreeningSession extends Document {
+  id: string;
+  patientId: string;
+  patientName: string;
+  category: 'MATERNAL' | 'CHILD' | 'NCD' | 'GENERAL';
+  conductedBy: string;
+  conductedAt: string;
+  answers: Array<{
+    questionId: string;
+    questionText: string;
+    answer: any;
+    flagRaised?: boolean;
+  }>;
+  riskFlags: string[];
+  riskScore: 'LOW' | 'MODERATE' | 'HIGH';
+  recommendedNextAction: string;
+  clinicianVerificationRequired: boolean;
+  synced: boolean;
+}
+
+const ScreeningSessionSchema = new Schema<IScreeningSession>(
   {
-    id: { type: String, index: true },
-    patientId: { type: String, required: true },
+    id: { type: String, required: true, unique: true, index: true },
+    patientId: { type: String, required: true, index: true },
     patientName: { type: String, required: true },
-    category: { type: String, default: 'GENERAL' },
-    conductedBy: { type: String, default: 'Sunita Devi (ASHA)' },
+    category: { type: String, enum: ['MATERNAL', 'CHILD', 'NCD', 'GENERAL'], required: true },
+    conductedBy: { type: String, required: true },
     conductedAt: { type: String, default: () => new Date().toISOString() },
-    answers: { type: [Schema.Types.Mixed], default: [] },
-    riskFlags: { type: [String], default: [] },
-    riskScore: { type: String, default: 'LOW' },
-    recommendedNextAction: { type: String, default: 'Routine monitoring' },
+    answers: [{ type: Schema.Types.Mixed }],
+    riskFlags: [{ type: String }],
+    riskScore: { type: String, enum: ['LOW', 'MODERATE', 'HIGH'], default: 'LOW' },
+    recommendedNextAction: { type: String, default: '' },
     clinicianVerificationRequired: { type: Boolean, default: true },
     synced: { type: Boolean, default: true },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
+      transform(_doc, ret) {
         ret.id = ret.id || ret._id.toString();
+        delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -276,8 +335,4 @@ const ScreeningSessionSchema = new Schema(
   }
 );
 
-export const AshaPatientModel = mongoose.model<IAshaPatient>('AshaPatient', AshaPatientSchema);
-export const AshaVisitModel = mongoose.model<IAshaVisitDoc>('AshaVisitModel', AshaVisitSchema);
-export const FollowUpTaskModel = mongoose.model<IFollowUpTaskDoc>('FollowUpTask', FollowUpTaskSchema);
-export const FrontlineReferralModel = mongoose.model<IFrontlineReferralDoc>('FrontlineReferral', FrontlineReferralSchema);
-export const ScreeningSessionModel = mongoose.model('ScreeningSession', ScreeningSessionSchema);
+export const ScreeningSessionModel = mongoose.model<IScreeningSession>('ScreeningSession', ScreeningSessionSchema);

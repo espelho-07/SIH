@@ -6,6 +6,9 @@ export const ashaApi = {
   getPatients: () =>
     apiRequest<AshaPatient[]>('/asha/patients', 'GET'),
 
+  getCitizens: () =>
+    apiRequest<AshaPatient[]>('/asha/patients', 'GET'),
+
   registerPatient: (data: Partial<AshaPatient>) =>
     apiRequest<AshaPatient>('/asha/patients', 'POST', data),
 
@@ -13,6 +16,9 @@ export const ashaApi = {
     apiRequest<AshaVisit[]>('/asha/visits', 'GET'),
 
   scheduleVisit: (data: Partial<AshaVisit>) =>
+    apiRequest<AshaVisit>('/asha/visits', 'POST', data),
+
+  createVisit: (data: Partial<AshaVisit>) =>
     apiRequest<AshaVisit>('/asha/visits', 'POST', data),
 
   updateVisit: (data: Partial<AshaVisit> & { id: string }) =>

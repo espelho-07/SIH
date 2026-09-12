@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES, INITIAL_BLOOD_INVENTORY } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { Facility } from '@/types/facility';
 
 import {
   Building2,
@@ -23,9 +25,23 @@ import {
 export const FacilityDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
-  const facility =
-    INITIAL_FACILITIES.find((f) => f.id === id) ||
-    INITIAL_FACILITIES[0];
+  const [facility, setFacility] = useState<Facility>(() => {
+    return INITIAL_FACILITIES.find((f) => f.id === id) || INITIAL_FACILITIES[0];
+  });
+
+  useEffect(() => {
+    if (!id) return;
+    facilityApi.getById(id).then((res) => {
+      if (res.data) {
+        setFacility(res.data);
+      }
+    }).catch(() => {
+      facilityApi.getAll().then((res) => {
+        const found = res.data?.find((f) => f.id === id);
+        if (found) setFacility(found);
+      }).catch(console.warn);
+    });
+  }, [id]);
 
   const getFacilityType = (type: string) => {
     switch (type) {

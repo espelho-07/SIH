@@ -26,7 +26,7 @@ export const OpdTokenSlipModal: React.FC<OpdTokenSlipModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="relative w-full max-w-xl sm:max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
         {/* Header Bar */}
         <div className="bg-teal-700 px-6 py-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">

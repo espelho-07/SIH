@@ -7,10 +7,19 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
+  className?: string;
+  hideCloseButton?: boolean;
 }
 
-export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, maxWidth = 'lg' }) => {
+export const Dialog: React.FC<DialogProps> = ({
+  open,
+  onOpenChange,
+  children,
+  maxWidth = 'xl',
+  className,
+  hideCloseButton = false,
+}) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -36,12 +45,15 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, ma
   if (!open || !mounted) return null;
 
   const maxWidths = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    full: 'max-w-5xl',
+    sm: 'max-w-md',
+    md: 'max-w-xl sm:max-w-2xl',
+    lg: 'max-w-2xl sm:max-w-3xl',
+    xl: 'max-w-3xl sm:max-w-4xl',
+    '2xl': 'max-w-4xl sm:max-w-5xl',
+    '3xl': 'max-w-5xl sm:max-w-6xl',
+    '4xl': 'max-w-6xl sm:max-w-7xl',
+    '5xl': 'max-w-[92vw]',
+    full: 'max-w-[96vw]',
   };
 
   const dialogElement = (
@@ -58,17 +70,20 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, ma
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative z-10 w-full my-auto rounded-2xl bg-white p-6 shadow-2xl transition-all border border-slate-200 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden',
-          maxWidths[maxWidth]
+          'relative z-10 w-full my-auto rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-200 max-h-[calc(100vh-2rem)] sm:max-h-[90vh] flex flex-col overflow-hidden',
+          maxWidths[maxWidth],
+          className
         )}
       >
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 min-h-[44px] min-w-[44px] flex items-center justify-center z-20 cursor-pointer"
-          aria-label="Close modal"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        {!hideCloseButton && (
+          <button
+            onClick={() => onOpenChange(false)}
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 min-h-[44px] min-w-[44px] flex items-center justify-center z-20 cursor-pointer"
+            aria-label="Close modal"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
         {children}
       </div>
     </div>
@@ -78,7 +93,7 @@ export const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, ma
 };
 
 export const DialogHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, ...props }) => (
-  <div className={cn('flex flex-col space-y-1.5 text-left pb-4 border-b border-slate-100', className)} {...props} />
+  <div className={cn('flex flex-col space-y-1.5 text-left pb-4 border-b border-slate-100 shrink-0', className)} {...props} />
 );
 
 export const DialogTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ className, ...props }) => (
@@ -94,5 +109,5 @@ export const DialogContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ 
 );
 
 export const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, ...props }) => (
-  <div className={cn('flex items-center justify-end gap-3 pt-4 border-t border-slate-100', className)} {...props} />
+  <div className={cn('flex items-center justify-end gap-3 pt-4 border-t border-slate-100 shrink-0', className)} {...props} />
 );

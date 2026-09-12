@@ -21,7 +21,11 @@ import {
 
 export const AiModelRegistryPage: React.FC = () => {
   const [models, setModels] = useState<AiModelRegistryItem[]>(INITIAL_AI_MODELS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDeploying, setIsDeploying] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
 
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
@@ -32,6 +36,27 @@ export const AiModelRegistryPage: React.FC = () => {
     type: 'DEPLOY',
     model: null,
   });
+
+  const fetchModels = async (showRefreshSpinner = false) => {
+    if (showRefreshSpinner) setIsRefreshing(true);
+    setError(null);
+    try {
+      const res = await adminApi.getAiModels();
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setModels(res.data);
+      }
+    } catch (err: any) {
+      console.warn('AI Models fetch error:', err);
+      setError(err?.message || 'Could not fetch live AI models.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchModels();
+  }, []);
 
   const handleOpenConfirm = (model: AiModelRegistryItem, type: 'DEPLOY' | 'ROLLBACK') => {
     setConfirmModal({
@@ -47,20 +72,29 @@ export const AiModelRegistryPage: React.FC = () => {
     setConfirmModal({ open: false, type: 'DEPLOY', model: null });
 
     setIsDeploying(model.id);
-    if (type === 'DEPLOY') {
-      await adminApi.deployModel(model.id);
-      setModels((prev) =>
-        prev.map((m) =>
-          m.id === model.id ? { ...m, status: 'ACTIVE', deployedAt: new Date().toISOString().slice(0, 10) } : m
-        )
-      );
-    } else {
-      await adminApi.rollbackModel(model.id);
-      setModels((prev) =>
-        prev.map((m) => (m.id === model.id ? { ...m, status: 'STAGING' } : m))
-      );
+    try {
+      if (type === 'DEPLOY') {
+        await adminApi.deployModel(model.id);
+        setModels((prev) =>
+          prev.map((m) =>
+            m.id === model.id ? { ...m, status: 'ACTIVE', deployedAt: new Date().toISOString().slice(0, 10) } : m
+          )
+        );
+        setSuccessToast(`Model "${model.name}" (${model.version}) deployed to active production cluster.`);
+      } else {
+        await adminApi.rollbackModel(model.id);
+        setModels((prev) =>
+          prev.map((m) => (m.id === model.id ? { ...m, status: 'STAGING' } : m))
+        );
+        setSuccessToast(`Model "${model.name}" (${model.version}) rolled back to previous checkpoint.`);
+      }
+      setTimeout(() => setSuccessToast(null), 5000);
+    } catch (err: any) {
+      console.warn('Model deployment/rollback error:', err);
+      setError(err?.message || 'Action failed on server.');
+    } finally {
+      setIsDeploying(null);
     }
-    setIsDeploying(null);
   };
 
   return (
@@ -72,7 +106,36 @@ export const AiModelRegistryPage: React.FC = () => {
           { label: 'Technical Center', to: '/super-admin' },
           { label: 'AI Models' },
         ]}
+        actions={
+          <Button
+            onClick={() => fetchModels(true)}
+            variant="outline"
+            size="sm"
+            isLoading={isRefreshing}
+            className="text-xs gap-1.5 cursor-pointer"
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-teal-700" />
+            Refresh Registry
+          </Button>
+        }
       />
+
+      {successToast && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-in fade-in-50">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>{successToast}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <Button size="xs" variant="outline" onClick={() => fetchModels(true)}>Retry</Button>
+        </div>
+      )}
 
       {/* Clinical Safety Notice Banner (Required by Section 13) */}
       <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-xs flex items-start gap-3">

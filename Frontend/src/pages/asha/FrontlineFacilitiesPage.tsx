@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { Facility } from '@/types/facility';
 import { Link } from 'react-router-dom';
 import {
   Building2,
@@ -22,7 +24,7 @@ import {
 interface FrontlineFacilityInfo {
   id: string;
   name: string;
-  type: 'SUBCENTRE' | 'PHC' | 'CHC' | 'DISTRICT_HOSPITAL';
+  type: 'SUBCENTRE' | 'PHC' | 'CHC' | 'DISTRICT_HOSPITAL' | string;
   distanceKm: number;
   address: string;
   phone: string;
@@ -59,24 +61,24 @@ const FRONTLINE_FACILITY_DIRECTORY: FrontlineFacilityInfo[] = [
     id: 'fac_phc_01',
     name: 'Pethapur Primary Health Centre (PHC)',
     type: 'PHC',
-    distanceKm: 3.2,
-    address: 'Sector Road, Near Market Yard, Pethapur - 382610',
+    distanceKm: 2.1,
+    address: 'Main Road, Near Bus Stand, Pethapur - 382610',
     phone: '079-23214455',
-    medicalOfficer: 'Dr. Arvind Patel (Medical Officer Class 1)',
-    officerPhone: '9898054321',
+    medicalOfficer: 'Dr. Neha Vaghela (Medical Officer)',
+    officerPhone: '9898023456',
     is24x7DeliveryPoint: true,
     hasBloodStorage: false,
     hasColdChain: true,
-    ambulanceAvailable: true,
+    ambulanceAvailable: false,
     totalBeds: 12,
     availableBeds: 5,
-    services: ['24x7 Normal Delivery', 'Full UIP Cold Chain', 'Basic Lab Diagnostics', 'OPD Consultations', '108 Ambulance Point', 'DOTS TB Centre'],
+    services: ['24x7 Normal Delivery', 'OPD Consultations', 'Basic Lab (CBC, Malaria, Dengue)', 'Emergency First Aid', 'Family Planning Services'],
   },
   {
     id: 'fac_chc_01',
-    name: 'Kalol Community Health Centre (CHC / FRU)',
+    name: 'Kalol Community Health Centre (CHC / Sub-District)',
     type: 'CHC',
-    distanceKm: 12.4,
+    distanceKm: 9.4,
     address: 'Highway Crossroad, Kalol, Gandhinagar - 382721',
     phone: '02764-223344',
     medicalOfficer: 'Dr. Meena Swamy (Superintendent)',
@@ -111,9 +113,35 @@ const FRONTLINE_FACILITY_DIRECTORY: FrontlineFacilityInfo[] = [
 export const FrontlineFacilitiesPage: React.FC = () => {
   const [tierFilter, setTierFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
+  const [facilities, setFacilities] = useState<FrontlineFacilityInfo[]>(FRONTLINE_FACILITY_DIRECTORY);
+
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) {
+        const liveDirectory: FrontlineFacilityInfo[] = res.data.map((f, idx) => ({
+          id: f.id,
+          name: f.name,
+          type: f.type,
+          distanceKm: f.distanceKm || (idx + 1) * 2.5,
+          address: f.address,
+          phone: f.contactNumber || f.emergencyNumber || '079-23222222',
+          medicalOfficer: 'Medical Superintendent / MO Incharge',
+          officerPhone: f.emergencyNumber || f.contactNumber || '9898000000',
+          is24x7DeliveryPoint: f.emergencyAvailable || true,
+          hasBloodStorage: f.departments?.some((d) => d.name.toLowerCase().includes('blood')) || true,
+          hasColdChain: true,
+          ambulanceAvailable: f.emergencyAvailable || true,
+          totalBeds: f.totalBeds || 50,
+          availableBeds: f.availableBeds || 12,
+          services: f.specialties || ['General Medicine', 'OPD', 'Emergency Care'],
+        }));
+        setFacilities(liveDirectory);
+      }
+    }).catch(console.warn);
+  }, []);
 
   const filteredFacilities = useMemo(() => {
-    return FRONTLINE_FACILITY_DIRECTORY.filter((f) => {
+    return facilities.filter((f) => {
       if (tierFilter !== 'ALL' && f.type !== tierFilter) return false;
       if (search) {
         const q = search.toLowerCase();
@@ -125,7 +153,7 @@ export const FrontlineFacilitiesPage: React.FC = () => {
       }
       return true;
     });
-  }, [tierFilter, search]);
+  }, [facilities, tierFilter, search]);
 
   return (
     <div className="space-y-6">

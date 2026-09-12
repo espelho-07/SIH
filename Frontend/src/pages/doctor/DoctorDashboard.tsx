@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PriorityBadge } from '@/components/ui/Badge';
 import { INITIAL_LIVE_QUEUE } from '@/mock/mockData';
+import { mockState } from '@/mock/db';
+import { queueApi } from '@/api/queueApi';
+import { operationsApi } from '@/api/operationsApi';
+import { LiveQueueState } from '@/types/queue';
 import { Link } from 'react-router-dom';
 import {
   Stethoscope,
@@ -14,12 +18,49 @@ import {
   Clock,
   ArrowRight,
   AlertCircle,
+  CalendarDays,
+  Activity,
 } from 'lucide-react';
 
 export const DoctorDashboard: React.FC = () => {
   const { user } = useAuth();
+  const doctorKey = user?.id || 'usr_doc_01';
+  const [queue, setQueue] = useState<LiveQueueState>(INITIAL_LIVE_QUEUE);
+  const [isOnLeave, setIsOnLeave] = useState<boolean>(() => {
+    const leaveInfo = mockState?.isDoctorOnLeave ? mockState.isDoctorOnLeave(doctorKey) : { onLeave: false };
+    return leaveInfo.onLeave;
+  });
+  const [leaveData, setLeaveData] = useState<any>(null);
 
-  const queue = INITIAL_LIVE_QUEUE;
+  useEffect(() => {
+    // Fetch live queue from backend
+    queueApi.getLiveQueue('fac_civil_01').then((res) => {
+      if (res?.data) {
+        setQueue(res.data);
+      }
+    }).catch((err) => {
+      console.warn('Live queue fetch failed, using local queue:', err);
+    });
+
+    // Fetch doctor leave status from backend
+    operationsApi.getDoctorLeaves(doctorKey).then((res) => {
+      if (res?.data && Array.isArray(res.data)) {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const activeLeave = res.data.find(
+          (l) => l.status === 'APPROVED' && l.startDate <= todayStr && l.endDate >= todayStr
+        );
+        if (activeLeave) {
+          setIsOnLeave(true);
+          setLeaveData(activeLeave);
+        } else {
+          setIsOnLeave(false);
+          setLeaveData(null);
+        }
+      }
+    }).catch((err) => {
+      console.warn('Doctor leaves fetch failed:', err);
+    });
+  }, [doctorKey]);
 
   const waitingTokens = queue.tokens.filter(
     (t) => t.status === 'WAITING'
@@ -27,40 +68,74 @@ export const DoctorDashboard: React.FC = () => {
 
   return (
     <div className="space-y-5">
+      {/* On Leave Alert Banner */}
+      {isOnLeave && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-950 shadow-sm animate-fadeIn">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-rose-200 text-rose-900 flex items-center justify-center shrink-0">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-sm text-rose-950">You Are Currently Scheduled On Leave</p>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-rose-200 text-rose-900">
+                  {leaveData?.category || 'LEAVE'}
+                </span>
+              </div>
+              <p className="text-rose-800 text-xs mt-0.5 font-medium">
+                {leaveData?.reason ? `"${leaveData.reason}"` : 'Active roster leave period.'}
+                {leaveData?.endDate ? ` (returning ${leaveData.endDate})` : ''}.
+                District directories & registration counters show your status as "ON LEAVE (Not Available)".
+              </p>
+            </div>
+          </div>
+          <Link to="/doctor/roster">
+            <Button size="sm" className="bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shrink-0 cursor-pointer">
+              Manage Roster & Leaves
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Welcome Section */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
+      <div className="rounded-2xl bg-gradient-to-r from-teal-900 to-slate-900 p-4 sm:p-5 text-white shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 text-[11px] font-semibold text-sky-800">
-                <Stethoscope className="h-3.5 w-3.5 text-sky-700" />
-                OPD Clinical Specialist
-              </span>
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
-                Room 4
-              </span>
-            </div>
+          <div>
+            <p className="text-xs font-medium text-teal-300 mb-1">
+              Doctor Dashboard
+            </p>
 
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              Welcome, {user?.name || 'Dr. Arvind Patel'}
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+              Welcome, {user?.name || 'Dr. Arvind Patel'} 👋
             </h1>
 
-            <p className="text-xs text-slate-500">
-              Department of General Medicine • Gandhinagar Civil Hospital
+            <p className="text-xs text-teal-100/80 mt-1.5">
+              General Medicine • Room 4
             </p>
           </div>
 
-          <Link to="/doctor/queue">
-            <Button
-              size="md"
-              className="bg-sky-700 hover:bg-sky-800 text-white font-semibold gap-2 shadow-xs w-full sm:w-auto"
-            >
-              <Ticket className="h-4 w-4" />
-              View Patient Queue
-            </Button>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/doctor/roster">
+              <Button
+                size="md"
+                variant="outline"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-semibold gap-2 w-full sm:w-auto cursor-pointer"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Month Planner
+              </Button>
+            </Link>
+            <Link to="/doctor/patients">
+              <Button
+                size="md"
+                className="bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-2 shadow-md w-full sm:w-auto cursor-pointer"
+              >
+                <Activity className="h-4 w-4" />
+                Patients & Treatment
+              </Button>
+            </Link>
+          </div>
 
         </div>
       </div>
@@ -75,97 +150,121 @@ export const DoctorDashboard: React.FC = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
 
           {/* Waiting */}
-          <Card className="border-slate-200 bg-white shadow-xs">
+          <Card className="border-slate-200">
             <CardContent className="p-3.5">
+
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-sky-700" />
+                <div className="h-8 w-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                  <Users className="h-4 w-4 text-teal-700" />
                 </div>
+
                 <span className="text-[10px] font-medium text-slate-400">
                   Patients
                 </span>
               </div>
+
               <p className="text-2xl font-bold text-slate-900 mt-2.5">
                 {queue.totalWaiting}
               </p>
+
               <p className="text-xs font-medium text-slate-600 mt-0.5">
                 Waiting
               </p>
+
               <p className="text-[10px] text-slate-500 mt-0.5">
                 About 8 min. each
               </p>
+
             </CardContent>
           </Card>
 
 
           {/* Current Patient */}
-          <Card className="border-slate-200 bg-white shadow-xs">
+          <Card className="border-slate-200">
             <CardContent className="p-3.5">
+
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-sky-100 flex items-center justify-center">
                   <Ticket className="h-4 w-4 text-sky-700" />
                 </div>
+
                 <span className="text-[10px] font-medium text-slate-400">
                   Token
                 </span>
               </div>
-              <p className="text-2xl font-bold text-sky-800 mt-2.5">
+
+              <p className="text-2xl font-bold text-sky-700 mt-2.5">
                 {queue.currentTokenNumber}
               </p>
+
               <p className="text-xs font-medium text-slate-600 mt-0.5">
                 Now Seeing
               </p>
+
               <p className="text-[10px] text-slate-500 mt-0.5">
                 Room 4
               </p>
+
             </CardContent>
           </Card>
 
 
           {/* Urgent */}
-          <Card className="border-slate-200 bg-white shadow-xs">
+          <Card className="border-rose-200 bg-rose-50/50">
             <CardContent className="p-3.5">
+
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-rose-100 flex items-center justify-center">
                   <AlertCircle className="h-4 w-4 text-rose-700" />
                 </div>
-                <span className="text-[10px] font-medium text-slate-400">
+
+                <span className="text-[10px] font-medium text-rose-500">
                   Attention
                 </span>
               </div>
+
               <p className="text-2xl font-bold text-rose-700 mt-2.5">
                 1
               </p>
-              <p className="text-xs font-medium text-slate-700 mt-0.5">
+
+              <p className="text-xs font-medium text-rose-800 mt-0.5">
                 Urgent Patient
               </p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
+
+              <p className="text-[10px] text-rose-600 mt-0.5">
                 Needs quick attention
               </p>
+
             </CardContent>
           </Card>
 
 
           {/* Referrals */}
-          <Card className="border-slate-200 bg-white shadow-xs">
+          <Card className="border-indigo-200 bg-indigo-50/50">
             <CardContent className="p-3.5">
+
               <div className="flex items-center justify-between">
-                <div className="h-8 w-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
                   <GitBranch className="h-4 w-4 text-indigo-700" />
                 </div>
-                <span className="text-[10px] font-medium text-slate-400">
+
+                <span className="text-[10px] font-medium text-indigo-500">
                   Action
                 </span>
               </div>
-              <p className="text-2xl font-bold text-slate-900 mt-2.5">
+
+              <p className="text-2xl font-bold text-indigo-700 mt-2.5">
                 2
               </p>
-              <p className="text-xs font-medium text-slate-700 mt-0.5">
+
+              <p className="text-xs font-medium text-indigo-800 mt-0.5">
                 Referrals
               </p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
+
+              <p className="text-[10px] text-indigo-600 mt-0.5">
                 Patients to refer
               </p>
+
             </CardContent>
           </Card>
 
@@ -191,13 +290,13 @@ export const DoctorDashboard: React.FC = () => {
               </p>
             </div>
 
-            <Link to="/doctor/queue">
+            <Link to="/doctor/patients">
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-1 text-xs"
               >
-                View All
+                View Patients
                 <ArrowRight className="h-3 w-3" />
               </Button>
             </Link>
@@ -235,7 +334,7 @@ export const DoctorDashboard: React.FC = () => {
                   {/* Patient Information */}
                   <div className="flex items-center gap-2.5">
 
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 border border-sky-200 text-sky-800 font-bold text-xs">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-800 font-bold text-xs">
                       {t.tokenNumber}
                     </div>
 
@@ -269,7 +368,7 @@ export const DoctorDashboard: React.FC = () => {
                       <Button
                         variant="primary"
                         size="sm"
-                        className="text-xs bg-sky-700 hover:bg-sky-800 font-semibold text-white"
+                        className="text-xs bg-teal-700 hover:bg-teal-800"
                       >
                         Open Patient
                       </Button>

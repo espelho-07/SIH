@@ -32,6 +32,8 @@ export interface Token {
   createdAt: string;
   calledAt?: string;
   completedAt?: string;
+  referralId?: string;
+  referralCode?: string;
 }
 
 export interface LiveQueueState {
@@ -55,9 +57,12 @@ export interface Appointment {
   patientGender?: 'M' | 'F' | 'Other';
   facilityId: string;
   facilityName: string;
-  doctorId: string;
-  doctorName: string;
-  specialty: string;
+  doctorId?: string;
+  doctorName?: string;
+  specialty?: string;
+  roomNumber?: string;
+  departmentId?: string;
+  departmentName?: string;
   date: string; // YYYY-MM-DD
   timeSlot: string; // e.g. "10:30 AM"
   status: 'SCHEDULED' | 'CONFIRMED' | 'CHECKED_IN' | 'COMPLETED' | 'CANCELLED';
@@ -66,6 +71,8 @@ export interface Appointment {
   createdAt: string;
   tokenNumber?: string;
   checkedInAt?: string;
+  referralId?: string;
+  referralCode?: string;
 }
 
 export interface RegisteredPatient {

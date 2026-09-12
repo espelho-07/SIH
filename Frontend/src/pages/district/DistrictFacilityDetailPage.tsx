@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { INITIAL_FACILITIES, INITIAL_REFERRALS, INITIAL_EQUIPMENT } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { referralApi } from '@/api/referralApi';
+import { resourceApi } from '@/api/resourceApi';
+import { Facility } from '@/types/facility';
+import { Referral } from '@/types/referral';
+import { EquipmentItem } from '@/types/resources';
 import {
   Building2,
   Bed,
@@ -28,22 +34,45 @@ export const DistrictFacilityDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'BEDS' | 'DOCTORS' | 'EQUIPMENT' | 'REFERRALS'>('BEDS');
 
-  // Find facility or default to the first one
-  const facility = INITIAL_FACILITIES.find((f) => f.id === id) || INITIAL_FACILITIES[0];
+  const [facility, setFacility] = useState<Facility>(() => {
+    return INITIAL_FACILITIES.find((f) => f.id === id) || INITIAL_FACILITIES[0];
+  });
+  const [referrals, setReferrals] = useState<Referral[]>(INITIAL_REFERRALS);
+  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>(INITIAL_EQUIPMENT);
+
+  useEffect(() => {
+    if (!id) return;
+    facilityApi.getById(id).then((res) => {
+      if (res.data) setFacility(res.data);
+    }).catch(() => {
+      facilityApi.getAll().then((res) => {
+        const found = res.data?.find((f) => f.id === id);
+        if (found) setFacility(found);
+      }).catch(console.warn);
+    });
+
+    referralApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setReferrals(res.data);
+    }).catch(console.warn);
+
+    resourceApi.getEquipment(id).then((res) => {
+      if (res.data && res.data.length > 0) setEquipmentList(res.data);
+    }).catch(console.warn);
+  }, [id]);
 
   // Referrals involving this facility
-  const facilityReferrals = INITIAL_REFERRALS.filter(
+  const facilityReferrals = referrals.filter(
     (r) => r.fromFacilityId === facility.id || r.toFacilityId === facility.id
   );
 
   // Equipment at this facility (filter or take subset)
-  const facilityEquipment = INITIAL_EQUIPMENT.filter(
-    (eq) => eq.facilityId === facility.id || eq.facilityName.toLowerCase().includes(facility.name.toLowerCase().slice(0, 8))
+  const facilityEquipment = equipmentList.filter(
+    (eq) => eq.facilityId === facility.id || (eq.facilityName && eq.facilityName.toLowerCase().includes(facility.name.toLowerCase().slice(0, 8)))
   );
 
   // Bed breakdown calculations
-  const totalBeds = facility.totalBeds;
-  const availableBeds = facility.availableBeds;
+  const totalBeds = facility.totalBeds || 0;
+  const availableBeds = facility.availableBeds || 0;
   const occupiedBeds = totalBeds - availableBeds;
   const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
   const icuAvailable = facility.icuBedsAvailable || 0;

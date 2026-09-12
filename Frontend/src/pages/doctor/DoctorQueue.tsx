@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -25,6 +25,24 @@ export const DoctorQueue: React.FC = () => {
     INITIAL_LIVE_QUEUE.currentTokenNumber
   );
   const [isCalling, setIsCalling] = useState(false);
+
+  const fetchLiveQueue = async () => {
+    try {
+      const res = await queueApi.getLiveQueue('fac_civil_01');
+      if (res.data) {
+        setTokens(res.data.tokens || []);
+        if (res.data.currentTokenNumber) {
+          setCurrentToken(res.data.currentTokenNumber);
+        }
+      }
+    } catch (err) {
+      console.warn('Live queue fetch failed, using fallback:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveQueue();
+  }, []);
 
   const handleCallNext = async () => {
     setIsCalling(true);

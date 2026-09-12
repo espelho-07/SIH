@@ -30,6 +30,9 @@ export const pharmacyApi = {
   getMedicines: (facilityId?: string) =>
     apiRequest<MedicineInventoryItem[]>('/medicines', 'GET', { facilityId }),
 
+  getInventory: (facilityId?: string) =>
+    apiRequest<MedicineInventoryItem[]>('/medicines', 'GET', { facilityId }),
+
   /**
    * Fetch a single medicine details
    */
@@ -53,4 +56,16 @@ export const pharmacyApi = {
    */
   getDispensingHistory: () =>
     apiRequest<DispensingRecord[]>('/pharmacy/history', 'GET'),
+
+  /**
+   * Add a new medicine to hospital formulary inventory
+   */
+  addMedicine: (payload: Partial<MedicineInventoryItem>) =>
+    apiRequest<MedicineInventoryItem>('/medicines', 'POST', payload),
+
+  /**
+   * Delete a medicine from hospital inventory
+   */
+  deleteMedicine: (medicineId: string) =>
+    apiRequest<{ id: string }>(`/medicines/${medicineId}`, 'DELETE'),
 };

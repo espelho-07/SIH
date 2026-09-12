@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -22,11 +23,11 @@ import {
   FlaskConical,
   QrCode,
   FileCheck,
-  User,
 } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
   const { role, staffSubType } = useAuth();
+  const { t } = useTranslation();
 
   const getMobileNavItems = () => {
     switch (role) {
@@ -36,7 +37,7 @@ export const MobileBottomNav: React.FC = () => {
           { to: '/patient/facilities', label: 'Hospitals', icon: Building2 },
           { to: '/patient/tokens', label: 'Token', icon: Ticket },
           { to: '/patient/records', label: 'Records', icon: FileText },
-          { to: '/patient/profile', label: 'Profile', icon: User },
+          { to: '/patient/referrals', label: 'Referrals', icon: GitBranch },
         ];
 
       case 'ASHA':
@@ -51,9 +52,9 @@ export const MobileBottomNav: React.FC = () => {
       case 'DOCTOR':
         return [
           { to: '/doctor', label: 'Home', icon: LayoutDashboard },
-          { to: '/doctor/queue', label: 'Queue', icon: Ticket },
           { to: '/doctor/patients', label: 'Workspace', icon: Activity },
           { to: '/doctor/referrals', label: 'Referrals', icon: GitBranch },
+          { to: '/doctor/roster', label: 'Roster', icon: CalendarCheck2 },
         ];
 
       case 'FACILITY_STAFF':
@@ -70,7 +71,6 @@ export const MobileBottomNav: React.FC = () => {
           return [
             { to: '/registration-clerk', label: 'Desk', icon: LayoutDashboard },
             { to: '/registration-clerk/register', label: 'Register', icon: UserPlus },
-            { to: '/registration-clerk/patients', label: 'Directory', icon: Users },
             { to: '/registration-clerk/appointments', label: 'Check-In', icon: CalendarCheck2 },
             { to: '/registration-clerk/queue', label: 'Counter', icon: Ticket },
           ];
@@ -89,7 +89,7 @@ export const MobileBottomNav: React.FC = () => {
             { to: '/facility-operations/services', label: 'Services', icon: Activity },
             { to: '/facility-operations/queues', label: 'Queues', icon: Clock },
             { to: '/facility-operations/referrals', label: 'Transfers', icon: GitBranch },
-            { to: '/facility-operations/resources', label: 'Capacity', icon: Building2 },
+            { to: '/facility-operations/staff-leave', label: 'Leaves', icon: Calendar },
           ];
         }
         return [
@@ -129,10 +129,10 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md lg:hidden shadow-lg select-none pb-[env(safe-area-inset-bottom,0px)]"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md md:hidden shadow-lg select-none"
       aria-label="Mobile Navigation"
     >
-      <div className="flex h-16 items-center justify-around px-1 sm:px-2">
+      <div className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -142,15 +142,13 @@ export const MobileBottomNav: React.FC = () => {
               end={item.to.split('/').length <= 2}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center justify-center flex-1 h-full min-h-[44px] px-0.5 transition-colors',
+                  'flex flex-col items-center justify-center flex-1 h-full min-h-[44px] transition-colors',
                   isActive ? 'text-teal-800 font-bold' : 'text-slate-500 hover:text-slate-800'
                 )
               }
             >
-              <Icon className="h-5 w-5 shrink-0" />
-              <span className="text-[9.5px] sm:text-[10px] mt-0.5 tracking-tight truncate max-w-[60px] text-center leading-tight">
-                {item.label}
-              </span>
+              <Icon className="h-5 w-5" />
+              <span className="text-[10px] mt-0.5 tracking-tight">{t(`navMap.${item.label}`, item.label)}</span>
             </NavLink>
           );
         })}

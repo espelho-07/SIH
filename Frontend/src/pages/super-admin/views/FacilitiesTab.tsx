@@ -115,7 +115,7 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
           >
             <option value="ALL">All Facility Types</option>
             <option value="DISTRICT_HOSPITAL">District Hospital</option>
@@ -226,7 +226,7 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
 
       {/* Facility Inspection Dialog */}
       {inspectFacility && (
-        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="lg">
+        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>{inspectFacility.name}</DialogTitle>
             <DialogDescription>
@@ -284,7 +284,7 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
 
       {/* Add Facility Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare Facility</DialogTitle>
             <DialogDescription>
@@ -310,7 +310,7 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
                   <select
                     value={newFacType}
                     onChange={(e) => setNewFacType(e.target.value)}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                   >
                     <option value="DISTRICT_HOSPITAL">District Hospital</option>
                     <option value="SUB_DISTRICT_HOSPITAL">Sub-District Hospital</option>

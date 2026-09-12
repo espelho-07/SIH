@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
 import { Facility } from '@/types/facility';
+import { facilityApi } from '@/api/facilityApi';
 import {
   Building2,
   Search,
@@ -18,10 +19,18 @@ import {
   MapPin,
   ShieldCheck,
   Stethoscope,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const FacilityGovernancePage: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('ALL');
   const [emergencyOnly, setEmergencyOnly] = useState(false);
@@ -36,6 +45,27 @@ export const FacilityGovernancePage: React.FC = () => {
   const [newFacDistrict, setNewFacDistrict] = useState('Gandhinagar');
   const [newFacBeds, setNewFacBeds] = useState('30');
   const [newFacEmergency, setNewFacEmergency] = useState(true);
+
+  const fetchFacilities = async (showRefreshSpinner = false) => {
+    if (showRefreshSpinner) setIsRefreshing(true);
+    setError(null);
+    try {
+      const res = await facilityApi.getAll();
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setFacilities(res.data);
+      }
+    } catch (err: any) {
+      console.warn('Facility list fetch error:', err);
+      setError(err?.message || 'Failed to retrieve live health facilities.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFacilities();
+  }, []);
 
   // Filter facilities
   const filtered = useMemo(() => {
@@ -54,17 +84,17 @@ export const FacilityGovernancePage: React.FC = () => {
   const availableBeds = facilities.reduce((acc, f) => acc + (f.availableBeds || 0), 0);
   const emergencyCount = facilities.filter((f) => f.emergencyAvailable).length;
 
-  const handleCreateFacility = (e: React.FormEvent) => {
+  const handleCreateFacility = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFacName) return;
 
-    const newFac: Facility = {
-      id: `fac_${Date.now()}`,
+    setIsSubmitting(true);
+    const newFacPayload: Partial<Facility> = {
       name: newFacName,
       type: newFacType,
       district: newFacDistrict,
       state: 'Gujarat',
-      address: 'Sector 24, Gandhinagar',
+      address: `Sector 24, ${newFacDistrict}`,
       pincode: '382024',
       contactNumber: '+91 79 2322 0000',
       emergencyNumber: '108',
@@ -85,13 +115,39 @@ export const FacilityGovernancePage: React.FC = () => {
         { id: 'd_peds', name: 'Pediatrics', code: 'PED', activeDoctors: 2, currentWaitMinutes: 10, opdOpen: true },
       ],
       specialties: ['General Medicine', 'Maternal Health'],
-      equipment: [],
-      lastUpdated: new Date().toISOString(),
     };
 
-    setFacilities((prev) => [newFac, ...prev]);
-    setShowAddModal(false);
-    setNewFacName('');
+    try {
+      const res = await facilityApi.create(newFacPayload);
+      const createdFac = res?.data || {
+        ...newFacPayload,
+        id: `fac_${Date.now()}`,
+        equipment: [],
+        lastUpdated: new Date().toISOString(),
+      } as Facility;
+
+      setFacilities((prev) => [createdFac, ...prev.filter((f) => f.id !== createdFac.id)]);
+      setShowAddModal(false);
+      setNewFacName('');
+      setSuccessToast(`Facility "${createdFac.name}" commissioned successfully.`);
+      setTimeout(() => setSuccessToast(null), 5000);
+    } catch (err: any) {
+      console.warn('Create facility failed:', err);
+      // Fallback
+      const fallbackFac: Facility = {
+        ...newFacPayload,
+        id: `fac_${Date.now()}`,
+        equipment: [],
+        lastUpdated: new Date().toISOString(),
+      } as Facility;
+      setFacilities((prev) => [fallbackFac, ...prev]);
+      setShowAddModal(false);
+      setNewFacName('');
+      setSuccessToast(`Facility "${fallbackFac.name}" added to local cache.`);
+      setTimeout(() => setSuccessToast(null), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,17 +160,46 @@ export const FacilityGovernancePage: React.FC = () => {
           { label: 'Facilities' },
         ]}
         actions={
-          <Button
-            onClick={() => setShowAddModal(true)}
-            variant="primary"
-            size="sm"
-            className="gap-1.5 text-xs font-semibold cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            Add Facility
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => fetchFacilities(true)}
+              variant="outline"
+              size="sm"
+              isLoading={isRefreshing}
+              className="gap-1.5 text-xs font-semibold cursor-pointer"
+            >
+              <RefreshCw className="h-3.5 w-3.5 text-teal-700" />
+              Refresh
+            </Button>
+            <Button
+              onClick={() => setShowAddModal(true)}
+              variant="primary"
+              size="sm"
+              className="gap-1.5 text-xs font-semibold cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Add Facility
+            </Button>
+          </div>
         }
       />
+
+      {successToast && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-in fade-in-50">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>{successToast}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <Button size="xs" variant="outline" onClick={() => fetchFacilities(true)}>Retry</Button>
+        </div>
+      )}
 
       {/* Summary Tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -160,7 +245,7 @@ export const FacilityGovernancePage: React.FC = () => {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
           >
             <option value="ALL">All Facility Types</option>
             <option value="DISTRICT_HOSPITAL">District Hospital</option>
@@ -265,7 +350,7 @@ export const FacilityGovernancePage: React.FC = () => {
 
       {/* Facility Inspection Dialog */}
       {inspectFacility && (
-        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="lg">
+        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>{inspectFacility.name}</DialogTitle>
             <DialogDescription>
@@ -323,7 +408,7 @@ export const FacilityGovernancePage: React.FC = () => {
 
       {/* Add Facility Dialog */}
       {showAddModal && (
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="md">
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="xl">
           <DialogHeader>
             <DialogTitle>Add Healthcare Facility</DialogTitle>
             <DialogDescription>
@@ -349,7 +434,7 @@ export const FacilityGovernancePage: React.FC = () => {
                   <select
                     value={newFacType}
                     onChange={(e) => setNewFacType(e.target.value as Facility['type'])}
-                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                   >
                     <option value="DISTRICT_HOSPITAL">District Hospital</option>
                     <option value="SUB_DISTRICT_HOSPITAL">Sub-District Hospital</option>

@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPrescriptionItem {
   id: string;
@@ -15,7 +15,7 @@ export interface IPrescriptionItem {
 }
 
 export interface IPrescription extends Document {
-  prescriptionId: string;
+  id: string;
   encounterId: string;
   patientId: string;
   patientName: string;
@@ -28,53 +28,55 @@ export interface IPrescription extends Document {
   items: IPrescriptionItem[];
   status: 'PENDING' | 'PARTIALLY_DISPENSED' | 'DISPENSED';
   pharmacyNotes?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
+
+const PrescriptionItemSchema = new Schema<IPrescriptionItem>(
+  {
+    id: { type: String, required: true },
+    medicineName: { type: String, required: true },
+    genericName: { type: String },
+    dosage: { type: String, required: true },
+    frequency: { type: String, required: true },
+    duration: { type: String, required: true },
+    route: { type: String, default: 'Oral' },
+    instructions: { type: String },
+    dispensedStatus: {
+      type: String,
+      enum: ['PENDING', 'PARTIALLY_DISPENSED', 'DISPENSED'],
+      default: 'PENDING',
+    },
+    dispensedQuantity: { type: Number, default: 0 },
+    totalQuantity: { type: Number, required: true },
+  },
+  { _id: false }
+);
 
 const PrescriptionSchema = new Schema<IPrescription>(
   {
-    prescriptionId: { type: String, required: true, unique: true, index: true },
-    encounterId: { type: String, default: 'enc_01' },
+    id: { type: String, required: true, unique: true, index: true },
+    encounterId: { type: String, required: true, index: true },
     patientId: { type: String, required: true, index: true },
     patientName: { type: String, required: true },
-    doctorId: { type: String, default: 'usr_doc_01' },
-    doctorName: { type: String, default: 'Dr. Arvind Patel' },
-    facilityId: { type: String, default: 'fac_civil_01' },
-    facilityName: { type: String, default: 'Gandhinagar Civil Hospital' },
+    doctorId: { type: String, required: true, index: true },
+    doctorName: { type: String, required: true },
+    facilityId: { type: String, required: true, index: true },
+    facilityName: { type: String, required: true },
     issuedAt: { type: String, default: () => new Date().toISOString() },
-    diagnosisSummary: { type: String, default: 'Clinical consultation' },
-    items: [
-      {
-        id: { type: String, default: () => `item_${Date.now()}` },
-        medicineName: { type: String, required: true },
-        genericName: { type: String },
-        dosage: { type: String, default: '1 tab' },
-        frequency: { type: String, default: '1-0-1' },
-        duration: { type: String, default: '5 days' },
-        route: { type: String, default: 'Oral' },
-        instructions: { type: String },
-        dispensedStatus: {
-          type: String,
-          enum: ['PENDING', 'PARTIALLY_DISPENSED', 'DISPENSED'],
-          default: 'PENDING',
-        },
-        dispensedQuantity: { type: Number, default: 0 },
-        totalQuantity: { type: Number, default: 10 },
-      },
-    ],
+    diagnosisSummary: { type: String, default: '' },
+    items: [PrescriptionItemSchema],
     status: {
       type: String,
       enum: ['PENDING', 'PARTIALLY_DISPENSED', 'DISPENSED'],
       default: 'PENDING',
+      index: true,
     },
     pharmacyNotes: { type: String },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_, ret: any) => {
-        ret.id = ret.prescriptionId || ret._id.toString();
+      transform(_doc, ret) {
+        ret.id = ret.id || ret._id.toString();
         delete ret._id;
         delete ret.__v;
         return ret;
@@ -83,7 +85,4 @@ const PrescriptionSchema = new Schema<IPrescription>(
   }
 );
 
-export const Prescription = mongoose.model<IPrescription>(
-  'Prescription',
-  PrescriptionSchema
-);
+export const PrescriptionModel = mongoose.model<IPrescription>('Prescription', PrescriptionSchema);

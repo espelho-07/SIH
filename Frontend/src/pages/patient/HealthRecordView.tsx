@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +30,7 @@ import {
 } from 'lucide-react';
 
 export const HealthRecordView: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<
     'TIMELINE' | 'PRESCRIPTIONS' | 'DIAGNOSTICS'
   >('TIMELINE');
@@ -49,11 +51,11 @@ export const HealthRecordView: React.FC = () => {
       ====================================================== */}
 
       <PageHeader
-        title="My Health Records"
-        subtitle="See your past doctor visits, medicines and test reports."
+        title={t('records.title')}
+        subtitle={t('records.subtitle')}
         breadcrumbs={[
-          { label: 'Dashboard', to: '/patient' },
-          { label: 'Health Records' },
+          { label: t('nav.dashboard', 'Dashboard'), to: '/patient' },
+          { label: t('records.title') },
         ]}
         actions={
           <Button
@@ -62,7 +64,7 @@ export const HealthRecordView: React.FC = () => {
             className="gap-1.5 text-xs"
           >
             <Download className="h-4 w-4" />
-            Download Health Summary
+            {t('records.downloadAll')}
           </Button>
         }
       />
@@ -186,21 +188,21 @@ export const HealthRecordView: React.FC = () => {
             value="TIMELINE"
             icon={<Activity className="h-4 w-4" />}
           >
-            Medical History
+            {t('records.tabTimeline')}
           </TabsTrigger>
 
           <TabsTrigger
             value="PRESCRIPTIONS"
             icon={<Pill className="h-4 w-4" />}
           >
-            Medicines
+            {t('records.tabPrescriptions')}
           </TabsTrigger>
 
           <TabsTrigger
             value="DIAGNOSTICS"
             icon={<FlaskConical className="h-4 w-4" />}
           >
-            Test Reports
+            {t('records.tabDiagnostics')}
           </TabsTrigger>
 
         </TabsList>

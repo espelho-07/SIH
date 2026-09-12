@@ -33,13 +33,13 @@ export const StatCard: React.FC<StatCardProps> = ({
   };
 
   return (
-    <Card className={cn('p-4 sm:p-5 flex flex-col justify-between hover:shadow-xs hover:border-slate-300/80 transition-all', className)}>
+    <Card className={cn('p-5 flex flex-col justify-between hover:shadow-md transition-all', className)}>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</p>
           <p className="mt-1.5 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{value}</p>
         </div>
-        <div className={cn('rounded-xl p-2.5 border', schemeStyles[colorScheme])}>
+        <div className={cn('rounded-xl p-3 border', schemeStyles[colorScheme])}>
           <Icon className="h-5 w-5" />
         </div>
       </div>

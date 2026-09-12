@@ -3,20 +3,26 @@ import { TopNavbar } from './TopNavbar';
 import { Sidebar } from './Sidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { CallingAlertModal } from './CallingAlertModal';
+import { PatientChatbotWidget } from '@/components/chatbot/PatientChatbotWidget';
 import { useConnection } from '@/contexts/ConnectionContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { WifiOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { networkState, pendingSyncCount, syncOfflineQueue, toggleSimulatedOffline } = useConnection();
+  const { user, role } = useAuth();
+
+  // Show chatbot widget on patient pages or for citizens/patients
+  const isPatientScope = !role || role === 'PATIENT';
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
+    <div className="min-h-screen bg-[#F4F8FA] text-slate-900 flex flex-col antialiased relative">
       {/* Top Navbar */}
       <TopNavbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} isSidebarOpen={sidebarOpen} />
 
-      {/* Persistent Offline Banner when network is offline (Section 23 of prompt) */}
+      {/* Persistent Offline Banner when network is offline */}
       {networkState === 'OFFLINE' && (
         <div className="bg-amber-600 text-white px-4 py-2.5 text-xs font-semibold flex items-center justify-between shadow-xs sticky top-16 z-30">
           <div className="flex items-center gap-2">
@@ -42,15 +48,18 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       )}
 
       {/* Main Layout Area */}
-      <div className="flex flex-1 min-w-0 w-full overflow-x-hidden">
+      <div className="flex flex-1">
         {/* Sidebar for Desktop & Tablet */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Content Viewport with pb-24 on mobile/tablet for BottomNav */}
-        <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 lg:pb-10 max-w-7xl mx-auto w-full">
+        {/* Content Viewport with pb-20 on mobile for BottomNav */}
+        <main className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-6 pb-24 md:pb-10 max-w-7xl mx-auto w-full">
           {children}
         </main>
       </div>
+
+      {/* Floating Medical AI Assistant for Citizens & Patients */}
+      {isPatientScope && <PatientChatbotWidget />}
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />

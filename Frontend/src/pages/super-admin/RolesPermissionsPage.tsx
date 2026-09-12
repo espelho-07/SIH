@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/Input';
 import { RoleBadge } from '@/components/ui/Badge';
 import { INITIAL_PERMISSION_MATRIX, DEMO_USERS } from '@/mock/mockData';
 import { UserRole } from '@/types/auth';
+import { PermissionMatrixItem } from '@/types/admin';
+import { adminApi } from '@/api/adminApi';
 import {
   KeyRound,
   Download,
@@ -14,12 +16,39 @@ import {
   Shield,
   Users,
   CheckCircle2,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const RolesPermissionsPage: React.FC = () => {
-  const [permissions] = useState(INITIAL_PERMISSION_MATRIX);
+  const [permissions, setPermissions] = useState<PermissionMatrixItem[]>(INITIAL_PERMISSION_MATRIX);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('DOCTOR');
+
+  const fetchPermissions = async (showRefreshSpinner = false) => {
+    if (showRefreshSpinner) setIsRefreshing(true);
+    setError(null);
+    try {
+      const res = await adminApi.getPermissions();
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setPermissions(res.data);
+      }
+    } catch (err: any) {
+      console.warn('Roles permission fetch error:', err);
+      setError(err?.message || 'Could not fetch live permissions matrix.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPermissions();
+  }, []);
 
   const users = Object.values(DEMO_USERS);
 
@@ -94,17 +123,39 @@ export const RolesPermissionsPage: React.FC = () => {
           { label: 'Roles & Permissions' },
         ]}
         actions={
-          <Button
-            onClick={handleExport}
-            variant="outline"
-            size="sm"
-            className="text-xs gap-1.5 cursor-pointer"
-          >
-            <Download className="h-3.5 w-3.5 text-slate-500" />
-            Export Permissions
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => fetchPermissions(true)}
+              variant="outline"
+              size="sm"
+              isLoading={isRefreshing}
+              className="text-xs gap-1.5 cursor-pointer"
+            >
+              <RefreshCw className="h-3.5 w-3.5 text-teal-700" />
+              Refresh
+            </Button>
+            <Button
+              onClick={handleExport}
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5 cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5 text-slate-500" />
+              Export Permissions
+            </Button>
+          </div>
         }
       />
+
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <Button size="xs" variant="outline" onClick={() => fetchPermissions(true)}>Retry</Button>
+        </div>
+      )}
 
       {/* Role Summary Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

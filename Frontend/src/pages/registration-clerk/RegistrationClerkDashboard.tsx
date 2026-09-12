@@ -7,9 +7,9 @@ import { registrationApi } from '@/api/registrationApi';
 import { queueApi } from '@/api/queueApi';
 import { Appointment, LiveQueueState, Token } from '@/types/queue';
 import { OpdTokenSlipModal } from './components/OpdTokenSlipModal';
+import { AssignDoctorModal } from './components/AssignDoctorModal';
 import {
   UserPlus,
-  Search,
   CalendarCheck2,
   Ticket,
   Clock,
@@ -20,6 +20,10 @@ import {
   Building2,
   AlertCircle,
   Volume2,
+  UserCheck,
+  RefreshCw,
+  MapPin,
+  Sparkles,
 } from 'lucide-react';
 
 export const RegistrationClerkDashboard: React.FC = () => {
@@ -32,25 +36,49 @@ export const RegistrationClerkDashboard: React.FC = () => {
   const [slipModalOpen, setSlipModalOpen] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
-  const loadData = async () => {
+  // Assign Doctor Modal State
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedAppointmentForAssign, setSelectedAppointmentForAssign] = useState<Appointment | null>(null);
+
+  const loadData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const [queueRes, aptRes] = await Promise.all([
         queueApi.getLiveQueue('fac_civil_01'),
-        registrationApi.getAppointments({ date: '2026-03-14' }),
+        registrationApi.getAppointments(),
       ]);
       if (queueRes.data) setQueue(queueRes.data);
       if (aptRes.data) setAppointments(aptRes.data);
     } catch (err) {
       console.error('Failed to load clerk dashboard data:', err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
+    // Auto-poll every 8 seconds so newly booked patient appointments appear live!
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
+
+  const handleOpenAssignModal = (apt: Appointment) => {
+    setSelectedAppointmentForAssign(apt);
+    setAssignModalOpen(true);
+  };
+
+  const handleDoctorAssigned = (updatedApt: Appointment) => {
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === updatedApt.id ? updatedApt : a))
+    );
+    setActionNotice(
+      `Doctor ${updatedApt.doctorName} assigned to patient ${updatedApt.patientName}.`
+    );
+    setTimeout(() => setActionNotice(null), 5000);
+  };
 
   const handleCallNext = async () => {
     try {
@@ -72,14 +100,19 @@ export const RegistrationClerkDashboard: React.FC = () => {
     }
   };
 
-  const handleQuickCheckIn = async (aptId: string) => {
+  const handleQuickCheckIn = async (apt: Appointment) => {
     try {
-      setCheckingInId(aptId);
-      const res = await registrationApi.checkInAppointment(aptId);
+      setCheckingInId(apt.id);
+      const res = await registrationApi.checkInAppointment(apt.id, {
+        doctorId: apt.doctorId,
+        doctorName: apt.doctorName,
+        roomNumber: apt.roomNumber,
+      });
+
       if (res.data) {
         // Update local appointment state
         setAppointments((prev) =>
-          prev.map((a) => (a.id === aptId ? res.data!.appointment : a))
+          prev.map((a) => (a.id === apt.id ? res.data!.appointment : a))
         );
         // Refresh queue
         const qRes = await queueApi.getLiveQueue('fac_civil_01');
@@ -88,7 +121,9 @@ export const RegistrationClerkDashboard: React.FC = () => {
         // Open OPD Slip Modal
         setActiveSlipToken(res.data.token);
         setSlipModalOpen(true);
-        setActionNotice(`Patient ${res.data.appointment.patientName} checked in. Token ${res.data.token.tokenNumber} issued.`);
+        setActionNotice(
+          `Patient ${res.data.appointment.patientName} checked in. Token ${res.data.token.tokenNumber} issued.`
+        );
         setTimeout(() => setActionNotice(null), 5000);
       }
     } catch (err) {
@@ -98,7 +133,8 @@ export const RegistrationClerkDashboard: React.FC = () => {
     }
   };
 
-  const pendingAppointments = appointments.filter((a) => a.status === 'CONFIRMED');
+  const scheduledAppointments = appointments.filter((a) => a.status === 'SCHEDULED');
+  const confirmedAppointments = appointments.filter((a) => a.status === 'CONFIRMED');
   const checkedInAppointments = appointments.filter((a) => a.status === 'CHECKED_IN');
   const waitingTokens = queue?.tokens.filter((t) => t.status === 'WAITING') || [];
   const currentCalledToken = queue?.tokens.find((t) => t.status === 'CALLED');
@@ -107,74 +143,82 @@ export const RegistrationClerkDashboard: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Notice Banner */}
       {actionNotice && (
-        <div className="rounded-xl bg-sky-50 border border-sky-200 p-4 text-xs font-semibold text-sky-900 flex items-center justify-between animate-in fade-in-50">
+        <div className="rounded-xl bg-teal-50 border border-teal-200 p-4 text-xs font-semibold text-teal-900 flex items-center justify-between animate-in fade-in-50 shadow-xs">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-sky-700 shrink-0" />
+            <CheckCircle2 className="h-4 w-4 text-teal-700 shrink-0" />
             <span>{actionNotice}</span>
           </div>
           <button
             onClick={() => setActionNotice(null)}
-            className="text-sky-700 hover:text-sky-950 font-bold"
+            className="text-teal-700 hover:text-teal-950 font-bold"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Hero Welcome Banner - Clean Healthcare Theme */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Hero Welcome Banner */}
+      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-sky-50 text-sky-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-sky-200/80">
+            <span className="bg-teal-100 text-teal-900 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-300">
               Counter 1 • OPD Front Desk
             </span>
-            <span className="text-xs text-slate-500">Gandhinagar Civil Hospital</span>
+            <span className="text-xs text-slate-500">Gandhinagar Civil Hospital & Medical College</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Front Desk Registration & Queue</h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Search citizens, verify ABHA, check-in scheduled appointments, and issue OPD tokens.
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+            Front Desk Registration & Queue
+          </h1>
+          <p className="text-xs text-slate-600 mt-1">
+            Live patient arrivals, assign hospital doctors, issue OPD consultation tokens, and manage counter flow.
           </p>
         </div>
 
-        {/* Quick Search Shortcut */}
+        {/* Quick Action Shortcut */}
         <div className="flex items-center gap-2.5 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadData(true)}
+            className="bg-white border-teal-300 text-teal-900 font-bold text-xs gap-1.5 min-h-[40px] px-3.5 rounded-xl cursor-pointer shadow-2xs hover:bg-teal-50"
+          >
+            <RefreshCw className={`h-4 w-4 text-teal-700 ${loading ? 'animate-spin' : ''}`} />
+            Live Sync
+          </Button>
+
           <Link to="/registration-clerk/register">
-            <Button className="bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer">
-              <UserPlus className="h-4 w-4 text-sky-100" />
+            <Button className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer">
+              <UserPlus className="h-4 w-4 text-teal-200" />
               Register New Citizen
             </Button>
           </Link>
-          <Link to="/registration-clerk/patients">
-            <Button className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-2xs">
-              <Search className="h-4 w-4 text-sky-700" />
-              Search Directory
-            </Button>
-          </Link>
         </div>
-      </div>      {/* Real-time Stat Cards */}
+      </div>
+
+      {/* Real-time Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 border-slate-200 hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase">Today's Appointments</span>
-            <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center">
+            <span className="text-xs font-semibold text-slate-500 uppercase">Hospital Appointments</span>
+            <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center">
               <CalendarCheck2 className="h-4 w-4" />
             </div>
           </div>
           <p className="text-3xl font-black text-slate-900 mt-2">{appointments.length}</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-xs font-bold text-sky-700">{checkedInAppointments.length} Checked In</span>
-            <span className="text-xs text-slate-400">• {pendingAppointments.length} Pending</span>
+          <div className="flex items-center gap-1.5 mt-1 text-xs">
+            <span className="font-bold text-teal-700">{checkedInAppointments.length} Checked In</span>
+            <span className="text-slate-400">• {scheduledAppointments.length + confirmedAppointments.length} Pending</span>
           </div>
         </Card>
 
         <Card className="p-4 border-slate-200 hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase">Tokens in Queue</span>
-            <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center">
               <Ticket className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-3xl font-black text-sky-700 mt-2">{waitingTokens.length}</p>
+          <p className="text-3xl font-black text-teal-700 mt-2">{waitingTokens.length}</p>
           <span className="text-xs text-slate-500 mt-1 block">General Medicine OPD</span>
         </Card>
 
@@ -210,17 +254,17 @@ export const RegistrationClerkDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link
           to="/registration-clerk/register"
-          className="group rounded-2xl bg-white p-5 border border-slate-200 hover:border-sky-500 hover:shadow-md transition-all flex items-start gap-4"
+          className="group rounded-2xl bg-white p-5 border border-slate-200 hover:border-teal-500 hover:shadow-md transition-all flex items-start gap-4"
         >
-          <div className="h-12 w-12 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center group-hover:bg-sky-700 group-hover:text-white transition-colors shrink-0">
+          <div className="h-12 w-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors shrink-0">
             <UserPlus className="h-6 w-6" />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm group-hover:text-sky-800 transition-colors">
+              <h3 className="font-bold text-slate-900 text-sm group-hover:text-teal-800 transition-colors">
                 Patient Registration
               </h3>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-sky-700 transition-colors" />
+              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-700 transition-colors" />
             </div>
             <p className="text-xs text-slate-500 mt-1">
               3-step registration with instant ABHA ID validation & duplicate detection.
@@ -230,39 +274,39 @@ export const RegistrationClerkDashboard: React.FC = () => {
 
         <Link
           to="/registration-clerk/appointments"
-          className="group rounded-2xl bg-white p-5 border border-slate-200 hover:border-sky-500 hover:shadow-md transition-all flex items-start gap-4"
+          className="group rounded-2xl bg-white p-5 border border-slate-200 hover:border-teal-500 hover:shadow-md transition-all flex items-start gap-4"
         >
-          <div className="h-12 w-12 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center group-hover:bg-sky-700 group-hover:text-white transition-colors shrink-0">
+          <div className="h-12 w-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors shrink-0">
             <CalendarCheck2 className="h-6 w-6" />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm group-hover:text-sky-800 transition-colors">
+              <h3 className="font-bold text-slate-900 text-sm group-hover:text-teal-800 transition-colors">
                 Appointment Desk
               </h3>
               <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                {pendingAppointments.length} Pending
+                {scheduledAppointments.length + confirmedAppointments.length} Pending
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Today's scheduled appointments with 1-click check-in & token generation.
+              Assign doctors, manage scheduled arrivals, and issue OPD consultation slips.
             </p>
           </div>
         </Link>
 
         <Link
           to="/registration-clerk/queue"
-          className="group rounded-2xl bg-white p-5 border border-slate-200 hover:border-sky-500 hover:shadow-md transition-all flex items-start gap-4"
+          className="group rounded-2xl bg-white p-5 border border-slate-200 hover:border-teal-500 hover:shadow-md transition-all flex items-start gap-4"
         >
-          <div className="h-12 w-12 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center group-hover:bg-sky-700 group-hover:text-white transition-colors shrink-0">
+          <div className="h-12 w-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors shrink-0">
             <Ticket className="h-6 w-6" />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm group-hover:text-sky-800 transition-colors">
+              <h3 className="font-bold text-slate-900 text-sm group-hover:text-teal-800 transition-colors">
                 OPD Token Counter
               </h3>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-sky-700 transition-colors" />
+              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-700 transition-colors" />
             </div>
             <p className="text-xs text-slate-500 mt-1">
               Call next token, issue walk-in OPD tokens, and monitor room status.
@@ -282,32 +326,32 @@ export const RegistrationClerkDashboard: React.FC = () => {
                 <p className="text-xs text-slate-500">General Medicine • Room 4</p>
               </div>
               <Link to="/registration-clerk/queue">
-                <Button variant="ghost" size="sm" className="text-xs text-sky-700 hover:text-sky-800 gap-1 p-0">
+                <Button variant="ghost" size="sm" className="text-xs text-teal-700 hover:text-teal-800 gap-1 p-0">
                   Full Monitor <ChevronRight className="h-3 w-3" />
                 </Button>
               </Link>
             </CardHeader>
             <CardContent className="p-5 pt-2 space-y-4">
               {/* Current Token Callout */}
-              <div className="rounded-xl bg-sky-50/80 border-2 border-sky-200 p-4 text-center">
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-sky-800">
-                  <Volume2 className="h-4 w-4 text-sky-600 animate-pulse" />
+              <div className="rounded-xl bg-teal-50/80 border-2 border-teal-200 p-4 text-center">
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-teal-800">
+                  <Volume2 className="h-4 w-4 text-teal-600 animate-pulse" />
                   Currently Calling
                 </div>
-                <div className="text-4xl font-black text-sky-900 my-1 font-mono">
+                <div className="text-4xl font-black text-teal-900 my-1 font-mono">
                   {currentCalledToken?.tokenNumber || queue?.currentTokenNumber || '—'}
                 </div>
                 <p className="text-xs font-semibold text-slate-700">
                   {currentCalledToken?.patientName || 'Govindbhai Prajapati'}
                 </p>
-                <span className="text-[11px] text-sky-700">Room 4 • Dr. Arvind Patel</span>
+                <span className="text-[11px] text-teal-700">Room 4 • Dr. Arvind Patel</span>
               </div>
 
               {/* Action: Call Next Token */}
               <Button
                 onClick={handleCallNext}
                 disabled={callingNext || waitingTokens.length === 0}
-                className="w-full bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold gap-2 min-h-[42px] cursor-pointer"
+                className="w-full bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold gap-2 min-h-[42px] cursor-pointer"
               >
                 <Volume2 className="h-4 w-4" />
                 {callingNext ? 'Calling...' : `Call Next Token (${waitingTokens.length} Waiting)`}
@@ -329,7 +373,7 @@ export const RegistrationClerkDashboard: React.FC = () => {
                       >
                         <div className="flex items-center gap-2.5">
                           <span className="text-slate-400 font-mono text-[11px]">#{idx + 1}</span>
-                          <span className="font-mono font-bold text-xs bg-sky-100/80 text-sky-900 px-1.5 py-0.5 rounded">
+                          <span className="font-mono font-bold text-xs bg-teal-100/70 text-teal-900 px-1.5 py-0.5 rounded">
                             {t.tokenNumber}
                           </span>
                           <div>
@@ -351,85 +395,128 @@ export const RegistrationClerkDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Right Column: Today's Appointments Desk (7 cols) */}
+        {/* Right Column: Scheduled Arrivals & Doctor Assignment (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
           <Card className="border-slate-200">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
-                <CardTitle className="text-base font-bold">Today's Scheduled Arrivals</CardTitle>
-                <p className="text-xs text-slate-500">1-click check-in & token generation for confirmed patients</p>
+                <CardTitle className="text-base font-bold">Scheduled Arrivals & Doctor Desk</CardTitle>
+                <p className="text-xs text-slate-500">Live citizen registrations, doctor assignment & 1-click token check-in</p>
               </div>
               <Link to="/registration-clerk/appointments">
-                <Button variant="ghost" size="sm" className="text-xs text-sky-700 hover:text-sky-800 gap-1 p-0">
+                <Button variant="ghost" size="sm" className="text-xs text-teal-700 hover:text-teal-800 gap-1 p-0">
                   View All ({appointments.length}) <ChevronRight className="h-3 w-3" />
                 </Button>
               </Link>
             </CardHeader>
             <CardContent className="p-5 pt-2">
-              {loading ? (
+              {loading && appointments.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400">Loading today's schedule...</div>
               ) : appointments.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400">No appointments scheduled for today</div>
               ) : (
                 <div className="divide-y divide-slate-100 text-xs">
-                  {appointments.slice(0, 6).map((apt) => (
-                    <div key={apt.id} className="py-3 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {/* Time Slot Pill */}
-                        <div className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-center min-w-[70px] shrink-0">
-                          <span className="font-mono font-bold text-xs text-slate-800 block">
-                            {apt.timeSlot}
-                          </span>
+                  {appointments.slice(0, 6).map((apt) => {
+                    const isDoctorUnassigned =
+                      !apt.doctorId || apt.doctorId === 'unassigned' || apt.doctorName?.includes('To be assigned');
+
+                    return (
+                      <div key={apt.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0">
+                          {/* Time Slot Pill */}
+                          <div className="rounded-lg bg-teal-50 border border-teal-200 px-2 py-1 text-center min-w-[65px] shrink-0">
+                            <span className="font-mono font-bold text-xs text-teal-950 block">
+                              {apt.timeSlot}
+                            </span>
+                          </div>
+
+                          {/* Patient & Doctor Details */}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900 text-sm truncate">
+                                {apt.patientName}
+                              </span>
+                              <StatusBadge status={apt.status} />
+                            </div>
+
+                            <div className="text-[11px] text-slate-600 mt-0.5 flex flex-wrap items-center gap-1.5">
+                              {isDoctorUnassigned ? (
+                                <button
+                                  onClick={() => handleOpenAssignModal(apt)}
+                                  className="text-amber-800 font-bold bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-1"
+                                >
+                                  <UserCheck className="h-3 w-3 text-amber-600" /> Assign Doctor
+                                </button>
+                              ) : (
+                                <>
+                                  <span className="font-bold text-slate-800">{apt.doctorName}</span>
+                                  <span className="text-slate-400">•</span>
+                                  <span className="text-teal-800 font-medium">{apt.specialty}</span>
+                                  {apt.roomNumber && (
+                                    <span className="font-mono text-slate-500">({apt.roomNumber})</span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {apt.tokenNumber && (
+                              <span className="inline-block mt-0.5 font-mono text-[10px] text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded font-bold">
+                                Token {apt.tokenNumber}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Patient & Doctor Details */}
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 text-sm truncate">
-                              {apt.patientName}
+                        {/* Actions (Assign / Check-In) */}
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                          {isDoctorUnassigned && (
+                            <Button
+                              onClick={() => handleOpenAssignModal(apt)}
+                              variant="outline"
+                              size="sm"
+                              className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-bold text-xs gap-1 h-8 px-2.5 shadow-2xs"
+                            >
+                              <UserCheck className="h-3.5 w-3.5 text-amber-700" />
+                              Assign
+                            </Button>
+                          )}
+
+                          {apt.status === 'SCHEDULED' || apt.status === 'CONFIRMED' ? (
+                            <Button
+                              onClick={() => handleQuickCheckIn(apt)}
+                              disabled={checkingInId === apt.id}
+                              size="sm"
+                              className="bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs gap-1.5 h-8 px-3 shadow-xs cursor-pointer"
+                            >
+                              <Ticket className="h-3.5 w-3.5" />
+                              {checkingInId === apt.id ? 'Checking In...' : 'Check In'}
+                            </Button>
+                          ) : apt.status === 'CHECKED_IN' ? (
+                            <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold text-[11px] flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Checked In
                             </span>
-                            <StatusBadge status={apt.status} />
-                          </div>
-                          <p className="text-slate-500 text-[11px] truncate mt-0.5">
-                            {apt.doctorName} • <span className="text-slate-700 font-medium">{apt.specialty}</span>
-                          </p>
-                          {apt.tokenNumber && (
-                            <span className="inline-block mt-0.5 font-mono text-[10px] text-sky-800 bg-sky-50 px-1.5 py-0.5 rounded font-bold">
-                              Token {apt.tokenNumber}
-                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">Completed</span>
                           )}
                         </div>
                       </div>
-
-                      {/* Check-In Action Button */}
-                      <div className="shrink-0">
-                        {apt.status === 'CONFIRMED' ? (
-                          <Button
-                            onClick={() => handleQuickCheckIn(apt.id)}
-                            disabled={checkingInId === apt.id}
-                            size="sm"
-                            className="bg-sky-700 hover:bg-sky-800 text-white font-semibold text-xs gap-1.5 h-8 px-3 shadow-xs cursor-pointer"
-                          >
-                            <Ticket className="h-3.5 w-3.5" />
-                            {checkingInId === apt.id ? 'Checking In...' : 'Check In'}
-                          </Button>
-                        ) : apt.status === 'CHECKED_IN' ? (
-                          <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold text-[11px] flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Checked In
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[11px]">Completed</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Assign Doctor Modal */}
+      <AssignDoctorModal
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        appointment={selectedAppointmentForAssign}
+        onDoctorAssigned={handleDoctorAssigned}
+      />
 
       {/* OPD Token Slip Modal */}
       <OpdTokenSlipModal

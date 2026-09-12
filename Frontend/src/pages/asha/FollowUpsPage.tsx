@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
 import { INITIAL_ASHA_TASKS } from '@/mock/mockData';
 import { FollowUpTask } from '@/types/asha';
+import { ashaApi } from '@/api/ashaApi';
 import { Link } from 'react-router-dom';
 import {
   CheckCircle2,
@@ -25,6 +26,16 @@ export const FollowUpsPage: React.FC = () => {
   const [urgencyFilter, setUrgencyFilter] = useState<'ALL' | 'OVERDUE' | 'DUE_TODAY' | 'UPCOMING'>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    ashaApi.getTasks().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setTasks(res.data);
+      }
+    }).catch((err) => {
+      console.warn('Live asha tasks fetch failed:', err);
+    });
+  }, []);
 
   const counts = useMemo(() => {
     return {
@@ -53,11 +64,20 @@ export const FollowUpsPage: React.FC = () => {
     });
   }, [tasks, urgencyFilter, categoryFilter, search]);
 
-  const toggleTaskCompletion = (taskId: string) => {
+  const toggleTaskCompletion = async (taskId: string) => {
+    const targetTask = tasks.find((t) => t.id === taskId);
+    if (!targetTask) return;
+    const nextState = !targetTask.isCompleted;
+
+    try {
+      await ashaApi.updateTask(taskId, nextState);
+    } catch (err) {
+      console.warn('Failed to update task in backend:', err);
+    }
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
-          const nextState = !t.isCompleted;
           return {
             ...t,
             isCompleted: nextState,

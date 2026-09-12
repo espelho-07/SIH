@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/Badge';
 import { INITIAL_ASHA_VISITS, INITIAL_ASHA_PATIENTS } from '@/mock/mockData';
-import { AshaVisit, VisitType, VisitStatus } from '@/types/asha';
+import { ashaApi } from '@/api/ashaApi';
+import { AshaVisit, VisitType, VisitStatus, AshaPatient } from '@/types/asha';
 import { saveOfflineVisit } from '@/lib/db';
 import { useConnection } from '@/contexts/ConnectionContext';
 import { Link } from 'react-router-dom';
@@ -30,6 +31,7 @@ import {
 export const HomeVisitsPage: React.FC = () => {
   const { refreshPendingCount } = useConnection();
   const [visits, setVisits] = useState<AshaVisit[]>(INITIAL_ASHA_VISITS);
+  const [citizens, setCitizens] = useState<AshaPatient[]>(INITIAL_ASHA_PATIENTS);
   const [filter, setFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'OVERDUE' | 'COMPLETED'>('TODAY');
   const [search, setSearch] = useState('');
   const [selectedVisitForLogging, setSelectedVisitForLogging] = useState<AshaVisit | null>(null);
@@ -49,7 +51,33 @@ export const HomeVisitsPage: React.FC = () => {
   const [newPurpose, setNewPurpose] = useState('');
   const [newNotes, setNewNotes] = useState('');
 
-  const todayStr = '2026-03-11'; // Consistent demo date
+  const fetchLiveVisits = async () => {
+    try {
+      const res = await ashaApi.getVisits();
+      if (res.data && res.data.length > 0) setVisits(res.data);
+    } catch (err) {
+      console.warn('Failed to fetch visits:', err);
+    }
+  };
+
+  const fetchLiveCitizens = async () => {
+    try {
+      const res = await ashaApi.getCitizens();
+      if (res.data && res.data.length > 0) {
+        setCitizens(res.data);
+        setNewPatientId(res.data[0].id);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch citizens:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveVisits();
+    fetchLiveCitizens();
+  }, []);
+
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const counts = useMemo(() => {
     return {
@@ -119,7 +147,7 @@ export const HomeVisitsPage: React.FC = () => {
 
   const handleScheduleVisit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const patient = INITIAL_ASHA_PATIENTS.find((p) => p.id === newPatientId);
+    const patient = citizens.find((p) => p.id === newPatientId) || INITIAL_ASHA_PATIENTS.find((p) => p.id === newPatientId);
     if (!patient) return;
 
     const newVisit: AshaVisit = {
@@ -137,6 +165,12 @@ export const HomeVisitsPage: React.FC = () => {
       status: 'SCHEDULED',
       isCompleted: false,
     };
+
+    try {
+      await ashaApi.createVisit(newVisit);
+    } catch (err) {
+      console.warn('Backend visit create sync deferred:', err);
+    }
 
     await saveOfflineVisit(newVisit);
     await refreshPendingCount();
@@ -496,7 +530,7 @@ export const HomeVisitsPage: React.FC = () => {
       {/* Schedule New Visit Modal */}
       {isScheduleModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-2xl sm:max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-extrabold text-base text-slate-900">Schedule Home Field Visit</h3>
               <button
@@ -516,11 +550,11 @@ export const HomeVisitsPage: React.FC = () => {
                 <select
                   value={newPatientId}
                   onChange={(e) => setNewPatientId(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium focus:ring-2 focus:ring-teal-700"
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer focus:ring-2 focus:ring-teal-700"
                 >
-                  {INITIAL_ASHA_PATIENTS.map((p) => (
+                  {citizens.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.village}) • {p.category?.replace(/_/g, ' ')}
+                      {p.name} ({p.village || 'Village'}) • {p.category?.replace(/_/g, ' ')}
                     </option>
                   ))}
                 </select>
@@ -542,7 +576,7 @@ export const HomeVisitsPage: React.FC = () => {
                   <select
                     value={newTimeSlot}
                     onChange={(e) => setNewTimeSlot(e.target.value)}
-                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                   >
                     <option value="09:00 AM - 09:45 AM">09:00 AM - 09:45 AM</option>
                     <option value="10:00 AM - 10:45 AM">10:00 AM - 10:45 AM</option>
@@ -558,7 +592,7 @@ export const HomeVisitsPage: React.FC = () => {
                 <select
                   value={newVisitType}
                   onChange={(e) => setNewVisitType(e.target.value as VisitType)}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                 >
                   <option value="ANC">Antenatal Care (ANC)</option>
                   <option value="PNC">Postnatal Care (PNC)</option>

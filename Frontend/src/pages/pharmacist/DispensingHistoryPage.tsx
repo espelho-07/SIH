@@ -215,7 +215,7 @@ export const DispensingHistoryPage: React.FC = () => {
       {/* 4. Handover Slip Modal */}
       {selectedRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6 my-8 animate-in zoom-in-95 duration-150">
+          <div className="relative w-full max-w-3xl sm:max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6 my-8 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-teal-100 text-teal-800">

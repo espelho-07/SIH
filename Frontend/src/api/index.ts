@@ -9,3 +9,9 @@ export * from './ashaApi';
 export * from './aiApi';
 export * from './adminApi';
 export * from './operationsApi';
+export * from './intelligenceApi';
+export * from './labApi';
+export * from './pharmacyApi';
+export * from './registrationApi';
+export * from './directoryApi';
+

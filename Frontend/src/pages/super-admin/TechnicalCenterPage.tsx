@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -11,6 +11,11 @@ import {
   DEMO_USERS,
   INITIAL_AI_MODELS,
 } from '@/mock/mockData';
+import { Facility } from '@/types/facility';
+import { User } from '@/types/auth';
+import { AiModelRegistryItem, AuditLog, SystemHealthOverview } from '@/types/admin';
+import { adminApi } from '@/api/adminApi';
+import { facilityApi } from '@/api/facilityApi';
 import {
   Server,
   Building2,
@@ -28,28 +33,61 @@ import {
   Sliders,
   Bell,
   ShieldAlert,
+  UserCheck,
+  Crown,
+  MapPin,
 } from 'lucide-react';
 
 export const TechnicalCenterPage: React.FC = () => {
-  const [health, setHealth] = useState(INITIAL_SYSTEM_HEALTH);
+  const [health, setHealth] = useState<SystemHealthOverview>(INITIAL_SYSTEM_HEALTH);
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
+  const [users, setUsers] = useState<User[]>(Object.values(DEMO_USERS));
+  const [models, setModels] = useState<AiModelRegistryItem[]>(INITIAL_AI_MODELS);
+  const [recentLogs, setRecentLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const facilities = INITIAL_FACILITIES;
-  const users = Object.values(DEMO_USERS);
-  const models = INITIAL_AI_MODELS;
-  const recentLogs = INITIAL_AUDIT_LOGS;
+  const fetchOverviewData = async (showRefreshSpinner = false) => {
+    if (showRefreshSpinner) setIsRefreshing(true);
+    setError(null);
+    try {
+      const [healthRes, facRes, userRes, modelRes, auditRes] = await Promise.allSettled([
+        adminApi.getSystemHealth(),
+        facilityApi.getAll(),
+        adminApi.getUsers(),
+        adminApi.getAiModels(),
+        adminApi.getAuditLogs(),
+      ]);
+
+      if (healthRes.status === 'fulfilled' && healthRes.value?.data) {
+        setHealth(healthRes.value.data);
+      }
+      if (facRes.status === 'fulfilled' && facRes.value?.data && Array.isArray(facRes.value.data)) {
+        setFacilities(facRes.value.data);
+      }
+      if (userRes.status === 'fulfilled' && userRes.value?.data && Array.isArray(userRes.value.data)) {
+        setUsers(userRes.value.data);
+      }
+      if (modelRes.status === 'fulfilled' && modelRes.value?.data && Array.isArray(modelRes.value.data)) {
+        setModels(modelRes.value.data);
+      }
+      if (auditRes.status === 'fulfilled' && auditRes.value?.data && Array.isArray(auditRes.value.data)) {
+        setRecentLogs(auditRes.value.data);
+      }
+    } catch (err: any) {
+      console.warn('TechnicalCenter fetch error:', err);
+      setError(err?.message || 'Could not refresh some technical center metrics.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOverviewData();
+  }, []);
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setHealth((prev) => ({
-      ...prev,
-      services: prev.services.map((s) => ({
-        ...s,
-        latencyMs: Math.floor(Math.random() * 15) + 14,
-      })),
-    }));
-    setIsRefreshing(false);
+    await fetchOverviewData(true);
   };
 
   const offlineOrDegradedServices = health.services.filter(
@@ -60,14 +98,20 @@ export const TechnicalCenterPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header matching Patient UI standard */}
       <PageHeader
-        title="Technical Center"
-        subtitle="Platform status, core services, and operational health across the district healthcare grid."
+        title="State Apex Command & Website Owner Console"
+        subtitle="Supreme statutory authority across all 33 Gujarat districts • Public health infrastructure, AI systems, and CDHO jurisdictional commissioning."
         breadcrumbs={[
           { label: 'HealthConnect', to: '/' },
-          { label: 'Technical Center' },
+          { label: 'State Apex Command' },
         ]}
         actions={
           <div className="flex items-center gap-2">
+            <Link to="/super-admin/district-admins">
+              <Button size="sm" className="text-xs gap-1.5 bg-indigo-700 hover:bg-indigo-800 text-white font-semibold cursor-pointer">
+                <UserCheck className="h-3.5 w-3.5" />
+                District Admins
+              </Button>
+            </Link>
             <Button
               onClick={handleRefresh}
               variant="outline"
@@ -88,24 +132,30 @@ export const TechnicalCenterPage: React.FC = () => {
         }
       />
 
-      {/* Clean Status Strip - Healthcare Surface */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Website Owner Apex Banner */}
+      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-teal-950 to-indigo-950 text-white p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-teal-600/40">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-xs font-semibold text-teal-800">
-            <Server className="h-3.5 w-3.5 text-teal-700" />
-            <span>Infrastructure Status</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-3 py-0.5 text-xs font-bold text-amber-300 border border-amber-400/40">
+              <Crown className="h-3.5 w-3.5 text-amber-300" />
+              <span>Website Owner Console</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>Gujarat State Health Grid</span>
+            </div>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">All Core Systems Operational</h2>
-          <p className="text-xs text-slate-500 font-medium max-w-xl">
-            6 microservices active • Real-time socket queues synced with Gandhinagar district hospitals.
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight">All Statewide Systems & Facilities Active</h2>
+          <p className="text-xs text-teal-100/80 max-w-xl">
+            6 core microservices active • 33 district health networks synchronized • Real-time socket queues connected across state civil hospitals.
           </p>
         </div>
 
-        <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-center shrink-0">
-          <span className="text-[10px] uppercase font-semibold text-slate-500 block tracking-wider">Overall Uptime</span>
-          <span className="text-emerald-700 font-semibold text-xs flex items-center justify-center gap-1.5 mt-0.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            99.98% Healthy
+        <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3.5 text-center shrink-0">
+          <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">State Platform Uptime</span>
+          <span className="text-emerald-300 font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            99.98% Operational
           </span>
         </div>
       </div>
@@ -214,10 +264,32 @@ export const TechnicalCenterPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Access to Operational Workspaces (Matching Patient Module card interactions) */}
+      {/* Quick Access to Operational Workspaces */}
       <div className="space-y-3">
-        <h3 className="text-base font-bold text-slate-900">Administrative Workspaces</h3>
+        <h3 className="text-base font-bold text-slate-900">Administrative & Jurisdictional Consoles</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link to="/super-admin/district-admins" className="group">
+            <Card className="p-5 border-indigo-200 bg-indigo-50/30 hover:border-indigo-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-800 group-hover:scale-105 transition-transform">
+                    <UserCheck className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                    Exclusive Authority
+                  </span>
+                </div>
+                <h4 className="font-bold text-sm text-slate-900">District Health Administrators</h4>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Appoint, commission, or suspend Chief District Health Officers (CDHOs) holding statutory command across all 33 Gujarat districts.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-indigo-700 flex items-center gap-1 mt-4 group-hover:translate-x-0.5 transition-transform">
+                Appoint & Manage CDHOs <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </Card>
+          </Link>
+
           <Link to="/super-admin/system-health" className="group">
             <Card className="p-5 border-slate-200 hover:border-teal-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
               <div>

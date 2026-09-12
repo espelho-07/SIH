@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogHeader,
@@ -10,6 +10,8 @@ import {
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
 import { INITIAL_AMBULANCES, INITIAL_FACILITIES } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { Facility } from '@/types/facility';
 import {
   ShieldAlert,
   PhoneCall,
@@ -31,7 +33,14 @@ interface AdminEmergencyModalProps {
 }
 
 export const AdminEmergencyModal: React.FC<AdminEmergencyModalProps> = ({ open, onOpenChange }) => {
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'FLEET' | 'HOTLINES'>('OVERVIEW');
+
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setFacilities(res.data);
+    }).catch(console.warn);
+  }, []);
 
   // Real district ambulance fleet data
   const ambulances = INITIAL_AMBULANCES;
@@ -40,10 +49,10 @@ export const AdminEmergencyModal: React.FC<AdminEmergencyModalProps> = ({ open, 
 
   // Real emergency hospital data
   const emergencyFacility =
-    INITIAL_FACILITIES.find((f) => f.emergencyAvailable) || INITIAL_FACILITIES[0];
+    facilities.find((f) => f.emergencyAvailable) || facilities[0] || INITIAL_FACILITIES[0];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="xl">
+    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="2xl">
       <DialogHeader className="pb-3 border-b border-slate-100">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">

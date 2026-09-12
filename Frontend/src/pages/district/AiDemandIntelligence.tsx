@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ChartCard } from '@/components/common/ChartCard';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_AI_SUMMARY } from '@/mock/mockData';
+import { aiApi } from '@/api/aiApi';
+import { AiDemandIntelligenceSummary } from '@/types/ai';
 import {
   BrainCircuit,
   Stethoscope,
@@ -16,6 +18,7 @@ import {
   TrendingUp,
   AlertTriangle,
   Clock,
+  RefreshCw,
 } from 'lucide-react';
 import {
   BarChart,
@@ -30,16 +33,35 @@ import {
 
 export const AiDemandIntelligence: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
-  const ai = INITIAL_AI_SUMMARY;
+  const [aiData, setAiData] = useState<AiDemandIntelligenceSummary>(INITIAL_AI_SUMMARY);
+  const [loading, setLoading] = useState(false);
 
-  const specialistChartData = ai.specialistGaps.map((s) => ({
+  const fetchAiData = async () => {
+    setLoading(true);
+    try {
+      const res = await aiApi.getDashboard();
+      if (res.data) setAiData(res.data);
+    } catch (err) {
+      console.warn('Live AI dashboard fetch failed, using fallback:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAiData();
+  }, [selectedDistrict]);
+
+  const ai = aiData || INITIAL_AI_SUMMARY;
+
+  const specialistChartData = (ai.specialistGaps || []).map((s) => ({
     name: s.specialty,
     Demand: s.predictedDemandConsultations,
     Capacity: s.availableCapacityConsultations,
     Gap: s.gapConsultations,
   }));
 
-  const patientHourlyData = ai.patientLoad.hourlyBreakdown || [];
+  const patientHourlyData = ai.patientLoad?.hourlyBreakdown || [];
 
   return (
     <div className="space-y-6">

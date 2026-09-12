@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
+import { facilityApi } from '@/api/facilityApi';
+import { Facility } from '@/types/facility';
 import {
   PhoneCall,
   Navigation,
@@ -27,11 +29,18 @@ interface EmergencyModalProps {
 type LocationState = 'IDLE' | 'LOADING' | 'GRANTED' | 'DENIED' | 'UNAVAILABLE';
 
 export const EmergencyModal: React.FC<EmergencyModalProps> = ({ open, onOpenChange }) => {
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
   const [locationState, setLocationState] = useState<LocationState>('IDLE');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setFacilities(res.data);
+    }).catch(console.warn);
+  }, []);
+
   const emergencyFacility =
-    INITIAL_FACILITIES.find((f) => f.emergencyAvailable) || INITIAL_FACILITIES[0];
+    facilities.find((f) => f.emergencyAvailable) || facilities[0] || INITIAL_FACILITIES[0];
 
   // Request browser geolocation safely when modal opens
   useEffect(() => {
@@ -70,7 +79,7 @@ export const EmergencyModal: React.FC<EmergencyModalProps> = ({ open, onOpenChan
     : `https://www.google.com/maps/search/?api=1&query=${emergencyFacility.coordinates.lat},${emergencyFacility.coordinates.lng}`;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="lg">
+    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="xl">
       <DialogHeader className="pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-700 border border-red-200/60">

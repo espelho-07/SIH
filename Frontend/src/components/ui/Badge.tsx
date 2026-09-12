@@ -9,12 +9,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 
 export const Badge: React.FC<BadgeProps> = ({ className, variant = 'default', children, ...props }) => {
   const variants = {
-    default: 'bg-slate-50 text-slate-700 border-slate-200 font-medium',
-    success: 'bg-emerald-50 text-emerald-700 border-emerald-200/70 font-medium',
-    warning: 'bg-amber-50 text-amber-800 border-amber-200/70 font-medium',
-    destructive: 'bg-rose-50 text-rose-700 border-rose-200/70 font-medium',
-    info: 'bg-sky-50 text-sky-700 border-sky-200/70 font-medium',
-    outline: 'border-slate-300 text-slate-700 bg-white font-medium',
+    default: 'bg-slate-100 text-slate-800 border-slate-200',
+    success: 'bg-[#E1EFFA] text-[#1D6394] border-[#C6E0F2]',
+    warning: 'bg-amber-50 text-amber-800 border-amber-200',
+    destructive: 'bg-rose-50 text-rose-800 border-rose-200 font-semibold',
+    info: 'bg-[#F0F6FA] text-[#2B6CB0] border-[#C6E0F2]',
+    outline: 'border-slate-300 text-slate-700 bg-transparent',
   };
 
   return (

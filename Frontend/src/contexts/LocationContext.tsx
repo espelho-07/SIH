@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface LocationFacility {
   id: string;
@@ -220,16 +220,52 @@ export const AVAILABLE_HOSPITALS: LocationFacility[] = [
   },
 ];
 
+// Helper Haversine formula
+function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
+const DISTRICT_COORDINATES: Record<string, { lat: number; lng: number; hospital: string; id: string }> = {
+  Gandhinagar: { lat: 23.2156, lng: 72.6369, hospital: 'Gandhinagar Civil Hospital & Medical College', id: 'fac_civil_01' },
+  Ahmedabad: { lat: 23.0525, lng: 72.595, hospital: 'Ahmedabad Civil Hospital & BJ Medical College', id: 'fac_ahd_civil_01' },
+  Surat: { lat: 21.1702, lng: 72.8311, hospital: 'New Civil Hospital Surat (Govt Medical College)', id: 'fac_surat_civil_01' },
+  Vadodara: { lat: 22.3072, lng: 73.1812, hospital: 'Sir Sayajirao General (SSG) Hospital', id: 'fac_vad_ssg_01' },
+  Rajkot: { lat: 22.3039, lng: 70.8022, hospital: 'PDU Government Medical College & Civil Hospital', id: 'fac_raj_civil_01' },
+  Bhavnagar: { lat: 21.7645, lng: 72.1519, hospital: 'Sir Takhtasinhji (Sir T) Civil Hospital', id: 'fac_bhv_sirt_01' },
+  Jamnagar: { lat: 22.4707, lng: 70.0577, hospital: 'Guru Gobind Singh (GG) Government Hospital', id: 'fac_jam_gg_01' },
+  Junagadh: { lat: 21.5222, lng: 70.4579, hospital: 'Junagadh Civil Hospital & GMERS College', id: 'fac_jun_civil_01' },
+};
+
 interface LocationContextType {
   selectedDistrict: string;
   selectedFacility: string;
   selectedFacilityId: string;
+  userCoords: { lat: number; lng: number } | null;
   stateGrid: string;
   isLocationModalOpen: boolean;
+  isLiveTracking: boolean;
+  gpsAccuracy: number | null;
+  gpsHeading: number | null;
+  gpsSpeed: number | null;
+  lastLocationUpdate: Date | null;
   openLocationModal: () => void;
   closeLocationModal: () => void;
   setLocation: (district: string, facilityName: string, facilityId?: string) => void;
-  detectGpsLocation: () => Promise<{ success: boolean; message: string }>;
+  setUserCoords: (coords: { lat: number; lng: number } | null) => void;
+  detectGpsLocation: () => Promise<{ success: boolean; message: string; coords?: { lat: number; lng: number } }>;
+  startLiveTracking: () => void;
+  stopLiveTracking: () => void;
+  toggleLiveTracking: () => void;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -250,7 +286,22 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return localStorage.getItem('healthconnect_facility_id') || 'fac_civil_01';
   });
 
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(() => {
+    try {
+      const saved = localStorage.getItem('healthconnect_user_coords');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [isLocationModalOpen, setIsLocationModalOpen] = useState<boolean>(false);
+  const [isLiveTracking, setIsLiveTracking] = useState<boolean>(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [gpsHeading, setGpsHeading] = useState<number | null>(null);
+  const [gpsSpeed, setGpsSpeed] = useState<number | null>(null);
+  const [lastLocationUpdate, setLastLocationUpdate] = useState<Date | null>(null);
+  const watchIdRef = React.useRef<number | null>(null);
 
   const setLocation = (district: string, facilityName: string, facilityId?: string) => {
     setSelectedDistrict(district);
@@ -263,7 +314,16 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('healthconnect_facility_id', matched);
   };
 
-  const detectGpsLocation = async (): Promise<{ success: boolean; message: string }> => {
+  const updateUserCoords = (coords: { lat: number; lng: number } | null) => {
+    setUserCoords(coords);
+    if (coords) {
+      localStorage.setItem('healthconnect_user_coords', JSON.stringify(coords));
+    } else {
+      localStorage.removeItem('healthconnect_user_coords');
+    }
+  };
+
+  const detectGpsLocation = async (): Promise<{ success: boolean; message: string; coords?: { lat: number; lng: number } }> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
         resolve({ success: false, message: 'GPS is not supported by your browser.' });
@@ -272,44 +332,39 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          // Approximate check:
-          // Gandhinagar: ~23.2, 72.6
-          // Ahmedabad: ~23.0, 72.5
-          // Surat: ~21.1, 72.8
-          // Vadodara: ~22.3, 73.1
-          let detectedDistrict = 'Gandhinagar';
-          let detectedHospital = 'Gandhinagar Civil Hospital & Medical College';
-          let detectedId = 'fac_civil_01';
+          const { latitude, longitude, accuracy } = position.coords;
+          const coords = { lat: latitude, lng: longitude };
+          updateUserCoords(coords);
+          setGpsAccuracy(Math.round(accuracy));
+          setLastLocationUpdate(new Date());
 
-          if (latitude < 21.8 && longitude < 73.2) {
-            detectedDistrict = 'Surat';
-            detectedHospital = 'New Civil Hospital Surat (Govt Medical College)';
-            detectedId = 'fac_surat_civil_01';
-          } else if (latitude < 22.6 && longitude > 73.0) {
-            detectedDistrict = 'Vadodara';
-            detectedHospital = 'Sir Sayajirao General (SSG) Hospital';
-            detectedId = 'fac_vad_ssg_01';
-          } else if (latitude < 22.5 && longitude < 71.5) {
-            detectedDistrict = 'Rajkot';
-            detectedHospital = 'PDU Government Medical College & Civil Hospital';
-            detectedId = 'fac_raj_civil_01';
-          } else if (latitude < 23.12 && latitude > 22.8) {
-            detectedDistrict = 'Ahmedabad';
-            detectedHospital = 'Ahmedabad Civil Hospital & BJ Medical College';
-            detectedId = 'fac_ahd_civil_01';
-          }
+          // Find closest district mathematically
+          let closestDistrict = 'Gandhinagar';
+          let closestHospital = 'Gandhinagar Civil Hospital & Medical College';
+          let closestId = 'fac_civil_01';
+          let minDistance = Infinity;
 
-          setLocation(detectedDistrict, detectedHospital, detectedId);
+          Object.entries(DISTRICT_COORDINATES).forEach(([districtName, info]) => {
+            const dist = calculateDistanceKm(latitude, longitude, info.lat, info.lng);
+            if (dist < minDistance) {
+              minDistance = dist;
+              closestDistrict = districtName;
+              closestHospital = info.hospital;
+              closestId = info.id;
+            }
+          });
+
+          setLocation(closestDistrict, closestHospital, closestId);
           resolve({
             success: true,
-            message: `Detected nearest medical center: ${detectedHospital} (${detectedDistrict})`,
+            message: `📍 Located! Closest Apex Center: ${closestHospital} (~${minDistance} km away)`,
+            coords,
           });
         },
         (error) => {
           resolve({
             success: false,
-            message: error.message || 'Unable to access your GPS position. Please choose manually.',
+            message: error.message || 'Unable to access your GPS position. Please select manually.',
           });
         },
         { timeout: 10000, enableHighAccuracy: true }
@@ -317,18 +372,100 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   };
 
+  const startLiveTracking = () => {
+    if (!navigator.geolocation) {
+      alert('GPS is not supported by your browser.');
+      return;
+    }
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+
+    setIsLiveTracking(true);
+
+    const id = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, accuracy, heading, speed } = position.coords;
+        const coords = { lat: latitude, lng: longitude };
+        updateUserCoords(coords);
+        setGpsAccuracy(Math.round(accuracy));
+        setGpsHeading(heading);
+        setGpsSpeed(speed);
+        setLastLocationUpdate(new Date());
+
+        // Dynamically compute closest center
+        let closestDistrict = 'Gandhinagar';
+        let closestHospital = 'Gandhinagar Civil Hospital & Medical College';
+        let closestId = 'fac_civil_01';
+        let minDistance = Infinity;
+
+        Object.entries(DISTRICT_COORDINATES).forEach(([districtName, info]) => {
+          const dist = calculateDistanceKm(latitude, longitude, info.lat, info.lng);
+          if (dist < minDistance) {
+            minDistance = dist;
+            closestDistrict = districtName;
+            closestHospital = info.hospital;
+            closestId = info.id;
+          }
+        });
+
+        setLocation(closestDistrict, closestHospital, closestId);
+      },
+      (error) => {
+        console.warn('[GPS Live Tracking] Error:', error.message);
+      },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+    );
+
+    watchIdRef.current = id;
+  };
+
+  const stopLiveTracking = () => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setIsLiveTracking(false);
+  };
+
+  const toggleLiveTracking = () => {
+    if (isLiveTracking) {
+      stopLiveTracking();
+    } else {
+      startLiveTracking();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
+
   return (
     <LocationContext.Provider
       value={{
         selectedDistrict,
         selectedFacility,
         selectedFacilityId,
+        userCoords,
         stateGrid: 'Gujarat Public Health Grid',
         isLocationModalOpen,
+        isLiveTracking,
+        gpsAccuracy,
+        gpsHeading,
+        gpsSpeed,
+        lastLocationUpdate,
         openLocationModal: () => setIsLocationModalOpen(true),
         closeLocationModal: () => setIsLocationModalOpen(false),
         setLocation,
+        setUserCoords: updateUserCoords,
         detectGpsLocation,
+        startLiveTracking,
+        stopLiveTracking,
+        toggleLiveTracking,
       }}
     >
       {children}

@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_ASHA_PATIENTS } from '@/mock/mockData';
+import { ashaApi } from '@/api/ashaApi';
+import { AshaPatient } from '@/types/asha';
 import { formatDate } from '@/lib/formatters';
 import { Link } from 'react-router-dom';
 import {
@@ -22,17 +24,26 @@ import {
 } from 'lucide-react';
 
 export const HighRiskPatients: React.FC = () => {
+  const [patientsList, setPatientsList] = useState<AshaPatient[]>(INITIAL_ASHA_PATIENTS);
   const [filterCategory, setFilterCategory] = useState<'ALL' | 'MATERNAL' | 'INFANT' | 'NCD'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const allHighRisk = useMemo(() => INITIAL_ASHA_PATIENTS.filter((p) => p.isHighRisk), []);
+  useEffect(() => {
+    ashaApi.getCitizens().then((res) => {
+      if (res.data && res.data.length > 0) {
+        setPatientsList(res.data);
+      }
+    }).catch(console.warn);
+  }, []);
+
+  const allHighRisk = useMemo(() => patientsList.filter((p) => p.isHighRisk), [patientsList]);
 
   const filteredPatients = useMemo(() => {
     return allHighRisk.filter((p) => {
       const matchesSearch =
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.abhaId?.toLowerCase().includes(searchQuery.toLowerCase());
+        (p.village && p.village.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (p.abhaId && p.abhaId.toLowerCase().includes(searchQuery.toLowerCase()));
 
       if (!matchesSearch) return false;
 

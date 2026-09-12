@@ -111,10 +111,12 @@ export async function apiRequest<T = unknown>(
     }
   }
 
+  const isRead = method === 'GET' || method === 'DELETE';
   const response = await apiClient.request<ApiResponse<T>>({
     url,
     method,
-    data,
+    params: isRead ? data : undefined,
+    data: !isRead ? data : undefined,
   });
 
   return response.data;

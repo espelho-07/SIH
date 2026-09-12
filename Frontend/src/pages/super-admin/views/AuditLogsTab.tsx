@@ -68,7 +68,7 @@ export const AuditLogsTab: React.FC<AuditLogsTabProps> = ({ logs }) => {
           <select
             value={selectedAction}
             onChange={(e) => setSelectedAction(e.target.value)}
-            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="flex min-h-[44px] rounded-lg border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs font-semibold text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
           >
             <option value="ALL">All Actions</option>
             {actionTypes.map((action) => (

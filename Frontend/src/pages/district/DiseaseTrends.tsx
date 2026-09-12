@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ChartCard } from '@/components/common/ChartCard';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_AI_SUMMARY } from '@/mock/mockData';
+import { aiApi } from '@/api/aiApi';
 import { TrendingUp, AlertTriangle, ShieldCheck, CheckCircle2, Calendar, MapPin } from 'lucide-react';
 import {
   LineChart,
@@ -20,8 +21,17 @@ import {
 export const DiseaseTrends: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
   const [selectedDisease, setSelectedDisease] = useState('Dengue & Vector-Borne Fever');
-  const trends = INITIAL_AI_SUMMARY.diseaseForecasts;
-  const currentTrend = trends.find((t) => t.diseaseName === selectedDisease) || trends[0];
+  const [trends, setTrends] = useState(INITIAL_AI_SUMMARY.diseaseForecasts);
+
+  useEffect(() => {
+    aiApi.getDashboard().then((res) => {
+      if (res.data?.diseaseForecasts && res.data.diseaseForecasts.length > 0) {
+        setTrends(res.data.diseaseForecasts);
+      }
+    }).catch(console.warn);
+  }, [selectedDistrict]);
+
+  const currentTrend = trends.find((t) => t.diseaseName === selectedDisease) || trends[0] || INITIAL_AI_SUMMARY.diseaseForecasts[0];
 
   return (
     <div className="space-y-6">

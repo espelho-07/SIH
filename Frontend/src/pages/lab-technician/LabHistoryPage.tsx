@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
@@ -142,7 +142,7 @@ export const LabHistoryPage: React.FC = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-700 focus:border-teal-700 focus:ring-1 focus:ring-teal-700"
+              className="rounded-xl border border-slate-300 bg-white shadow-2xs px-3 py-2 text-xs text-slate-700 cursor-pointer focus:border-teal-700 focus:ring-1 focus:ring-teal-700"
             >
               <option value="ALL">All Categories</option>
               <option value="HEMATOLOGY">Hematology</option>

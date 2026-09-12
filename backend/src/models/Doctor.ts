@@ -1,39 +1,65 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export type DoctorAvailabilityStatus = 'AVAILABLE' | 'UNAVAILABLE' | 'ON_LEAVE' | 'UNKNOWN';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IDoctor extends Document {
-  hospitalId: mongoose.Types.ObjectId;
+  id: string;
   name: string;
-  specialization: string;
   qualification: string;
+  specialty: string;
+  facilityId: string;
+  facilityName: string;
+  status: 'ON_DUTY' | 'IN_OPD' | 'IN_SURGERY' | 'OFF_DUTY' | 'ON_LEAVE';
   phone: string;
-  consultationStart: string;
-  consultationEnd: string;
-  availabilityStatus: DoctorAvailabilityStatus;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  email: string;
+  opdSchedule: string;
+  patientsToday: number;
+  teleconsultEnabled: boolean;
+  avatar?: string;
+  district: string;
+  joinedDate?: string;
+  registrationNumber?: string;
+  opdRoom?: string;
+  currentLeave?: any;
+  upcomingLeaves?: any[];
 }
 
 const DoctorSchema = new Schema<IDoctor>(
   {
-    hospitalId: { type: Schema.Types.ObjectId, ref: 'Hospital', required: true, index: true },
+    id: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
-    specialization: { type: String, required: true, index: true },
-    qualification: { type: String, required: true },
-    phone: { type: String, required: true },
-    consultationStart: { type: String, default: '09:00 AM' },
-    consultationEnd: { type: String, default: '05:00 PM' },
-    availabilityStatus: {
+    qualification: { type: String, default: 'MBBS, MD' },
+    specialty: { type: String, required: true, index: true },
+    facilityId: { type: String, required: true, index: true },
+    facilityName: { type: String, default: 'Gandhinagar Civil Hospital' },
+    status: {
       type: String,
-      enum: ['AVAILABLE', 'UNAVAILABLE', 'ON_LEAVE', 'UNKNOWN'],
-      default: 'AVAILABLE',
+      enum: ['ON_DUTY', 'IN_OPD', 'IN_SURGERY', 'OFF_DUTY', 'ON_LEAVE'],
+      default: 'ON_DUTY',
       index: true,
     },
-    isActive: { type: Boolean, default: true, index: true },
+    phone: { type: String, default: '9876500000' },
+    email: { type: String, default: 'doctor@gujarat.health.gov.in' },
+    opdSchedule: { type: String, default: 'Mon-Fri: 9:00 AM - 1:00 PM' },
+    patientsToday: { type: Number, default: 0 },
+    teleconsultEnabled: { type: Boolean, default: true },
+    avatar: { type: String },
+    district: { type: String, default: 'Gandhinagar', index: true },
+    joinedDate: { type: String },
+    registrationNumber: { type: String },
+    opdRoom: { type: String },
+    currentLeave: { type: Schema.Types.Mixed },
+    upcomingLeaves: [{ type: Schema.Types.Mixed }],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      transform(_doc, ret) {
+        ret.id = ret.id || ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
 );
 
-export const Doctor = mongoose.model<IDoctor>('Doctor', DoctorSchema);
+export const DoctorModel = mongoose.model<IDoctor>('Doctor', DoctorSchema);

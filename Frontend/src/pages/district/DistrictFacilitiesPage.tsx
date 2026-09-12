@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent, DialogFooter } from '@/components/ui/Dialog';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
+import { mockState } from '@/mock/db';
 import { Facility } from '@/types/facility';
+import { facilityApi } from '@/api/facilityApi';
 import {
   Building2,
   Search,
@@ -16,16 +20,273 @@ import {
   ShieldCheck,
   Activity,
   Map,
+  Plus,
+  CheckCircle2,
+  Eye,
+  X,
+  Edit2,
+  Trash2,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
+
+const COMMON_SPECIALTIES = [
+  'General Medicine',
+  'Pediatrics',
+  'Obstetrics & Gynecology',
+  'General Surgery',
+  'Orthopedics',
+  'Cardiology',
+  'Emergency & Trauma',
+  'Ophthalmology',
+  'Dental',
+  'AYUSH',
+  'Pathology & Lab',
+];
 
 export const DistrictFacilitiesPage: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
+  const [facilitiesList, setFacilitiesList] = useState<Facility[]>(() => {
+    return mockState?.facilities?.length ? mockState.facilities : INITIAL_FACILITIES;
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
   const [onlyAvailableBeds, setOnlyAvailableBeds] = useState(false);
 
+  // Fetch facilities from live MongoDB backend
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setFacilitiesList(res.data);
+      }
+    }).catch((err) => {
+      console.warn('Live facilities fetch failed, using local cache:', err);
+    });
+  }, []);
+
+  // Modals & Feedback
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingFacility, setDeletingFacility] = useState<Facility | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [inspectFacility, setInspectFacility] = useState<Facility | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  // Form State (used for Add and Edit)
+  const [facName, setFacName] = useState('');
+  const [facType, setFacType] = useState<Facility['type']>('CHC');
+  const [blockName, setBlockName] = useState('');
+  const [address, setAddress] = useState('');
+  const [pincode, setPincode] = useState('382010');
+  const [contactPhone, setContactPhone] = useState('');
+  const [emergencyPhone, setEmergencyPhone] = useState('108');
+  const [totalBeds, setTotalBeds] = useState('50');
+  const [availableBeds, setAvailableBeds] = useState('20');
+  const [icuBedsTotal, setIcuBedsTotal] = useState('6');
+  const [icuBedsAvailable, setIcuBedsAvailable] = useState('2');
+  const [emergencyAvailable, setEmergencyAvailable] = useState(true);
+  const [oxygenAvailable, setOxygenAvailable] = useState(true);
+  const [bloodBankAvailable, setBloodBankAvailable] = useState(false);
+  const [ambulanceAvailable, setAmbulanceAvailable] = useState(true);
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([
+    'General Medicine',
+    'Emergency & Trauma',
+  ]);
+
+  const toggleSpecialty = (spec: string) => {
+    setSelectedSpecialties((prev) =>
+      prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]
+    );
+  };
+
+  // Open Edit Modal with pre-filled facility data
+  const handleOpenEdit = (fac: Facility) => {
+    setEditingFacility(fac);
+    setFacName(fac.name || '');
+    setFacType(fac.type || 'CHC');
+    setAddress(fac.address || '');
+    setPincode(fac.pincode || '382010');
+    setContactPhone(fac.contactNumber || '');
+    setEmergencyPhone(fac.emergencyNumber || '108');
+    setTotalBeds(String(fac.totalBeds || 50));
+    setAvailableBeds(String(fac.availableBeds || 20));
+    setIcuBedsTotal(String(fac.icuBedsTotal || 6));
+    setIcuBedsAvailable(String(fac.icuBedsAvailable || 2));
+    setEmergencyAvailable(fac.emergencyAvailable ?? true);
+    setOxygenAvailable(fac.oxygenAvailable ?? true);
+    setBloodBankAvailable(fac.bloodBankAvailable ?? false);
+    setAmbulanceAvailable(fac.ambulanceAvailable ?? true);
+    setSelectedSpecialties(fac.specialties?.length ? fac.specialties : ['General Medicine']);
+    setShowEditModal(true);
+  };
+
+  // Submit Edit Facility
+  const handleEditFacilitySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFacility || !facName.trim()) return;
+
+    setIsSaving(true);
+    const tBeds = parseInt(totalBeds, 10) || 30;
+    const aBeds = Math.min(parseInt(availableBeds, 10) || 10, tBeds);
+    const icuTotal = parseInt(icuBedsTotal, 10) || 4;
+    const icuAvail = Math.min(parseInt(icuBedsAvailable, 10) || 2, icuTotal);
+
+    const updatedData: Partial<Facility> = {
+      name: facName.trim(),
+      type: facType,
+      address: address.trim(),
+      pincode: pincode.trim(),
+      contactNumber: contactPhone.trim(),
+      emergencyNumber: emergencyPhone.trim(),
+      totalBeds: tBeds,
+      availableBeds: aBeds,
+      icuBedsTotal: icuTotal,
+      icuBedsAvailable: icuAvail,
+      emergencyAvailable,
+      oxygenAvailable,
+      bloodBankAvailable,
+      ambulanceAvailable,
+      specialties: selectedSpecialties.length > 0 ? selectedSpecialties : ['General Medicine'],
+      lastUpdated: new Date().toISOString(),
+    };
+
+    try {
+      const res = await facilityApi.update(editingFacility.id, updatedData);
+      const updated = res.data || { ...editingFacility, ...updatedData };
+      setFacilitiesList((prev) =>
+        prev.map((f) => (f.id === editingFacility.id ? { ...f, ...updated } : f))
+      );
+      setShowEditModal(false);
+      setEditingFacility(null);
+      setSuccessToast(`Successfully updated details for ${updated.name}.`);
+      setTimeout(() => setSuccessToast(null), 5000);
+    } catch (err: any) {
+      // Fallback local update
+      setFacilitiesList((prev) =>
+        prev.map((f) => (f.id === editingFacility.id ? { ...f, ...updatedData } : f))
+      );
+      setShowEditModal(false);
+      setEditingFacility(null);
+      setSuccessToast(`Updated ${facName.trim()} locally.`);
+      setTimeout(() => setSuccessToast(null), 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Open Delete Confirmation Dialog
+  const handleOpenDelete = (fac: Facility) => {
+    setDeletingFacility(fac);
+    setShowDeleteDialog(true);
+  };
+
+  // Confirm Delete Facility
+  const handleDeleteFacilityConfirm = async () => {
+    if (!deletingFacility) return;
+
+    setIsDeleting(true);
+    try {
+      await facilityApi.delete(deletingFacility.id);
+    } catch (err) {
+      console.warn('Backend delete fallback:', err);
+    }
+
+    setFacilitiesList((prev) => prev.filter((f) => f.id !== deletingFacility.id));
+    setShowDeleteDialog(false);
+    setSuccessToast(`Government facility ${deletingFacility.name} was removed from the district network.`);
+    setDeletingFacility(null);
+    setIsDeleting(false);
+    setTimeout(() => setSuccessToast(null), 5000);
+  };
+
+  // Submit Add Facility
+  const handleAddFacilitySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!facName.trim()) return;
+
+    setIsSaving(true);
+    const tBeds = parseInt(totalBeds, 10) || 30;
+    const aBeds = Math.min(parseInt(availableBeds, 10) || 10, tBeds);
+    const icuTotal = parseInt(icuBedsTotal, 10) || 4;
+    const icuAvail = Math.min(parseInt(icuBedsAvailable, 10) || 2, icuTotal);
+
+    const newFacData: Partial<Facility> = {
+      name: facName.trim(),
+      type: facType,
+      district: selectedDistrict,
+      state: 'Gujarat',
+      address: address.trim() || `${blockName ? blockName + ' Block, ' : ''}${selectedDistrict}`,
+      pincode: pincode.trim() || '382000',
+      contactNumber: contactPhone.trim() || '+91 79 2320 0000',
+      emergencyNumber: emergencyPhone.trim() || '108',
+      totalBeds: tBeds,
+      availableBeds: aBeds,
+      icuBedsTotal: icuTotal,
+      icuBedsAvailable: icuAvail,
+      emergencyAvailable,
+      oxygenAvailable,
+      bloodBankAvailable,
+      ambulanceAvailable,
+      isOpen: true,
+      isVerified: true,
+      currentWaitTimeMinutes: 15,
+      coordinates: { lat: 23.2156, lng: 72.6369 },
+      departments: selectedSpecialties.map((spec, idx) => ({
+        id: `d_${idx}`,
+        name: spec,
+        code: spec.slice(0, 3).toUpperCase(),
+        activeDoctors: 2,
+        currentWaitMinutes: 15,
+        opdOpen: true,
+      })),
+      specialties: selectedSpecialties.length > 0 ? selectedSpecialties : ['General Medicine'],
+      equipment: [],
+      lastUpdated: new Date().toISOString(),
+    };
+
+    let created: Facility;
+    try {
+      const res = await facilityApi.create(newFacData);
+      if (res?.data) {
+        created = res.data;
+      } else {
+        throw new Error('No data returned');
+      }
+    } catch {
+      if (mockState && typeof mockState.addFacility === 'function') {
+        created = mockState.addFacility(newFacData);
+      } else {
+        created = {
+          ...newFacData,
+          id: `fac_${Date.now()}`,
+        } as Facility;
+      }
+    }
+
+    if (mockState && typeof mockState.addFacility === 'function') {
+      try { mockState.addFacility(created); } catch {}
+    }
+
+    setFacilitiesList((prev) => [created, ...prev.filter((f) => f.id !== created.id)]);
+    setShowAddModal(false);
+    setIsSaving(false);
+
+    // Reset Form
+    setFacName('');
+    setBlockName('');
+    setAddress('');
+    setContactPhone('');
+
+    // Feedback
+    setSuccessToast(`Successfully registered ${created.name} into the ${selectedDistrict} District Healthcare Network.`);
+    setTimeout(() => setSuccessToast(null), 5000);
+  };
+
   // Filter facilities based on search, type, and availability
-  const facilities = INITIAL_FACILITIES.filter((f) => {
+  const facilities = facilitiesList.filter((f) => {
     const matchesSearch =
       f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       f.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,11 +299,11 @@ export const DistrictFacilitiesPage: React.FC = () => {
   });
 
   // Calculate high-level KPIs
-  const totalFacilities = INITIAL_FACILITIES.length;
-  const totalBeds = INITIAL_FACILITIES.reduce((acc, f) => acc + f.totalBeds, 0);
-  const availableBeds = INITIAL_FACILITIES.reduce((acc, f) => acc + f.availableBeds, 0);
-  const totalIcuFree = INITIAL_FACILITIES.reduce((acc, f) => acc + (f.icuBedsAvailable || 0), 0);
-  const emergencyReady = INITIAL_FACILITIES.filter((f) => f.emergencyAvailable).length;
+  const totalFacilities = facilitiesList.length;
+  const totalBedsCount = facilitiesList.reduce((acc, f) => acc + f.totalBeds, 0);
+  const availableBedsCount = facilitiesList.reduce((acc, f) => acc + f.availableBeds, 0);
+  const totalIcuFree = facilitiesList.reduce((acc, f) => acc + (f.icuBedsAvailable || 0), 0);
+  const emergencyReady = facilitiesList.filter((f) => f.emergencyAvailable).length;
 
   const facilityTypeLabels: Record<string, string> = {
     ALL: 'All Facilities',
@@ -55,21 +316,47 @@ export const DistrictFacilitiesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="District Facilities"
-        subtitle={`Monitor hospital capacity, available beds, and emergency readiness across ${selectedDistrict} district.`}
+        title="District Healthcare Facilities"
+        subtitle={`Manage government hospitals, CHCs, and PHCs across ${selectedDistrict} District.`}
         breadcrumbs={[
           { label: 'District Admin', to: '/district' },
           { label: 'Facilities' },
         ]}
         actions={
-          <Link to="/district/map">
-            <Button variant="outline" size="sm" className="gap-2 text-xs font-semibold">
-              <Map className="h-4 w-4 text-teal-700" />
-              <span>View Map</span>
+          <div className="flex items-center gap-2">
+            <Link to="/district/map">
+              <Button variant="outline" size="sm" className="gap-2 text-xs font-semibold">
+                <Map className="h-4 w-4 text-teal-700" />
+                <span>View Map</span>
+              </Button>
+            </Link>
+            <Button
+              onClick={() => setShowAddModal(true)}
+              size="sm"
+              className="gap-2 text-xs font-semibold bg-teal-700 hover:bg-teal-800 text-white shadow-xs cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Facility / Hospital</span>
             </Button>
-          </Link>
+          </div>
         }
       />
+
+      {/* Success Banner */}
+      {successToast && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-3 text-xs text-emerald-900 animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+            <span className="font-semibold">{successToast}</span>
+          </div>
+          <button
+            onClick={() => setSuccessToast(null)}
+            className="p-1 rounded-lg hover:bg-emerald-100 text-emerald-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* 3 Clear Decision-Driving KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -92,7 +379,7 @@ export const DistrictFacilitiesPage: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900 mt-2">
-            {availableBeds} <span className="text-xs font-normal text-slate-500">/ {totalBeds}</span>
+            {availableBedsCount} <span className="text-xs font-normal text-slate-500">/ {totalBedsCount}</span>
           </p>
           <span className="text-[11px] text-emerald-700 font-medium">
             {totalIcuFree} ICU beds free district-wide
@@ -260,22 +547,678 @@ export const DistrictFacilitiesPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Single Primary Action */}
-                <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
+                {/* Primary Action Buttons */}
+                <div className="pt-3 mt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs text-slate-500">
                     OPD Wait: <strong className="text-slate-800">~{fac.currentWaitTimeMinutes}m</strong>
                   </span>
-                  <Link to={`/district/facilities/${fac.id}`}>
-                    <Button size="sm" className="gap-1.5 text-xs font-semibold bg-teal-700 hover:bg-teal-800 text-white">
-                      <span>View Details</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setInspectFacility(fac)}
+                      className="gap-1 text-xs font-semibold text-slate-700 cursor-pointer h-8 px-2.5"
+                      title="Quick View"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">View</span>
                     </Button>
-                  </Link>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleOpenEdit(fac)}
+                      className="gap-1 text-xs font-semibold text-slate-700 hover:text-teal-800 hover:border-teal-300 cursor-pointer h-8 px-2.5"
+                      title="Edit Hospital Details"
+                    >
+                      <Edit2 className="h-3.5 w-3.5 text-slate-500" />
+                      <span>Edit</span>
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleOpenDelete(fac)}
+                      className="gap-1 text-xs font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 cursor-pointer h-8 px-2.5"
+                      title="Delete Hospital"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Delete</span>
+                    </Button>
+
+                    <Link to={`/district/facilities/${fac.id}`}>
+                      <Button size="sm" className="gap-1 text-xs font-semibold bg-teal-700 hover:bg-teal-800 text-white cursor-pointer h-8 px-3">
+                        <span>Details</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </Card>
             );
           })}
         </div>
+      )}
+
+      {/* ADD GOVERNMENT FACILITY MODAL */}
+      {showAddModal && (
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal} maxWidth="2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-teal-700" />
+              <span>Add Government Healthcare Facility</span>
+            </DialogTitle>
+            <DialogDescription>
+              Register a new public hospital, CHC, or PHC under {selectedDistrict} District Health Authority.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddFacilitySubmit}>
+            <DialogContent className="space-y-4 text-xs max-h-[70vh] overflow-y-auto pr-2">
+              {/* Row 1: Name & Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Facility / Hospital Name *</label>
+                  <Input
+                    required
+                    placeholder="e.g. Sub-District Hospital Kalol"
+                    value={facName}
+                    onChange={(e) => setFacName(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Facility Category *</label>
+                  <select
+                    value={facType}
+                    onChange={(e) => setFacType(e.target.value as Facility['type'])}
+                    className="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-medium"
+                  >
+                    <option value="DISTRICT_HOSPITAL">District Hospital</option>
+                    <option value="SUB_DISTRICT_HOSPITAL">Sub-District Hospital</option>
+                    <option value="CHC">Community Health Centre (CHC)</option>
+                    <option value="PHC">Primary Health Centre (PHC)</option>
+                    <option value="MEDICAL_COLLEGE">Medical College Hospital</option>
+                    <option value="SPECIALTY_HOSPITAL">Specialty Supercare Centre</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 2: Location & Address */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="font-semibold text-slate-700">Full Physical Address</label>
+                  <Input
+                    placeholder="e.g. Near Bus Station, Sector 12"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Pincode</label>
+                  <Input
+                    placeholder="382010"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Contacts */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Reception Contact Number</label>
+                  <Input
+                    placeholder="e.g. 079-2322-1010"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Emergency / Casualty Hotline</label>
+                  <Input
+                    placeholder="108"
+                    value={emergencyPhone}
+                    onChange={(e) => setEmergencyPhone(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Bed Capacity */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">Total Beds</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={totalBeds}
+                    onChange={(e) => setTotalBeds(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">Available Free</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={availableBeds}
+                    onChange={(e) => setAvailableBeds(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">Total ICU Beds</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={icuBedsTotal}
+                    onChange={(e) => setIcuBedsTotal(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">ICU Free</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={icuBedsAvailable}
+                    onChange={(e) => setIcuBedsAvailable(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+              </div>
+
+              {/* Row 5: Emergency & Key Infrastructure */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={emergencyAvailable}
+                    onChange={(e) => setEmergencyAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">24/7 Casualty</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={oxygenAvailable}
+                    onChange={(e) => setOxygenAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">Oxygen Plant</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={bloodBankAvailable}
+                    onChange={(e) => setBloodBankAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">Blood Bank</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={ambulanceAvailable}
+                    onChange={(e) => setAmbulanceAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">Ambulance Base</span>
+                </label>
+              </div>
+
+              {/* Row 6: Specialties Offered */}
+              <div className="space-y-1.5 pt-1">
+                <label className="font-semibold text-slate-700">Active Clinical Specialties</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {COMMON_SPECIALTIES.map((spec) => {
+                    const isSelected = selectedSpecialties.includes(spec);
+                    return (
+                      <button
+                        type="button"
+                        key={spec}
+                        onClick={() => toggleSpecialty(spec)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-teal-700 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {isSelected ? '✓ ' : '+ '}
+                        {spec}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </DialogContent>
+
+            <DialogFooter>
+              <Button
+                onClick={() => setShowAddModal(false)}
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSaving}
+                className="bg-teal-700 hover:bg-teal-800 text-white cursor-pointer font-semibold"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    Registering...
+                  </>
+                ) : (
+                  'Register Government Facility'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Dialog>
+      )}
+
+      {/* EDIT GOVERNMENT FACILITY MODAL */}
+      {showEditModal && editingFacility && (
+        <Dialog open={showEditModal} onOpenChange={setShowEditModal} maxWidth="2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit2 className="h-5 w-5 text-teal-700" />
+              <span>Edit Healthcare Facility: {editingFacility.name}</span>
+            </DialogTitle>
+            <DialogDescription>
+              Update operational capacity, bed numbers, and emergency configurations for this hospital.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleEditFacilitySubmit}>
+            <DialogContent className="space-y-4 text-xs max-h-[70vh] overflow-y-auto pr-2">
+              {/* Row 1: Name & Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Facility / Hospital Name *</label>
+                  <Input
+                    required
+                    placeholder="Hospital name"
+                    value={facName}
+                    onChange={(e) => setFacName(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Facility Category *</label>
+                  <select
+                    value={facType}
+                    onChange={(e) => setFacType(e.target.value as Facility['type'])}
+                    className="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-medium"
+                  >
+                    <option value="DISTRICT_HOSPITAL">District Hospital</option>
+                    <option value="SUB_DISTRICT_HOSPITAL">Sub-District Hospital</option>
+                    <option value="CHC">Community Health Centre (CHC)</option>
+                    <option value="PHC">Primary Health Centre (PHC)</option>
+                    <option value="MEDICAL_COLLEGE">Medical College Hospital</option>
+                    <option value="SPECIALTY_HOSPITAL">Specialty Supercare Centre</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 2: Location & Address */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="font-semibold text-slate-700">Full Physical Address</label>
+                  <Input
+                    placeholder="Address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Pincode</label>
+                  <Input
+                    placeholder="382010"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Contacts */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Reception Contact Number</label>
+                  <Input
+                    placeholder="Contact number"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Emergency / Casualty Hotline</label>
+                  <Input
+                    placeholder="108"
+                    value={emergencyPhone}
+                    onChange={(e) => setEmergencyPhone(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Bed Capacity */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">Total Beds</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={totalBeds}
+                    onChange={(e) => setTotalBeds(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">Available Free</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={availableBeds}
+                    onChange={(e) => setAvailableBeds(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">Total ICU Beds</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={icuBedsTotal}
+                    onChange={(e) => setIcuBedsTotal(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 text-[11px]">ICU Free</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={icuBedsAvailable}
+                    onChange={(e) => setIcuBedsAvailable(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+              </div>
+
+              {/* Row 5: Emergency & Key Infrastructure */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={emergencyAvailable}
+                    onChange={(e) => setEmergencyAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">24/7 Casualty</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={oxygenAvailable}
+                    onChange={(e) => setOxygenAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">Oxygen Plant</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={bloodBankAvailable}
+                    onChange={(e) => setBloodBankAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">Blood Bank</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
+                  <input
+                    type="checkbox"
+                    checked={ambulanceAvailable}
+                    onChange={(e) => setAmbulanceAvailable(e.target.checked)}
+                    className="rounded text-teal-700 focus:ring-teal-500 h-4 w-4"
+                  />
+                  <span className="font-semibold text-slate-800">Ambulance Base</span>
+                </label>
+              </div>
+
+              {/* Row 6: Specialties Offered */}
+              <div className="space-y-1.5 pt-1">
+                <label className="font-semibold text-slate-700">Active Clinical Specialties</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {COMMON_SPECIALTIES.map((spec) => {
+                    const isSelected = selectedSpecialties.includes(spec);
+                    return (
+                      <button
+                        type="button"
+                        key={spec}
+                        onClick={() => toggleSpecialty(spec)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-teal-700 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {isSelected ? '✓ ' : '+ '}
+                        {spec}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </DialogContent>
+
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingFacility(null);
+                }}
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSaving}
+                className="bg-teal-700 hover:bg-teal-800 text-white cursor-pointer font-semibold"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    Saving Changes...
+                  </>
+                ) : (
+                  'Save Facility Changes'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Dialog>
+      )}
+
+      {/* DELETE CONFIRMATION DIALOG */}
+      {showDeleteDialog && deletingFacility && (
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog} maxWidth="md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-700">
+              <AlertTriangle className="h-5 w-5 text-rose-600" />
+              <span>Delete Government Facility</span>
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{deletingFacility.name}</strong> from the {selectedDistrict} District Healthcare Network?
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogContent className="space-y-3 text-xs">
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800">
+              <p className="font-semibold">⚠️ Irreversible Administrative Action</p>
+              <p className="text-[11px] mt-1 text-rose-700">
+                Removing this facility will delist its {deletingFacility.totalBeds} beds, OPD departments, and emergency unit from district dispatch and public discovery.
+              </p>
+            </div>
+          </DialogContent>
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeletingFacility(null);
+              }}
+              variant="secondary"
+              size="sm"
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteFacilityConfirm}
+              disabled={isDeleting}
+              size="sm"
+              className="bg-rose-700 hover:bg-rose-800 text-white font-semibold cursor-pointer gap-1.5"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Confirm Delete
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </Dialog>
+      )}
+
+      {/* QUICK INSPECT MODAL */}
+      {inspectFacility && (
+        <Dialog open={!!inspectFacility} onOpenChange={() => setInspectFacility(null)} maxWidth="xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-100">
+                {inspectFacility.type.replace(/_/g, ' ')}
+              </span>
+              {inspectFacility.emergencyAvailable && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-100">
+                  24/7 Casualty
+                </span>
+              )}
+            </div>
+            <DialogTitle className="mt-1">{inspectFacility.name}</DialogTitle>
+            <DialogDescription className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-slate-400" />
+              <span>{inspectFacility.address}, PIN: {inspectFacility.pincode}</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogContent className="space-y-4 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">Total Beds</span>
+                <span className="text-xl font-bold text-slate-900">{inspectFacility.totalBeds}</span>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
+                <span className="text-emerald-700 block text-[10px] uppercase font-bold">Available Free</span>
+                <span className="text-xl font-bold text-emerald-800">{inspectFacility.availableBeds}</span>
+              </div>
+              <div className="p-3 bg-sky-50 rounded-xl border border-sky-200 text-center">
+                <span className="text-sky-700 block text-[10px] uppercase font-bold">ICU Free</span>
+                <span className="text-xl font-bold text-sky-800">{inspectFacility.icuBedsAvailable || 0} / {inspectFacility.icuBedsTotal || 0}</span>
+              </div>
+              <div className="p-3 bg-teal-50 rounded-xl border border-teal-200 text-center">
+                <span className="text-teal-700 block text-[10px] uppercase font-bold">OPD Wait Time</span>
+                <span className="text-xl font-bold text-teal-800">~{inspectFacility.currentWaitTimeMinutes}m</span>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <span className="font-bold text-slate-700">Contact Channels:</span>
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex flex-wrap gap-4">
+                <div className="flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 text-slate-400" />
+                  <span>Reception: {inspectFacility.contactNumber}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-rose-500" />
+                  <span>Emergency Helpline: {inspectFacility.emergencyNumber}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <span className="font-bold text-slate-700">Clinical Specialties:</span>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {inspectFacility.specialties.map((s) => (
+                  <span
+                    key={s}
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-100"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </DialogContent>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setInspectFacility(null)}
+              variant="secondary"
+              size="sm"
+              className="cursor-pointer"
+            >
+              Close
+            </Button>
+            <Link to={`/district/facilities/${inspectFacility.id}`}>
+              <Button size="sm" className="bg-teal-700 hover:bg-teal-800 text-white font-semibold cursor-pointer">
+                Open Full Facility Console
+              </Button>
+            </Link>
+          </DialogFooter>
+        </Dialog>
       )}
     </div>
   );

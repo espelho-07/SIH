@@ -16,4 +16,14 @@ export const facilityApi = {
 
   matchFacilities: (criteria: FacilityMatchRequest) =>
     apiRequest<FacilityMatchResult[]>('/facilities/match', 'POST', criteria),
+
+  create: (data: Partial<Facility>) =>
+    apiRequest<Facility>('/facilities', 'POST', data),
+
+  update: (id: string, data: Partial<Facility>) =>
+    apiRequest<Facility>(`/facilities/${id}`, 'PUT', data),
+
+  delete: (id: string) =>
+    apiRequest<{ id: string; deleted: boolean }>(`/facilities/${id}`, 'DELETE'),
 };
+

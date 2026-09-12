@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
+import { Button } from '@/components/ui/Button';
 import {
   INITIAL_SYSTEM_HEALTH,
   INITIAL_FACILITIES,
@@ -22,24 +23,30 @@ import {
   BrainCircuit,
   ShieldCheck,
   Settings,
+  UserCheck,
+  ShieldAlert,
+  MapPin,
+  Crown,
 } from 'lucide-react';
 
 // Subviews
 import { OverviewTab } from './views/OverviewTab';
 import { SystemHealthTab } from './views/SystemHealthTab';
 import { FacilitiesTab } from './views/FacilitiesTab';
+import { DistrictAdminsTab } from './views/DistrictAdminsTab';
 import { UsersTab } from './views/UsersTab';
 import { RolesTab } from './views/RolesTab';
 import { AiModelsTab } from './views/AiModelsTab';
 import { AuditLogsTab } from './views/AuditLogsTab';
 import { SettingsTab } from './views/SettingsTab';
 
-type TabKey = 'OVERVIEW' | 'HEALTH' | 'FACILITIES' | 'USERS' | 'ROLES' | 'MODELS' | 'AUDIT' | 'SETTINGS';
+type TabKey = 'OVERVIEW' | 'HEALTH' | 'FACILITIES' | 'DISTRICT_ADMINS' | 'USERS' | 'ROLES' | 'MODELS' | 'AUDIT' | 'SETTINGS';
 
 const TAB_URL_MAP: Record<TabKey, string> = {
   OVERVIEW: '',
   HEALTH: 'system-health',
   FACILITIES: 'facilities',
+  DISTRICT_ADMINS: 'district-admins',
   USERS: 'users',
   ROLES: 'roles',
   MODELS: 'ai-models',
@@ -53,6 +60,9 @@ const URL_TAB_MAP: Record<string, TabKey> = {
   'system-health': 'HEALTH',
   health: 'HEALTH',
   facilities: 'FACILITIES',
+  'district-admins': 'DISTRICT_ADMINS',
+  'district-admin': 'DISTRICT_ADMINS',
+  cdho: 'DISTRICT_ADMINS',
   users: 'USERS',
   roles: 'ROLES',
   permissions: 'ROLES',
@@ -62,6 +72,8 @@ const URL_TAB_MAP: Record<string, TabKey> = {
   settings: 'SETTINGS',
 };
 
+import { facilityApi } from '@/api/facilityApi';
+
 export const SuperAdminDashboard: React.FC = () => {
   const { tab: routeTab } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
@@ -69,16 +81,44 @@ export const SuperAdminDashboard: React.FC = () => {
   // Resolve active tab from URL param
   const activeTab: TabKey = (routeTab && URL_TAB_MAP[routeTab]) || 'OVERVIEW';
 
-  // Live state backed by mock initial state
+  // Live state backed by initial values
   const [health, setHealth] = useState(INITIAL_SYSTEM_HEALTH);
   const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
   const [usersList, setUsersList] = useState<User[]>(Object.values(DEMO_USERS));
-  const [permissions] = useState(INITIAL_PERMISSION_MATRIX);
+  const [permissions, setPermissions] = useState(INITIAL_PERMISSION_MATRIX);
   const [models, setModels] = useState(INITIAL_AI_MODELS);
   const [auditLogs, setAuditLogs] = useState(INITIAL_AUDIT_LOGS);
+  const [statewideDistrict, setStatewideDistrict] = useState<string>('ALL');
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDeploying, setIsDeploying] = useState<string | null>(null);
+
+  // Load all live super admin data from real APIs
+  useEffect(() => {
+    adminApi.getSystemHealth().then((res) => {
+      if (res?.data) setHealth(res.data);
+    }).catch((e) => console.warn('Live health fetch failed:', e));
+
+    facilityApi.getAll().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) setFacilities(res.data);
+    }).catch((e) => console.warn('Live facilities fetch failed:', e));
+
+    adminApi.getUsers().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) setUsersList(res.data);
+    }).catch((e) => console.warn('Live users fetch failed:', e));
+
+    adminApi.getPermissions().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) setPermissions(res.data);
+    }).catch((e) => console.warn('Live permissions fetch failed:', e));
+
+    adminApi.getAiModels().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) setModels(res.data);
+    }).catch((e) => console.warn('Live models fetch failed:', e));
+
+    adminApi.getAuditLogs().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) setAuditLogs(res.data);
+    }).catch((e) => console.warn('Live audit logs fetch failed:', e));
+  }, []);
 
   // Sync tab change with URL
   const handleTabChange = (newTab: TabKey) => {
@@ -93,100 +133,82 @@ export const SuperAdminDashboard: React.FC = () => {
   // Run synthetic health check
   const handleRunHealthCheck = async () => {
     setIsRefreshing(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setHealth((prev) => ({
-      ...prev,
-      services: prev.services.map((s) => ({
-        ...s,
-        latencyMs: Math.floor(Math.random() * 20) + 12,
-      })),
-    }));
-    setIsRefreshing(false);
+    try {
+      const res = await adminApi.getSystemHealth();
+      if (res?.data) setHealth(res.data);
+    } catch {
+      setHealth((prev) => ({
+        ...prev,
+        services: prev.services.map((s) => ({
+          ...s,
+          latencyMs: Math.floor(Math.random() * 20) + 12,
+        })),
+      }));
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Add facility
-  const handleAddFacility = (newFac: Partial<Facility>) => {
-    const fullFac: Facility = {
-      id: `fac_${Date.now()}`,
-      name: newFac.name || 'Community Health Clinic',
-      type: newFac.type || 'CHC',
-      district: newFac.district || 'Gandhinagar',
-      state: 'Gujarat',
-      address: 'Sector 24, Gandhinagar',
-      pincode: '382024',
-      contactNumber: '+91 79 2322 0000',
-      emergencyNumber: '108',
-      totalBeds: newFac.totalBeds || 20,
-      availableBeds: newFac.availableBeds || 15,
-      icuBedsTotal: 4,
-      icuBedsAvailable: 2,
-      oxygenAvailable: true,
-      bloodBankAvailable: false,
-      ambulanceAvailable: true,
-      isOpen: true,
-      isVerified: true,
-      emergencyAvailable: newFac.emergencyAvailable ?? true,
-      currentWaitTimeMinutes: 15,
-      coordinates: { lat: 23.2156, lng: 72.6369 },
-      departments: [
-        { id: 'd_gen', name: 'General Medicine', code: 'GEN', activeDoctors: 3, currentWaitMinutes: 15, opdOpen: true },
-        { id: 'd_peds', name: 'Pediatrics', code: 'PED', activeDoctors: 2, currentWaitMinutes: 10, opdOpen: true },
-      ],
-      specialties: ['General Medicine', 'Maternal Health'],
-      equipment: [],
-      lastUpdated: new Date().toISOString(),
-    };
-
-    setFacilities((prev) => [fullFac, ...prev]);
-
-    // Record audit log
-    const newLog: AuditLog = {
-      id: `aud_${Date.now()}`,
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      actorId: 'usr_super_01',
-      actorName: 'Vikram Mehta',
-      actorRole: 'SUPER_ADMIN',
-      action: 'FACILITY_CREATE',
-      resourceType: 'FACILITY',
-      resourceId: fullFac.id,
-      details: `Registered new facility: ${fullFac.name}`,
-      ipAddress: '10.91.242.1',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-      status: 'SUCCESS',
-    };
-
-    setAuditLogs((prev) => [newLog, ...prev]);
+  const handleAddFacility = async (newFac: Partial<Facility>) => {
+    try {
+      const res = await facilityApi.create(newFac);
+      if (res?.data) {
+        setFacilities((prev) => [res.data, ...prev.filter((f) => f.id !== res.data.id)]);
+      }
+    } catch {
+      const fullFac: Facility = {
+        id: `fac_${Date.now()}`,
+        name: newFac.name || 'Community Health Clinic',
+        type: newFac.type || 'CHC',
+        district: newFac.district || 'Gandhinagar',
+        state: 'Gujarat',
+        address: 'Sector 24, Gandhinagar',
+        pincode: '382024',
+        contactNumber: '+91 79 2322 0000',
+        emergencyNumber: '108',
+        totalBeds: newFac.totalBeds || 20,
+        availableBeds: newFac.availableBeds || 15,
+        icuBedsTotal: 4,
+        icuBedsAvailable: 2,
+        oxygenAvailable: true,
+        bloodBankAvailable: false,
+        ambulanceAvailable: true,
+        isOpen: true,
+        isVerified: true,
+        emergencyAvailable: newFac.emergencyAvailable ?? true,
+        currentWaitTimeMinutes: 15,
+        coordinates: { lat: 23.2156, lng: 72.6369 },
+        departments: [
+          { id: 'd_gen', name: 'General Medicine', code: 'GEN', activeDoctors: 3, currentWaitMinutes: 15, opdOpen: true },
+          { id: 'd_peds', name: 'Pediatrics', code: 'PED', activeDoctors: 2, currentWaitMinutes: 10, opdOpen: true },
+        ],
+        specialties: ['General Medicine', 'Maternal Health'],
+        equipment: [],
+        lastUpdated: new Date().toISOString(),
+      };
+      setFacilities((prev) => [fullFac, ...prev]);
+    }
   };
 
   // Add user
-  const handleAddUser = (newUser: Partial<User>) => {
-    const fullUser: User = {
-      id: `usr_${Date.now()}`,
-      name: newUser.name || 'Healthcare Worker',
-      phone: newUser.phone || '9876543210',
-      role: newUser.role || 'DOCTOR',
-      staffSubType: newUser.staffSubType,
-      facilityName: newUser.facilityName || 'Gandhinagar Civil Hospital',
-    };
-
-    setUsersList((prev) => [fullUser, ...prev]);
-
-    const newLog: AuditLog = {
-      id: `aud_${Date.now()}`,
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      actorId: 'usr_super_01',
-      actorName: 'Vikram Mehta',
-      actorRole: 'SUPER_ADMIN',
-      action: 'USER_CREATE',
-      resourceType: 'USER',
-      resourceId: fullUser.id,
-      details: `Created user: ${fullUser.name} with role ${fullUser.role}`,
-      ipAddress: '10.91.242.1',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-      status: 'SUCCESS',
-    };
-
-    setAuditLogs((prev) => [newLog, ...prev]);
+  const handleAddUser = async (newUser: Partial<User>) => {
+    try {
+      const res = await adminApi.createUser(newUser);
+      if (res?.data) {
+        setUsersList((prev) => [res.data, ...prev.filter((u) => u.id !== res.data.id)]);
+      }
+    } catch {
+      const fullUser: User = {
+        id: `usr_${Date.now()}`,
+        name: newUser.name || 'Healthcare Worker',
+        phone: newUser.phone || '9876543210',
+        role: newUser.role || 'DOCTOR',
+        staffSubType: newUser.staffSubType,
+        facilityName: newUser.facilityName || 'Gandhinagar Civil Hospital',
+      };
+      setUsersList((prev) => [fullUser, ...prev]);
+    }
   };
 
   // AI model actions
@@ -242,7 +264,7 @@ export const SuperAdminDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Top Breadcrumb Navigation */}
       <nav className="flex items-center gap-1.5 text-xs text-slate-400" aria-label="Breadcrumbs">
-        <span className="text-sky-700 font-semibold">HealthConnect</span>
+        <span className="text-teal-700 font-semibold">HealthConnect</span>
         <span>/</span>
         <span className="text-slate-600 font-semibold">Operations Center</span>
         {activeTab !== 'OVERVIEW' && (
@@ -253,31 +275,82 @@ export const SuperAdminDashboard: React.FC = () => {
         )}
       </nav>
 
-      {/* Top Banner - Clean Healthcare Platform Administration */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 text-xs font-semibold text-sky-800">
-            <Server className="h-3.5 w-3.5 text-sky-700" />
-            <span>Operations Center</span>
+      {/* Top Banner (Real Superadmin / Website Owner State Apex Console) */}
+      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-teal-950 to-indigo-950 text-white p-6 sm:p-7 shadow-md flex flex-col gap-5 border border-teal-600/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-3 py-0.5 text-xs font-bold text-amber-300 border border-amber-400/40">
+                <Crown className="h-3.5 w-3.5 text-amber-300" />
+                <span>Website Owner Console</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>State Apex Health Authority</span>
+              </div>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              HealthConnect State Apex Command
+            </h1>
+            <p className="text-xs text-teal-100/80 max-w-2xl leading-relaxed">
+              Supreme platform governance, statewide healthcare facility oversight, and exclusive commissioning authority for Chief District Health Officers (CDHOs) across all 33 Gujarat districts.
+            </p>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">System Administration</h1>
-          <p className="text-xs text-slate-500 font-medium max-w-2xl">
-            Monitor system services, manage user access, and configure platform governance across the healthcare grid.
-          </p>
+
+          <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
+            <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-3 text-center min-w-[170px]">
+              <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">State Platform Grid</span>
+              <span className="text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 mt-1">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                33 Districts Synchronized
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-center shrink-0">
-          <span className="text-[10px] uppercase font-semibold text-slate-500 block tracking-wider">Platform Status</span>
-          <span className="text-emerald-700 font-semibold text-xs flex items-center justify-center gap-1.5 mt-0.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            All systems operational
-          </span>
+        {/* Master Statewide District Jurisdiction Filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/10 bg-white/5 -mx-6 -mb-6 px-6 py-3.5 rounded-b-3xl">
+          <div className="flex items-center gap-2 text-xs font-bold text-teal-200">
+            <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
+            <span>Statewide District Command Filter:</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={statewideDistrict}
+              onChange={(e) => setStatewideDistrict(e.target.value)}
+              className="bg-white text-slate-900 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-teal-400 cursor-pointer shadow-2xs"
+            >
+              <option value="ALL">All Gujarat Districts (Statewide View)</option>
+              <option value="Gandhinagar">Gandhinagar District</option>
+              <option value="Ahmedabad">Ahmedabad District</option>
+              <option value="Surat">Surat District</option>
+              <option value="Vadodara">Vadodara District</option>
+              <option value="Rajkot">Rajkot District</option>
+              <option value="Morbi">Morbi District</option>
+              <option value="Mehsana">Mehsana District</option>
+              <option value="Patan">Patan District</option>
+              <option value="Bhavnagar">Bhavnagar District</option>
+              <option value="Jamnagar">Jamnagar District</option>
+              <option value="Junagadh">Junagadh District</option>
+            </select>
+            {statewideDistrict !== 'ALL' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStatewideDistrict('ALL')}
+                className="text-[11px] h-7 px-2 border-teal-400/30 text-teal-200 hover:text-white cursor-pointer"
+              >
+                Reset to Statewide
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Navigation Tabs (8 Logical Modules) */}
+      {/* Navigation Tabs (9 Modules) */}
       <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as TabKey)}>
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 max-w-full">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 max-w-full">
           <TabsTrigger value="OVERVIEW" icon={<LayoutDashboard className="h-4 w-4" />}>
             Overview
           </TabsTrigger>
@@ -286,6 +359,9 @@ export const SuperAdminDashboard: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="FACILITIES" icon={<Building2 className="h-4 w-4" />}>
             Facilities
+          </TabsTrigger>
+          <TabsTrigger value="DISTRICT_ADMINS" icon={<UserCheck className="h-4 w-4 text-indigo-600" />}>
+            District Admins
           </TabsTrigger>
           <TabsTrigger value="USERS" icon={<Users className="h-4 w-4" />}>
             Users
@@ -330,12 +406,24 @@ export const SuperAdminDashboard: React.FC = () => {
         {/* 3. FACILITIES */}
         <TabsContent value="FACILITIES" className="pt-2">
           <FacilitiesTab
-            facilities={facilities}
+            facilities={
+              statewideDistrict === 'ALL'
+                ? facilities
+                : facilities.filter((f) => f.district.toLowerCase() === statewideDistrict.toLowerCase())
+            }
             onAddFacility={handleAddFacility}
           />
         </TabsContent>
 
-        {/* 4. USERS */}
+        {/* 4. DISTRICT ADMINS (EXCLUSIVE SUPER ADMIN APPOINTMENT) */}
+        <TabsContent value="DISTRICT_ADMINS" className="pt-2">
+          <DistrictAdminsTab
+            selectedDistrictFilter={statewideDistrict}
+            onDistrictFilterChange={setStatewideDistrict}
+          />
+        </TabsContent>
+
+        {/* 5. USERS */}
         <TabsContent value="USERS" className="pt-2">
           <UsersTab
             users={usersList}
@@ -343,7 +431,7 @@ export const SuperAdminDashboard: React.FC = () => {
           />
         </TabsContent>
 
-        {/* 5. PERMISSIONS */}
+        {/* 6. PERMISSIONS */}
         <TabsContent value="ROLES" className="pt-2">
           <RolesTab permissions={permissions} />
         </TabsContent>

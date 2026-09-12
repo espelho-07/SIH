@@ -9,6 +9,9 @@ export const adminApi = {
   getUsers: () =>
     apiRequest<User[]>('/super-admin/users', 'GET'),
 
+  createUser: (data: Partial<User>) =>
+    apiRequest<User>('/super-admin/users', 'POST', data),
+
   getPermissions: () =>
     apiRequest<PermissionMatrixItem[]>('/super-admin/roles', 'GET'),
 

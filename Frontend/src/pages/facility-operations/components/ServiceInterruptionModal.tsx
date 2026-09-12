@@ -67,7 +67,7 @@ export const ServiceInterruptionModal: React.FC<ServiceInterruptionModalProps> =
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="md">
+    <Dialog open={open} onOpenChange={onOpenChange} maxWidth="xl">
       <form onSubmit={handleSubmit}>
         <DialogHeader>
           <div className="flex items-center gap-2">

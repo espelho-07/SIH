@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,11 +8,15 @@ import {
   INITIAL_FACILITIES,
   INITIAL_LIVE_QUEUE,
   INITIAL_REFERRALS,
-  INITIAL_APPOINTMENTS,
-  INITIAL_BLOOD_INVENTORY,
-  INITIAL_AMBULANCES,
 } from '@/mock/mockData';
-import { Link, useNavigate } from 'react-router-dom';
+import { facilityApi } from '@/api/facilityApi';
+import { queueApi } from '@/api/queueApi';
+import { referralApi } from '@/api/referralApi';
+import { Facility } from '@/types/facility';
+import { Token, LiveQueueState } from '@/types/queue';
+import { Referral } from '@/types/referral';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Ticket,
   Building2,
@@ -20,11 +24,13 @@ import {
   ArrowRight,
   MapPin,
   Clock,
+  Calendar,
   ShieldCheck,
   CheckCircle2,
   Users,
   Pill,
   Sparkles,
+  Percent,
   Search,
   Phone,
   MessageCircle,
@@ -33,789 +39,547 @@ import {
   ExternalLink,
   Bed,
   Mic,
-  Calendar,
-  CalendarCheck,
-  Stethoscope,
-  Droplet,
-  Ambulance as AmbulanceIcon,
-  FileText,
-  ChevronRight,
-  HeartPulse,
-  Activity,
-  UserCheck,
-  Bot,
-  AlertCircle,
-  PhoneCall,
+  Radio,
 } from 'lucide-react';
 import { useFamily } from '@/contexts/FamilyContext';
+import { useLocationContext } from '@/contexts/LocationContext';
 import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import { SmartHospitalAssistantModal } from '@/components/patient/SmartHospitalAssistantModal';
 
 export const PatientDashboard: React.FC = () => {
   const { user } = useAuth();
   const { activeMember } = useFamily();
-  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const {
+    userCoords,
+    detectGpsLocation,
+    isLiveTracking,
+    toggleLiveTracking,
+    gpsAccuracy,
+  } = useLocationContext();
 
-  // Search filter state
-  const [searchQuery, setSearchQuery] = useState('');
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [liveQueue, setLiveQueue] = useState<LiveQueueState>(INITIAL_LIVE_QUEUE);
+  const [referrals, setReferrals] = useState<Referral[]>(INITIAL_REFERRALS);
+  const [mapNearestOnly, setMapNearestOnly] = useState<boolean>(true);
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [nearestHospitalInfo, setNearestHospitalInfo] = useState<{ facility: Facility; distanceKm: number } | null>(null);
 
-  // Modals state
-  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
-  const [activeModalTab, setActiveModalTab] = useState<'ASSISTANT' | 'STORES' | 'TRIAGE'>('ASSISTANT');
-  const [isBloodBankModalOpen, setIsBloodBankModalOpen] = useState(false);
-  const [selectedBloodGroup, setSelectedBloodGroup] = useState<string>('ALL');
-  const [isAmbulanceModalOpen, setIsAmbulanceModalOpen] = useState(false);
-  const [ambulanceRequested, setAmbulanceRequested] = useState(false);
+  useEffect(() => {
+    facilityApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setFacilities(res.data);
+    }).catch(console.warn);
 
-  // Active User Token & Referral & Upcoming Appointment
+    queueApi.getLiveQueue('fac_civil_01').then((res) => {
+      if (res.data) setLiveQueue(res.data);
+    }).catch(console.warn);
+
+    referralApi.getAll().then((res) => {
+      if (res.data && res.data.length > 0) setReferrals(res.data);
+    }).catch(console.warn);
+  }, []);
+
+  const handleLocatePatient = async () => {
+    setIsLocating(true);
+    try {
+      await detectGpsLocation();
+      setMapNearestOnly(true);
+    } catch {
+      // ignore
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
   const activeToken =
-    INITIAL_LIVE_QUEUE.tokens.find(
-      (t) => t.patientId === 'usr_pat_01'
-    ) || INITIAL_LIVE_QUEUE.tokens[3];
+    liveQueue.tokens.find(
+      (t) => t.patientId === activeMember.id || t.patientPhone === activeMember.phone
+    ) || liveQueue.tokens[0] || INITIAL_LIVE_QUEUE.tokens[3];
 
-  const activeReferral = INITIAL_REFERRALS[0];
+  const activeReferral =
+    referrals.find((r) => r.patientId === activeMember.id) || referrals[0] || INITIAL_REFERRALS[0];
 
-  const upcomingAppointment =
-    INITIAL_APPOINTMENTS.find((a) => a.patientId === 'usr_pat_01') ||
-    INITIAL_APPOINTMENTS[0];
+  const nearbyFacilities = facilities.slice(0, 3);
 
-  // Nearby Facilities filtered by search query
-  const filteredFacilities = useMemo(() => {
-    if (!searchQuery.trim()) return INITIAL_FACILITIES.slice(0, 3);
-    const q = searchQuery.toLowerCase();
-    return INITIAL_FACILITIES.filter(
-      (f) =>
-        f.name.toLowerCase().includes(q) ||
-        f.district.toLowerCase().includes(q) ||
-        f.departments.some((d) => d.name.toLowerCase().includes(q))
-    ).slice(0, 4);
-  }, [searchQuery]);
-
-  const bloodGroups = ['ALL', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
-
-  const filteredBloodStock = useMemo(() => {
-    if (selectedBloodGroup === 'ALL') return INITIAL_BLOOD_INVENTORY.stock;
-    return INITIAL_BLOOD_INVENTORY.stock.filter((b) => b.bloodGroup === selectedBloodGroup);
-  }, [selectedBloodGroup]);
+  // Voice & Facility Assistant Modal State
+  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState<'ASSISTANT' | 'STORES'>('ASSISTANT');
 
   return (
-    <div className="space-y-5 font-sans max-w-7xl mx-auto">
-
-      {/* ================================================================= */}
-      {/* 1. NATIVE MOBILE APP HEADER (Matches Photo 2 Wireframe) */}
-      {/* ================================================================= */}
-      <div className="flex items-center justify-between gap-3 pt-1">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate">
-              Hello, {activeMember.name || user?.name || 'Rohan Sharma'} 👋
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Your health matters. We are here for you.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> ABHA Verified
-          </span>
-          <FamilyMemberSwitcher variant="banner" />
-        </div>
-      </div>
-
-      {/* ================================================================= */}
-      {/* 2. SEARCH BAR (Matches Photo 2 Wireframe) */}
-      {/* ================================================================= */}
-      <div className="relative">
-        <div className="relative flex items-center">
-          <Search className="absolute left-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search hospitals, doctors, services, OPD queues..."
-            className="w-full pl-10 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm bg-white border border-slate-200/90 rounded-2xl text-slate-800 placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600 transition-all"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ================================================================= */}
-      {/* 3. AI HEALTH ASSISTANT COMPACT BANNER (Matches Photo 2 Wireframe) */}
-      {/* ================================================================= */}
-      <div className="relative overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/50 p-4 sm:p-5 shadow-xs">
+    <div className="space-y-7 font-sans">
+      {/* ================================================== */}
+      {/* CITIZEN HEALTH BAR / ABHA IDENTITY */}
+      {/* ================================================== */}
+      <div className="rounded-[1.5rem] border border-[#D5E6F3] bg-gradient-to-r from-[#E3EFF8] via-[#EAF4FB] to-[#EDF7FA] p-5 text-slate-800 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            {/* Friendly Bot Avatar Icon */}
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-sky-700 border border-sky-200 shadow-2xs">
-              <Bot className="h-6 w-6 text-sky-600" />
-              <span className="absolute -bottom-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-              </span>
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#D3E5F2] text-[#1D6394] shadow-xs">
+              <ShieldCheck className="h-6 w-6 text-[#1D6394]" />
             </div>
-
-            <div className="space-y-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-slate-900">
-                  AI Health Assistant
-                </h2>
-                <span className="text-[10px] font-semibold text-sky-700 bg-sky-100/70 px-2 py-0.5 rounded-full">
-                  ગુજરાતી • हिंदी • English
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-black tracking-tight text-[#1B365D] sm:text-base">
+                  {t('patient.portalTitle', 'Ayushman Bharat Citizen Health Portal')}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#DCFCE7] border border-emerald-300 px-2 py-0.5 text-[10px] font-bold text-[#15803D]">
+                  <CheckCircle2 className="h-3 w-3 text-[#15803D]" /> {t('patient.abhaVerified', 'ABHA Verified')}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed max-w-xl">
-                Describe your symptoms and get AI-assisted guidance, nearby care options and live wait times.
+              <p className="text-xs text-slate-600 mt-0.5 font-mono">
+                ABHA ID: {activeMember.abhaId} • Active: {activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})
               </p>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-            <Button
-              onClick={() => {
-                setActiveModalTab('ASSISTANT');
-                setIsFacilityModalOpen(true);
-              }}
-              className="flex-1 sm:flex-initial h-10 px-4 rounded-xl bg-gradient-to-r from-sky-600 to-teal-700 hover:from-sky-700 hover:to-teal-800 text-white font-bold text-xs shadow-xs gap-1.5 cursor-pointer"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Start Chat</span>
-            </Button>
-
-            <Button
-              onClick={() => {
-                setActiveModalTab('ASSISTANT');
-                setIsFacilityModalOpen(true);
-              }}
-              variant="outline"
-              className="flex-1 sm:flex-initial h-10 px-3.5 rounded-xl border-sky-200 text-sky-700 hover:bg-sky-50 font-semibold text-xs gap-1.5 cursor-pointer"
-            >
-              <Mic className="h-3.5 w-3.5" />
-              <span>Speak (બોલો)</span>
-            </Button>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+            <FamilyMemberSwitcher variant="banner" />
+            <div className="flex items-center gap-1.5 rounded-full bg-white/90 border border-slate-200/90 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>{t('patient.opdActiveToday', 'OPD Active Today')}</span>
+            </div>
           </div>
-        </div>
-
-        {/* Quick Symptom Chips */}
-        <div className="mt-3.5 pt-3 border-t border-sky-100 flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
-            Common:
-          </span>
-          {[
-            { label: 'Fever & Cold', emoji: '🌡️' },
-            { label: 'Chest Pain', emoji: '🫀' },
-            { label: 'Bone Injury', emoji: '🦴' },
-            { label: 'Maternity', emoji: '🤰' },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={() => {
-                setActiveModalTab('TRIAGE');
-                setIsFacilityModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white hover:bg-sky-50 border border-slate-200/90 text-[11px] font-medium text-slate-700 hover:text-sky-800 shrink-0 transition-colors shadow-2xs cursor-pointer"
-            >
-              <span>{item.emoji}</span>
-              <span>{item.label}</span>
-            </button>
-          ))}
-          <button
-            onClick={() => {
-              setActiveModalTab('STORES');
-              setIsFacilityModalOpen(true);
-            }}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white hover:bg-sky-50 border border-slate-200/90 text-[11px] font-medium text-slate-700 hover:text-sky-800 shrink-0 transition-colors shadow-2xs cursor-pointer"
-          >
-            <Pill className="h-3 w-3 text-sky-600" />
-            <span>Medical Stores</span>
-          </button>
         </div>
       </div>
 
-      {/* ================================================================= */}
-      {/* 4. QUICK ACTIONS (8-Icon Grid - Matches Photo 2 Wireframe) */}
-      {/* ================================================================= */}
-      <div>
-        <div className="flex items-center justify-between mb-2.5">
-          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500">
-            Quick Actions
-          </h2>
-          <span className="text-[11px] font-semibold text-teal-700">
-            All Services Available
-          </span>
-        </div>
-
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-3">
-          {/* 1. Find Doctor */}
-          <Link
-            to="/patient/appointments"
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-sky-50/60 border border-slate-200/80 transition-all hover:border-sky-300 text-center shadow-2xs"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 group-hover:scale-105 transition-transform border border-sky-100">
-              <Stethoscope className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-sky-700">
-              Find Doctor
-            </span>
-          </Link>
-
-          {/* 2. Book Appointment */}
-          <Link
-            to="/patient/appointments"
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-indigo-50/60 border border-slate-200/80 transition-all hover:border-indigo-300 text-center shadow-2xs"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 group-hover:scale-105 transition-transform border border-indigo-100">
-              <CalendarCheck className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-indigo-700">
-              Book Appt
-            </span>
-          </Link>
-
-          {/* 3. Get Token */}
-          <Link
-            to="/patient/tokens"
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-amber-50/60 border border-slate-200/80 transition-all hover:border-amber-300 text-center shadow-2xs"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 group-hover:scale-105 transition-transform border border-amber-100">
-              <Ticket className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-amber-700">
-              OPD Token
-            </span>
-          </Link>
-
-          {/* 4. Find Hospital */}
-          <Link
-            to="/patient/facilities"
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-teal-50/60 border border-slate-200/80 transition-all hover:border-teal-300 text-center shadow-2xs"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 group-hover:scale-105 transition-transform border border-teal-100">
-              <Building2 className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-teal-700">
-              Hospitals
-            </span>
-          </Link>
-
-          {/* 5. Blood Bank (Interactive Modal matching wireframe) */}
-          <button
-            onClick={() => setIsBloodBankModalOpen(true)}
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-rose-50/60 border border-slate-200/80 transition-all hover:border-rose-300 text-center shadow-2xs cursor-pointer"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 group-hover:scale-105 transition-transform border border-rose-100">
-              <Droplet className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-rose-700">
-              Blood Bank
-            </span>
-          </button>
-
-          {/* 6. Ambulance (Interactive Emergency Modal matching wireframe) */}
-          <button
-            onClick={() => setIsAmbulanceModalOpen(true)}
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-red-50/60 border border-slate-200/80 transition-all hover:border-red-300 text-center shadow-2xs cursor-pointer"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50 text-red-600 group-hover:scale-105 transition-transform border border-red-100">
-              <AmbulanceIcon className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-red-700">
-              Ambulance
-            </span>
-          </button>
-
-          {/* 7. My Records */}
-          <Link
-            to="/patient/records"
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-emerald-50/60 border border-slate-200/80 transition-all hover:border-emerald-300 text-center shadow-2xs"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 group-hover:scale-105 transition-transform border border-emerald-100">
-              <FileText className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-emerald-700">
-              My Records
-            </span>
-          </Link>
-
-          {/* 8. Referrals / More */}
-          <Link
-            to="/patient/referrals"
-            className="group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-white hover:bg-purple-50/60 border border-slate-200/80 transition-all hover:border-purple-300 text-center shadow-2xs"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 group-hover:scale-105 transition-transform border border-purple-100">
-              <GitBranch className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-semibold text-slate-800 mt-2 line-clamp-1 group-hover:text-purple-700">
-              Referrals
-            </span>
-          </Link>
-        </div>
-      </div>
-
-      {/* ================================================================= */}
-      {/* 5. UPCOMING APPOINTMENTS & ACTIVE TOKEN (Matches Photo 2 Wireframe) */}
-      {/* ================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-        {/* 5A. Upcoming Appointment Card */}
-        <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-                  <Calendar className="h-4 w-4" />
-                </div>
-                <h2 className="text-sm font-bold text-slate-900">
-                  Upcoming Appointments
-                </h2>
+      {/* ================================================== */}
+      {/* TOKEN + REFERRAL */}
+      {/* ================================================== */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+        {/* ================================================== */}
+        {/* MY TOKEN */}
+        {/* ================================================== */}
+        <div className="rounded-[1.5rem] border border-[#E2EDF3] bg-white p-5 shadow-2xs space-y-4 lg:col-span-3 flex flex-col justify-between">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#E0F2FE] text-[#0284C7]">
+                <Ticket className="h-4 w-4" />
               </div>
-              <Link
-                to="/patient/appointments"
-                className="text-xs font-semibold text-teal-700 hover:text-teal-900 flex items-center gap-0.5"
-              >
-                See All <ChevronRight className="h-3.5 w-3.5" />
-              </Link>
+              <h3 className="text-sm font-bold text-slate-900">
+                {t('patient.myToken', 'My Token')}
+              </h3>
             </div>
 
-            {upcomingAppointment ? (
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-100 to-sky-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0 border border-indigo-200/60">
-                    <UserCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs sm:text-sm font-bold text-slate-900">
-                        {upcomingAppointment.doctorName}
-                      </p>
-                      <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.2">
-                        {upcomingAppointment.status}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      {upcomingAppointment.specialty} • {upcomingAppointment.facilityName}
-                    </p>
-                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-indigo-700 mt-1.5">
-                      <Clock className="h-3 w-3" />
-                      <span>{upcomingAppointment.date} at {upcomingAppointment.timeSlot}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <Link
-                  to={`/patient/appointments`}
-                  className="sm:self-center"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto h-8 text-xs font-semibold border-slate-200 hover:bg-white text-slate-700"
-                  >
-                    View Details
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-400 py-3">No upcoming appointments scheduled.</p>
-            )}
+            <span className="rounded-full bg-[#FEF3C7] text-[#D97706] text-[10px] font-black px-3 py-0.5 border border-amber-200">
+              WAITING
+            </span>
           </div>
 
-          {/* Active Referral Notice if present */}
-          {activeReferral && (
-            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <GitBranch className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                <span className="text-slate-600 truncate">
-                  Referral: <strong className="font-semibold text-slate-900">{activeReferral.toSpecialty}</strong> at {activeReferral.toFacilityName}
-                </span>
-              </div>
-              <Link
-                to="/patient/referrals"
-                className="text-xs font-semibold text-amber-700 hover:underline shrink-0 ml-2"
-              >
-                Track
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* 5B. Active Live OPD Token (Wireframe "Your Token" G-024 / A-042) */}
-        <div className="rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
-                  <Ticket className="h-4 w-4" />
-                </div>
-                <h2 className="text-sm font-bold text-slate-900">
-                  Your OPD Token
-                </h2>
-              </div>
-              <StatusBadge status="WAITING" />
+          {/* Main Token Information */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-2">
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">
+                {t('patient.yourToken', 'Your Token')}
+              </p>
+              <p className="mt-0.5 text-3xl font-black text-[#1E3A5F]">
+                {activeToken.tokenNumber}
+              </p>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-50/80 to-blue-50/40 border border-sky-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Token Number
-                  </p>
-                  <p className="text-2xl sm:text-3xl font-black text-sky-900 tracking-tight">
-                    {activeToken.tokenNumber}
-                  </p>
-                  <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                    General Medicine • {activeToken.facilityName}
-                  </p>
-                </div>
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">
+                {t('patient.nowServing', 'Now Serving')}
+              </p>
+              <p className="mt-1 text-base font-bold text-slate-900">
+                {INITIAL_LIVE_QUEUE.currentTokenNumber}
+              </p>
+            </div>
 
-                <div className="text-right">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Estimated Wait
-                  </p>
-                  <p className="text-xl sm:text-2xl font-black text-amber-600">
-                    {activeToken.estimatedWaitMinutes} min
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">
-                    Serving: <span className="font-bold text-slate-800">{INITIAL_LIVE_QUEUE.currentTokenNumber}</span>
-                  </p>
-                </div>
-              </div>
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">
+                {t('patient.beforeYou', 'Before You')}
+              </p>
+              <p className="mt-1 text-base font-bold text-slate-900">
+                7
+              </p>
+            </div>
 
-              {/* Progress Bar */}
-              <div className="mt-3.5">
-                <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1">
-                  <span>Current Position: <strong className="text-slate-800">7 ahead of you</strong></span>
-                  <span className="font-bold text-sky-700">45% Progress</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-slate-200/80 overflow-hidden">
-                  <div className="h-full w-[45%] rounded-full bg-sky-600 transition-all duration-500" />
-                </div>
-              </div>
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">
+                {t('patient.waitTime', 'Wait Time')}
+              </p>
+              <p className="mt-1 text-base font-bold text-[#D97706] flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{activeToken.estimatedWaitMinutes} min</span>
+              </p>
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between pt-3 border-t border-slate-100">
-            <span className="text-[11px] text-slate-500 flex items-center gap-1">
-              <Building2 className="h-3.5 w-3.5 text-slate-400" />
-              Counter #4 (OPD Ground Floor)
-            </span>
+          {/* Progress */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-500 font-medium">
+                {t('patient.turnCloser', 'Your turn is getting closer')}
+              </span>
+              <span className="font-bold text-[#5C8DB8]">
+                45%
+              </span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="h-full w-[45%] rounded-full bg-[#5C8DB8]" />
+            </div>
+          </div>
+
+          {/* Hospital & View Live Queue Link */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100 pt-3.5">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-[#1D6394]" />
+              <span className="text-xs font-semibold text-slate-700">
+                {activeToken.facilityName}
+              </span>
+            </div>
+
             <Link to="/patient/tokens">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 text-xs font-semibold rounded-xl text-sky-700 border-sky-200 hover:bg-sky-50 gap-1"
+                className="h-8 text-xs px-3 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 font-bold cursor-pointer gap-1"
               >
-                Live Queue & Details
+                <span>{t('patient.viewQueueHistory', 'View Live Queue & History')}</span>
                 <ArrowRight className="h-3 w-3" />
               </Button>
             </Link>
           </div>
         </div>
 
+        {/* ================================================== */}
+        {/* MY REFERRAL */}
+        {/* ================================================== */}
+        <div className="rounded-[1.5rem] border border-[#E2EDF3] bg-white p-5 shadow-2xs space-y-4 lg:col-span-2 flex flex-col justify-between">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFEDD5] text-[#EA580C]">
+                <GitBranch className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {t('patient.myReferral', 'My Referral')}
+                </h3>
+                <p className="text-[10px] text-slate-400">
+                  {t('patient.referredVisit', 'Your referred visit')}
+                </p>
+              </div>
+            </div>
+
+            <span className="rounded-full bg-[#FEE2E2] text-[#DC2626] text-[10px] font-black px-2.5 py-0.5 border border-red-200 flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-red-600"></span>
+              URGENT
+            </span>
+          </div>
+
+          {/* Referral Details */}
+          <div className="space-y-3 py-1 text-xs">
+            <div>
+              <p className="text-[10px] font-medium text-slate-400">
+                {t('patient.hospital', 'Hospital')}
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-slate-900">
+                {activeReferral.toFacilityName}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[10px] font-medium text-slate-400">
+                  {t('patient.doctorFor', 'Doctor For')}
+                </p>
+                <p className="mt-0.5 text-xs font-bold text-slate-800">
+                  {activeReferral.toSpecialty}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-medium text-slate-400">
+                  {t('patient.visitTime', 'Visit Time')}
+                </p>
+                <p className="mt-0.5 text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <Calendar className="h-3 w-3 text-slate-400" />
+                  <span>{activeReferral.appointmentSlot || '2026-03-14 10:00 AM (OPD Room 6)'}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* View Referral Button */}
+          <div className="border-t border-slate-100 pt-3.5">
+            <Link to="/patient/referrals" className="block">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-8 text-xs font-bold rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center justify-center gap-1"
+              >
+                <span>{t('patient.viewReferral', 'View Referral')}</span>
+                <ArrowRight className="h-3 w-3" />
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {/* ================================================================= */}
-      {/* 6. NEARBY HOSPITALS (Matches Photo 2 Wireframe) */}
-      {/* ================================================================= */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
+      {/* ================================================== */}
+      {/* NEARBY HOSPITALS */}
+      {/* ================================================== */}
+      <section>
+        {/* Section Header */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Nearby Hospitals
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+              {t('patient.hospitalsNearYou', 'Hospitals Near You')}
             </h2>
-            <p className="text-xs text-slate-500">
-              Live bed availability, emergency status & wait times
+            <p className="mt-1 text-xs text-slate-500">
+              {t('patient.checkAvailability', 'Check hospital location and availability')}
             </p>
           </div>
 
-          <Link
-            to="/patient/facilities"
-            className="text-xs font-semibold text-teal-700 hover:text-teal-900 flex items-center gap-0.5"
-          >
-            View All ({INITIAL_FACILITIES.length}) <ChevronRight className="h-3.5 w-3.5" />
+          {/* Find Hospital */}
+          <Link to="/patient/facilities">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5 border-slate-300 bg-white text-slate-700 text-xs hover:bg-slate-50 sm:w-auto font-bold rounded-xl cursor-pointer shadow-2xs"
+            >
+              <Building2 className="h-3.5 w-3.5 text-[#1D6394]" />
+              <span>{t('patient.findHospital', 'Find Hospital')}</span>
+              <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+            </Button>
           </Link>
         </div>
 
-        {/* Responsive Grid / Map Combo */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Hospital Cards List (Mobile & Desktop) */}
-          <div className="lg:col-span-2 space-y-3">
-            {filteredFacilities.map((facility) => (
-              <div
-                key={facility.id}
-                className="rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-4 hover:border-slate-300 transition-all shadow-2xs hover:shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-slate-900 truncate">
-                      {facility.name}
-                    </h3>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        facility.isOpen
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      {facility.isOpen ? 'Open 24x7' : 'Closed'}
-                    </span>
-                  </div>
+        {/* Map Header Controls */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-teal-50/70 via-sky-50/50 to-emerald-50/60 p-3 sm:p-4 rounded-2xl border border-teal-100 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs shrink-0">
+              <Navigation className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-bold text-slate-900">
+                  {mapNearestOnly ? '📍 Nearest Hospital to You (Map Only)' : 'All Nearby Public Hospitals'}
+                </span>
+                {isLiveTracking ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-extrabold animate-pulse">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    Live GPS Stream {gpsAccuracy ? `(±${gpsAccuracy}m)` : ''}
+                  </span>
+                ) : userCoords ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                    GPS Fixed ({userCoords.lat.toFixed(3)}°, {userCoords.lng.toFixed(3)}°)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200 px-2 py-0.5 text-[10px] font-bold">
+                    <Sparkles className="h-3 w-3 text-sky-600" />
+                    Tap to locate
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {isLiveTracking
+                  ? 'Real-time GPS coordinates stream is active. Nearest hospital and route update as you move.'
+                  : userCoords
+                  ? 'Showing route and live availability for the single closest public hospital.'
+                  : 'Detect your location to see the nearest hospital directly on the map.'}
+              </p>
+            </div>
+          </div>
 
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                      {facility.distanceKm} km away • {facility.type}
-                    </span>
-                  </div>
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {/* Live GPS Tracking Toggle */}
+            <Button
+              type="button"
+              onClick={() => {
+                toggleLiveTracking();
+                setMapNearestOnly(true);
+              }}
+              size="sm"
+              className={`text-xs font-bold rounded-xl shadow-xs cursor-pointer flex items-center gap-1.5 transition-all ${
+                isLiveTracking
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
+                  : 'bg-emerald-700 hover:bg-emerald-800 text-white'
+              }`}
+            >
+              <Radio className={`h-3.5 w-3.5 ${isLiveTracking ? 'animate-pulse text-white' : ''}`} />
+              <span>{isLiveTracking ? '🟢 Tracking Live GPS...' : '🛰️ Track Live Location'}</span>
+            </Button>
 
-                  {/* Bed Stats Pills */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800 border border-teal-200/50">
-                      <Bed className="h-3 w-3 text-teal-600" />
-                      {facility.availableBeds} beds available
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-800 border border-rose-200/50">
-                      <HeartPulse className="h-3 w-3 text-rose-600" />
-                      {facility.icuBedsAvailable} ICU beds
-                    </span>
+            <Button
+              type="button"
+              onClick={handleLocatePatient}
+              disabled={isLocating}
+              size="sm"
+              variant="outline"
+              className="border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl shadow-2xs cursor-pointer flex items-center gap-1.5"
+            >
+              <Navigation className={`h-3.5 w-3.5 ${isLocating ? 'animate-spin' : ''}`} />
+              <span>{isLocating ? 'Locating...' : userCoords ? 'Refresh Fix' : '📍 One-Time GPS'}</span>
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => setMapNearestOnly(!mapNearestOnly)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                mapNearestOnly
+                  ? 'bg-teal-800 text-white border-teal-800 shadow-2xs'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              {mapNearestOnly ? '✓ Nearest Only (Map)' : 'Show All'}
+            </button>
+          </div>
+        </div>
+
+        {/* Map + Hospital List */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {/* MAP */}
+          <div className="overflow-hidden rounded-2xl lg:col-span-2 shadow-xs border border-slate-200">
+            <MapView
+              facilities={facilities}
+              userLocation={userCoords}
+              showNearestOnly={mapNearestOnly}
+              isLiveTracking={isLiveTracking}
+              gpsAccuracy={gpsAccuracy}
+              onNearestFound={(fac, dist) => setNearestHospitalInfo({ facility: fac, distanceKm: dist })}
+            />
+          </div>
+
+          {/* HOSPITALS */}
+          <div className="space-y-3">
+            {mapNearestOnly && nearestHospitalInfo ? (
+              <Card className="border-teal-300 bg-gradient-to-b from-teal-50/50 to-white p-4 shadow-sm">
+                <div className="inline-flex items-center gap-1 bg-teal-100 text-teal-900 px-2 py-0.5 rounded-full text-[10px] font-bold mb-2">
+                  <Sparkles className="h-3 w-3 text-teal-700" /> Nearest Hospital
+                </div>
+                <h3 className="text-base font-bold text-slate-900 leading-snug">
+                  {nearestHospitalInfo.facility.name}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+                  {nearestHospitalInfo.distanceKm} km from your location (~{Math.max(2, Math.round(nearestHospitalInfo.distanceKm * 2.2))} min)
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 mt-3 bg-white p-2.5 rounded-xl border border-slate-200/80 text-xs">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block">GENERAL BEDS</span>
+                    <strong className="text-slate-800 text-sm font-bold">
+                      {nearestHospitalInfo.facility.availableBeds || 0}
+                    </strong>
+                    <span className="text-[10px] text-slate-500 font-normal"> / {nearestHospitalInfo.facility.totalBeds || 0}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block">ICU BEDS</span>
+                    <strong className="text-red-700 text-sm font-bold">
+                      {nearestHospitalInfo.facility.icuBedsAvailable || 0} free
+                    </strong>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                  <Link to={`/patient/facilities/${facility.id}`}>
+                <div className="mt-3 flex flex-col gap-2">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${nearestHospitalInfo.facility.coordinates.lat},${nearestHospitalInfo.facility.coordinates.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full text-center bg-teal-700 hover:bg-teal-800 text-white font-bold py-2 px-3 rounded-xl text-xs transition-colors shadow-xs flex items-center justify-center gap-1.5"
+                  >
+                    <Navigation className="h-3.5 w-3.5" />
+                    Get Directions
+                  </a>
+
+                  <Link
+                    to={`/patient/tokens?facilityId=${nearestHospitalInfo.facility.id}`}
+                    className="w-full"
+                  >
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 text-xs rounded-xl border-slate-200 hover:bg-slate-50 font-semibold"
+                      className="w-full text-xs font-semibold border-slate-300 hover:bg-slate-50"
                     >
-                      View Details
-                    </Button>
-                  </Link>
-
-                  <Link to="/patient/tokens">
-                    <Button
-                      size="sm"
-                      className="h-9 text-xs rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold gap-1 shadow-2xs"
-                    >
-                      <Ticket className="h-3.5 w-3.5" />
-                      Get Token
+                      <Ticket className="h-3.5 w-3.5 text-teal-700" />
+                      Get OPD Token Here
                     </Button>
                   </Link>
                 </div>
-              </div>
-            ))}
-          </div>
+              </Card>
+            ) : null}
 
-          {/* Interactive Map View (Visible on tablet & desktop, clean preview) */}
-          <div className="hidden lg:block rounded-3xl overflow-hidden border border-slate-200/90 shadow-2xs h-full min-h-[300px]">
-            <MapView facilities={INITIAL_FACILITIES} />
+            {nearbyFacilities.map((facility) => (
+              <Card
+                key={facility.id}
+                className="border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+              >
+                {/* Hospital Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-semibold text-slate-900">
+                      {facility.name}
+                    </h3>
+                    <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
+                      <MapPin className="h-3 w-3" />
+                      {facility.distanceKm !== undefined ? `${facility.distanceKm} km away` : 'Nearby'}
+                    </div>
+                  </div>
+
+                  {facility.isOpen ? (
+                    <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
+                      {t('status.open', 'Open')}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-500">
+                      {t('status.closed', 'Closed')}
+                    </span>
+                  )}
+                </div>
+
+                {/* Availability */}
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                  <div className="flex items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5 text-teal-700" />
+                    <span className="text-[11px] text-slate-600">
+                      <strong className="font-semibold text-slate-900">
+                        {facility.availableBeds}
+                      </strong>{' '}
+                      {t('patient.beds', 'beds')}
+                    </span>
+                  </div>
+
+                  <span className="text-[11px] text-red-700">
+                    <strong className="font-semibold">
+                      {facility.icuBedsAvailable}
+                    </strong>{' '}
+                    {t('patient.icu', 'ICU')}
+                  </span>
+                </div>
+
+                {/* View Hospital */}
+                <Link
+                  to={`/patient/facilities/${facility.id}`}
+                  className="mt-3 block"
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full text-xs font-semibold cursor-pointer"
+                  >
+                    {t('patient.viewHospital', 'View Hospital')}
+                  </Button>
+                </Link>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ================================================================= */}
-      {/* 7. BLOOD BANK MODAL (Matches Photo 2 Wireframe: "Patient: Blood Bank") */}
-      {/* ================================================================= */}
-      {isBloodBankModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-md rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-rose-50/50">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                  <Droplet className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Blood Bank Availability</h3>
-                  <p className="text-[11px] text-slate-500">Live district stock verification</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsBloodBankModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Blood Group Chips */}
-            <div className="p-4 space-y-4">
-              <div>
-                <p className="text-xs font-semibold text-slate-600 mb-2">Select Blood Group:</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {bloodGroups.map((bg) => (
-                    <button
-                      key={bg}
-                      onClick={() => setSelectedBloodGroup(bg)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                        selectedBloodGroup === bg
-                          ? 'bg-rose-600 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-700 hover:bg-rose-50'
-                      }`}
-                    >
-                      {bg}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Units List */}
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Available Units ({INITIAL_BLOOD_INVENTORY.facilityName})
-                </p>
-                {filteredBloodStock.map((stock) => (
-                  <div
-                    key={stock.bloodGroup}
-                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-black text-rose-700">
-                          {stock.bloodGroup}
-                        </span>
-                        <span className="text-xs font-bold text-slate-800">
-                          {stock.unitsAvailable} units ready
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500">
-                        Status: <strong className="text-emerald-700 font-semibold">{stock.status}</strong> • Expiring in 7d: {stock.expiringIn7Days} units
-                      </p>
-                    </div>
-
-                    <a
-                      href="tel:108"
-                      className="inline-flex items-center gap-1 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 px-3 py-1.5 rounded-xl transition-colors shadow-2xs"
-                    >
-                      Request
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
-              <p className="text-[11px] text-slate-500">
-                Need urgent whole blood or platelets? Call Central Blood Helpline: <strong className="text-rose-700 font-bold">104 / 108</strong>
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================================================================= */}
-      {/* 8. AMBULANCE EMERGENCY MODAL (Matches Photo 2 Wireframe: "Patient: Ambulance") */}
-      {/* ================================================================= */}
-      {isAmbulanceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-md rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-red-50/50">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
-                  <AmbulanceIcon className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Emergency 108 Ambulance</h3>
-                  <p className="text-[11px] text-slate-500">GPS dispatch & emergency response</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setIsAmbulanceModalOpen(false);
-                  setAmbulanceRequested(false);
-                }}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-4">
-              {ambulanceRequested ? (
-                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
-                  <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="h-6 w-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-emerald-900">Ambulance Request Dispatched!</h4>
-                  <p className="text-xs text-emerald-700">
-                    Ambulance <strong>GJ-18-GA-1081</strong> has been assigned to your GPS location. ETA is <strong>8 minutes</strong>.
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    The control room has notified Gandhinagar Civil Hospital Emergency trauma center.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                    <p className="text-xs font-semibold text-slate-700">Available Ambulances Nearby:</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      <strong className="text-emerald-700">2 units</strong> on standby near your current location
-                    </p>
-                    <div className="mt-2 space-y-1.5 text-xs text-slate-600">
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100">
-                        <span className="font-semibold text-slate-800">GJ-18-GA-1081 (ALS)</span>
-                        <span className="text-emerald-700 font-bold">1.2 km away</span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100">
-                        <span className="font-semibold text-slate-800">GJ-18-GA-1082 (BLS)</span>
-                        <span className="text-slate-500 font-medium">2.8 km away</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-slate-700">Select Emergency Reason:</label>
-                    <select className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white">
-                      <option>Severe Chest Pain / Heart Emergency</option>
-                      <option>Road Accident / Trauma</option>
-                      <option>Maternity & Labor Emergency</option>
-                      <option>Respiratory Distress / Unconscious</option>
-                      <option>Other Acute Condition</option>
-                    </select>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      onClick={() => setAmbulanceRequested(true)}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xs h-10 rounded-xl"
-                    >
-                      <AmbulanceIcon className="h-4 w-4 mr-1" />
-                      Request Ambulance
-                    </Button>
-                    <a
-                      href="tel:108"
-                      className="flex items-center justify-center px-4 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs h-10 rounded-xl transition-colors"
-                    >
-                      <PhoneCall className="h-4 w-4 mr-1" />
-                      Direct Call 108
-                    </a>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================================================================= */}
-      {/* 9. SANJEEVANI VOICE & HOSPITAL ASSISTANT MODAL */}
-      {/* ================================================================= */}
+      {/* ================================================== */}
+      {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT MODAL */}
+      {/* ================================================== */}
       <SmartHospitalAssistantModal
         isOpen={isFacilityModalOpen}
         onClose={() => setIsFacilityModalOpen(false)}
         defaultTab={activeModalTab}
       />
-
     </div>
   );
 };

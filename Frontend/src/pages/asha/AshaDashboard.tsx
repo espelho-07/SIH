@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useConnection } from '@/contexts/ConnectionContext';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_ASHA_PATIENTS } from '@/mock/mockData';
+import { ashaApi } from '@/api/ashaApi';
+import { AshaPatient } from '@/types/asha';
 import { getStoredAshaVisits, subscribeToAshaVisits } from '@/lib/ashaVisitStore';
 import { Link } from 'react-router-dom';
 import {
@@ -26,20 +28,25 @@ export const AshaDashboard: React.FC = () => {
   const { user } = useAuth();
   const { pendingSyncCount, isOnline } = useConnection();
 
-  const todayStr = '2026-03-11';
+  const todayStr = new Date().toISOString().split('T')[0];
   const [visits, setVisits] = useState<any[]>(() => getStoredAshaVisits());
+  const [citizens, setCitizens] = useState<AshaPatient[]>(INITIAL_ASHA_PATIENTS);
 
   useEffect(() => {
+    ashaApi.getCitizens().then((res) => {
+      if (res.data && res.data.length > 0) setCitizens(res.data);
+    }).catch(console.warn);
+
     return subscribeToAshaVisits((updated) => setVisits(updated));
   }, []);
 
   const todayVisits = useMemo(
     () => visits.filter((v) => (v.visitDate === todayStr || v.status === 'IN_PROGRESS') && !v.isCompleted),
-    [visits]
+    [visits, todayStr]
   );
   const highRiskPatients = useMemo(
-    () => INITIAL_ASHA_PATIENTS.filter((p) => p.isHighRisk),
-    []
+    () => citizens.filter((p) => p.isHighRisk),
+    [citizens]
   );
 
   return (

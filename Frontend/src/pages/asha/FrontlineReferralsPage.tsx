@@ -1,11 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { StatusBadge, PriorityBadge } from '@/components/ui/Badge';
-import { INITIAL_FRONTLINE_REFERRALS, INITIAL_ASHA_PATIENTS } from '@/mock/mockData';
-import { FrontlineReferral } from '@/types/asha';
+import { INITIAL_FRONTLINE_REFERRALS, INITIAL_ASHA_PATIENTS, INITIAL_FACILITIES } from '@/mock/mockData';
+import { FrontlineReferral, AshaPatient } from '@/types/asha';
+import { ashaApi } from '@/api/ashaApi';
+import { facilityApi } from '@/api/facilityApi';
+import { Facility } from '@/types/facility';
 import { Link } from 'react-router-dom';
 import {
   GitBranch,
@@ -26,18 +29,43 @@ import {
 
 export const FrontlineReferralsPage: React.FC = () => {
   const [referrals, setReferrals] = useState<FrontlineReferral[]>(INITIAL_FRONTLINE_REFERRALS);
+  const [patients, setPatients] = useState<AshaPatient[]>(INITIAL_ASHA_PATIENTS);
+  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'COUNTER_REFERRED'>('ALL');
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // New Referral Form
-  const [patientId, setPatientId] = useState(INITIAL_ASHA_PATIENTS[0].id);
-  const [facility, setFacility] = useState('Pethapur Primary Health Centre');
-  const [facilityType, setFacilityType] = useState<'SUBCENTRE' | 'PHC' | 'CHC' | 'DISTRICT_HOSPITAL'>('PHC');
+  const [patientId, setPatientId] = useState(INITIAL_ASHA_PATIENTS[0]?.id || 'asha_p_01');
+  const [selectedFacilityId, setSelectedFacilityId] = useState(INITIAL_FACILITIES[0]?.id || 'fac_civil_01');
   const [department, setDepartment] = useState('Maternal & Obstetric Care');
   const [priority, setPriority] = useState<'ROUTINE' | 'URGENT' | 'EMERGENCY'>('URGENT');
   const [ambulanceReq, setAmbulanceReq] = useState(false);
   const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    ashaApi.getReferrals().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setReferrals(res.data);
+      }
+    }).catch((err) => {
+      console.warn('Live asha referrals fetch failed:', err);
+    });
+
+    ashaApi.getPatients().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setPatients(res.data);
+        if (res.data[0]?.id) setPatientId(res.data[0].id);
+      }
+    }).catch(() => {});
+
+    facilityApi.getAll().then((res) => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        setFacilities(res.data);
+        setSelectedFacilityId(res.data[0].id);
+      }
+    }).catch(() => {});
+  }, []);
 
   const counts = useMemo(() => {
     return {
@@ -65,10 +93,12 @@ export const FrontlineReferralsPage: React.FC = () => {
     });
   }, [referrals, statusFilter, search]);
 
-  const handleCreateReferral = (e: React.FormEvent) => {
+  const handleCreateReferral = async (e: React.FormEvent) => {
     e.preventDefault();
-    const patient = INITIAL_ASHA_PATIENTS.find((p) => p.id === patientId);
+    const patient = patients.find((p) => p.id === patientId) || patients[0];
     if (!patient) return;
+
+    const matchedFac = facilities.find((f) => f.id === selectedFacilityId) || facilities[0];
 
     const newRef: FrontlineReferral = {
       id: `ref_fl_${Date.now()}`,
@@ -79,9 +109,9 @@ export const FrontlineReferralsPage: React.FC = () => {
       patientGender: patient.gender,
       patientPhone: patient.phone,
       village: patient.village,
-      targetFacilityId: 'fac_phc_01',
-      targetFacilityName: facility,
-      targetFacilityType: facilityType,
+      targetFacilityId: matchedFac?.id || 'fac_civil_01',
+      targetFacilityName: matchedFac?.name || 'Gandhinagar Civil Hospital',
+      targetFacilityType: (matchedFac?.type as any) || 'DISTRICT_HOSPITAL',
       department,
       reason,
       priority,
@@ -91,7 +121,16 @@ export const FrontlineReferralsPage: React.FC = () => {
       createdAt: new Date().toISOString(),
     };
 
-    setReferrals([newRef, ...referrals]);
+    try {
+      const res = await ashaApi.createReferral(newRef);
+      if (res?.data) {
+        setReferrals([res.data, ...referrals.filter((r) => r.id !== res.data.id)]);
+      } else {
+        setReferrals([newRef, ...referrals]);
+      }
+    } catch {
+      setReferrals([newRef, ...referrals]);
+    }
     setIsModalOpen(false);
     setReason('');
   };
@@ -346,7 +385,7 @@ export const FrontlineReferralsPage: React.FC = () => {
       {/* Create Referral Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-2xl sm:max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-extrabold text-base text-slate-900">Initiate Health Facility Referral</h3>
               <button
@@ -366,9 +405,9 @@ export const FrontlineReferralsPage: React.FC = () => {
                 <select
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                 >
-                  {INITIAL_ASHA_PATIENTS.map((p) => (
+                  {patients.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} ({p.age}Y, {p.village}) • {p.category?.replace(/_/g, ' ')}
                     </option>
@@ -381,18 +420,15 @@ export const FrontlineReferralsPage: React.FC = () => {
                   Target Healthcare Facility
                 </label>
                 <select
-                  value={facility}
-                  onChange={(e) => {
-                    setFacility(e.target.value);
-                    if (e.target.value.includes('Civil')) setFacilityType('DISTRICT_HOSPITAL');
-                    else if (e.target.value.includes('CHC')) setFacilityType('CHC');
-                    else setFacilityType('PHC');
-                  }}
-                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                  value={selectedFacilityId}
+                  onChange={(e) => setSelectedFacilityId(e.target.value)}
+                  className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                 >
-                  <option value="Pethapur Primary Health Centre">Pethapur Primary Health Centre (PHC) - 3.2 km</option>
-                  <option value="Kalol Community Health Centre (FRU)">Kalol Community Health Centre (CHC) - 12 km</option>
-                  <option value="Gandhinagar Civil Hospital">Gandhinagar Civil Hospital (District) - 18 km</option>
+                  {facilities.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name} ({f.type})
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -402,7 +438,7 @@ export const FrontlineReferralsPage: React.FC = () => {
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                   >
                     <option value="Maternal & Obstetric Care">Maternal & Obstetric Care</option>
                     <option value="Pediatrics & Nutrition">Pediatrics & Nutrition</option>
@@ -417,7 +453,7 @@ export const FrontlineReferralsPage: React.FC = () => {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as typeof priority)}
-                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium"
+                    className="w-full text-xs rounded-xl border border-slate-300 p-2.5 bg-white font-medium shadow-2xs cursor-pointer"
                   >
                     <option value="URGENT">Urgent (Within 24 Hours)</option>
                     <option value="EMERGENCY">Emergency (Immediate)</option>

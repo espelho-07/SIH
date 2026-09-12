@@ -4,7 +4,6 @@ import { useConnection } from '@/contexts/ConnectionContext';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { FamilyMemberSwitcher } from '@/components/patient/FamilyMemberSwitcher';
 import {
   LayoutDashboard,
   Building2,
@@ -41,7 +40,8 @@ import {
   ListTodo,
   Stethoscope,
   Settings,
-  Phone,
+  Radar,
+  UserCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -185,16 +185,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-blue-600 bg-blue-50',
           },
           {
-            to: '/doctor/queue',
-            label: 'Patient Queue',
-            icon: Ticket,
-            color: 'text-orange-600 bg-orange-50',
-          },
-          {
             to: '/doctor/patients',
             label: 'Patients & Treatment',
             icon: Activity,
             color: 'text-red-600 bg-red-50',
+          },
+          {
+            to: '/doctor/patients/history',
+            label: 'Old & Recent Records',
+            icon: History,
+            color: 'text-purple-600 bg-purple-50',
           },
           {
             to: '/doctor/referrals',
@@ -207,6 +207,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: 'Online Doctor',
             icon: Video,
             color: 'text-cyan-600 bg-cyan-50',
+          },
+          {
+            to: '/doctor/roster',
+            label: 'Schedule/Leaves',
+            icon: CalendarCheck2,
+            color: 'text-emerald-600 bg-emerald-50',
           },
         ];
 
@@ -264,12 +270,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               label: 'Patient Registration',
               icon: UserPlus,
               color: 'text-emerald-600 bg-emerald-50',
-            },
-            {
-              to: '/registration-clerk/patients',
-              label: 'Citizen Directory',
-              icon: Users,
-              color: 'text-violet-600 bg-violet-50',
             },
             {
               to: '/registration-clerk/appointments',
@@ -338,6 +338,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               color: 'text-emerald-600 bg-emerald-50',
             },
             {
+              to: '/facility-operations/staff-leave',
+              label: 'Staff Leave & Coverage',
+              icon: Calendar,
+              color: 'text-teal-600 bg-teal-50',
+            },
+            {
               to: '/facility-operations/queues',
               label: 'Live Queue Velocity',
               icon: Ticket,
@@ -348,12 +354,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               label: 'Transfer Coordination',
               icon: GitBranch,
               color: 'text-indigo-600 bg-indigo-50',
-            },
-            {
-              to: '/facility-operations/resources',
-              label: 'Capacity & Beds',
-              icon: Bed,
-              color: 'text-blue-600 bg-blue-50',
             },
             {
               to: '/facility-operations/alerts',
@@ -442,13 +442,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-indigo-600 bg-indigo-50',
             section: 'Facilities & Care',
           },
-          {
-            to: '/district/operations',
-            label: 'Queues & OPD',
-            icon: Ticket,
-            color: 'text-orange-600 bg-orange-50',
-            section: 'Facilities & Care',
-          },
 
           // 3. District Resources
           {
@@ -488,6 +481,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           },
 
           // 4. Public Health & Insights
+          {
+            to: '/district/resource-intelligence',
+            label: 'Resource Intelligence',
+            icon: Radar,
+            color: 'text-teal-700 bg-teal-50',
+            section: 'Public Health & Insights',
+          },
           {
             to: '/district/map',
             label: 'District Map',
@@ -542,6 +542,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             color: 'text-cyan-600 bg-cyan-50',
           },
           {
+            to: '/super-admin/district-admins',
+            label: 'District Admins',
+            icon: UserCheck,
+            color: 'text-indigo-600 bg-indigo-50',
+          },
+          {
             to: '/super-admin/users',
             label: 'Users',
             icon: Users,
@@ -589,10 +595,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* MOBILE / TABLET BACKDROP */}
+      {/* MOBILE BACKDROP */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-16 bottom-0 z-30 bg-slate-900/50 backdrop-blur-xs lg:hidden"
+          className="fixed inset-x-0 top-16 bottom-0 z-30 bg-slate-900/50 backdrop-blur-sm md:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -602,56 +608,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <aside
         className={cn(
           `fixed top-16 bottom-0 left-0 z-30
-          w-64 h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)]
-          border-r border-slate-200/90
+          w-64 h-[calc(100vh-4rem)]
+          border-r border-slate-200
           bg-white
-          shadow-xs
+          shadow-[4px_0_24px_rgba(15,23,42,0.04)]
           transition-transform duration-200
           ease-in-out
-          lg:sticky lg:top-16
-          lg:shrink-0 lg:translate-x-0
-          flex flex-col justify-between overflow-hidden`,
+          md:sticky md:top-16
+          md:shrink-0 md:translate-x-0
+          flex flex-col`,
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Workspace Header Pill */}
-        <div className="hidden lg:flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-xs font-bold text-slate-800 truncate">
-              {role === 'PATIENT'
-                ? 'Citizen Portal • ABHA'
-                : role === 'DOCTOR'
-                ? 'Clinical OPD Desk'
-                : role === 'ASHA'
-                ? 'Frontline Health Bar'
-                : role === 'DISTRICT_ADMIN'
-                ? 'District Command HQ'
-                : role === 'SUPER_ADMIN'
-                ? 'Super Admin Grid'
-                : staffSubType === 'REGISTRATION_CLERK'
-                ? 'Front Desk & Tokens'
-                : staffSubType === 'PHARMACIST'
-                ? 'Pharmacy Station'
-                : staffSubType === 'LAB_TECHNICIAN'
-                ? 'Pathology Hub'
-                : staffSubType === 'FACILITY_OPERATIONS'
-                ? 'Operations Center'
-                : 'Facility Staff Console'}
-            </span>
-          </div>
-          <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60">
-            Live
-          </span>
-        </div>
-
-        {/* Mobile Patient Profile Switcher in Sidebar Drawer */}
-        {role === 'PATIENT' && (
-          <div className="lg:hidden px-3 pt-3 pb-2 border-b border-slate-100 bg-slate-50/50">
-            <FamilyMemberSwitcher variant="sidebar" />
-          </div>
-        )}
-
         {/* ---------------------------------------------
             OFFLINE MODE BANNER
         --------------------------------------------- */}
@@ -661,17 +629,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-[10px] font-bold text-amber-800">
-                  OFFLINE MODE
+                  {t('status.offline', 'OFFLINE MODE')}
                 </span>
               </div>
               {pendingSyncCount > 0 && (
                 <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-bold text-white">
-                  {pendingSyncCount} queued
+                  {pendingSyncCount} {t('common.queued', 'queued')}
                 </span>
               )}
             </div>
             <p className="mt-1 text-[10px] text-amber-700">
-              Data will sync when internet is available.
+              {t('status.offlineNotice', 'Data will sync when internet is available.')}
             </p>
           </div>
         )}
@@ -679,19 +647,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* ---------------------------------------------
             NAVIGATION
         --------------------------------------------- */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-2 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto px-3 py-3">
           {!navItems[0]?.section && (
-            <div className="mb-1 px-2.5">
+            <div className="mb-2 px-2.5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  Menu
+                  {t('sections.Menu', 'Menu')}
                 </span>
                 <div className="h-px flex-1 bg-slate-100" />
               </div>
             </div>
           )}
 
-          <nav className="space-y-0.5">
+          <nav className="space-y-1">
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const showSection =
@@ -704,10 +672,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <div
                       className={cn(
                         'px-2.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400',
-                        index > 0 ? 'pt-2.5 pb-1' : 'pb-1'
+                        index > 0 ? 'pt-3.5 pb-1' : 'pb-1'
                       )}
                     >
-                      {item.section}
+                      {item.section ? t(`sections.${item.section}`, item.section) : ''}
                     </div>
                   )}
                   <NavLink
@@ -716,29 +684,45 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     end={item.to.split('/').length <= 2}
                     className={({ isActive }) =>
                       cn(
-                        'group flex items-center justify-between rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-150',
+                        `group relative flex items-center justify-between rounded-2xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-200`,
                         isActive
-                          ? 'bg-teal-50/90 text-teal-900 font-semibold border border-teal-200/80 shadow-2xs'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          ? `bg-[#E1EFFA] text-[#1D6394] font-bold shadow-xs`
+                          : `text-slate-600 hover:bg-slate-50 hover:text-slate-900`
                       )
                     }
                   >
                   {({ isActive }) => (
                     <>
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <Icon
+                      {/* Active Left Indicator */}
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 rounded-r-full bg-[#1D6394]" />
+                      )}
+
+                      <div className="flex min-w-0 items-center gap-3">
+                        {/* ICON */}
+                        <div
                           className={cn(
-                            'h-[17px] w-[17px] shrink-0 transition-colors',
+                            `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200`,
                             isActive
-                              ? 'text-teal-700'
-                              : 'text-slate-400 group-hover:text-slate-700'
+                              ? 'bg-white shadow-xs text-[#1D6394]'
+                              : item.color || 'bg-slate-50 text-slate-500'
                           )}
-                        />
-                        <span className="truncate">{item.label}</span>
+                        >
+                          <Icon
+                            className={cn(
+                              'h-[18px] w-[18px]',
+                              isActive ? 'text-[#1D6394]' : ''
+                            )}
+                          />
+                        </div>
+
+                        {/* LABEL */}
+                        <span className="truncate">{t(`navMap.${item.label}`, item.label)}</span>
                       </div>
 
+                      {/* BADGE */}
                       {item.badge !== undefined && (
-                        <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">
+                        <span className="ml-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
                           {item.badge}
                         </span>
                       )}
@@ -749,51 +733,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
           })}
           </nav>
-        </div>
-
-        {/* Sidebar Bottom Help & Helpline Card (Compact & Never Clipped) */}
-        <div className="shrink-0 p-2.5 border-t border-slate-100 bg-slate-50/70">
-          {role === 'PATIENT' ? (
-            <div className="rounded-xl border border-sky-200/80 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/50 p-2.5 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
-                  </span>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-800">
-                    24x7 Emergency
-                  </span>
-                </div>
-                <span className="text-[9.5px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/50">
-                  Toll-Free
-                </span>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-1.5">
-                <a
-                  href="tel:108"
-                  className="flex items-center justify-center gap-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold py-1.5 transition-colors shadow-2xs"
-                >
-                  <Phone className="h-3 w-3" />
-                  108 Amb
-                </a>
-                <a
-                  href="tel:104"
-                  className="flex items-center justify-center gap-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold py-1.5 transition-colors shadow-2xs"
-                >
-                  104 Advice
-                </a>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-slate-200 bg-white p-2 flex items-center justify-between text-[11px]">
-              <div className="flex items-center gap-1.5 text-slate-600 font-medium">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                <span>Sync Active</span>
-              </div>
-              <span className="text-slate-400 font-mono text-[10px]">v2.4.0</span>
-            </div>
-          )}
         </div>
       </aside>
     </>
