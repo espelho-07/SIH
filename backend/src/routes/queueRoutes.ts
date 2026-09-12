@@ -5,6 +5,7 @@ import {
   checkDuplicatePatient,
   registerPatient,
   getAppointments,
+  getAppointmentById,
   bookAppointment,
   assignDoctorToAppointment,
   updateAppointment,
@@ -30,6 +31,7 @@ router.get('/clerk/patients/:id', getClerkPatientById);
 // Appointments
 router.get('/appointments', getAppointments);
 router.post('/appointments', bookAppointment);
+router.get('/appointments/:appointmentId', getAppointmentById);
 router.patch('/appointments/:appointmentId/assign-doctor', assignDoctorToAppointment);
 router.patch('/appointments/:appointmentId/check-in', checkInAppointment);
 router.post('/appointments/:appointmentId/check-in', checkInAppointment);

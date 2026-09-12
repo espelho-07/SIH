@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import TeleconsultationRoom from "./TeleconsultationRoom";
+import { clinicalApi } from "@/api/clinicalApi";
+import { appointmentApi } from "@/api/queueApi";
 import {
   Video,
   CalendarDays,
@@ -12,10 +13,23 @@ import {
   CheckCircle2,
   Eye,
   Stethoscope,
-  ArrowLeft
+  ArrowLeft,
+  RefreshCw,
 } from "lucide-react";
 
-const consultationHistory = [
+interface TeleHistoryItem {
+  id: string;
+  date: string;
+  time: string;
+  doctor: string;
+  department: string;
+  facility: string;
+  duration: string;
+  status: string;
+  notes: string;
+}
+
+const DEMO_CONSULTATION_HISTORY: TeleHistoryItem[] = [
   {
     id: "TC-1001",
     date: "10 Sep 2026",
@@ -64,6 +78,32 @@ const consultationHistory = [
 
 export const TeleconsultationHistory: React.FC = () => {
   const navigate = useNavigate();
+  const [history, setHistory] = useState<TeleHistoryItem[]>(DEMO_CONSULTATION_HISTORY);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    clinicalApi
+      .getEncounters()
+      .then((res) => {
+        if (res.data && res.data.length > 0) {
+          const teleMapped: TeleHistoryItem[] = res.data.map((enc: any) => ({
+            id: enc.id,
+            date: enc.startedAt ? enc.startedAt.split('T')[0] : '10 Sep 2026',
+            time: enc.startedAt ? enc.startedAt.split('T')[1]?.slice(0, 5) || '10:30 AM' : '10:30 AM',
+            doctor: enc.doctorName || 'Dr. Arvind Patel',
+            department: enc.chiefComplaint || 'General Medicine',
+            facility: enc.facilityName || 'Gandhinagar Civil Hospital',
+            duration: '12 mins 30 secs',
+            status: enc.status === 'COMPLETED' ? 'Completed' : 'Active',
+            notes: enc.clinicalNotes || enc.historyOfPresentIllness || 'Teleconsultation conducted successfully.',
+          }));
+          setHistory(teleMapped);
+        }
+      })
+      .catch(console.warn)
+      .finally(() => setIsLoading(false));
+  }, []);
 
   return (
     <div className="space-y-5">
@@ -97,7 +137,7 @@ export const TeleconsultationHistory: React.FC = () => {
             </p>
 
             <p className="mt-1 text-2xl font-bold text-slate-900">
-              {consultationHistory.length}
+              {history.length}
             </p>
           </CardContent>
         </Card>
@@ -110,7 +150,7 @@ export const TeleconsultationHistory: React.FC = () => {
 
             <p className="mt-1 text-2xl font-bold text-emerald-700">
               {
-                consultationHistory.filter(
+                history.filter(
                   (item) => item.status === "Completed",
                 ).length
               }
@@ -125,7 +165,7 @@ export const TeleconsultationHistory: React.FC = () => {
             </p>
 
             <p className="mt-1 text-sm font-bold text-slate-900">
-              {consultationHistory[0].date}
+              {history[0]?.date || 'Recent'}
             </p>
           </CardContent>
         </Card>
@@ -183,7 +223,7 @@ export const TeleconsultationHistory: React.FC = () => {
               </thead>
 
               <tbody>
-                {consultationHistory.map((consultation) => (
+                {history.map((consultation) => (
                   <tr
                     key={consultation.id}
                     className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition"
@@ -257,7 +297,7 @@ export const TeleconsultationHistory: React.FC = () => {
 
           {/* Mobile */}
           <div className="md:hidden divide-y divide-slate-100">
-            {consultationHistory.map((consultation) => (
+            {history.map((consultation) => (
               <div key={consultation.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>

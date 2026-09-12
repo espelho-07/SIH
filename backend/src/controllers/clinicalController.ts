@@ -39,6 +39,33 @@ export async function getTimeline(req: Request, res: Response): Promise<void> {
   sendSuccess(res, 'Patient timeline retrieved', record.timeline || []);
 }
 
+export async function getEncounters(req: Request, res: Response): Promise<void> {
+  const { patientId, doctorId, facilityId, type, status } = { ...req.query, ...req.body } as any;
+  const filter: any = {};
+  if (patientId) filter.patientId = patientId;
+  if (doctorId) filter.doctorId = doctorId;
+  if (facilityId) filter.facilityId = facilityId;
+  if (type) filter.type = type;
+  if (status) filter.status = status;
+
+  const encounters = await EncounterModel.find(filter).sort({ startedAt: -1, _id: -1 });
+  sendSuccess(res, 'Encounters retrieved successfully', encounters.map((e) => e.toJSON()));
+}
+
+export async function getEncounterById(req: Request, res: Response): Promise<void> {
+  const { encounterId } = req.params;
+  const encounter = await EncounterModel.findOne({
+    $or: [{ id: encounterId }, { _id: encounterId }],
+  });
+
+  if (!encounter) {
+    sendError(res, `Encounter ${encounterId} not found`, 404);
+    return;
+  }
+
+  sendSuccess(res, 'Encounter retrieved successfully', encounter.toJSON());
+}
+
 export async function createEncounter(req: AuthRequest, res: Response): Promise<void> {
   const data = req.body;
   const id = data.id || `enc_${Date.now()}`;

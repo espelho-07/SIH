@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { TokenModel, AppointmentModel, IToken } from '../models/Queue';
 import { PatientModel } from '../models/Patient';
 import { DoctorModel } from '../models/Doctor';
+import { FacilityModel } from '../models/Facility';
 import { sendSuccess, sendError } from '../utils/response';
 import { broadcastTokenCalled, broadcastQueueUpdate } from '../sockets/socketHandler';
 
@@ -68,7 +69,12 @@ export async function getAppointments(req: Request, res: Response): Promise<void
   const { patientId, status, date, facilityId, search } = params;
 
   const filter: any = {};
-  if (patientId) filter.patientId = patientId;
+  if (patientId) {
+    filter.$or = [
+      { patientId },
+      { patientPhone: patientId },
+    ];
+  }
   if (facilityId) filter.facilityId = facilityId;
   if (status && status !== 'ALL') filter.status = status;
   if (date) filter.date = date;
@@ -86,17 +92,122 @@ export async function getAppointments(req: Request, res: Response): Promise<void
   sendSuccess(res, 'Appointments retrieved', appointments.map((a) => a.toJSON()));
 }
 
+export async function getAppointmentById(req: Request, res: Response): Promise<void> {
+  const { appointmentId } = req.params;
+  const apt = await AppointmentModel.findOne({
+    $or: [{ id: appointmentId }, { _id: appointmentId }],
+  });
+
+  if (!apt) {
+    sendError(res, `Appointment ${appointmentId} not found`, 404);
+    return;
+  }
+
+  sendSuccess(res, 'Appointment retrieved', apt.toJSON());
+}
+
 export async function bookAppointment(req: Request, res: Response): Promise<void> {
   const data = req.body;
   const id = data.id || `apt_${Date.now()}`;
 
+  // 1. Resolve facility foreign reference from MongoDB
+  let facilityName = data.facilityName;
+  let facilityId = data.facilityId;
+  if (facilityId || facilityName) {
+    const fac = await FacilityModel.findOne({
+      $or: [
+        { id: facilityId },
+        { name: { $regex: facilityName || facilityId, $options: 'i' } },
+      ],
+    });
+    if (fac) {
+      facilityId = fac.id;
+      facilityName = fac.name;
+    }
+  }
+
+  // 2. Resolve doctor foreign reference from MongoDB
+  let doctorId = data.doctorId || 'unassigned';
+  let doctorName = data.doctorName || 'To be assigned at counter';
+  let specialty = data.specialty || 'General Medicine';
+  let roomNumber = data.roomNumber || 'Room 4';
+  if (doctorId && doctorId !== 'unassigned') {
+    const doc = await DoctorModel.findOne({
+      $or: [
+        { id: doctorId },
+        { name: { $regex: doctorName || doctorId, $options: 'i' } },
+      ],
+    });
+    if (doc) {
+      doctorId = doc.id;
+      doctorName = doc.name;
+      specialty = doc.specialty || specialty;
+    }
+  }
+
+  // 3. Resolve patient foreign reference from MongoDB
+  let patientId = data.patientId || 'usr_pat_01';
+  let patientName = data.patientName || 'Govindbhai Patel';
+  let patientPhone = data.patientPhone || '9825011122';
+  if (patientId || patientPhone) {
+    const pat = await PatientModel.findOne({
+      $or: [
+        { id: patientId },
+        { phone: patientPhone },
+      ],
+    });
+    if (pat) {
+      patientId = pat.id;
+      patientName = pat.name;
+      patientPhone = pat.phone;
+    }
+  }
+
   const apt = new AppointmentModel({
     ...data,
     id,
-    status: data.status || 'SCHEDULED',
+    facilityId: facilityId || 'fac_civil_01',
+    facilityName: facilityName || 'Gandhinagar Civil Hospital',
+    doctorId,
+    doctorName,
+    specialty,
+    roomNumber,
+    patientId,
+    patientName,
+    patientPhone,
+    status: data.status || 'CONFIRMED',
     createdAt: new Date().toISOString(),
   });
   await apt.save();
+
+  // 4. Create Token directly in database if tokenNumber provided or requested
+  if (data.tokenNumber || data.createToken) {
+    const tokenNum = data.tokenNumber || `OPD-${Math.floor(20 + Math.random() * 50)}`;
+    apt.tokenNumber = tokenNum;
+    await apt.save();
+
+    const tokenDoc = new TokenModel({
+      id: `tok_${Date.now()}`,
+      tokenNumber: tokenNum,
+      facilityId: apt.facilityId,
+      facilityName: apt.facilityName,
+      departmentId: 'dept_gen_med',
+      departmentName: apt.specialty || 'General Medicine OPD',
+      roomNumber: apt.roomNumber || 'Room 4',
+      patientId: apt.patientId,
+      patientName: apt.patientName,
+      patientPhone: apt.patientPhone,
+      doctorId: apt.doctorId,
+      doctorName: apt.doctorName,
+      priority: 'ROUTINE',
+      status: 'WAITING',
+      queuePosition: 3,
+      estimatedWaitMinutes: 15,
+      appointmentId: apt.id,
+      generatedAt: new Date().toISOString(),
+    });
+    await tokenDoc.save();
+  }
 
   // Notify hospital queue counter via WebSocket
   if (apt.facilityId) {

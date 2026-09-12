@@ -157,31 +157,53 @@ export const AppointmentDetails: React.FC = () => {
   useEffect(() => {
     if (!id) return;
     appointmentApi
-      .getAll()
+      .getById(id)
       .then((res) => {
         if (res.data) {
-          const found = res.data.find((a) => a.id === id);
-          if (found) {
-            setAppointment({
-              id: found.id,
-              facilityId: found.facilityId || 'fac_civil_01',
-              hospital: found.facilityName || 'Gandhinagar Civil Hospital & Medical College',
-              department: found.specialty || 'General Medicine',
-              doctor: found.doctorName || 'Dr. Arvind Patel',
-              date: found.date,
-              time: found.timeSlot,
-              reason: found.reasonForVisit || 'Routine Consultation',
-              status: found.status || 'CONFIRMED',
-              room: (found as any).room || 'Room 4',
-              bookingDate: found.createdAt ? found.createdAt.split('T')[0] : '2026-09-12',
-              patientName: found.patientName || 'Rameshwar Sharma',
-              patientPhone: found.patientPhone || '9876543210',
-              tokenNumber: found.tokenNumber,
-            });
-          }
+          const found = res.data;
+          setAppointment({
+            id: found.id,
+            facilityId: found.facilityId || 'fac_civil_01',
+            hospital: found.facilityName || 'Gandhinagar Civil Hospital & Medical College',
+            department: found.specialty || found.departmentName || 'General Medicine',
+            doctor: found.doctorName || 'Dr. Arvind Patel',
+            date: found.date,
+            time: found.timeSlot,
+            reason: found.reasonForVisit || 'Routine Consultation',
+            status: found.status || 'CONFIRMED',
+            room: (found as any).roomNumber || (found as any).room || 'Room 4',
+            bookingDate: found.createdAt ? found.createdAt.split('T')[0] : '2026-09-12',
+            patientName: found.patientName || 'Rameshwar Sharma',
+            patientPhone: found.patientPhone || '9876543210',
+            tokenNumber: found.tokenNumber,
+          });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        appointmentApi.getAll().then((res) => {
+          if (res.data) {
+            const found = res.data.find((a) => a.id === id);
+            if (found) {
+              setAppointment({
+                id: found.id,
+                facilityId: found.facilityId || 'fac_civil_01',
+                hospital: found.facilityName || 'Gandhinagar Civil Hospital & Medical College',
+                department: found.specialty || found.departmentName || 'General Medicine',
+                doctor: found.doctorName || 'Dr. Arvind Patel',
+                date: found.date,
+                time: found.timeSlot,
+                reason: found.reasonForVisit || 'Routine Consultation',
+                status: found.status || 'CONFIRMED',
+                room: (found as any).roomNumber || (found as any).room || 'Room 4',
+                bookingDate: found.createdAt ? found.createdAt.split('T')[0] : '2026-09-12',
+                patientName: found.patientName || 'Rameshwar Sharma',
+                patientPhone: found.patientPhone || '9876543210',
+                tokenNumber: found.tokenNumber,
+              });
+            }
+          }
+        }).catch(console.warn);
+      });
   }, [id]);
 
   const handleCheckIn = async () => {

@@ -2,6 +2,8 @@ import { Router } from 'express';
 import {
   getPatientHealthRecord,
   getTimeline,
+  getEncounters,
+  getEncounterById,
   createEncounter,
   saveVitals,
 } from '../controllers/clinicalController';
@@ -17,6 +19,8 @@ const router = Router();
 // EHR & Encounters
 router.get('/patients/:patientId/health-record', getPatientHealthRecord);
 router.get('/patients/:patientId/timeline', getTimeline);
+router.get('/encounters', getEncounters);
+router.get('/encounters/:encounterId', getEncounterById);
 router.post('/encounters', authenticate, createEncounter);
 router.post('/encounters/:encounterId/vitals', authenticate, saveVitals);
 

@@ -38,6 +38,9 @@ export const appointmentApi = {
   getAll: (patientId?: string, facilityId?: string) =>
     apiRequest<Appointment[]>('/appointments', 'GET', { patientId, facilityId }),
 
+  getById: (appointmentId: string) =>
+    apiRequest<Appointment>(`/appointments/${appointmentId}`, 'GET'),
+
   book: (data: Partial<Appointment>) =>
     apiRequest<Appointment>('/appointments', 'POST', data),
 

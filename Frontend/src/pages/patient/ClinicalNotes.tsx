@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { clinicalApi } from '@/api/clinicalApi';
 import {
   FileText,
   CalendarDays,
@@ -11,6 +12,7 @@ import {
   Stethoscope,
   Building2,
   Eye,
+  RefreshCw,
 } from 'lucide-react';
 
 type ClinicalNote = {
@@ -26,7 +28,7 @@ type ClinicalNote = {
   notes: string;
 };
 
-const savedNotes: ClinicalNote[] = [
+const DEMO_SAVED_NOTES: ClinicalNote[] = [
   {
     id: 'NOTE-001',
     patientName: 'Rameshwar Sharma',
@@ -69,6 +71,33 @@ const savedNotes: ClinicalNote[] = [
 ];
 
 export const ClinicalNotes: React.FC = () => {
+  const [notes, setNotes] = useState<ClinicalNote[]>(DEMO_SAVED_NOTES);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    clinicalApi
+      .getEncounters()
+      .then((res) => {
+        if (res.data && res.data.length > 0) {
+          const mapped: ClinicalNote[] = res.data.map((enc: any) => ({
+            id: enc.id,
+            patientName: enc.patientName || 'Patient',
+            patientAge: 48,
+            patientGender: 'M',
+            doctorName: enc.doctorName || 'Medical Officer',
+            facilityName: enc.facilityName || 'Gandhinagar Civil Hospital',
+            department: enc.chiefComplaint || 'General OPD',
+            date: enc.startedAt ? enc.startedAt.split('T')[0] : '2026-09-12',
+            time: enc.startedAt ? enc.startedAt.split('T')[1]?.slice(0, 5) || '10:00 AM' : '10:00 AM',
+            notes: enc.clinicalNotes || enc.historyOfPresentIllness || 'Clinical examination and medication prescribed.',
+          }));
+          setNotes(mapped);
+        }
+      })
+      .catch(console.warn)
+      .finally(() => setIsLoading(false));
+  }, []);
   return (
     <div className="space-y-5">
 
@@ -96,7 +125,7 @@ export const ClinicalNotes: React.FC = () => {
                   Total Notes
                 </p>
                 <p className="text-xl font-black text-slate-900">
-                  {savedNotes.length}
+                  {notes.length}
                 </p>
               </div>
             </div>
@@ -115,7 +144,7 @@ export const ClinicalNotes: React.FC = () => {
                   Patients
                 </p>
                 <p className="text-xl font-black text-slate-900">
-                  {savedNotes.length}
+                  {notes.length}
                 </p>
               </div>
             </div>
@@ -134,7 +163,7 @@ export const ClinicalNotes: React.FC = () => {
                   Latest Note
                 </p>
                 <p className="text-sm font-bold text-slate-900">
-                  {savedNotes[0]?.date}
+                  {notes[0]?.date || 'Recent'}
                 </p>
               </div>
             </div>
@@ -160,7 +189,7 @@ export const ClinicalNotes: React.FC = () => {
 
           <div className="divide-y divide-slate-100">
 
-            {savedNotes.map((note) => (
+            {notes.map((note) => (
 
               <div
                 key={note.id}

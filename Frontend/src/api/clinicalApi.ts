@@ -26,6 +26,12 @@ export const clinicalApi = {
   saveVitals: (encounterId: string, vitals: Partial<Vitals>) =>
     apiRequest<Vitals>(`/encounters/${encounterId}/vitals`, 'POST', vitals),
 
+  getEncounters: (params?: { patientId?: string; doctorId?: string; type?: string; status?: string }) =>
+    apiRequest<Encounter[]>('/encounters', 'GET', params),
+
+  getEncounterById: (encounterId: string) =>
+    apiRequest<Encounter>(`/encounters/${encounterId}`, 'GET'),
+
   createEncounter: (data: Partial<Encounter>) =>
     apiRequest<Encounter>('/encounters', 'POST', data),
 };

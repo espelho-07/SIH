@@ -444,32 +444,38 @@ export const AppointmentBooking: React.FC = () => {
           f.name.toLowerCase().includes(hospitalName.toLowerCase().slice(0, 8))
         ) || INITIAL_FACILITIES[0];
 
-      await appointmentApi.book({
+      const res = await appointmentApi.book({
         facilityId: facility.id,
+        facilityName: hospitalName,
         specialty: 'General Medicine',
         date,
         timeSlot,
-        reasonForVisit: `${disease} (${patientName})`,
-      });
-
-      const newTokenNumber = `OPD-${Math.floor(20 + Math.random() * 30)}`;
-      const newRecord: AppointmentRecord = {
-        id: `APT-2026-00${appointments.length + 1}`,
-        tokenNumber: newTokenNumber,
-        hospitalName,
-        department: 'General Medicine',
-        room: 'Room 4 (1st Floor)',
-        doctorName: 'Dr. Arvind Patel (MD Medicine)',
         patientName,
         patientPhone: activeMember?.phone || '9825011122',
-        disease,
-        date,
-        timeSlot,
+        patientId: activeMember?.id || 'usr_pat_01',
+        reasonForVisit: `${disease} (${patientName})`,
+        createToken: true,
+      });
+
+      const serverApt = res.data;
+      const newTokenNumber = serverApt?.tokenNumber ? (serverApt.tokenNumber.startsWith('OPD-') ? serverApt.tokenNumber : `OPD-${serverApt.tokenNumber}`) : `OPD-${Math.floor(20 + Math.random() * 30)}`;
+      const newRecord: AppointmentRecord = {
+        id: serverApt?.id || `APT-2026-00${appointments.length + 1}`,
+        tokenNumber: newTokenNumber,
+        hospitalName: serverApt?.facilityName || hospitalName,
+        department: serverApt?.departmentName || serverApt?.specialty || 'General Medicine',
+        room: serverApt?.roomNumber || 'Room 4 (1st Floor)',
+        doctorName: serverApt?.doctorName || 'Dr. Arvind Patel (MD Medicine)',
+        patientName: serverApt?.patientName || patientName,
+        patientPhone: serverApt?.patientPhone || activeMember?.phone || '9825011122',
+        disease: serverApt?.reasonForVisit || disease,
+        date: serverApt?.date || date,
+        timeSlot: serverApt?.timeSlot || timeSlot,
         status: 'CONFIRMED',
-        bookingDate: new Date().toISOString().split('T')[0],
+        bookingDate: serverApt?.createdAt ? serverApt.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
       };
 
-      const updated = [newRecord, ...appointments];
+      const updated = [newRecord, ...appointments.filter((a) => a.id !== newRecord.id)];
       setAppointments(updated);
       localStorage.setItem('sanjeevani_patient_appointments', JSON.stringify(updated));
 
