@@ -621,17 +621,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
                 <span className="text-[10px] font-bold text-amber-800">
-                  OFFLINE MODE
+                  {t('status.offline', 'OFFLINE MODE')}
                 </span>
               </div>
               {pendingSyncCount > 0 && (
                 <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-bold text-white">
-                  {pendingSyncCount} queued
+                  {pendingSyncCount} {t('common.queued', 'queued')}
                 </span>
               )}
             </div>
             <p className="mt-1 text-[10px] text-amber-700">
-              Data will sync when internet is available.
+              {t('status.offlineNotice', 'Data will sync when internet is available.')}
             </p>
           </div>
         )}
@@ -644,7 +644,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <div className="mb-2 px-2.5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  Menu
+                  {t('sections.Menu', 'Menu')}
                 </span>
                 <div className="h-px flex-1 bg-slate-100" />
               </div>
@@ -667,7 +667,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         index > 0 ? 'pt-3.5 pb-1' : 'pb-1'
                       )}
                     >
-                      {item.section}
+                      {item.section ? t(`sections.${item.section}`, item.section) : ''}
                     </div>
                   )}
                   <NavLink
@@ -709,7 +709,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         </div>
 
                         {/* LABEL */}
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">{t(`navMap.${item.label}`, item.label)}</span>
                       </div>
 
                       {/* BADGE */}

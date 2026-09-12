@@ -6,35 +6,115 @@ import hi from './hi.json';
 import gu from './gu.json';
 import mr from './mr.json';
 
-const savedLanguage = localStorage.getItem('healthconnect_language') || localStorage.getItem('sanjeevani_language') || 'en';
+const savedLanguage =
+  localStorage.getItem('healthconnect_language') ||
+  localStorage.getItem('sanjeevani_language') ||
+  'en';
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: { translation: en },
-      hi: { translation: hi },
-      gu: { translation: gu },
-      mr: { translation: mr }
-    },
-    lng: savedLanguage,
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false
-    }
-  });
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: en },
+    hi: { translation: hi },
+    gu: { translation: gu },
+    mr: { translation: mr },
+  },
+  lng: savedLanguage,
+  fallbackLng: 'en',
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 export const supportedLanguages = [
   { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
   { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી' },
-  { code: 'mr', name: 'Marathi', nativeName: 'मराठी' }
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
+  { code: 'mr', name: 'Marathi', nativeName: 'मराठी' },
+  { code: 'bn', name: 'Bengali', nativeName: 'বাংলা' },
+  { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்' },
+  { code: 'te', name: 'Telugu', nativeName: 'తెలుగు' },
+  { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ' },
+  { code: 'pa', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ' },
 ];
 
+/**
+ * Triggers Google Translate DOM translation engine without requiring full page reload
+ */
+export const triggerGoogleTranslate = (langCode: string) => {
+  if (typeof window === 'undefined') return;
+
+  const targetLang = langCode;
+
+  // 1. Set Google Translate cookies
+  try {
+    const host = window.location.hostname;
+    if (targetLang === 'en') {
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${host};`;
+      document.cookie = 'googtrans=/en/en; path=/;';
+      document.cookie = `googtrans=/en/en; path=/; domain=${host};`;
+    } else {
+      document.cookie = `googtrans=/en/${targetLang}; path=/;`;
+      document.cookie = `googtrans=/en/${targetLang}; path=/; domain=${host};`;
+    }
+  } catch (e) {
+    console.warn('Could not set googtrans cookie', e);
+  }
+
+  // 2. Look for Google Translate select dropdown element and dispatch change event
+  const applyToSelect = () => {
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+    if (select) {
+      if (select.value !== targetLang) {
+        select.value = targetLang;
+        select.dispatchEvent(new Event('change'));
+      }
+      return true;
+    }
+    return false;
+  };
+
+  if (!applyToSelect()) {
+    // Retry shortly in case script is initializing
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (applyToSelect() || attempts > 10) {
+        clearInterval(interval);
+      }
+    }, 250);
+  }
+};
+
+/**
+ * Primary function to switch application language
+ */
 export const changeAppLanguage = (langCode: string) => {
   localStorage.setItem('healthconnect_language', langCode);
   localStorage.setItem('sanjeevani_language', langCode);
+
+  // Update i18next
   i18n.changeLanguage(langCode);
+
+  // Trigger Google Translate engine
+  triggerGoogleTranslate(langCode);
+
+  // Dispatch custom window event so any non-react listeners can react
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('healthconnect-language-change', { detail: { language: langCode } })
+    );
+  }
 };
 
+// If page loaded with a saved non-English language, re-trigger translation once DOM is ready
+if (typeof window !== 'undefined' && savedLanguage && savedLanguage !== 'en') {
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      triggerGoogleTranslate(savedLanguage);
+    }, 400);
+  });
+}
+
 export default i18n;
+
