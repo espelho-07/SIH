@@ -1,11 +1,9 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { MedicalStore } from '@/types/medicalStore';
 import { INITIAL_MEDICAL_STORES } from '@/mock/medicalStoresData';
-import L from 'leaflet';
 import {
   Search,
   Pill,
@@ -31,216 +29,12 @@ const QUICK_MEDICINES = [
   { labelEn: 'Pain Relief (Aspirin)', labelGu: 'શરીરનો દુખાવો', labelHi: 'दर्द निवारक', query: 'Aspirin', icon: '🩹' },
 ];
 
-interface MedicalStoresMapProps {
-  stores: MedicalStore[];
-  selectedStoreId: string | null;
-  onSelectStore: (store: MedicalStore) => void;
-  resetBoundsTrigger?: number;
-}
-
-const MedicalStoresMap: React.FC<MedicalStoresMapProps> = ({
-  stores,
-  selectedStoreId,
-  onSelectStore,
-  resetBoundsTrigger,
-}) => {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const layerGroupRef = useRef<L.LayerGroup | null>(null);
-  const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
-
-  // Initialize Leaflet Map once on mount
-  useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    // Fast, reliable CartoDB Voyager tiles (never blocked by CORS or tile access policy)
-    const tileUrl =
-      import.meta.env.VITE_MAP_TILE_URL ||
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-
-    const map = L.map(mapContainerRef.current, {
-      center: [23.2268, 72.6515], // Gandhinagar center
-      zoom: 13,
-      zoomControl: true,
-      scrollWheelZoom: true,
-    });
-
-    L.tileLayer(tileUrl, {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map);
-
-    const layerGroup = L.layerGroup().addTo(map);
-    layerGroupRef.current = layerGroup;
-    mapInstanceRef.current = map;
-
-    // Force size invalidation in case of parent layout or flex transitions
-    const t1 = setTimeout(() => {
-      map.invalidateSize();
-    }, 60);
-
-    const t2 = setTimeout(() => {
-      map.invalidateSize();
-      if (stores.length > 0) {
-        try {
-          const bounds = L.latLngBounds(
-            stores.map((s) => [s.coordinates.lat, s.coordinates.lng])
-          );
-          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
-        } catch (e) {
-          // ignore
-        }
-      }
-    }, 250);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      map.remove();
-      mapInstanceRef.current = null;
-      layerGroupRef.current = null;
-      markersMapRef.current.clear();
-    };
-  }, []);
-
-  // Window resize handler
-  useEffect(() => {
-    const handleResize = () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Handle manual reset bounds trigger from parent
-  useEffect(() => {
-    if (!resetBoundsTrigger || !mapInstanceRef.current || stores.length === 0) return;
-    try {
-      const bounds = L.latLngBounds(
-        stores.map((s) => [s.coordinates.lat, s.coordinates.lng])
-      );
-      mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
-    } catch (e) {
-      // ignore
-    }
-  }, [resetBoundsTrigger, stores]);
-
-  // Update Markers whenever stores or selectedStoreId changes
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    const layerGroup = layerGroupRef.current;
-    if (!map || !layerGroup) return;
-
-    layerGroup.clearLayers();
-    markersMapRef.current.clear();
-
-    if (stores.length === 0) return;
-
-    stores.forEach((store) => {
-      const isGovt = store.isJanAushadhi;
-      const isSelected = store.id === selectedStoreId;
-      const markerBg = isSelected ? '#0f766e' : isGovt ? '#0d9488' : '#2563eb';
-
-      const customIcon = L.divIcon({
-        className: 'custom-medical-pin',
-        html: `
-          <div style="
-            background: ${markerBg};
-            color: white;
-            padding: ${isSelected ? '6px 12px' : '5px 10px'};
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 800;
-            white-space: nowrap;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-            border: ${isSelected ? '2.5px solid #f59e0b' : '2px solid white'};
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transform: ${isSelected ? 'scale(1.12)' : 'scale(1)'};
-            transition: all 0.2s ease;
-            cursor: pointer;
-          ">
-            <span>${isGovt ? '🏛️ PMBJP' : '💊 Pharmacy'}</span>
-            <span>(${store.distanceKm}km)</span>
-          </div>
-        `,
-        iconSize: [115, 30],
-        iconAnchor: [57, 15],
-      });
-
-      const marker = L.marker([store.coordinates.lat, store.coordinates.lng], {
-        icon: customIcon,
-      }).addTo(layerGroup);
-
-      marker.bindPopup(`
-        <div style="font-family: system-ui, -apple-system, sans-serif; padding: 4px; min-width: 220px; max-width: 260px;">
-          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-            <span style="background: ${isGovt ? '#ccfbf1' : '#dbeafe'}; color: ${isGovt ? '#0f766e' : '#1e40af'}; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
-              ${isGovt ? '🏛️ Jan Aushadhi (Govt)' : '💊 Private Pharmacy'}
-            </span>
-            <span style="font-size: 10px; font-weight: 700; color: #059669;">● Open Now</span>
-          </div>
-          <strong style="font-size: 13px; color: #0f172a; display: block; line-height: 1.3; margin-bottom: 2px;">${store.name}</strong>
-          <span style="font-size: 11px; color: #64748b; display: block; margin-bottom: 6px;">📍 ${store.area} • ${store.distanceKm} km away</span>
-          <p style="font-size: 11px; margin: 0 0 8px 0; font-weight: 700; color: #059669;">
-            Timings: ${store.timings}
-          </p>
-          <div style="display: flex; gap: 6px;">
-            <a href="tel:${store.phone}" style="flex: 1; text-align: center; background: #0f766e; color: white; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700;">
-              📞 Call
-            </a>
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.fullAddress}`)}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: #f1f5f9; color: #334155; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700; border: 1px solid #cbd5e1;">
-              🗺️ Route
-            </a>
-          </div>
-        </div>
-      `);
-
-      marker.on('click', () => {
-        onSelectStore(store);
-      });
-
-      markersMapRef.current.set(store.id, marker);
-    });
-  }, [stores, selectedStoreId]);
-
-  // When selectedStoreId changes, fly to it and open popup
-  useEffect(() => {
-    if (!selectedStoreId || !mapInstanceRef.current) return;
-    const store = stores.find((s) => s.id === selectedStoreId);
-    if (store) {
-      mapInstanceRef.current.flyTo([store.coordinates.lat, store.coordinates.lng], 15, {
-        duration: 0.8,
-      });
-      const marker = markersMapRef.current.get(store.id);
-      if (marker) {
-        marker.openPopup();
-      }
-    }
-  }, [selectedStoreId, stores]);
-
-  return (
-    <div
-      ref={mapContainerRef}
-      className="h-[420px] sm:h-[520px] w-full min-h-[420px] relative z-0 bg-slate-100"
-    />
-  );
-};
-
 export const NearbyMedicalStores: React.FC = () => {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language || 'en';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'JAN_AUSHADHI' | '24X7'>('ALL');
-  const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('LIST');
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
-  const [resetBoundsTrigger, setResetBoundsTrigger] = useState(0);
 
   // Filtered Stores: STRICTLY SHOW ONLY CURRENTLY OPEN STORES
   const filteredStores = useMemo(() => {
@@ -468,191 +262,24 @@ export const NearbyMedicalStores: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* View Mode Toggle: List vs Map */}
-              <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('LIST')}
-                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
-                    viewMode === 'LIST'
-                      ? 'bg-white text-teal-800 shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <span>📋</span>
-                  <span>{currentLang === 'gu' ? 'યાદી' : currentLang === 'hi' ? 'सूची' : 'List'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('MAP')}
-                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
-                    viewMode === 'MAP'
-                      ? 'bg-white text-teal-800 shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <MapPin className="h-3.5 w-3.5 text-teal-700" />
-                  <span>{currentLang === 'gu' ? 'નકશો' : currentLang === 'hi' ? 'नक्शा' : 'Map'}</span>
-                </button>
-              </div>
-
-              <span className="text-emerald-800 text-[11px] font-bold hidden sm:flex items-center gap-1">
-                <span className="flex h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
-                <span>
-                  {currentLang === 'gu'
-                    ? 'હાલ ખુલ્લી દુકાનો જ'
-                    : currentLang === 'hi'
-                    ? 'केवल खुली दुकानें'
-                    : 'Open stores only'}
-                </span>
+            <span className="text-emerald-800 text-[11px] font-bold flex items-center gap-1">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
+              <span>
+                {currentLang === 'gu'
+                  ? 'હાલ ખુલ્લી દુકાનો જ બતાવે છે'
+                  : currentLang === 'hi'
+                  ? 'केवल खुली दुकानें दिखाई जा रही हैं'
+                  : 'Showing open stores only'}
               </span>
-            </div>
+            </span>
           </div>
         </CardContent>
       </Card>
 
       {/* ================================================== */}
-      {/* VIEW MODE 1: MAP VIEW */}
+      {/* MEDICAL STORES LIST: ULTRA-SIMPLE & ACCESSIBLE */}
       {/* ================================================== */}
-      {viewMode === 'MAP' && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-            {/* Main Map Card */}
-            <div className="lg:col-span-7">
-              <Card className="border-slate-200 overflow-hidden shadow-2xs rounded-xl sticky top-4">
-                <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4 text-teal-700" />
-                      <span>
-                        {currentLang === 'gu'
-                          ? 'નકશો: ખુલ્લા સ્ટોર અને જન ઔષધિ કેન્દ્ર'
-                          : currentLang === 'hi'
-                          ? 'नक्शा: खुली दुकानें एवं जन औषधि केंद्र'
-                          : 'Map View: Open Stores & Jan Aushadhi'}
-                      </span>
-                    </span>
-                    <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800">
-                      {filteredStores.length} {currentLang === 'gu' ? 'સ્ટોર' : currentLang === 'hi' ? 'દુકાનો' : 'stores'}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setResetBoundsTrigger((prev) => prev + 1)}
-                    className="text-[11px] font-bold text-teal-700 hover:text-teal-900 underline cursor-pointer"
-                  >
-                    {currentLang === 'gu' ? 'બધા જુઓ' : currentLang === 'hi' ? 'सभी देखें' : 'Fit All'}
-                  </button>
-                </div>
-                <MedicalStoresMap
-                  stores={filteredStores}
-                  selectedStoreId={selectedStoreId}
-                  onSelectStore={(store) => setSelectedStoreId(store.id)}
-                  resetBoundsTrigger={resetBoundsTrigger}
-                />
-              </Card>
-            </div>
-
-            {/* Quick List Column */}
-            <div className="lg:col-span-5 space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
-              {filteredStores.length === 0 ? (
-                <Card className="p-6 text-center border-slate-200 bg-white rounded-xl">
-                  <p className="text-xs text-slate-500">
-                    {currentLang === 'gu' ? 'કોઈ સ્ટોર મળ્યો નથી' : currentLang === 'hi' ? 'कोई दुकान नहीं मिली' : 'No stores found'}
-                  </p>
-                </Card>
-              ) : (
-                filteredStores.map((store) => {
-                  const isSelected = selectedStoreId === store.id;
-                  return (
-                    <Card
-                      key={store.id}
-                      onClick={() => setSelectedStoreId(store.id)}
-                      className={`cursor-pointer transition-all rounded-xl ${
-                        isSelected
-                          ? 'border-2 border-teal-700 bg-teal-50/40 shadow-xs ring-1 ring-teal-600/30'
-                          : store.isJanAushadhi
-                          ? 'border border-teal-300 bg-teal-50/15 hover:bg-teal-50/30'
-                          : 'border border-slate-200 bg-white hover:border-slate-300'
-                      }`}
-                    >
-                      <CardContent className="p-3 space-y-2">
-                        <div className="flex items-start justify-between gap-1.5">
-                          <div>
-                            {store.isJanAushadhi ? (
-                              <span className="inline-block rounded bg-teal-800 text-white text-[10px] font-bold px-1.5 py-0.5 mb-1">
-                                🏛️ {currentLang === 'gu' ? 'જન ઔષધિ (PMBJP)' : currentLang === 'hi' ? 'जन औषधि' : 'Jan Aushadhi'}
-                              </span>
-                            ) : (
-                              <span className="inline-block rounded bg-slate-100 text-slate-700 text-[10px] font-semibold px-1.5 py-0.5 mb-1">
-                                💊 {currentLang === 'gu' ? 'દવાની દુકાન' : currentLang === 'hi' ? 'फार्मेसी' : 'Pharmacy'}
-                              </span>
-                            )}
-                            <h4 className="text-xs font-bold text-slate-900 leading-tight">
-                              {store.name}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
-                              <MapPin className="h-3 w-3 text-teal-600 shrink-0" />
-                              <span>{store.distanceKm} km • {store.area}</span>
-                            </p>
-                          </div>
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full shrink-0 border border-emerald-200">
-                            ● {currentLang === 'gu' ? 'ખુલ્લું' : currentLang === 'hi' ? 'खुला' : 'Open'}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                          <a
-                            href={`tel:${store.phone}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-1"
-                          >
-                            <Button
-                              type="button"
-                              variant="primary"
-                              size="sm"
-                              className="w-full h-8 text-[11px] font-bold bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg flex items-center justify-center gap-1 cursor-pointer"
-                            >
-                              <Phone className="h-3 w-3" />
-                              <span>{currentLang === 'gu' ? 'ફોન' : currentLang === 'hi' ? 'फोन' : 'Call'}</span>
-                            </Button>
-                          </a>
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                              `${store.name} ${store.fullAddress}`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-1"
-                          >
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="w-full h-8 text-[11px] font-bold text-slate-800 rounded-lg flex items-center justify-center gap-1 cursor-pointer"
-                            >
-                              <Navigation className="h-3 w-3 text-teal-700" />
-                              <span>{currentLang === 'gu' ? 'રસ્તો' : currentLang === 'hi' ? 'रास्ता' : 'Map'}</span>
-                            </Button>
-                          </a>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================================================== */}
-      {/* VIEW MODE 2: LIST VIEW OF OPEN STORES */}
-      {/* ================================================== */}
-      {viewMode === 'LIST' && (
-        filteredStores.length === 0 ? (
+      {filteredStores.length === 0 ? (
         <Card className="p-8 text-center border-slate-200 bg-white rounded-xl">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-2">
             <Search className="h-6 w-6" />
@@ -903,7 +530,7 @@ export const NearbyMedicalStores: React.FC = () => {
             );
           })}
         </div>
-      ))}
+      )}
     </div>
   );
 };
