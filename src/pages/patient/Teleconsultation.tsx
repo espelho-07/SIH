@@ -14,7 +14,11 @@ import {
   User,
   CalendarCheck2,
   CheckCircle2,
+  Calendar,
+  Sparkles,
+  ChevronRight,
 } from 'lucide-react';
+import { VISITED_DOCTORS } from './TeleconsultationRoom';
 
 interface ActiveFixedCall {
   tokenNumber: string;
@@ -126,8 +130,8 @@ export const Teleconsultation: React.FC = () => {
                 </div>
               </div>
 
-              {/* Time Badge and Call Action Button */}
-              <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center md:items-end lg:items-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-emerald-100">
+              {/* Time Badge and Call Action Buttons */}
+              <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center md:items-end lg:items-center gap-2.5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-emerald-100">
                 <div className="rounded-xl border border-emerald-200 bg-white/90 p-2.5 text-left md:text-right shadow-2xs">
                   <span className="text-[10px] uppercase font-black text-emerald-800 tracking-wider block">
                     FIXED CALL WINDOW
@@ -141,12 +145,20 @@ export const Teleconsultation: React.FC = () => {
                   </span>
                 </div>
 
-                <Link to="/patient/consultations/room?join=true">
-                  <Button className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs gap-1.5 px-5 h-10 shadow-sm cursor-pointer">
-                    <Video className="h-4 w-4" />
-                    <span>Enter Call Room / View Details</span>
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Link to="/patient/consultations/room" className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full border-emerald-500 text-emerald-800 hover:bg-emerald-100/60 font-bold text-xs gap-1.5 px-3.5 h-10 shadow-2xs cursor-pointer">
+                      <User className="h-4 w-4 text-emerald-700" />
+                      <span>Select Doctor & Slots</span>
+                    </Button>
+                  </Link>
+                  <Link to="/patient/consultations/room?join=true" className="w-full sm:w-auto">
+                    <Button className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs gap-1.5 px-4 h-10 shadow-sm cursor-pointer">
+                      <Video className="h-4 w-4" />
+                      <span>Join Live Call Now</span>
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -230,35 +242,34 @@ export const Teleconsultation: React.FC = () => {
 
 
             {/* =====================================
-                START CONSULTATION
+                START CONSULTATION & SELECT DOCTOR
             ====================================== */}
 
             <Link
-              to="/patient/consultations/room?join=true"
+              to="/patient/consultations/room"
               className="group"
             >
               <div className="h-full rounded-2xl border border-teal-200 bg-teal-50/60 p-5 transition-all hover:border-teal-400 hover:bg-teal-50 hover:shadow-sm">
 
                 <div className="flex items-start justify-between">
 
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-700 text-white">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
 
                     <Video className="h-5 w-5" />
 
                   </div>
 
-                  <ArrowRight className="h-4 w-4 text-teal-500 group-hover:text-teal-700" />
+                  <ArrowRight className="h-4 w-4 text-teal-500 group-hover:text-teal-700 transition-transform group-hover:translate-x-1" />
 
                 </div>
 
 
                 <h3 className="mt-4 text-sm font-bold text-slate-900">
-                  Start / Join Consultation
+                  Select Doctor & Request Consultation
                 </h3>
 
                 <p className="mt-1.5 max-w-md text-xs leading-relaxed text-slate-600">
-                  Join your scheduled online consultation and
-                  speak directly with a doctor.
+                  Choose your treating doctor, select a convenient date and time slot, or request an instant online video consultation.
                 </p>
 
 
@@ -266,7 +277,7 @@ export const Teleconsultation: React.FC = () => {
 
                   <ShieldCheck className="h-3.5 w-3.5" />
 
-                  Secure doctor consultation
+                  Doctor selection & appointment booking
 
                 </div>
 
@@ -288,6 +299,75 @@ export const Teleconsultation: React.FC = () => {
 
           </div>
 
+        </CardContent>
+      </Card>
+
+      {/* Treating Doctors Available for Teleconsultation */}
+      <Card className="border-slate-200 bg-white shadow-sm overflow-hidden">
+        <CardContent className="p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-teal-600 animate-pulse"></span>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  Doctors Available for Teleconsultation
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Select a doctor from your previous OPD visits or consult specialists online
+              </p>
+            </div>
+            <Link to="/patient/consultations/room">
+              <Button variant="outline" size="sm" className="text-xs font-bold text-teal-700 border-teal-200 hover:bg-teal-50 gap-1.5">
+                <span>Open Full Doctor Directory</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {VISITED_DOCTORS.map((doc) => (
+              <div
+                key={doc.id}
+                className="rounded-xl border border-slate-200 bg-white p-4 hover:border-teal-300 hover:shadow-xs transition-all flex flex-col justify-between gap-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr ${doc.avatarColor} text-white font-black text-sm shadow-2xs`}>
+                    {doc.initials}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-sm font-bold text-slate-900 truncate">{doc.name}</h4>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                        doc.status === 'ONLINE'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
+                        {doc.status === 'ONLINE' ? '● Available' : '● In OPD'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium text-teal-700 truncate">{doc.specialty}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{doc.hospital}</p>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Last visit: <span className="text-slate-600 font-medium">{doc.lastVisitedDate}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-amber-600 font-bold">{doc.rating}</span>
+                  <div className="flex items-center gap-2">
+                    <Link to={`/patient/consultations/room?request=true&doctorId=${doc.id}`}>
+                      <Button size="sm" className="h-8 text-xs bg-teal-700 hover:bg-teal-800 text-white font-bold gap-1 px-3 cursor-pointer">
+                        <CalendarCheck2 className="h-3.5 w-3.5" />
+                        <span>Select Doctor & Slots</span>
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

@@ -52,7 +52,7 @@ import {
   Hand,
 } from 'lucide-react';
 
-interface VisitedDoctor {
+export interface VisitedDoctor {
   id: string;
   name: string;
   degree: string;
@@ -131,7 +131,7 @@ const FAMILY_PATIENTS: FamilyPatient[] = [
   },
 ];
 
-const VISITED_DOCTORS: VisitedDoctor[] = [
+export const VISITED_DOCTORS: VisitedDoctor[] = [
   {
     id: 'doc_patel',
     name: 'Dr. Arvind Patel',
@@ -475,7 +475,21 @@ export const TeleconsultationRoom: React.FC = () => {
     setTimeout(() => setRxDownloadToast(false), 3500);
   };
 
-  // Auto-connect into call room if redirected with ?join=true
+  // Open the Request Popup Form for a specific doctor
+  const handleOpenRequestModal = (doc: VisitedDoctor) => {
+    setRequestDoctor(doc);
+    setSelectedDoctor(doc);
+    setSelectedReason(
+      doc.id === 'doc_vaghela'
+        ? 'Eye Review & Diabetic Retina Follow-up'
+        : doc.id === 'doc_sharma'
+          ? 'Bronchitis & Cough Follow-up'
+          : 'Follow-up on Previous Prescription'
+    );
+    setShowRequestModal(true);
+  };
+
+  // Auto-connect into call room ONLY if explicitly redirected with ?join=true, or open request form if ?request=true
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('join') === 'true') {
@@ -501,6 +515,16 @@ export const TeleconsultationRoom: React.FC = () => {
         });
       }
       setCallStage('IN_CALL');
+    } else if (params.get('request') === 'true' || params.get('book') === 'true') {
+      const docId = params.get('doctorId');
+      const targetDoc = docId
+        ? VISITED_DOCTORS.find((d) => d.id === docId) || VISITED_DOCTORS[0]
+        : VISITED_DOCTORS[0];
+      handleOpenRequestModal(targetDoc);
+      setCallStage('SELECT_DOCTOR');
+    } else {
+      setShowRequestModal(false);
+      setCallStage('SELECT_DOCTOR');
     }
   }, [location.search]);
 
@@ -521,20 +545,6 @@ export const TeleconsultationRoom: React.FC = () => {
     }
     return () => clearInterval(interval);
   }, [callStage]);
-
-  // Open the Request Popup Form for a specific doctor
-  const handleOpenRequestModal = (doc: VisitedDoctor) => {
-    setRequestDoctor(doc);
-    setSelectedDoctor(doc);
-    setSelectedReason(
-      doc.id === 'doc_vaghela'
-        ? 'Eye Review & Diabetic Retina Follow-up'
-        : doc.id === 'doc_sharma'
-          ? 'Bronchitis & Cough Follow-up'
-          : 'Follow-up on Previous Prescription'
-    );
-    setShowRequestModal(true);
-  };
 
   // Submit Consultation Request & Register Time Slot
   const handleSubmitConsultationRequest = (e: React.FormEvent) => {
