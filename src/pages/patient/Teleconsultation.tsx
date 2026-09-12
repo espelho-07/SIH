@@ -141,7 +141,7 @@ export const Teleconsultation: React.FC = () => {
                   </span>
                 </div>
 
-                <Link to="/patient/consultations/room">
+                <Link to="/patient/consultations/room?join=true">
                   <Button className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs gap-1.5 px-5 h-10 shadow-sm cursor-pointer">
                     <Video className="h-4 w-4" />
                     <span>Enter Call Room / View Details</span>
@@ -234,7 +234,7 @@ export const Teleconsultation: React.FC = () => {
             ====================================== */}
 
             <Link
-              to="/patient/consultations/room"
+              to="/patient/consultations/room?join=true"
               className="group"
             >
               <div className="h-full rounded-2xl border border-teal-200 bg-teal-50/60 p-5 transition-all hover:border-teal-400 hover:bg-teal-50 hover:shadow-sm">

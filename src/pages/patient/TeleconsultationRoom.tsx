@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +40,16 @@ import {
   Check,
   Paperclip,
   CalendarCheck2,
+  MessageSquare,
+  LayoutGrid,
+  Send,
+  Download,
+  Maximize2,
+  Minimize2,
+  Volume2,
+  VolumeX,
+  Share2,
+  Hand,
 } from 'lucide-react';
 
 interface VisitedDoctor {
@@ -301,6 +311,7 @@ const PAST_COMPLETED_CONSULTATIONS = [
 
 export const TeleconsultationRoom: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Selected Family Member / Patient Profile
   const [selectedPatientId, setSelectedPatientId] = useState<string>('pat_01');
@@ -368,6 +379,130 @@ export const TeleconsultationRoom: React.FC = () => {
   const [micOn, setMicOn] = useState(true);
   const [cameraOn, setCameraOn] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
+
+  // ==========================================
+  // ADVANCED CALL ROOM EXPERIENCE STATES
+  // ==========================================
+  // Layout Modes: 'SPEAKER' (Doctor focus) | 'GRID' (Side-by-side) | 'SHARE_REPORT' (Live diagnostic review)
+  const [callLayout, setCallLayout] = useState<'SPEAKER' | 'GRID' | 'SHARE_REPORT'>('SPEAKER');
+
+  // Active Clinical Panel Tab: 'PRESCRIPTION' | 'CHAT' | 'VITALS' | 'DOCTOR_INFO'
+  const [activeCallTab, setActiveCallTab] = useState<'PRESCRIPTION' | 'CHAT' | 'VITALS' | 'DOCTOR_INFO'>('PRESCRIPTION');
+
+  // Subtitles / Closed Captions Toggle
+  const [showCaptions, setShowCaptions] = useState<boolean>(true);
+
+  // Speaker audio mute
+  const [isMutedSpeaker, setIsMutedSpeaker] = useState<boolean>(false);
+
+  // Hand raised state
+  const [isHandRaised, setIsHandRaised] = useState<boolean>(false);
+
+  // E-Prescription download toast
+  const [rxDownloadToast, setRxDownloadToast] = useState<boolean>(false);
+
+  // In-Call Live Chat Messages
+  interface CallChatMessage {
+    id: string;
+    sender: 'DOCTOR' | 'PATIENT' | 'SYSTEM';
+    senderName: string;
+    text: string;
+    time: string;
+  }
+
+  const [chatMessages, setChatMessages] = useState<CallChatMessage[]>([
+    {
+      id: 'msg-1',
+      sender: 'SYSTEM',
+      senderName: 'ABDM Telehealth Bridge',
+      text: 'Session encrypted end-to-end. Telemedicine clinical consent recorded under ABDM / NMC guidelines.',
+      time: '05:30 PM',
+    },
+    {
+      id: 'msg-2',
+      sender: 'DOCTOR',
+      senderName: 'Dr. Arvind Patel',
+      text: 'Namaste Rameshwar ji! I have your latest blood reports and BP chart open on my screen. How are you feeling today?',
+      time: '05:31 PM',
+    },
+    {
+      id: 'msg-3',
+      sender: 'PATIENT',
+      senderName: 'Rameshwar Sharma (You)',
+      text: 'Namaste Doctor saab. Feeling better. Fasting glucose was 148 mg/dL this morning and resting BP was 134/86.',
+      time: '05:32 PM',
+    },
+    {
+      id: 'msg-4',
+      sender: 'DOCTOR',
+      senderName: 'Dr. Arvind Patel',
+      text: 'Good progress. Your HbA1c is 7.4%. We will continue Metformin 1000mg and Telmisartan 40mg. Keep taking morning brisk walks.',
+      time: '05:33 PM',
+    },
+  ]);
+
+  const [newChatMessage, setNewChatMessage] = useState<string>('');
+
+  const handleSendChatMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newChatMessage.trim()) return;
+
+    const userMsg: CallChatMessage = {
+      id: `msg-${Date.now()}`,
+      sender: 'PATIENT',
+      senderName: `${activePatient.name} (You)`,
+      text: newChatMessage.trim(),
+      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
+    setNewChatMessage('');
+
+    setTimeout(() => {
+      const docReply: CallChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        sender: 'DOCTOR',
+        senderName: selectedDoctor.name,
+        text: 'Noted Rameshwar ji. I have recorded this in your ABHA health record and updated the e-prescription accordingly.',
+        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+      };
+      setChatMessages((prev) => [...prev, docReply]);
+    }, 1800);
+  };
+
+  const handleDownloadPrescription = () => {
+    setRxDownloadToast(true);
+    setTimeout(() => setRxDownloadToast(false), 3500);
+  };
+
+  // Auto-connect into call room if redirected with ?join=true
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('join') === 'true') {
+      const docId = params.get('doctorId');
+      if (docId) {
+        const found = VISITED_DOCTORS.find((d) => d.id === docId);
+        if (found) setSelectedDoctor(found);
+      } else if (fixedCalls.length > 0) {
+        setSelectedDoctor(fixedCalls[0].doctor);
+        setSelectedPatientId(fixedCalls[0].patient.id);
+        setConfirmedToken({
+          tokenNumber: fixedCalls[0].tokenNumber,
+          doctor: fixedCalls[0].doctor,
+          patient: fixedCalls[0].patient,
+          requestType: fixedCalls[0].requestType,
+          scheduledDate: fixedCalls[0].scheduledDate,
+          scheduledTimeSlot: fixedCalls[0].scheduledTimeSlot,
+          reason: fixedCalls[0].reason,
+          urgency: fixedCalls[0].urgency,
+          symptomDetails: fixedCalls[0].symptomDetails,
+          attachedReports: fixedCalls[0].attachedReports,
+          registeredAt: fixedCalls[0].registeredAt,
+        });
+      }
+      setCallStage('IN_CALL');
+    }
+  }, [location.search]);
 
   // Live Consultation Notes
   const [notes, setNotes] = useState(
@@ -470,13 +605,11 @@ export const TeleconsultationRoom: React.FC = () => {
       attachedReports: call.attachedReports,
       registeredAt: call.registeredAt,
     });
-    setCallStage('CONNECTING');
     setNotes(
       `Teleconsultation with ${call.doctor.name} (${call.doctor.specialty}) for ${call.patient.name}. Reason: ${call.reason}.`
     );
-    setTimeout(() => {
-      setCallStage('IN_CALL');
-    }, 2400);
+    setCallDuration(0);
+    setCallStage('IN_CALL');
   };
 
   // View pass voucher for a fixed call
@@ -505,14 +638,11 @@ export const TeleconsultationRoom: React.FC = () => {
   // Direct Immediate Call Bypass
   const handleInitiateImmediateCall = (doc: VisitedDoctor) => {
     setSelectedDoctor(doc);
-    setCallStage('CONNECTING');
     setNotes(
       `Teleconsultation with ${doc.name} (${doc.specialty}) for ${activePatient.name}. Follow-up regarding ${doc.lastDiagnosis}.`
     );
-
-    setTimeout(() => {
-      setCallStage('IN_CALL');
-    }, 2400);
+    setCallDuration(0);
+    setCallStage('IN_CALL');
   };
 
   // Start Call from Confirmed Token Voucher
@@ -520,10 +650,8 @@ export const TeleconsultationRoom: React.FC = () => {
     if (confirmedToken) {
       setSelectedDoctor(confirmedToken.doctor);
     }
-    setCallStage('CONNECTING');
-    setTimeout(() => {
-      setCallStage('IN_CALL');
-    }, 2400);
+    setCallDuration(0);
+    setCallStage('IN_CALL');
   };
 
   // End consultation and save it into communication history
@@ -1483,221 +1611,814 @@ export const TeleconsultationRoom: React.FC = () => {
       )}
 
       {/* ================================================== */}
-      {/* STAGE 3: ACTIVE VIDEO CALL */}
+      {/* STAGE 3: ACTIVE VIDEO CALL ROOM */}
       {/* ================================================== */}
       {callStage === 'IN_CALL' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          {/* Main Video Stream Window */}
-          <div className="lg:col-span-8 space-y-3">
-            <div className="relative aspect-video w-full rounded-2xl bg-slate-950 overflow-hidden shadow-lg border border-slate-800">
-              {/* Doctor Video Feed (Simulated) */}
-              <div className="relative w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-teal-950 p-6 text-center text-white">
-                <div className="relative">
-                  <div
-                    className={`flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-tr ${selectedDoctor.avatarColor} text-2xl font-black text-white border-4 border-teal-400/60 shadow-xl`}
-                  >
-                    {selectedDoctor.initials}
-                  </div>
-                  <span className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 border-2 border-slate-950 text-white">
-                    <Stethoscope className="h-3 w-3" />
-                  </span>
-                </div>
-
-                <h3 className="mt-3 text-base font-black text-white">
-                  {selectedDoctor.name}
-                </h3>
-                <p className="text-xs text-teal-300">{selectedDoctor.specialty}</p>
-
-                {/* Animated Speech Waveform when Doctor is talking */}
-                <div className="mt-3 flex items-center gap-1">
-                  <span className="h-2 w-1 bg-teal-400 rounded-full animate-pulse" />
-                  <span className="h-4 w-1 bg-teal-400 rounded-full animate-pulse delay-75" />
-                  <span className="h-6 w-1 bg-teal-400 rounded-full animate-pulse delay-150" />
-                  <span className="h-3 w-1 bg-teal-400 rounded-full animate-pulse delay-100" />
-                  <span className="h-5 w-1 bg-teal-400 rounded-full animate-pulse delay-200" />
-                  <span className="h-2 w-1 bg-teal-400 rounded-full animate-pulse" />
-                  <span className="text-[10px] text-teal-300 ml-2 font-mono font-bold">
-                    Speaking • Audio Live
-                  </span>
-                </div>
+        <div className="space-y-3.5 animate-in fade-in duration-200">
+          {/* Top In-Call Telehealth Status Header */}
+          <div className="rounded-2xl border border-teal-200 bg-white shadow-xs p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr ${selectedDoctor.avatarColor} text-white font-black text-sm shadow-xs relative`}
+              >
+                {selectedDoctor.initials}
+                <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 animate-pulse" />
               </div>
 
-              {/* Patient Self-View PiP */}
-              <div className="absolute right-4 top-4 h-24 w-36 rounded-xl border-2 border-white/30 bg-slate-900/90 overflow-hidden text-white shadow-xl flex items-center justify-center">
-                {cameraOn ? (
-                  <div className="text-center p-2">
-                    <div className="h-8 w-8 mx-auto rounded-full bg-teal-700 flex items-center justify-center text-xs font-bold">
-                      {activePatient.name.split(' ')[0].slice(0, 2).toUpperCase()}
-                    </div>
-                    <p className="text-[10px] font-bold text-white mt-1 truncate max-w-[120px]">
-                      {activePatient.name}
-                    </p>
-                    <p className="text-[8px] text-teal-300">Self View</p>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-red-100 text-red-700 text-[10px] font-black px-2.5 py-0.5 border border-red-200 flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-red-600 animate-ping" />
+                    ● LIVE TELECONSULTATION
+                  </span>
+                  <span className="font-mono text-xs font-bold text-teal-900 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                    Token: {confirmedToken?.tokenNumber || 'TC-REQ-2026-9086'}
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-800 hidden sm:flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                    ABDM Verified Session
+                  </span>
+                </div>
+
+                <h3 className="text-sm font-black text-slate-900 truncate mt-0.5">
+                  {selectedDoctor.name} • <span className="text-teal-800 font-bold">{selectedDoctor.specialty}</span>
+                </h3>
+                <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
+                  <Hospital className="h-3 w-3 text-slate-400 shrink-0" />
+                  <span>{selectedDoctor.hospital} ({selectedDoctor.roomNumber})</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+              {/* Timer */}
+              <div className="flex items-center gap-1.5 rounded-xl bg-slate-900 text-white px-3 py-1.5 text-xs font-mono font-bold shadow-xs">
+                <Clock className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
+                <span>{formatTimer(callDuration)}</span>
+              </div>
+
+              {/* Layout Switcher Buttons */}
+              <div className="hidden sm:flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setCallLayout('SPEAKER')}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    callLayout === 'SPEAKER'
+                      ? 'bg-white text-teal-800 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Speaker Focus View"
+                >
+                  Speaker
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCallLayout('GRID')}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    callLayout === 'GRID'
+                      ? 'bg-white text-teal-800 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Split Grid View"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5 inline mr-1" />
+                  Grid
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCallLayout('SHARE_REPORT')}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    callLayout === 'SHARE_REPORT'
+                      ? 'bg-white text-teal-800 shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Review Lab Reports on Screen"
+                >
+                  <FileText className="h-3.5 w-3.5 inline mr-1 text-teal-600" />
+                  Reports
+                </button>
+              </div>
+
+              {/* CC Toggle */}
+              <Button
+                variant={showCaptions ? 'secondary' : 'outline'}
+                size="sm"
+                onClick={() => setShowCaptions(!showCaptions)}
+                className="text-xs h-8 px-2.5 font-bold cursor-pointer"
+                title="Toggle Subtitles / Captions"
+              >
+                CC
+              </Button>
+
+              {/* Leave Call Button */}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleEndCall}
+                className="gap-1.5 text-xs font-bold rounded-xl h-8 px-3.5 shadow-xs cursor-pointer"
+              >
+                <PhoneOff className="h-3.5 w-3.5" />
+                <span>Leave Call</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Main Workspace: Video Window (8 cols) + Clinical Sidebar (4 cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            {/* Left 8 Cols: Video Window Stage */}
+            <div className="lg:col-span-8 space-y-3">
+              <div className="relative aspect-video w-full rounded-2xl bg-slate-950 overflow-hidden shadow-xl border border-slate-800">
+                {/* Top Video Telemetry Overlays */}
+                <div className="absolute left-4 top-4 z-20 flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 rounded-full bg-slate-900/80 backdrop-blur-xs px-3 py-1 text-[11px] font-bold text-white border border-white/10 shadow-xs">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>HD 1080p • ABDM Encrypted</span>
                   </div>
-                ) : (
-                  <div className="text-center text-slate-400">
-                    <VideoOff className="h-5 w-5 mx-auto" />
-                    <p className="text-[9px] mt-1">Camera Off</p>
+
+                  <div className="hidden sm:flex items-center gap-1 rounded-full bg-teal-950/80 px-2.5 py-1 text-[10px] font-bold text-teal-300 border border-teal-500/20">
+                    <Wifi className="h-3 w-3 text-emerald-400" />
+                    <span>1.4 Mbps (Excellent)</span>
+                  </div>
+                </div>
+
+                <div className="absolute right-4 top-4 z-20 flex items-center gap-2">
+                  <div className="flex items-center gap-1 rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-bold text-slate-300 border border-white/10">
+                    {isMutedSpeaker ? (
+                      <VolumeX className="h-3 w-3 text-red-400" />
+                    ) : (
+                      <Volume2 className="h-3 w-3 text-emerald-400" />
+                    )}
+                    <span>{isMutedSpeaker ? 'Speaker Muted' : 'Audio Active'}</span>
+                  </div>
+                </div>
+
+                {/* Hand Raised Floating Toast */}
+                {isHandRaised && (
+                  <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-amber-500 text-slate-950 px-4 py-1 text-xs font-black shadow-lg animate-bounce">
+                    <Hand className="h-3.5 w-3.5" />
+                    <span>You raised your hand • Doctor has been alerted</span>
+                  </div>
+                )}
+
+                {/* E-Prescription Download Toast */}
+                {rxDownloadToast && (
+                  <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-emerald-500 text-white px-4 py-1.5 text-xs font-black shadow-xl animate-in fade-in zoom-in-95">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>✓ E-Prescription PDF downloaded & synced to ABHA record!</span>
+                  </div>
+                )}
+
+                {/* ================================================== */}
+                {/* VIDEO STAGE MODES */}
+                {/* ================================================== */}
+
+                {/* MODE 1: SPEAKER VIEW (Doctor Focused) */}
+                {callLayout === 'SPEAKER' && (
+                  <div className="relative w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-950 via-slate-900 to-teal-950 p-6 text-center text-white">
+                    {/* Simulated Clinic Background Aura */}
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:16px_16px]" />
+
+                    <div className="relative z-10">
+                      <div
+                        className={`flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-tr ${selectedDoctor.avatarColor} text-3xl font-black text-white border-4 border-teal-400/60 shadow-2xl relative`}
+                      >
+                        {selectedDoctor.initials}
+                        <span className="absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 border-2 border-slate-950 text-white shadow-xs">
+                          <Stethoscope className="h-3.5 w-3.5" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 mt-3 space-y-0.5">
+                      <h3 className="text-lg font-black text-white">
+                        {selectedDoctor.name}
+                      </h3>
+                      <p className="text-xs text-teal-300 font-semibold">{selectedDoctor.specialty}</p>
+                      <p className="text-[11px] text-slate-400">{selectedDoctor.hospital}</p>
+                    </div>
+
+                    {/* Animated Speech Equalizer Waveform */}
+                    <div className="relative z-10 mt-3 flex items-center gap-1 rounded-full bg-slate-900/80 px-3 py-1 border border-white/10 shadow-xs">
+                      <span className="h-2 w-1 bg-teal-400 rounded-full animate-pulse" />
+                      <span className="h-4 w-1 bg-teal-400 rounded-full animate-pulse delay-75" />
+                      <span className="h-6 w-1 bg-teal-400 rounded-full animate-pulse delay-150" />
+                      <span className="h-3 w-1 bg-teal-400 rounded-full animate-pulse delay-100" />
+                      <span className="h-5 w-1 bg-teal-400 rounded-full animate-pulse delay-200" />
+                      <span className="h-2 w-1 bg-teal-400 rounded-full animate-pulse" />
+                      <span className="text-[10px] text-teal-300 ml-1.5 font-mono font-bold">
+                        Dr. Patel Speaking • Live Audio
+                      </span>
+                    </div>
+
+                    {/* Patient Self-View PiP */}
+                    <div className="absolute right-4 bottom-14 h-28 w-40 rounded-2xl border-2 border-white/30 bg-slate-900/90 overflow-hidden text-white shadow-2xl flex items-center justify-center z-20">
+                      {cameraOn ? (
+                        <div className="text-center p-2 w-full">
+                          <div className="h-9 w-9 mx-auto rounded-full bg-teal-700 flex items-center justify-center text-xs font-black shadow-xs">
+                            {activePatient.name.split(' ')[0].slice(0, 2).toUpperCase()}
+                          </div>
+                          <p className="text-[10px] font-bold text-white mt-1 truncate">
+                            {activePatient.name}
+                          </p>
+                          <div className="flex items-center justify-center gap-1 mt-0.5">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-[8px] text-teal-300 font-bold">You (Self View)</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center text-slate-400 p-2">
+                          <VideoOff className="h-5 w-5 mx-auto" />
+                          <p className="text-[9px] mt-1 font-bold">Camera Off</p>
+                          <p className="text-[8px] text-slate-500">{activePatient.name}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* MODE 2: SPLIT GRID VIEW */}
+                {callLayout === 'GRID' && (
+                  <div className="w-full h-full grid grid-cols-2 gap-2 p-3 bg-slate-950">
+                    {/* Doctor Card */}
+                    <div className="relative rounded-xl bg-gradient-to-tr from-slate-900 to-teal-950 border border-slate-800 flex flex-col items-center justify-center text-center p-4 text-white">
+                      <div
+                        className={`flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr ${selectedDoctor.avatarColor} text-2xl font-black text-white border-2 border-teal-400/60 shadow-lg`}
+                      >
+                        {selectedDoctor.initials}
+                      </div>
+                      <h4 className="mt-2 text-sm font-black text-white">{selectedDoctor.name}</h4>
+                      <p className="text-[11px] text-teal-300">{selectedDoctor.specialty}</p>
+                      <div className="mt-2 flex items-center gap-1 text-[9px] text-emerald-400 font-bold">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Speaking • Doctor
+                      </div>
+                    </div>
+
+                    {/* Patient Card */}
+                    <div className="relative rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-center p-4 text-white">
+                      {cameraOn ? (
+                        <>
+                          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-teal-800 text-2xl font-black text-white border-2 border-teal-500/60 shadow-lg">
+                            {activePatient.name.split(' ')[0].slice(0, 2).toUpperCase()}
+                          </div>
+                          <h4 className="mt-2 text-sm font-black text-white">{activePatient.name}</h4>
+                          <p className="text-[11px] text-slate-400">Patient • {activePatient.relation}</p>
+                          <div className="mt-2 flex items-center gap-1 text-[9px] text-teal-300 font-bold">
+                            <span className="h-1.5 w-1.5 rounded-full bg-teal-400" />
+                            Camera Live • Audio Active
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <VideoOff className="h-10 w-10 text-slate-600" />
+                          <h4 className="mt-2 text-sm font-black text-white">{activePatient.name}</h4>
+                          <p className="text-[10px] text-slate-400">Camera is turned off</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* MODE 3: REVIEW LAB REPORT ON SCREEN */}
+                {callLayout === 'SHARE_REPORT' && (
+                  <div className="w-full h-full flex flex-col sm:flex-row bg-slate-900 p-2 sm:p-3 gap-2">
+                    {/* Left: Shared Clinical Document */}
+                    <div className="flex-1 rounded-xl bg-white p-3.5 text-slate-900 overflow-y-auto space-y-2.5 text-xs shadow-inner">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <div>
+                          <span className="text-[9px] uppercase font-black tracking-wider text-teal-800 block">
+                            Govt. Civil Hospital • Central Pathology Laboratory
+                          </span>
+                          <strong className="text-xs font-black text-slate-900">
+                            Comprehensive Glycemic & Lipid Investigation
+                          </strong>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+                          ABHA Verified Report
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[10px] bg-slate-50 p-2 rounded-lg">
+                        <div>Patient: <strong>{activePatient.name}</strong> (48Y)</div>
+                        <div>Date: <strong>10 Sep 2026</strong></div>
+                      </div>
+
+                      {/* Values Table */}
+                      <table className="w-full text-left text-[11px]">
+                        <thead>
+                          <tr className="border-b border-slate-200 text-slate-500 text-[10px]">
+                            <th className="py-1">Test Name</th>
+                            <th className="py-1">Result</th>
+                            <th className="py-1">Ref Range</th>
+                            <th className="py-1">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          <tr className="bg-amber-50/80 font-bold">
+                            <td className="py-1 text-slate-900">Fasting Blood Sugar (FBS)</td>
+                            <td className="py-1 text-amber-900 font-black">148 mg/dL</td>
+                            <td className="py-1 text-slate-500">70 - 100</td>
+                            <td className="py-1 text-amber-700">● Doctor Reviewing</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 text-slate-900">HbA1c (Glycated Hb)</td>
+                            <td className="py-1 font-bold">7.4 %</td>
+                            <td className="py-1 text-slate-500">&lt; 5.7 %</td>
+                            <td className="py-1 text-slate-600">Fair Control</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 text-slate-900">Serum Creatinine</td>
+                            <td className="py-1 font-bold">0.9 mg/dL</td>
+                            <td className="py-1 text-slate-500">0.7 - 1.3</td>
+                            <td className="py-1 text-emerald-700">● Normal</td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 text-slate-900">Resting Blood Pressure</td>
+                            <td className="py-1 font-bold">134/86 mmHg</td>
+                            <td className="py-1 text-slate-500">&lt; 120/80</td>
+                            <td className="py-1 text-emerald-700">● Controlled</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <div className="rounded-lg bg-teal-50 border border-teal-200 p-2 text-[10px] text-teal-900 flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+                        <span>Doctor is reviewing FBS 148 mg/dL. Recommending continuing Metformin 1000mg.</span>
+                      </div>
+                    </div>
+
+                    {/* Right: Doctor & Patient Feeds Stacked */}
+                    <div className="w-full sm:w-44 flex flex-row sm:flex-col gap-2 shrink-0">
+                      <div className="flex-1 rounded-xl bg-slate-950 border border-slate-800 p-2 text-center text-white flex flex-col items-center justify-center">
+                        <div className={`h-10 w-10 rounded-full bg-gradient-to-tr ${selectedDoctor.avatarColor} flex items-center justify-center text-xs font-black`}>
+                          {selectedDoctor.initials}
+                        </div>
+                        <p className="text-[10px] font-bold mt-1">{selectedDoctor.name}</p>
+                        <p className="text-[8px] text-teal-400">Reviewing Report</p>
+                      </div>
+
+                      <div className="flex-1 rounded-xl bg-slate-950 border border-slate-800 p-2 text-center text-white flex flex-col items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-teal-800 flex items-center justify-center text-xs font-black">
+                          {activePatient.name.split(' ')[0].slice(0, 2).toUpperCase()}
+                        </div>
+                        <p className="text-[10px] font-bold mt-1">{activePatient.name}</p>
+                        <p className="text-[8px] text-slate-400">Patient Feed</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Live Closed Captions / Subtitles Overlay */}
+                {showCaptions && (
+                  <div className="absolute bottom-2 left-4 right-4 z-20 rounded-xl bg-slate-950/85 backdrop-blur-xs p-2.5 text-center text-xs text-white border border-white/10 shadow-lg animate-in fade-in">
+                    <p className="text-[11px] leading-relaxed">
+                      <strong className="text-teal-300 font-bold">{selectedDoctor.name}: </strong>
+                      <span>
+                        "Rameshwar ji, your morning blood sugar of 148 is better than last month. Adherence to Telmisartan 40mg is good. Continue 30 min morning walk."
+                      </span>
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Top Left Telemetry Overlay */}
-              <div className="absolute left-4 top-4 flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5 rounded-full bg-slate-900/80 backdrop-blur-xs px-3 py-1 text-[11px] font-bold text-white border border-white/10">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <Clock className="h-3.5 w-3.5 text-emerald-400" />
-                  <span className="font-mono">{formatTimer(callDuration)}</span>
-                </div>
-
-                <div className="hidden sm:flex items-center gap-1 rounded-full bg-teal-950/80 px-2.5 py-1 text-[10px] font-bold text-teal-300 border border-teal-500/20">
-                  <Wifi className="h-3 w-3 text-emerald-400" />
-                  <span>HD 720p • ABDM Encrypted</span>
-                </div>
-              </div>
-
-              {/* Bottom Left Doctor Overlay */}
-              <div className="absolute bottom-4 left-4 rounded-xl bg-slate-900/80 backdrop-blur-xs px-3 py-2 text-xs text-white border border-white/10 max-w-xs">
-                <p className="font-black text-white">{selectedDoctor.name}</p>
-                <p className="text-[10px] text-teal-300">{selectedDoctor.hospital}</p>
-              </div>
-            </div>
-
-            {/* Call Action Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setMicOn(!micOn)}
-                  variant={micOn ? 'secondary' : 'destructive'}
-                  size="icon"
-                  className="rounded-full h-11 w-11 cursor-pointer"
-                  title={micOn ? 'Mute Mic' : 'Unmute Mic'}
-                >
-                  {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-                </Button>
-
-                <Button
-                  onClick={() => setCameraOn(!cameraOn)}
-                  variant={cameraOn ? 'secondary' : 'destructive'}
-                  size="icon"
-                  className="rounded-full h-11 w-11 cursor-pointer"
-                  title={cameraOn ? 'Turn Camera Off' : 'Turn Camera On'}
-                >
-                  {cameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-                </Button>
-
-                <Button
-                  onClick={() => setScreenSharing(!screenSharing)}
-                  variant={screenSharing ? 'primary' : 'secondary'}
-                  size="icon"
-                  className="rounded-full h-11 w-11 cursor-pointer"
-                  title="Share Screen"
-                >
-                  <MonitorUp className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setCallStage('SELECT_DOCTOR')}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs text-slate-600 gap-1"
-                >
-                  <Users className="h-3.5 w-3.5 text-teal-700" />
-                  <span>Switch Doctor</span>
-                </Button>
-
-                <Button
-                  onClick={handleEndCall}
-                  variant="destructive"
-                  className="rounded-full min-h-[42px] px-5 gap-2 font-bold cursor-pointer"
-                >
-                  <PhoneOff className="h-4 w-4" />
-                  <span>End Call</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Connected Doctor Details & Patient Chart */}
-          <div className="lg:col-span-4 space-y-3">
-            <Card className="border-slate-200 shadow-2xs">
-              <CardHeader className="p-4 pb-3 border-b border-slate-100 bg-teal-50/50 flex flex-row items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800">
-                    Active Tele-Encounter
-                  </span>
-                  <CardTitle className="text-sm font-black text-slate-900">
-                    Connected Doctor
-                  </CardTitle>
-                </div>
-
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-300">
-                  ● Live Call
-                </span>
-              </CardHeader>
-
-              <CardContent className="p-4 space-y-3.5 text-xs">
-                {/* Doctor Bio Card */}
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr ${selectedDoctor.avatarColor} text-white font-bold text-sm`}
+              {/* In-Call Action Controls Dock */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+                {/* Media Hardware Buttons */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setMicOn(!micOn)}
+                    variant={micOn ? 'secondary' : 'destructive'}
+                    size="icon"
+                    className={`rounded-full h-11 w-11 cursor-pointer transition-all ${
+                      micOn ? 'bg-slate-100 hover:bg-slate-200 text-slate-800' : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                    title={micOn ? 'Mute Microphone' : 'Unmute Microphone'}
                   >
-                    {selectedDoctor.initials}
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-900">{selectedDoctor.name}</h4>
-                    <p className="text-[11px] text-teal-800 font-bold">{selectedDoctor.specialty}</p>
-                    <p className="text-[10px] text-slate-400">{selectedDoctor.hospital}</p>
-                  </div>
+                    {micOn ? <Mic className="h-5 w-5 text-teal-800" /> : <MicOff className="h-5 w-5" />}
+                  </Button>
+
+                  <Button
+                    onClick={() => setCameraOn(!cameraOn)}
+                    variant={cameraOn ? 'secondary' : 'destructive'}
+                    size="icon"
+                    className={`rounded-full h-11 w-11 cursor-pointer transition-all ${
+                      cameraOn ? 'bg-slate-100 hover:bg-slate-200 text-slate-800' : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                    title={cameraOn ? 'Turn Camera Off' : 'Turn Camera On'}
+                  >
+                    {cameraOn ? <Video className="h-5 w-5 text-teal-800" /> : <VideoOff className="h-5 w-5" />}
+                  </Button>
+
+                  <Button
+                    onClick={() => setIsMutedSpeaker(!isMutedSpeaker)}
+                    variant="secondary"
+                    size="icon"
+                    className={`rounded-full h-11 w-11 cursor-pointer ${
+                      isMutedSpeaker ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-800'
+                    }`}
+                    title={isMutedSpeaker ? 'Unmute Doctor Audio' : 'Mute Doctor Audio'}
+                  >
+                    {isMutedSpeaker ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                  </Button>
+
+                  <Button
+                    onClick={() => setCallLayout(callLayout === 'SHARE_REPORT' ? 'SPEAKER' : 'SHARE_REPORT')}
+                    variant={callLayout === 'SHARE_REPORT' ? 'primary' : 'secondary'}
+                    size="icon"
+                    className={`rounded-full h-11 w-11 cursor-pointer ${
+                      callLayout === 'SHARE_REPORT' ? 'bg-teal-700 text-white' : 'bg-slate-100 text-slate-800'
+                    }`}
+                    title="Share / Review Lab Reports with Doctor"
+                  >
+                    <MonitorUp className="h-5 w-5" />
+                  </Button>
+
+                  <Button
+                    onClick={() => setIsHandRaised(!isHandRaised)}
+                    variant={isHandRaised ? 'primary' : 'secondary'}
+                    size="icon"
+                    className={`rounded-full h-11 w-11 cursor-pointer ${
+                      isHandRaised ? 'bg-amber-500 text-slate-950 font-black ring-2 ring-amber-400' : 'bg-slate-100 text-slate-800'
+                    }`}
+                    title="Raise Hand (Ask Question)"
+                  >
+                    <Hand className="h-5 w-5" />
+                  </Button>
                 </div>
 
-                {/* Patient Context Box */}
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 space-y-1">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-slate-700">Patient:</span>
-                    <span className="font-bold text-slate-900">
-                      {activePatient.name} ({activePatient.age}Y)
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500">
-                    <span>ABHA ID:</span>
-                    <span className="font-mono">{activePatient.abhaId}</span>
-                  </div>
+                {/* Right Side Dock Actions */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setActiveCallTab('PRESCRIPTION')}
+                    variant="outline"
+                    size="sm"
+                    className={`text-xs gap-1.5 h-10 px-3 cursor-pointer ${
+                      activeCallTab === 'PRESCRIPTION' ? 'bg-teal-50 border-teal-300 text-teal-800 font-bold' : 'text-slate-700'
+                    }`}
+                  >
+                    <Pill className="h-4 w-4 text-teal-700" />
+                    <span className="hidden sm:inline">Rx Prescription</span>
+                  </Button>
+
+                  <Button
+                    onClick={() => setActiveCallTab('CHAT')}
+                    variant="outline"
+                    size="sm"
+                    className={`text-xs gap-1.5 h-10 px-3 cursor-pointer ${
+                      activeCallTab === 'CHAT' ? 'bg-teal-50 border-teal-300 text-teal-800 font-bold' : 'text-slate-700'
+                    }`}
+                  >
+                    <MessageSquare className="h-4 w-4 text-teal-700" />
+                    <span className="hidden sm:inline">Live Chat</span>
+                  </Button>
+
+                  <Button
+                    onClick={() => setCallStage('SELECT_DOCTOR')}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs text-slate-600 gap-1 h-10 cursor-pointer"
+                    title="Switch Doctor"
+                  >
+                    <Users className="h-3.5 w-3.5 text-teal-700" />
+                    <span className="hidden md:inline">Lobby</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleEndCall}
+                    variant="destructive"
+                    className="rounded-full min-h-[42px] px-5 gap-2 font-bold cursor-pointer shadow-sm"
+                  >
+                    <PhoneOff className="h-4 w-4" />
+                    <span>End Call</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right 4 Cols: Interactive Clinical Workspace Tabs */}
+            <div className="lg:col-span-4 space-y-3">
+              <Card className="border-slate-200 shadow-sm overflow-hidden bg-white">
+                {/* Tab Navigation Header */}
+                <div className="bg-slate-50 border-b border-slate-200 p-1.5 flex items-center gap-1 text-xs font-bold">
+                  {[
+                    { id: 'PRESCRIPTION', label: 'Prescription', icon: Pill },
+                    { id: 'CHAT', label: 'Live Chat', icon: MessageSquare },
+                    { id: 'VITALS', label: 'Vitals & Lab', icon: Activity },
+                    { id: 'DOCTOR_INFO', label: 'Doctor Info', icon: Stethoscope },
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeCallTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveCallTab(tab.id as any)}
+                        className={`flex-1 py-1.5 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                          isActive
+                            ? 'bg-white text-teal-800 shadow-2xs font-black border border-slate-200'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        <span className="truncate">{tab.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Previous Encounter Summary with this Doctor */}
-                <div className="rounded-xl border border-teal-100 bg-teal-50/40 p-2.5 space-y-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-900 block">
-                    Last Visit Record with {selectedDoctor.name}:
-                  </span>
-                  <p className="font-bold text-slate-900 text-[11px]">
-                    {selectedDoctor.lastDiagnosis}
-                  </p>
-                  <p className="text-[10px] text-slate-600 leading-relaxed">
-                    <strong>Previous Advice:</strong> {selectedDoctor.previousAdvice}
-                  </p>
-                </div>
+                <CardContent className="p-4 space-y-3.5 text-xs min-h-[420px]">
+                  {/* TAB 1: E-PRESCRIPTION */}
+                  {activeCallTab === 'PRESCRIPTION' && (
+                    <div className="space-y-3 animate-in fade-in duration-150">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase text-teal-800 block">
+                            ABDM Digital E-Prescription
+                          </span>
+                          <h4 className="text-sm font-black text-slate-900">
+                            Medicines Prescribed by {selectedDoctor.name}
+                          </h4>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          ● Active Rx
+                        </span>
+                      </div>
 
-                {/* Live Consultation Notes Input */}
-                <div className="space-y-1 border-t border-slate-100 pt-3">
-                  <label className="text-[11px] font-bold text-slate-700 block">
-                    Live Consultation Notes:
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Doctor advice, revised dosages, follow-up instructions..."
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
-                  />
-                  <p className="text-[10px] text-slate-400">
-                    Notes will be synced automatically to your ABHA health records.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                      {/* Medications List */}
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <strong className="text-xs font-black text-slate-900">
+                              1. Tab. Telmisartan 40mg
+                            </strong>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-900">
+                              30 Days
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 font-mono">Telmisartan IP 40mg</p>
+                          <p className="text-[11px] font-bold text-teal-900">Dosage: 1 - 0 - 0 (After breakfast)</p>
+                          <p className="text-[10px] text-slate-600">Take with glass of water. Daily morning BP tracking.</p>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl border border-teal-200 bg-teal-50/50 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <strong className="text-xs font-black text-slate-900">
+                              2. Tab. Metformin SR 1000mg
+                            </strong>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-100 text-teal-900">
+                              30 Days
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 font-mono">Metformin Hydrochloride Prolonged Release</p>
+                          <p className="text-[11px] font-bold text-teal-900">Dosage: 1 - 0 - 1 (With major meals)</p>
+                          <p className="text-[10px] text-slate-600">Take with lunch and dinner to manage glycemic peaks.</p>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <strong className="text-xs font-black text-slate-900">
+                              3. Tab. Atorvastatin 10mg
+                            </strong>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-900">
+                              30 Days
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 font-mono">Atorvastatin Calcium IP</p>
+                          <p className="text-[11px] font-bold text-teal-900">Dosage: 0 - 0 - 1 (Bedtime)</p>
+                          <p className="text-[10px] text-slate-600">Take at bedtime for lipid regulation.</p>
+                        </div>
+                      </div>
+
+                      {/* Doctor Clinical Advice */}
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 space-y-1 text-[11px]">
+                        <span className="font-bold text-slate-800 block">Doctor Clinical Advice:</span>
+                        <ul className="list-disc list-inside text-[10px] text-slate-600 space-y-0.5">
+                          <li>Maintain low salt and low refined sugar diet.</li>
+                          <li>30 minutes daily morning brisk walk recommended.</li>
+                          <li>Follow-up consultation in 4 weeks with weekly BP log.</li>
+                        </ul>
+                      </div>
+
+                      {/* Doctor Digital Stamp & Download */}
+                      <div className="pt-2 border-t border-slate-100 space-y-2">
+                        <div className="flex items-center justify-between text-[10px] text-slate-500">
+                          <span>Signed: <strong>{selectedDoctor.name}</strong></span>
+                          <span className="font-mono">Reg: GMC-2008-54210</span>
+                        </div>
+
+                        <Button
+                          onClick={handleDownloadPrescription}
+                          className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs gap-1.5 h-9 shadow-xs cursor-pointer"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>Download Signed E-Prescription (PDF)</span>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 2: LIVE CHAT */}
+                  {activeCallTab === 'CHAT' && (
+                    <div className="flex flex-col h-[420px] justify-between space-y-3 animate-in fade-in duration-150">
+                      {/* Messages Scroll Area */}
+                      <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                        {chatMessages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            className={`flex flex-col ${
+                              msg.sender === 'PATIENT'
+                                ? 'items-end'
+                                : msg.sender === 'DOCTOR'
+                                ? 'items-start'
+                                : 'items-center'
+                            }`}
+                          >
+                            {msg.sender === 'SYSTEM' ? (
+                              <div className="rounded-lg bg-slate-100 border border-slate-200 px-2.5 py-1 text-[9px] text-slate-500 text-center max-w-[280px]">
+                                {msg.text}
+                              </div>
+                            ) : (
+                              <div
+                                className={`max-w-[85%] rounded-2xl p-2.5 text-xs space-y-0.5 shadow-2xs ${
+                                  msg.sender === 'PATIENT'
+                                    ? 'bg-teal-700 text-white rounded-br-none'
+                                    : 'bg-slate-100 text-slate-900 border border-slate-200 rounded-bl-none'
+                                }`}
+                              >
+                                <span
+                                  className={`text-[9px] font-black block ${
+                                    msg.sender === 'PATIENT' ? 'text-teal-200' : 'text-teal-800'
+                                  }`}
+                                >
+                                  {msg.senderName} • {msg.time}
+                                </span>
+                                <p className="leading-relaxed">{msg.text}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Input Box */}
+                      <form onSubmit={handleSendChatMessage} className="pt-2 border-t border-slate-100 space-y-2">
+                        {/* Quick Prompts */}
+                        <div className="flex flex-wrap gap-1">
+                          {[
+                            'Can I take Metformin after food?',
+                            'Morning walking advised?',
+                            'BP is 134/86 today',
+                          ].map((chip) => (
+                            <button
+                              key={chip}
+                              type="button"
+                              onClick={() => setNewChatMessage(chip)}
+                              className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 hover:bg-teal-50 hover:text-teal-800 border border-slate-200 transition-colors cursor-pointer"
+                            >
+                              {chip}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={newChatMessage}
+                            onChange={(e) => setNewChatMessage(e.target.value)}
+                            placeholder="Type a message or doubt for doctor..."
+                            className="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+                          />
+                          <Button
+                            type="submit"
+                            className="bg-teal-700 hover:bg-teal-800 text-white h-9 px-3 rounded-xl cursor-pointer"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {/* TAB 3: VITALS & LAB REPORTS */}
+                  {activeCallTab === 'VITALS' && (
+                    <div className="space-y-3 animate-in fade-in duration-150">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase text-teal-800 block">
+                            Patient Health Vitals
+                          </span>
+                          <h4 className="text-sm font-black text-slate-900">
+                            Live Stream for {activePatient.name}
+                          </h4>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-400">ABHA: {activePatient.abhaId}</span>
+                      </div>
+
+                      {/* Vitals Cards Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold block">Blood Pressure</span>
+                          <strong className="text-sm font-black text-slate-900">134/86 mmHg</strong>
+                          <span className="text-[9px] text-emerald-700 font-bold block mt-0.5">● Controlled</span>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold block">Fasting Glucose</span>
+                          <strong className="text-sm font-black text-amber-900">148 mg/dL</strong>
+                          <span className="text-[9px] text-amber-700 font-bold block mt-0.5">● Target Review</span>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold block">Pulse Rate</span>
+                          <strong className="text-sm font-black text-slate-900">74 bpm</strong>
+                          <span className="text-[9px] text-emerald-700 font-bold block mt-0.5">● Normal Sinus</span>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold block">Oxygen (SpO2)</span>
+                          <strong className="text-sm font-black text-slate-900">98%</strong>
+                          <span className="text-[9px] text-emerald-700 font-bold block mt-0.5">● Room Air</span>
+                        </div>
+                      </div>
+
+                      {/* Attached ABHA Records List */}
+                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                        <span className="font-bold text-slate-800 text-[11px] block">
+                          Attached ABHA Diagnostic Records:
+                        </span>
+
+                        <div className="p-2 rounded-xl border border-teal-100 bg-teal-50/50 flex items-center justify-between">
+                          <div>
+                            <strong className="text-[11px] font-bold text-slate-900 block">
+                              HbA1c & Fasting Sugar Report
+                            </strong>
+                            <span className="text-[9px] text-slate-500">Pathology Lab • 10 Sep 2026</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCallLayout('SHARE_REPORT')}
+                            className="text-[10px] h-7 px-2 font-bold text-teal-800 border-teal-300 hover:bg-teal-100 cursor-pointer"
+                          >
+                            View on Screen
+                          </Button>
+                        </div>
+
+                        <div className="p-2 rounded-xl border border-slate-200 bg-white flex items-center justify-between">
+                          <div>
+                            <strong className="text-[11px] font-bold text-slate-900 block">
+                              12-Lead ECG Strip (Normal)
+                            </strong>
+                            <span className="text-[9px] text-slate-500">Cardiology Dept • 15 Jul 2026</span>
+                          </div>
+                          <span className="text-[10px] text-emerald-700 font-semibold">● Attached</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 4: DOCTOR INFO */}
+                  {activeCallTab === 'DOCTOR_INFO' && (
+                    <div className="space-y-3 animate-in fade-in duration-150 text-xs">
+                      <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr ${selectedDoctor.avatarColor} text-white font-black text-base shadow-xs`}
+                        >
+                          {selectedDoctor.initials}
+                        </div>
+                        <div>
+                          <h4 className="font-black text-slate-900 text-sm">{selectedDoctor.name}</h4>
+                          <p className="text-[11px] text-teal-800 font-bold">{selectedDoctor.specialty}</p>
+                          <p className="text-[10px] text-slate-500">{selectedDoctor.experience}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase block">Hospital & Unit</span>
+                          <p className="text-slate-900 font-bold">{selectedDoctor.hospital}</p>
+                          <p className="text-slate-500 text-[10px]">{selectedDoctor.department} • {selectedDoctor.roomNumber}</p>
+                        </div>
+
+                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase block">Medical Registration</span>
+                          <p className="text-slate-900 font-mono font-bold">GMC-2008-54210</p>
+                          <p className="text-emerald-700 text-[10px] font-semibold">● Gujarat Medical Council Verified</p>
+                        </div>
+
+                        <div className="p-2 rounded-xl bg-teal-50 border border-teal-200 text-[11px] text-teal-950">
+                          <strong className="block font-bold">Government Tele-OPD Support:</strong>
+                          <p className="text-[10px] mt-0.5">
+                            Telemedicine hotline: 079-2322-1080. In case of acute chest discomfort or breathlessness, call 108 immediately.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       )}
