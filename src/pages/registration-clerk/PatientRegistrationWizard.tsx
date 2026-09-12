@@ -6,7 +6,10 @@ import { Input } from '@/components/ui/Input';
 import { registrationApi } from '@/api/registrationApi';
 import { tokenApi } from '@/api/queueApi';
 import { RegisteredPatient, Token, PriorityLevel } from '@/types/queue';
+import { useLocationContext } from '@/contexts/LocationContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { OpdTokenSlipModal } from './components/OpdTokenSlipModal';
+import { LiveHospitalCaseSheet } from './components/LiveHospitalCaseSheet';
 import {
   UserPlus,
   User,
@@ -25,6 +28,8 @@ import {
 
 export const PatientRegistrationWizard: React.FC = () => {
   const navigate = useNavigate();
+  const { selectedFacility, selectedDistrict } = useLocationContext();
+  const { user } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Step 1: Personal & ABHA
@@ -39,7 +44,7 @@ export const PatientRegistrationWizard: React.FC = () => {
 
   // Step 2: Demographics & Emergency Contact
   const [address, setAddress] = useState('');
-  const [district, setDistrict] = useState('Gandhinagar');
+  const [district, setDistrict] = useState(selectedDistrict || 'Gandhinagar');
   const [pincode, setPincode] = useState('382021');
   const [emergencyName, setEmergencyName] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
@@ -191,9 +196,9 @@ export const PatientRegistrationWizard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-12">
+    <div className="w-full space-y-5 pb-12">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2">
             <Link
@@ -203,18 +208,26 @@ export const PatientRegistrationWizard: React.FC = () => {
               <ArrowLeft className="h-3 w-3" /> Back to Front Desk
             </Link>
           </div>
-          <h1 className="text-xl font-black text-slate-900 mt-1">New Patient Registration</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+            New Patient Registration (मरीज पंजीकरण)
+          </h1>
           <p className="text-xs text-slate-500">
-            Register citizen with ABHA ID check, demographic records, and direct OPD token issue.
+            Register citizen with ABHA ID check, demographic records, and live official OPD Case Paper generation for <strong className="text-slate-800 font-semibold">{selectedFacility}</strong>.
           </p>
         </div>
-        <span className="text-xs font-mono font-bold bg-teal-50 text-teal-900 border border-teal-200 px-3 py-1 rounded-full">
-          Step {step} of 3
-        </span>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className="text-xs font-mono font-bold bg-teal-50 text-teal-900 border border-teal-200 px-3 py-1 rounded-full">
+            Step {step} of 3
+          </span>
+        </div>
       </div>
 
-      {/* Progressive Step Breadcrumbs */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* 2-Column Split: Left Side Form, Right Side Live Case Sheet */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT COLUMN: Registration Wizard Form */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Progressive Step Breadcrumbs */}
+          <div className="grid grid-cols-3 gap-2">
         <button
           type="button"
           onClick={() => setStep(1)}
@@ -724,12 +737,39 @@ export const PatientRegistrationWizard: React.FC = () => {
           </div>
         </Card>
       )}
+        </div>
+
+        {/* RIGHT COLUMN: Real-Time Live Hospital Case Sheet */}
+        <div className="lg:col-span-5 lg:sticky lg:top-20 space-y-3">
+          <LiveHospitalCaseSheet
+            hospitalName={selectedFacility}
+            district={selectedDistrict}
+            clerkName={user?.name || 'Counter 02 • Front Desk Clerk'}
+            name={name}
+            phone={phone}
+            gender={gender}
+            age={age}
+            dob={dob}
+            abhaId={abhaId}
+            abhaVerified={abhaVerified}
+            address={address}
+            pincode={pincode}
+            emergencyName={emergencyName}
+            emergencyPhone={emergencyPhone}
+            emergencyRelation={emergencyRelation}
+            departmentId={departmentId}
+            priority={priority}
+            currentStep={step}
+          />
+        </div>
+      </div>
 
       {/* OPD Token Slip Modal */}
       <OpdTokenSlipModal
         isOpen={slipModalOpen}
         onClose={() => setSlipModalOpen(false)}
         token={createdToken}
+        hospitalName={selectedFacility}
       />
     </div>
   );
