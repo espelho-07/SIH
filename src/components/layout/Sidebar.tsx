@@ -350,6 +350,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               color: 'text-emerald-600 bg-emerald-50',
             },
             {
+              to: '/facility-operations/staff-leave',
+              label: 'Staff Leave & Coverage',
+              icon: Calendar,
+              color: 'text-teal-600 bg-teal-50',
+            },
+            {
               to: '/facility-operations/queues',
               label: 'Live Queue Velocity',
               icon: Ticket,

@@ -78,6 +78,7 @@ import { LabHistoryPage } from '@/pages/lab-technician/LabHistoryPage';
 // Facility Operations Pages
 import { FacilityOperationsDashboard } from '@/pages/facility-operations/FacilityOperationsDashboard';
 import { ServicesOperationsPage } from '@/pages/facility-operations/ServicesOperationsPage';
+import { StaffLeaveOperationsPage } from '@/pages/facility-operations/StaffLeaveOperationsPage';
 import { QueuesOperationsPage } from '@/pages/facility-operations/QueuesOperationsPage';
 import { ReferralOperationsPage } from '@/pages/facility-operations/ReferralOperationsPage';
 import { ResourceOperationsPage } from '@/pages/facility-operations/ResourceOperationsPage';
@@ -801,6 +802,16 @@ export const AppRoutes: React.FC = () => {
           <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
             <AppShell>
               <ServicesOperationsPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/facility-operations/staff-leave"
+        element={
+          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
+            <AppShell>
+              <StaffLeaveOperationsPage />
             </AppShell>
           </ProtectedRoute>
         }

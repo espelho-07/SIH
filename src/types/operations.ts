@@ -1,4 +1,4 @@
-﻿export type FacilityOperationalStatus =
+export type FacilityOperationalStatus =
   | 'OPEN'
   | 'LIMITED_SERVICES'
   | 'TEMPORARILY_UNAVAILABLE'
@@ -81,5 +81,32 @@ export interface FacilityOperationsSummary {
     ambulancesTotal: number;
     pendingIncomingReferrals: number;
     staffOnDutyCount: number;
+    pendingStaffLeavesCount?: number;
   };
+}
+
+export interface StaffLeaveOperationalImpact {
+  leaveId?: string;
+  doctorId: string;
+  doctorName: string;
+  specialty: string;
+  facilityId: string;
+  facilityName: string;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  totalDoctorsInDepartment: number;
+  availableDoctorsDuringPeriod: number;
+  coverageStatus: 'ADEQUATE' | 'LIMITED' | 'CRITICAL_GAP';
+  alternateDoctors: {
+    id: string;
+    name: string;
+    specialty: string;
+    status: string;
+    facilityName: string;
+    opdSchedule?: string;
+  }[];
+  affectedAppointments: import('./queue').Appointment[];
+  affectedQueuesCount: number;
+  recommendedAction: string;
 }

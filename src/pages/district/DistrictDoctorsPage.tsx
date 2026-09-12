@@ -24,6 +24,7 @@ import {
   Plus,
   X,
   Activity,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const DistrictDoctorsPage: React.FC = () => {
@@ -251,6 +252,21 @@ export const DistrictDoctorsPage: React.FC = () => {
           <span className="text-[11px] text-amber-700 font-medium">{teleconsultCount} doctors teleconsult-enabled</span>
         </Card>
       </div>
+
+      {/* District Aggregated Staffing Gap Telemetry */}
+      {leaveCount > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-start gap-3 shadow-xs">
+          <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+              District Operations Monitoring • Staffing Gaps & Leave Roster ({leaveCount} Doctors Off Duty)
+            </div>
+            <p className="text-xs text-amber-800 leading-relaxed">
+              Facility Operations coordinators have authorized leave schedules across district hospitals. Teleconsultation diversions and peer doctor handovers are active to prevent outpatient bottlenecks. (District governance: Monitoring capacity status).
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Filters & Search */}
       <Card className="p-4 bg-white border-slate-200 space-y-3">

@@ -49,7 +49,98 @@ import {
   FacilityOperationalStatus,
   FacilityOperationsSummary,
   ServiceOperationalStatus,
+  StaffLeaveOperationalImpact,
 } from '@/types/operations';
+
+const getRelativeDateStr = (offsetDays: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().split('T')[0];
+};
+
+export const INITIAL_DOCTOR_LEAVES: DoctorLeave[] = [
+  {
+    id: 'leave_seed_01',
+    doctorId: 'doc_02',
+    doctorName: 'Dr. Neha Vaghela',
+    facilityId: 'fac_pet_04',
+    facilityName: 'Pethapur Primary Health Centre',
+    department: 'Obstetrics & Gynecology',
+    startDate: getRelativeDateStr(-1),
+    endDate: getRelativeDateStr(3),
+    category: 'CONFERENCE',
+    reason: 'Attending National Obstetrics & Gynecology Federation Summit at AIIMS Delhi',
+    status: 'APPROVED',
+    handoverDoctorName: 'Dr. Arvind Patel',
+    emergencyContact: '+91 98765 12345',
+    notes: 'Emergency C-sections and high-risk ANC to be redirected to Civil Hospital Gandhinagar.',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    reviewedBy: 'Dr. Vikram Joshi (PHC In-charge)',
+    reviewedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    serviceCoverageImpact: 'ADEQUATE',
+    affectedAppointmentsCount: 0,
+  },
+  {
+    id: 'leave_seed_02',
+    doctorId: 'doc_01',
+    doctorName: 'Dr. Arvind Patel',
+    facilityId: 'fac_civil_01',
+    facilityName: 'Gandhinagar Civil Hospital',
+    department: 'Cardiology',
+    startDate: getRelativeDateStr(1),
+    endDate: getRelativeDateStr(4),
+    category: 'CONFERENCE',
+    reason: 'Attending National Cardiology Summit & Clinical Masterclass at AIIMS New Delhi',
+    status: 'PENDING',
+    handoverDoctorName: 'Dr. Rajesh Solanki',
+    emergencyContact: '+91 98765 05678',
+    notes: 'Inpatient cardiac telemetry and post-op CCU coverage handed over to Dr. Rajesh Solanki.',
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    serviceCoverageImpact: 'CRITICAL_GAP',
+    affectedAppointmentsCount: 3,
+  },
+  {
+    id: 'leave_seed_03',
+    doctorId: 'doc_06',
+    doctorName: 'Dr. Suresh Joshi',
+    facilityId: 'fac_civil_01',
+    facilityName: 'Gandhinagar Civil Hospital',
+    department: 'Orthopedics',
+    startDate: getRelativeDateStr(5),
+    endDate: getRelativeDateStr(7),
+    category: 'CASUAL',
+    reason: 'Family personal religious commitment',
+    status: 'CHANGES_REQUIRED',
+    handoverDoctorName: 'Dr. Rajesh Solanki',
+    emergencyContact: '+91 98765 56789',
+    notes: 'Requested casual leave during festival week.',
+    changesRequestedNote: 'Please coordinate with Dr. Solanki as 2 knee replacement surgeries are scheduled on that Monday.',
+    reviewedBy: 'Vikram Joshi (Operations Lead)',
+    reviewedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    serviceCoverageImpact: 'LIMITED',
+    affectedAppointmentsCount: 1,
+  },
+  {
+    id: 'leave_seed_04',
+    doctorId: 'doc_04',
+    doctorName: 'Dr. Rajesh Solanki',
+    facilityId: 'fac_civil_01',
+    facilityName: 'Gandhinagar Civil Hospital',
+    department: 'General Surgery',
+    startDate: getRelativeDateStr(-3),
+    endDate: getRelativeDateStr(-1),
+    category: 'CASUAL',
+    reason: 'Personal weekend travel',
+    status: 'REJECTED',
+    rejectionReason: 'Critical surgical emergency roster coverage required this weekend. Insufficient emergency standby surgeons.',
+    reviewedBy: 'Vikram Joshi (Operations Lead)',
+    reviewedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    serviceCoverageImpact: 'CRITICAL_GAP',
+    affectedAppointmentsCount: 4,
+  },
+];
 
 class MockHealthcareState {
   users: Record<string, User> = { ...DEMO_USERS };
@@ -85,6 +176,7 @@ class MockHealthcareState {
     this.loadReferrals();
     this.loadAppointments();
     this.loadNotifications();
+    this.loadLeaves();
   }
 
   saveReferrals() {
@@ -143,6 +235,73 @@ class MockHealthcareState {
       console.warn('Failed to rehydrate appointments', e);
     }
     this.appointments = JSON.parse(JSON.stringify(INITIAL_APPOINTMENTS));
+    // Ensure upcoming cardiology appointments exist for Dr. Arvind Patel
+    const hasUpcomingPatel = this.appointments.some(
+      (a) => (a.doctorId === 'doc_01' || a.doctorId === 'usr_doc_01' || a.doctorName.includes('Arvind Patel')) &&
+             a.date >= getRelativeDateStr(0)
+    );
+    if (!hasUpcomingPatel) {
+      this.appointments.unshift(
+        {
+          id: 'apt_seed_cardio_01',
+          patientId: 'usr_pat_01',
+          patientName: 'Rameshwar Sharma',
+          patientPhone: '9876543210',
+          patientAge: 48,
+          patientGender: 'M',
+          facilityId: 'fac_civil_01',
+          facilityName: 'Gandhinagar Civil Hospital',
+          doctorId: 'doc_01',
+          doctorName: 'Dr. Arvind Patel',
+          specialty: 'Cardiology',
+          date: getRelativeDateStr(1),
+          timeSlot: '10:00 AM',
+          status: 'CONFIRMED',
+          type: 'IN_PERSON',
+          reasonForVisit: 'Hypertension & Post-Angioplasty Follow-up',
+          createdAt: new Date(Date.now() - 36000000).toISOString(),
+        },
+        {
+          id: 'apt_seed_cardio_02',
+          patientId: 'usr_pat_02',
+          patientName: 'Pooja Ben Patel',
+          patientPhone: '9825123456',
+          patientAge: 29,
+          patientGender: 'F',
+          facilityId: 'fac_civil_01',
+          facilityName: 'Gandhinagar Civil Hospital',
+          doctorId: 'doc_01',
+          doctorName: 'Dr. Arvind Patel',
+          specialty: 'Cardiology',
+          date: getRelativeDateStr(1),
+          timeSlot: '11:30 AM',
+          status: 'CONFIRMED',
+          type: 'IN_PERSON',
+          reasonForVisit: 'Persistent arrhythmia and 2D Echo review',
+          createdAt: new Date(Date.now() - 24000000).toISOString(),
+        },
+        {
+          id: 'apt_seed_cardio_03',
+          patientId: 'usr_pat_06',
+          patientName: 'Dilipbhai Thakor',
+          patientPhone: '9825167890',
+          patientAge: 51,
+          patientGender: 'M',
+          facilityId: 'fac_civil_01',
+          facilityName: 'Gandhinagar Civil Hospital',
+          doctorId: 'doc_01',
+          doctorName: 'Dr. Arvind Patel',
+          specialty: 'Cardiology',
+          date: getRelativeDateStr(2),
+          timeSlot: '02:00 PM',
+          status: 'CONFIRMED',
+          type: 'IN_PERSON',
+          reasonForVisit: 'Chronic chest heaviness evaluation and lipid profile consult',
+          createdAt: new Date(Date.now() - 12000000).toISOString(),
+        }
+      );
+      this.saveAppointments();
+    }
   }
 
   saveNotifications() {
@@ -185,6 +344,34 @@ class MockHealthcareState {
     ];
   }
 
+  saveLeaves() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('healthconnect_doctor_leaves', JSON.stringify(this.doctorLeaves));
+      }
+    } catch (e) {
+      console.warn('Failed to save doctor leaves to localStorage', e);
+    }
+  }
+
+  loadLeaves() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = localStorage.getItem('healthconnect_doctor_leaves');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.doctorLeaves = parsed;
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to rehydrate doctor leaves', e);
+    }
+    this.doctorLeaves = JSON.parse(JSON.stringify(INITIAL_DOCTOR_LEAVES));
+  }
+
   addNotification(notif: Omit<HealthNotification, 'id' | 'timestamp' | 'read'>) {
     const newNotif: HealthNotification = {
       ...notif,
@@ -213,54 +400,12 @@ class MockHealthcareState {
       return {
         ...d,
         status: 'ON_LEAVE',
-        currentLeave: {
-          id: 'leave_seed_01',
-          doctorId: d.id,
-          doctorName: d.name,
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          category: 'CONFERENCE',
-          reason: 'Attending National Obstetrics & Gynecology Federation Summit at AIIMS Delhi',
-          status: 'APPROVED',
-          handoverDoctorName: 'Dr. Arvind Patel',
-          emergencyContact: '+91 98765 12345',
-          notes: 'Emergency C-sections and high-risk ANC to be redirected to Civil Hospital Gandhinagar.',
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        } as DoctorLeave,
+        currentLeave: INITIAL_DOCTOR_LEAVES[0],
       };
     }
     return d;
   });
-  doctorLeaves: DoctorLeave[] = [
-    {
-      id: 'leave_seed_01',
-      doctorId: 'doc_02',
-      doctorName: 'Dr. Neha Vaghela',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      category: 'CONFERENCE',
-      reason: 'Attending National Obstetrics & Gynecology Federation Summit at AIIMS Delhi',
-      status: 'APPROVED',
-      handoverDoctorName: 'Dr. Arvind Patel',
-      emergencyContact: '+91 98765 12345',
-      notes: 'Emergency C-sections and high-risk ANC to be redirected to Civil Hospital Gandhinagar.',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: 'leave_seed_02',
-      doctorId: 'doc_01',
-      doctorName: 'Dr. Arvind Patel',
-      startDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      category: 'CASUAL',
-      reason: 'Annual personal leave and family religious commitment',
-      status: 'APPROVED',
-      handoverDoctorName: 'Dr. Meena Parmar',
-      emergencyContact: '+91 98765 05678',
-      notes: 'Outpatient clinic coverage assigned to Dr. Meena Parmar during morning hours.',
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
+  doctorLeaves: DoctorLeave[] = JSON.parse(JSON.stringify(INITIAL_DOCTOR_LEAVES));
   bloodCenters: BloodCenter[] = JSON.parse(JSON.stringify(INITIAL_BLOOD_CENTRES));
   districtAdmins: DistrictAdminProfile[] = JSON.parse(JSON.stringify(INITIAL_DISTRICT_ADMINS));
 
@@ -1297,6 +1442,9 @@ class MockHealthcareState {
         ambulancesTotal: this.ambulances.length,
         pendingIncomingReferrals: pendingIncoming,
         staffOnDutyCount: staffOnDuty,
+        pendingStaffLeavesCount: this.doctorLeaves.filter(
+          (l) => (l.facilityId === facilityId || !l.facilityId || facilityId === 'fac_civil_01') && l.status === 'PENDING'
+        ).length,
       },
     };
   }
@@ -1524,6 +1672,26 @@ class MockHealthcareState {
     return doc || null;
   }
 
+  isDoctorMatch(docId: string, docName: string, targetId?: string, targetName?: string): boolean {
+    if (!targetId && !targetName) return false;
+    const dId = (docId || '').toLowerCase();
+    const tId = (targetId || '').toLowerCase();
+    if (dId && tId) {
+      if (dId === tId) return true;
+      if ((dId === 'doc_01' || dId === 'usr_doc_01') && (tId === 'doc_01' || tId === 'usr_doc_01')) return true;
+      if ((dId === 'doc_02' || dId === 'usr_doc_02') && (tId === 'doc_02' || tId === 'usr_doc_02')) return true;
+      if ((dId === 'doc_03' || dId === 'usr_doc_03') && (tId === 'doc_03' || tId === 'usr_doc_03')) return true;
+      if ((dId === 'doc_04' || dId === 'usr_doc_04') && (tId === 'doc_04' || tId === 'usr_doc_04')) return true;
+      if ((dId === 'doc_06' || dId === 'usr_doc_06') && (tId === 'doc_06' || tId === 'usr_doc_06')) return true;
+    }
+    const dName = (docName || '').toLowerCase().replace(/^dr\.\s*/i, '').trim();
+    const tName = (targetName || '').toLowerCase().replace(/^dr\.\s*/i, '').trim();
+    if (dName && tName && (dName.includes(tName) || tName.includes(dName))) {
+      return true;
+    }
+    return false;
+  }
+
   getDoctorLeaves(doctorIdOrName: string): DoctorLeave[] {
     const term = (doctorIdOrName || '').trim().toLowerCase();
     return this.doctorLeaves.filter(
@@ -1534,11 +1702,26 @@ class MockHealthcareState {
     );
   }
 
+  getFacilityLeaves(facilityId: string = 'fac_civil_01', status?: string): DoctorLeave[] {
+    return this.doctorLeaves.filter((l) => {
+      const matchesFac = !l.facilityId || l.facilityId === facilityId || facilityId === 'ALL';
+      if (!matchesFac) return false;
+      if (status && status !== 'ALL') {
+        return l.status === status;
+      }
+      return true;
+    });
+  }
+
+  getLeaveById(id: string): DoctorLeave | undefined {
+    return this.doctorLeaves.find((l) => l.id === id);
+  }
+
   isDoctorOnLeave(doctorIdOrName: string, dateStr?: string): { onLeave: boolean; leave?: DoctorLeave } {
     const targetDate = dateStr || new Date().toISOString().split('T')[0];
     const leaves = this.getDoctorLeaves(doctorIdOrName);
     const activeLeave = leaves.find((l) => {
-      if (l.status === 'CANCELLED') return false;
+      if (l.status !== 'APPROVED') return false;
       return targetDate >= l.startDate && targetDate <= l.endDate;
     });
 
@@ -1562,33 +1745,195 @@ class MockHealthcareState {
     return { onLeave: false };
   }
 
+  evaluateLeaveImpact(
+    doctorId: string,
+    startDate: string,
+    endDate: string,
+    facilityId?: string
+  ): StaffLeaveOperationalImpact {
+    const term = (doctorId || '').toLowerCase();
+    const doc = this.doctors.find(
+      (d) => d.id.toLowerCase() === term ||
+             d.name.toLowerCase().includes(term) ||
+             term.includes(d.name.toLowerCase()) ||
+             (term === 'usr_doc_01' && d.id === 'doc_01') ||
+             (term === 'doc_01' && d.id === 'doc_01')
+    );
+    const docName = doc ? doc.name : doctorId;
+    const docSpecialty = doc ? doc.specialty : 'General Medicine';
+    const targetFacilityId = facilityId || (doc ? doc.facilityId : 'fac_civil_01');
+    const fac = this.facilities.find((f) => f.id === targetFacilityId);
+    const facilityName = fac ? fac.name : (doc ? doc.facilityName : 'Gandhinagar Civil Hospital');
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
+    // Specialty coverage
+    const deptDoctors = this.doctors.filter(
+      (d) => d.facilityId === targetFacilityId &&
+             d.specialty.toLowerCase() === docSpecialty.toLowerCase()
+    );
+    const totalDeptDoctors = Math.max(deptDoctors.length, 1);
+
+    // Remaining available doctors in dept during requested period
+    const availableDuringPeriod = deptDoctors.filter((d) => {
+      if (doc && d.id === doc.id) return false;
+      const hasOverlap = this.doctorLeaves.some((l) => {
+        if (l.status !== 'APPROVED') return false;
+        if (l.doctorId !== d.id && !l.doctorName.includes(d.name)) return false;
+        return startDate <= l.endDate && endDate >= l.startDate;
+      });
+      return !hasOverlap;
+    });
+
+    const availableCount = availableDuringPeriod.length;
+    let coverageStatus: 'ADEQUATE' | 'LIMITED' | 'CRITICAL_GAP' = 'ADEQUATE';
+    if (availableCount === 0) {
+      coverageStatus = 'CRITICAL_GAP';
+    } else if (availableCount === 1 && totalDeptDoctors > 1) {
+      coverageStatus = 'LIMITED';
+    } else if (availableCount < totalDeptDoctors / 2) {
+      coverageStatus = 'LIMITED';
+    }
+
+    // Alternate doctors
+    const alternateDoctors = this.doctors
+      .filter((d) => (doc ? d.id !== doc.id : true) && (
+        d.specialty.toLowerCase() === docSpecialty.toLowerCase() ||
+        (d.facilityId === targetFacilityId && d.specialty.includes('Medicine'))
+      ))
+      .map((d) => ({
+        id: d.id,
+        name: d.name,
+        specialty: d.specialty,
+        status: d.status,
+        facilityName: d.facilityName,
+        opdSchedule: d.opdSchedule,
+      }))
+      .slice(0, 3);
+
+    // Affected appointments
+    const affectedAppointments = this.appointments.filter((a) => {
+      if (a.status === 'CANCELLED') return false;
+      if (a.date < startDate || a.date > endDate) return false;
+      return this.isDoctorMatch(doc ? doc.id : doctorId, docName, a.doctorId, a.doctorName);
+    });
+
+    // Active queues
+    const affectedQueuesCount = (this.liveQueue.tokens || []).filter((t: Token) => {
+      if (t.status === 'COMPLETED' || t.status === 'CANCELLED') return false;
+      if (doc && (t.doctorId === doc.id || t.doctorName?.includes(doc.name))) return true;
+      return t.facilityId === targetFacilityId && t.departmentName.toLowerCase().includes(docSpecialty.toLowerCase());
+    }).length;
+
+    let recommendedAction = 'Standard operational approval feasible. Minimum clinical coverage maintained.';
+    if (coverageStatus === 'CRITICAL_GAP') {
+      recommendedAction = `Severe coverage gap: 0 specialists remaining in ${docSpecialty}. Arrange clinical coverage handover or cross-facility specialist roster before approving. ${affectedAppointments.length} appointments require front-desk rescheduling.`;
+    } else if (coverageStatus === 'LIMITED') {
+      recommendedAction = `Limited coverage: 1 specialist remaining in ${docSpecialty}. Monitor OPD queue velocity closely. ${affectedAppointments.length} appointments require rescheduling.`;
+    } else if (affectedAppointments.length > 0) {
+      recommendedAction = `Adequate staff coverage available. Front desk must notify and reschedule ${affectedAppointments.length} affected appointments.`;
+    }
+
+    return {
+      doctorId: doc ? doc.id : doctorId,
+      doctorName: docName,
+      specialty: docSpecialty,
+      facilityId: targetFacilityId,
+      facilityName,
+      startDate,
+      endDate,
+      totalDays,
+      totalDoctorsInDepartment: totalDeptDoctors,
+      availableDoctorsDuringPeriod: availableCount,
+      coverageStatus,
+      alternateDoctors,
+      affectedAppointments,
+      affectedQueuesCount,
+      recommendedAction,
+    };
+  }
+
   addDoctorLeave(leaveData: Omit<DoctorLeave, 'id' | 'createdAt'>, actor: string = 'Doctor'): DoctorLeave {
+    // 1. Validation
+    if (!leaveData.startDate || !leaveData.endDate) {
+      throw new Error('Start date and end date are required for leave.');
+    }
+    if (leaveData.startDate > leaveData.endDate) {
+      throw new Error('Leave start date cannot be after end date.');
+    }
+
+    const term = (leaveData.doctorId || '').toLowerCase();
+    const doc = this.doctors.find(
+      (d) => d.id.toLowerCase() === term ||
+             d.name.toLowerCase().includes(term) ||
+             term.includes(d.name.toLowerCase()) ||
+             (term === 'usr_doc_01' && d.id === 'doc_01')
+    );
+
+    // Check for overlapping active leaves for the same doctor
+    const overlapping = this.doctorLeaves.find((l) => {
+      if (l.status === 'CANCELLED' || l.status === 'REJECTED') return false;
+      const isSameDoc = this.isDoctorMatch(leaveData.doctorId, leaveData.doctorName, l.doctorId, l.doctorName);
+      if (!isSameDoc) return false;
+      return leaveData.startDate <= l.endDate && leaveData.endDate >= l.startDate;
+    });
+
+    if (overlapping) {
+      throw new Error(
+        `An overlapping leave request (${overlapping.startDate} to ${overlapping.endDate} [${overlapping.status}]) is already on record.`
+      );
+    }
+
+    // Evaluate impact
+    const facilityId = leaveData.facilityId || (doc ? doc.facilityId : 'fac_civil_01');
+    const facilityName = leaveData.facilityName || (doc ? doc.facilityName : 'Gandhinagar Civil Hospital');
+    const department = leaveData.department || (doc ? doc.specialty : 'Clinical OPD');
+
+    const impact = this.evaluateLeaveImpact(leaveData.doctorId, leaveData.startDate, leaveData.endDate, facilityId);
+
     const newLeave: DoctorLeave = {
       ...leaveData,
       id: `leave_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      status: leaveData.status || 'APPROVED',
+      status: leaveData.status || 'PENDING',
+      facilityId,
+      facilityName,
+      department,
+      affectedAppointmentsCount: impact.affectedAppointments.length,
+      serviceCoverageImpact: impact.coverageStatus,
       createdAt: new Date().toISOString(),
     };
 
     this.doctorLeaves.unshift(newLeave);
 
-    // Find doctor and update status if leave is effective today
+    // If submitted directly as APPROVED and effective today
     const today = new Date().toISOString().split('T')[0];
     const isEffectiveNow = today >= newLeave.startDate && today <= newLeave.endDate;
 
-    const term = newLeave.doctorId.toLowerCase();
-    const doc = this.doctors.find(
-      (d) => d.id.toLowerCase() === term ||
-             d.name.toLowerCase().includes(newLeave.doctorName.toLowerCase()) ||
-             newLeave.doctorName.toLowerCase().includes(d.name.toLowerCase())
-    );
-
-    if (doc) {
-      if (isEffectiveNow) {
-        doc.status = 'ON_LEAVE';
-        doc.currentLeave = newLeave;
-      }
+    if (doc && newLeave.status === 'APPROVED' && isEffectiveNow) {
+      doc.status = 'ON_LEAVE';
+      doc.currentLeave = newLeave;
     }
+
+    // Notifications
+    this.addNotification({
+      recipientRole: 'FACILITY_STAFF',
+      recipientFacilityId: facilityId,
+      title: 'New Staff Leave Request Filed',
+      message: `${newLeave.doctorName} (${department}) requested leave from ${newLeave.startDate} to ${newLeave.endDate}. Potential impact: ${newLeave.affectedAppointmentsCount || 0} appointments.`,
+      type: 'LEAVE',
+      leaveId: newLeave.id,
+    });
+
+    this.addNotification({
+      recipientRole: 'DOCTOR',
+      recipientUserId: newLeave.doctorId,
+      title: 'Leave Application Submitted',
+      message: `Your leave request for ${newLeave.startDate} to ${newLeave.endDate} has been submitted to Facility Operations for operational review.`,
+      type: 'LEAVE',
+      leaveId: newLeave.id,
+    });
 
     // Audit log
     this.auditLogs.unshift({
@@ -1603,19 +1948,252 @@ class MockHealthcareState {
       ipAddress: '10.14.0.1',
       userAgent: 'HealthConnect Medical Officer Roster Portal',
       status: 'SUCCESS',
-      details: `${newLeave.doctorName} planned leave from ${newLeave.startDate} to ${newLeave.endDate} [Reason: ${newLeave.reason}]`,
+      details: `${newLeave.doctorName} filed leave from ${newLeave.startDate} to ${newLeave.endDate} [Reason: ${newLeave.reason}] (Status: ${newLeave.status})`,
     });
 
+    this.saveLeaves();
     return newLeave;
+  }
+
+  approveDoctorLeave(
+    leaveId: string,
+    reviewedBy: string = 'Vikram Joshi (Operations Lead)',
+    options?: { resolutionNotes?: string; alternateDoctorId?: string; notifyPatients?: boolean }
+  ): DoctorLeave {
+    const leave = this.doctorLeaves.find((l) => l.id === leaveId);
+    if (!leave) throw new Error('Leave request record not found.');
+
+    if (leave.status !== 'PENDING' && leave.status !== 'CHANGES_REQUIRED') {
+      throw new Error(`Leave request has already been ${leave.status.toLowerCase()}.`);
+    }
+
+    leave.status = 'APPROVED';
+    leave.reviewedBy = reviewedBy;
+    leave.reviewedAt = new Date().toISOString();
+    if (options?.resolutionNotes) {
+      leave.notes = leave.notes ? `${leave.notes} • ${options.resolutionNotes}` : options.resolutionNotes;
+    }
+
+    // Find doctor
+    const term = leave.doctorId.toLowerCase();
+    const doc = this.doctors.find(
+      (d) => d.id.toLowerCase() === term ||
+             d.name.toLowerCase().includes(term) ||
+             term.includes(d.name.toLowerCase()) ||
+             (term === 'usr_doc_01' && d.id === 'doc_01')
+    );
+
+    const today = new Date().toISOString().split('T')[0];
+    const isEffectiveNow = today >= leave.startDate && today <= leave.endDate;
+
+    if (doc) {
+      if (isEffectiveNow) {
+        doc.status = 'ON_LEAVE';
+        doc.currentLeave = leave;
+
+        // Update staff duty
+        const dutyItem = this.staffDuty.find((s) => s.id === doc.id || s.name.includes(doc.name));
+        if (dutyItem) {
+          dutyItem.status = 'OFF_DUTY';
+        }
+
+        // If department coverage is depleted, update operational services
+        const remainingInDept = this.doctors.filter(
+          (d) => d.facilityId === doc.facilityId &&
+                 d.specialty.toLowerCase() === doc.specialty.toLowerCase() &&
+                 d.status !== 'ON_LEAVE'
+        ).length;
+
+        if (remainingInDept === 0) {
+          const serv = this.operationalServices.find(
+            (s) => s.name.toLowerCase().includes(doc.specialty.toLowerCase()) ||
+                   doc.specialty.toLowerCase().includes(s.name.toLowerCase())
+          );
+          if (serv && serv.status === 'OPERATIONAL') {
+            serv.status = 'DEGRADED';
+            serv.statusReason = `Specialist on approved clinical leave until ${leave.endDate}. Inpatient/emergency handover active.`;
+            serv.lastUpdated = new Date().toISOString();
+          }
+        }
+      }
+    }
+
+    // Process affected appointments & notify patients
+    const affectedAppointments = this.appointments.filter((a) => {
+      if (a.status === 'CANCELLED') return false;
+      if (a.date < leave.startDate || a.date > leave.endDate) return false;
+      return this.isDoctorMatch(leave.doctorId, leave.doctorName, a.doctorId, a.doctorName);
+    });
+
+    if (options?.notifyPatients !== false) {
+      for (const apt of affectedAppointments) {
+        if (!apt.reasonForVisit.includes('[Provider On Approved Leave')) {
+          apt.reasonForVisit = `${apt.reasonForVisit} [Provider On Approved Leave - Reschedule Required]`;
+        }
+        this.addNotification({
+          recipientRole: 'PATIENT',
+          recipientUserId: apt.patientId,
+          recipientFacilityId: leave.facilityId,
+          title: 'Appointment Notice: Doctor On Approved Leave',
+          message: `Dear ${apt.patientName}, your appointment with ${leave.doctorName} on ${apt.date} at ${apt.timeSlot} is affected by approved medical leave. Please visit OPD Front Desk or rebook via portal.`,
+          type: 'APPOINTMENT',
+        });
+      }
+    }
+
+    // Notify doctor
+    this.addNotification({
+      recipientRole: 'DOCTOR',
+      recipientUserId: leave.doctorId,
+      title: 'Leave Request Approved',
+      message: `Your leave request from ${leave.startDate} to ${leave.endDate} has been approved by ${reviewedBy}.`,
+      type: 'LEAVE',
+      leaveId: leave.id,
+    });
+
+    // Notify District Admin if critical gap
+    if (leave.serviceCoverageImpact === 'CRITICAL_GAP') {
+      this.addNotification({
+        recipientRole: 'DISTRICT_ADMIN',
+        recipientFacilityId: leave.facilityId,
+        title: `Specialist Coverage Gap: ${leave.facilityName || 'Facility'}`,
+        message: `${leave.facilityName || 'Hospital'} has 0 active specialists in ${leave.department || 'Department'} during ${leave.startDate} to ${leave.endDate} following approved leave for ${leave.doctorName}.`,
+        type: 'STAFF',
+        leaveId: leave.id,
+      });
+    }
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: 'usr_ops_lead',
+      actorName: reviewedBy,
+      actorRole: 'FACILITY_STAFF',
+      action: 'DOCTOR_LEAVE_APPROVED',
+      resourceType: 'DOCTOR_ROSTER',
+      resourceId: leave.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect Facility Operations Portal',
+      status: 'SUCCESS',
+      details: `Approved leave for ${leave.doctorName} (${leave.startDate} to ${leave.endDate}). Affected appointments: ${affectedAppointments.length}`,
+    });
+
+    this.saveLeaves();
+    this.saveAppointments();
+    return leave;
+  }
+
+  rejectDoctorLeave(
+    leaveId: string,
+    reason: string,
+    reviewedBy: string = 'Vikram Joshi (Operations Lead)'
+  ): DoctorLeave {
+    const leave = this.doctorLeaves.find((l) => l.id === leaveId);
+    if (!leave) throw new Error('Leave request record not found.');
+
+    if (leave.status !== 'PENDING' && leave.status !== 'CHANGES_REQUIRED') {
+      throw new Error(`Leave request has already been ${leave.status.toLowerCase()}.`);
+    }
+
+    if (!reason || !reason.trim()) {
+      throw new Error('A formal reason is required to reject a leave request.');
+    }
+
+    leave.status = 'REJECTED';
+    leave.rejectionReason = reason.trim();
+    leave.reviewedBy = reviewedBy;
+    leave.reviewedAt = new Date().toISOString();
+
+    // Notify doctor
+    this.addNotification({
+      recipientRole: 'DOCTOR',
+      recipientUserId: leave.doctorId,
+      title: 'Leave Request Declined',
+      message: `Your leave request for ${leave.startDate} to ${leave.endDate} was declined by ${reviewedBy}. Reason: ${reason.trim()}`,
+      type: 'LEAVE',
+      leaveId: leave.id,
+    });
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: 'usr_ops_lead',
+      actorName: reviewedBy,
+      actorRole: 'FACILITY_STAFF',
+      action: 'DOCTOR_LEAVE_REJECTED',
+      resourceType: 'DOCTOR_ROSTER',
+      resourceId: leave.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect Facility Operations Portal',
+      status: 'SUCCESS',
+      details: `Rejected leave for ${leave.doctorName} (${leave.startDate} to ${leave.endDate}). Rationale: ${reason.trim()}`,
+    });
+
+    this.saveLeaves();
+    return leave;
+  }
+
+  requestChangesDoctorLeave(
+    leaveId: string,
+    note: string,
+    reviewedBy: string = 'Vikram Joshi (Operations Lead)'
+  ): DoctorLeave {
+    const leave = this.doctorLeaves.find((l) => l.id === leaveId);
+    if (!leave) throw new Error('Leave request record not found.');
+
+    if (leave.status !== 'PENDING') {
+      throw new Error(`Leave request is not in a pending reviewable state.`);
+    }
+
+    if (!note || !note.trim()) {
+      throw new Error('Specific change or clarification instructions are required.');
+    }
+
+    leave.status = 'CHANGES_REQUIRED';
+    leave.changesRequestedNote = note.trim();
+    leave.reviewedBy = reviewedBy;
+    leave.reviewedAt = new Date().toISOString();
+
+    // Notify doctor
+    this.addNotification({
+      recipientRole: 'DOCTOR',
+      recipientUserId: leave.doctorId,
+      title: 'Leave Clarification / Adjustment Requested',
+      message: `Facility Operations requested changes on your leave for ${leave.startDate} to ${leave.endDate}: "${note.trim()}". Please review and update.`,
+      type: 'LEAVE',
+      leaveId: leave.id,
+    });
+
+    // Audit log
+    this.auditLogs.unshift({
+      id: `log_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actorId: 'usr_ops_lead',
+      actorName: reviewedBy,
+      actorRole: 'FACILITY_STAFF',
+      action: 'DOCTOR_LEAVE_CHANGES_REQUESTED',
+      resourceType: 'DOCTOR_ROSTER',
+      resourceId: leave.id,
+      ipAddress: '10.14.0.1',
+      userAgent: 'HealthConnect Facility Operations Portal',
+      status: 'SUCCESS',
+      details: `Requested changes for ${leave.doctorName} leave (${leave.startDate} to ${leave.endDate}). Note: ${note.trim()}`,
+    });
+
+    this.saveLeaves();
+    return leave;
   }
 
   cancelDoctorLeave(leaveId: string, actor: string = 'Doctor'): boolean {
     const leave = this.doctorLeaves.find((l) => l.id === leaveId);
     if (!leave) return false;
 
+    const previousStatus = leave.status;
     leave.status = 'CANCELLED';
 
-    // Find doctor and restore status
+    // Find doctor and restore status if leave was approved & active today
     const term = leave.doctorId.toLowerCase();
     const doc = this.doctors.find(
       (d) => d.id.toLowerCase() === term ||
@@ -1623,8 +2201,7 @@ class MockHealthcareState {
              leave.doctorName.toLowerCase().includes(d.name.toLowerCase())
     );
 
-    if (doc) {
-      // Check if there is another active leave today
+    if (doc && previousStatus === 'APPROVED') {
       const today = new Date().toISOString().split('T')[0];
       const otherActive = this.doctorLeaves.find(
         (l) => l.id !== leaveId &&
@@ -1639,8 +2216,23 @@ class MockHealthcareState {
       } else {
         doc.status = 'ON_DUTY';
         doc.currentLeave = undefined;
+        // Restore staff duty item
+        const dutyItem = this.staffDuty.find((s) => s.id === doc.id || s.name.includes(doc.name));
+        if (dutyItem) {
+          dutyItem.status = 'ON_DUTY';
+        }
       }
     }
+
+    // Notify Facility Operations
+    this.addNotification({
+      recipientRole: 'FACILITY_STAFF',
+      recipientFacilityId: leave.facilityId || 'fac_civil_01',
+      title: 'Leave Request Withdrawn',
+      message: `${leave.doctorName} withdrew/cancelled leave for ${leave.startDate} to ${leave.endDate}.`,
+      type: 'LEAVE',
+      leaveId: leave.id,
+    });
 
     // Audit log
     this.auditLogs.unshift({
@@ -1658,6 +2250,7 @@ class MockHealthcareState {
       details: `Leave cancelled for ${leave.doctorName} (${leave.startDate} to ${leave.endDate})`,
     });
 
+    this.saveLeaves();
     return true;
   }
 

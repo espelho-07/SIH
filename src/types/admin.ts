@@ -78,12 +78,22 @@ export interface DoctorLeave {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
   reason: string; // e.g. "Attending National Cardiology Summit"
-  category: 'CASUAL' | 'SICK' | 'CONFERENCE' | 'DUTY_OFF' | 'EMERGENCY';
-  status: 'APPROVED' | 'PENDING' | 'CANCELLED';
+  category: 'CASUAL' | 'SICK' | 'CONFERENCE' | 'DUTY_OFF' | 'EMERGENCY' | 'EARNED';
+  status: 'APPROVED' | 'PENDING' | 'CHANGES_REQUIRED' | 'REJECTED' | 'CANCELLED';
   handoverDoctorName?: string;
   emergencyContact?: string;
   notes?: string;
   createdAt: string;
+  // Facility Operations scoping & workflow fields
+  facilityId?: string;
+  facilityName?: string;
+  department?: string;
+  rejectionReason?: string;
+  changesRequestedNote?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  affectedAppointmentsCount?: number;
+  serviceCoverageImpact?: 'ADEQUATE' | 'LIMITED' | 'CRITICAL_GAP';
 }
 
 export interface DistrictDoctor {
@@ -105,6 +115,7 @@ export interface DistrictDoctor {
   registrationNumber?: string;
   opdRoom?: string;
   currentLeave?: DoctorLeave;
+  upcomingLeaves?: DoctorLeave[];
 }
 
 export interface BloodCenter {

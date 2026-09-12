@@ -1,4 +1,4 @@
-﻿import { apiRequest } from './client';
+import { apiRequest } from './client';
 import {
   FacilityOperationsSummary,
   FacilityOperationalStatus,
@@ -6,7 +6,9 @@ import {
   OperationalAnnouncement,
   OperationalIssue,
   StaffDutyItem,
+  StaffLeaveOperationalImpact,
 } from '@/types/operations';
+import { DoctorLeave } from '@/types/admin';
 
 export const operationsApi = {
   // 1. Get facility operational summary and telemetry
@@ -78,4 +80,42 @@ export const operationsApi = {
       departmentId,
       delayMinutes,
     }),
+
+  // 8. Staff Leave, Availability & Service Coverage
+  getLeaves: (facilityId: string = 'fac_civil_01', status?: string) => {
+    const query = status ? `?facilityId=${encodeURIComponent(facilityId)}&status=${encodeURIComponent(status)}` : `?facilityId=${encodeURIComponent(facilityId)}`;
+    return apiRequest<DoctorLeave[]>(`/operations/leaves${query}`, 'GET');
+  },
+
+  getDoctorLeaves: (doctorId: string) =>
+    apiRequest<DoctorLeave[]>(`/operations/leaves?doctorId=${encodeURIComponent(doctorId)}`, 'GET'),
+
+  getLeaveById: (leaveId: string) =>
+    apiRequest<DoctorLeave>(`/operations/leaves/${leaveId}`, 'GET'),
+
+  getLeaveImpact: (
+    doctorId: string,
+    startDate: string,
+    endDate: string,
+    facilityId: string = 'fac_civil_01'
+  ) =>
+    apiRequest<StaffLeaveOperationalImpact>(
+      `/operations/leaves/impact?doctorId=${encodeURIComponent(doctorId)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&facilityId=${encodeURIComponent(facilityId)}`,
+      'GET'
+    ),
+
+  applyLeave: (leaveData: Omit<DoctorLeave, 'id' | 'createdAt'>) =>
+    apiRequest<DoctorLeave>('/operations/leaves', 'POST', leaveData),
+
+  approveLeave: (leaveId: string, reviewerName: string = 'Facility Operations Coordinator') =>
+    apiRequest<DoctorLeave>(`/operations/leaves/${leaveId}/approve`, 'POST', { reviewerName }),
+
+  rejectLeave: (leaveId: string, reason: string, reviewerName: string = 'Facility Operations Coordinator') =>
+    apiRequest<DoctorLeave>(`/operations/leaves/${leaveId}/reject`, 'POST', { reason, reviewerName }),
+
+  requestChanges: (leaveId: string, note: string, reviewerName: string = 'Facility Operations Coordinator') =>
+    apiRequest<DoctorLeave>(`/operations/leaves/${leaveId}/request-changes`, 'POST', { note, reviewerName }),
+
+  cancelLeave: (leaveId: string, actor: string = 'Doctor') =>
+    apiRequest<{ cancelled: boolean }>(`/operations/leaves/${leaveId}/cancel`, 'POST', { actor }),
 };

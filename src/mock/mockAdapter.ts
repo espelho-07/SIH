@@ -258,6 +258,159 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
       };
     }
 
+    // Staff Leaves Management
+    if (cleanUrl.includes('/leaves')) {
+      const queryParams = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+      const queryFacilityId = queryParams.get('facilityId') || facId;
+      const queryStatus = queryParams.get('status') || undefined;
+      const queryDoctorId = queryParams.get('doctorId') || undefined;
+
+      // Evaluate operational impact preview
+      if (cleanUrl.includes('/impact')) {
+        const docId = queryParams.get('doctorId') || ((data as any)?.doctorId) || 'usr_doc_01';
+        const start = queryParams.get('startDate') || ((data as any)?.startDate) || '';
+        const end = queryParams.get('endDate') || ((data as any)?.endDate) || '';
+        const impact = mockState.evaluateLeaveImpact(docId, start, end, queryFacilityId);
+        return {
+          success: true,
+          message: 'Staff leave operational impact evaluated',
+          data: impact,
+        };
+      }
+
+      // Action: Approve
+      const approveMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/approve/);
+      if (approveMatch && method === 'POST') {
+        const body = (data || {}) as { reviewerName?: string };
+        try {
+          const approved = mockState.approveDoctorLeave(approveMatch[1], body.reviewerName || 'Facility Operations Coordinator');
+          return {
+            success: true,
+            message: `Leave approved for ${approved.doctorName}. Operational availability and service coverage updated.`,
+            data: approved,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to approve leave',
+            data: null,
+          };
+        }
+      }
+
+      // Action: Reject
+      const rejectMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/reject/);
+      if (rejectMatch && method === 'POST') {
+        const body = (data || {}) as { reason: string; reviewerName?: string };
+        try {
+          const rejected = mockState.rejectDoctorLeave(
+            rejectMatch[1],
+            body.reason || 'Service coverage constraints',
+            body.reviewerName || 'Facility Operations Coordinator'
+          );
+          return {
+            success: true,
+            message: `Leave request rejected for ${rejected.doctorName}. Doctor notified.`,
+            data: rejected,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to reject leave',
+            data: null,
+          };
+        }
+      }
+
+      // Action: Request Changes
+      const changesMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/request-changes/);
+      if (changesMatch && method === 'POST') {
+        const body = (data || {}) as { note: string; reviewerName?: string };
+        try {
+          const updated = mockState.requestChangesDoctorLeave(
+            changesMatch[1],
+            body.note || 'Please arrange alternate specialist handover',
+            body.reviewerName || 'Facility Operations Coordinator'
+          );
+          return {
+            success: true,
+            message: `Clarification requested for ${updated.doctorName}. Leave returned with reviewer notes.`,
+            data: updated,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to request changes',
+            data: null,
+          };
+        }
+      }
+
+      // Action: Cancel / Withdraw
+      const cancelMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)\/cancel/);
+      if (cancelMatch && method === 'POST') {
+        const body = (data || {}) as { actor?: string };
+        const cancelled = mockState.cancelDoctorLeave(cancelMatch[1], body.actor || 'Doctor');
+        return {
+          success: cancelled,
+          message: cancelled ? 'Leave schedule withdrawn. Staff duty availability restored.' : 'Leave not found or already cancelled',
+          data: { cancelled },
+        };
+      }
+
+      // Single Leave Details
+      const singleMatch = cleanUrl.match(/\/leaves\/(leave_[a-z0-9_]+)$/);
+      if (singleMatch && method === 'GET') {
+        const leave = mockState.getLeaveById(singleMatch[1]);
+        if (!leave) {
+          return {
+            success: false,
+            message: 'Leave record not found',
+            data: null,
+          };
+        }
+        return {
+          success: true,
+          message: 'Leave details retrieved',
+          data: leave,
+        };
+      }
+
+      // Create new leave (Doctor or Staff applying)
+      if (method === 'POST') {
+        const body = (data || {}) as any;
+        try {
+          const created = mockState.addDoctorLeave(body, body.actor || 'Doctor');
+          return {
+            success: true,
+            message: `Leave request registered successfully with ID ${created.id} and routed for Facility Operations review`,
+            data: created,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.message || 'Failed to submit leave request',
+            data: null,
+          };
+        }
+      }
+
+      // List facility leaves or doctor leaves
+      if (queryDoctorId) {
+        return {
+          success: true,
+          message: 'Doctor leaves retrieved',
+          data: mockState.getDoctorLeaves(queryDoctorId),
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Facility staff leave records retrieved',
+        data: mockState.getFacilityLeaves(queryFacilityId, queryStatus),
+      };
+    }
+
     // Queue Delay Broadcast
     if (cleanUrl.includes('/queues/delay') && (method === 'PATCH' || method === 'POST')) {
       const body = (data || {}) as { departmentId: string; delayMinutes: number };

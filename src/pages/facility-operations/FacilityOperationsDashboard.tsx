@@ -25,6 +25,7 @@ import {
   SlidersHorizontal,
   ChevronRight,
   ArrowUpRight,
+  Calendar,
 } from 'lucide-react';
 
 export const FacilityOperationsDashboard: React.FC = () => {
@@ -178,6 +179,21 @@ export const FacilityOperationsDashboard: React.FC = () => {
 
         {/* Global Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <Link to="/facility-operations/staff-leave">
+            <Button
+              variant="outline"
+              className="border-teal-300 text-teal-800 hover:bg-teal-100 font-bold text-xs gap-1.5 min-h-[40px] px-3.5 rounded-xl shadow-xs cursor-pointer relative"
+            >
+              <Calendar className="h-4 w-4 text-teal-700" />
+              <span>Staff Leave & Coverage</span>
+              {(summary?.telemetry.pendingStaffLeavesCount || 0) > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-amber-500 text-white animate-pulse">
+                  {summary?.telemetry.pendingStaffLeavesCount}
+                </span>
+              )}
+            </Button>
+          </Link>
+
           <Button
             onClick={() => setStatusModalOpen(true)}
             className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer"
@@ -347,27 +363,37 @@ export const FacilityOperationsDashboard: React.FC = () => {
           </Card>
         </Link>
 
-        {/* Staff Active */}
-        <Card className="p-4 border-slate-200 h-full flex flex-col justify-between col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Staff On Duty</span>
-            <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center">
-              <UserCheck className="h-4 w-4" />
+        {/* Staff Duty & Leave Roster */}
+        <Link to="/facility-operations/staff-leave" className="group col-span-2 lg:col-span-1">
+          <Card className="p-4 border-slate-200 hover:border-teal-500 hover:shadow-xs transition-all h-full flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Staff On Duty</span>
+              <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors">
+                <UserCheck className="h-4 w-4" />
+              </div>
             </div>
-          </div>
-          <div className="mt-2">
-            <p className="text-2xl sm:text-3xl font-black text-slate-900">
-              {summary?.telemetry.staffOnDutyCount || 0}
-            </p>
-            <span className="text-xs font-semibold text-emerald-700 mt-1 block flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Morning Shift Active
-            </span>
-          </div>
-          <div className="text-[11px] text-slate-400 font-medium pt-2 border-t border-slate-100">
-            Doctors, Nurses & Techs
-          </div>
-        </Card>
+            <div className="mt-2">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">
+                {summary?.telemetry.staffOnDutyCount || 0}
+              </p>
+              {(summary?.telemetry.pendingStaffLeavesCount || 0) > 0 ? (
+                <span className="text-xs font-bold text-amber-700 mt-1 flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                  {summary?.telemetry.pendingStaffLeavesCount} Leave Pending
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-emerald-700 mt-1 flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Roster Optimal
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-slate-400 group-hover:text-teal-700 font-medium flex items-center gap-1 mt-2 pt-2 border-t border-slate-100">
+              <span>Manage staff & leave</span>
+              <ChevronRight className="h-3 w-3" />
+            </div>
+          </Card>
+        </Link>
       </div>
 
       {/* Main Split: Department Matrix & Operations Feed */}
