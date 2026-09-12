@@ -209,7 +209,7 @@ export const PatientRegistrationWizard: React.FC = () => {
             </Link>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-            New Patient Registration (मरीज पंजीकरण)
+            New Patient Registration
           </h1>
           <p className="text-xs text-slate-500">
             Register citizen with ABHA ID check, demographic records, and live official OPD Case Paper generation for <strong className="text-slate-800 font-semibold">{selectedFacility}</strong>.

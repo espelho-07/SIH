@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { PriorityLevel } from '@/types/queue';
 import {
   Printer,
@@ -78,7 +78,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
           <FileText className="h-4 w-4 text-teal-800" />
-          <span>Hospital OPD Case Paper (मरीज पर्ची / केस पेपर)</span>
+          <span>Hospital OPD Case Paper</span>
         </div>
         <button
           type="button"
@@ -87,7 +87,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
           title="Print OPD Case Slip"
         >
           <Printer className="h-3.5 w-3.5 text-slate-700" />
-          <span>Print Slip (पर्ची प्रिंट)</span>
+          <span>Print Slip</span>
         </button>
       </div>
 
@@ -108,7 +108,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
               APEX DISTRICT HEALTHCARE FACILITY • {district || 'GANDHINAGAR'}, GUJARAT
             </p>
             <div className="mt-2 inline-block bg-slate-900 text-white font-extrabold text-xs px-3.5 py-1 tracking-wider uppercase rounded-xs">
-              CENTRAL OPD REGISTRATION CARD (बाह्यरुग्ण केस पेपर)
+              CENTRAL OPD REGISTRATION CARD
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
             <tbody>
               <tr className="border-b border-slate-300">
                 <td className="w-1/3 p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
-                  Patient Name (रुग्णाचे नाव):
+                  Patient Name:
                 </td>
                 <td colSpan={3} className="p-2 font-black text-slate-900 text-sm tracking-wide">
                   {name.trim() ? (
@@ -155,13 +155,13 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
               </tr>
               <tr className="border-b border-slate-300">
                 <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
-                  Age / Gender (वय / लिंग):
+                  Age / Gender:
                 </td>
                 <td className="p-2 font-bold text-slate-900">
                   {age ? `${age} Yrs` : '__ Yrs'} / {gender === 'M' ? 'Male (M)' : gender === 'F' ? 'Female (F)' : 'Other (T)'}
                 </td>
                 <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
-                  Contact (मोबाईल):
+                  Contact Mobile:
                 </td>
                 <td className="p-2 font-mono font-bold text-slate-900">
                   {phone ? `+91 ${phone}` : '+91 __________'}
@@ -169,7 +169,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
               </tr>
               <tr className="border-b border-slate-300">
                 <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
-                  ABHA ID (आभा क्रमांक):
+                  ABHA ID:
                 </td>
                 <td className="p-2 font-mono text-slate-800">
                   {abhaId ? (
@@ -189,7 +189,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
               </tr>
               <tr className="border-b border-slate-300">
                 <td className="p-2 bg-slate-100/80 font-bold text-slate-700 text-[11px] uppercase">
-                  Residential Address (पत्ता):
+                  Residential Address:
                 </td>
                 <td colSpan={3} className="p-2 text-slate-800 font-medium">
                   {address && address.trim() ? `${address.trim()}, ${district} - ${pincode}` : `${district} - ${pincode}`}
@@ -236,7 +236,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
           {/* 5. Doctor Clinical Notes & Examination (Authentic Ruled Case Paper Section) */}
           <div className="border border-slate-300 rounded-lg overflow-hidden">
             <div className="bg-slate-100 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between text-[10px] font-bold text-slate-700 uppercase">
-              <span>PHYSICIAN EXAMINATION & VITALS RECORD (चिकित्सक तपासणी)</span>
+              <span>PHYSICIAN EXAMINATION & VITALS RECORD</span>
               <span className="text-slate-500 font-mono">OPD BLOCK B</span>
             </div>
 
@@ -268,7 +268,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
             <div className="p-3 space-y-3 bg-white">
               <div>
                 <span className="text-[10px] font-extrabold text-slate-700 uppercase block">
-                  Chief Complaints & Clinical History (तक्रारी):
+                  Chief Complaints & Clinical History:
                 </span>
                 <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
                 <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
@@ -276,7 +276,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
 
               <div>
                 <span className="text-[10px] font-extrabold text-slate-700 uppercase block">
-                  Clinical Diagnosis (निदान):
+                  Clinical Diagnosis (Dx):
                 </span>
                 <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
               </div>
@@ -285,7 +285,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
                 <div className="flex items-center gap-1">
                   <span className="text-lg font-serif font-black text-slate-900 leading-none">℞</span>
                   <span className="text-[10px] font-extrabold text-slate-700 uppercase">
-                    Prescription & Treatment (औषधोपचार):
+                    Prescription & Treatment (Rx):
                   </span>
                 </div>
                 <div className="border-b border-dotted border-slate-400 h-5 mt-1" />
@@ -298,7 +298,7 @@ export const LiveHospitalCaseSheet: React.FC<LiveHospitalCaseSheetProps> = ({
           {/* 6. Investigations Checkbox Strip */}
           <div className="border border-slate-300 rounded-md p-2 bg-slate-50 text-[10px] text-slate-700">
             <span className="font-bold uppercase text-[9px] text-slate-600 block mb-1">
-              INVESTIGATIONS ORDERED (तपासण्या):
+              INVESTIGATIONS ORDERED:
             </span>
             <div className="flex items-center gap-4 flex-wrap font-mono">
               <span>[ &nbsp; ] CBC</span>
