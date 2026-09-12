@@ -317,6 +317,11 @@
     "howItWorksDesc": "Dependents without a smartphone are protected under the family head. When they obtain a dedicated phone, assign their number to decouple their login while retaining health history."
   },
   "appointments": {
+    "myAppointments": "My Appointments",
+    "upcomingAppointments": "Upcoming & Active Appointments",
+    "pendingHospitalCheckin": "Confirmed (Awaiting Hospital Check-in)",
+    "activeInHospital": "Active in Hospital (Token Issued)",
+    "selfCheckIn": "Self Check-in at Hospital",
     "bookAppointment": "Book Doctor Appointment",
     "bookSubtitle": "Select a hospital, department, consulting doctor, and an open time slot.",
     "selectHospital": "Select Hospital & Facility",

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { INITIAL_FACILITIES } from '@/mock/mockData';
+import { appointmentApi } from '@/api/queueApi';
 
 import {
   ArrowLeft,
@@ -19,18 +20,113 @@ import {
   FileText,
   Hash,
   RefreshCw,
+  Ticket,
+  AlertCircle,
 } from 'lucide-react';
+
+interface AppointmentDetailItem {
+  id: string;
+  facilityId: string;
+  hospital: string;
+  department: string;
+  doctor: string;
+  date: string;
+  time: string;
+  reason: string;
+  status: string;
+  room: string;
+  bookingDate: string;
+  patientName: string;
+  patientPhone: string;
+  tokenNumber?: string;
+}
+
+const DEMO_APPOINTMENTS: AppointmentDetailItem[] = [
+  {
+    id: 'APT-2026-001',
+    facilityId: 'fac_civil_01',
+    hospital: 'Gandhinagar Civil Hospital & Medical College',
+    department: 'General Medicine',
+    doctor: 'Dr. Arvind Patel',
+    date: '2026-09-15',
+    time: '10:30 AM',
+    reason: 'Routine blood sugar and blood pressure review',
+    status: 'CONFIRMED',
+    room: 'Room 4',
+    bookingDate: '2026-09-10',
+    patientName: 'Rameshwar Sharma',
+    patientPhone: '9876543210',
+  },
+  {
+    id: 'APT-2026-002',
+    facilityId: 'fac_mansa_02',
+    hospital: 'Mansa Community Health Centre',
+    department: 'General Medicine',
+    doctor: 'Dr. Mehta',
+    date: '2026-08-28',
+    time: '11:00 AM',
+    reason: 'Fever and weakness',
+    status: 'COMPLETED',
+    room: 'OPD Room 2',
+    bookingDate: '2026-08-25',
+    patientName: 'Rameshwar Sharma',
+    patientPhone: '9876543210',
+  },
+  {
+    id: 'APT-2026-003',
+    facilityId: 'fac_kalol_03',
+    hospital: 'Kalol Sub-District Hospital',
+    department: 'Orthopedics',
+    doctor: 'Dr. Shah',
+    date: '2026-07-12',
+    time: '02:30 PM',
+    reason: 'Knee pain check-up',
+    status: 'CANCELLED',
+    room: 'OPD Room 5',
+    bookingDate: '2026-07-08',
+    patientName: 'Rameshwar Sharma',
+    patientPhone: '9876543210',
+  },
+];
 
 export const AppointmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
-  /*
-   * Demo appointment data.
-   * Later this can be replaced with API data using the appointment ID.
-   */
-  const appointments = [
-    {
-      id: 'APT-2026-001',
+  const [appointment, setAppointment] = useState<AppointmentDetailItem>(() => {
+    // 1. Try finding in localStorage first
+    const stored = localStorage.getItem('healthconnect_appointments');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        const match = parsed.find((item: any) => item.id === id);
+        if (match) {
+          return {
+            id: match.id,
+            facilityId: match.facilityId || 'fac_civil_01',
+            hospital: match.facilityName || 'Gandhinagar Civil Hospital & Medical College',
+            department: match.specialty || 'General Medicine',
+            doctor: match.doctorName || 'Dr. Arvind Patel',
+            date: match.date,
+            time: match.timeSlot,
+            reason: match.reasonForVisit || 'Routine Consultation',
+            status: match.status || 'CONFIRMED',
+            room: match.room || 'Room 4',
+            bookingDate: match.createdAt ? match.createdAt.split('T')[0] : '2026-09-12',
+            patientName: match.patientName || 'Rameshwar Sharma',
+            patientPhone: match.patientPhone || '9876543210',
+            tokenNumber: match.tokenNumber,
+          };
+        }
+      } catch (e) {}
+    }
+
+    // 2. Demo fallback
+    const matchDemo = DEMO_APPOINTMENTS.find((item) => item.id === id);
+    if (matchDemo) return matchDemo;
+
+    return {
+      id: id || 'APT-2026-001',
       facilityId: 'fac_civil_01',
       hospital: 'Gandhinagar Civil Hospital & Medical College',
       department: 'General Medicine',
@@ -43,41 +139,59 @@ export const AppointmentDetails: React.FC = () => {
       bookingDate: '2026-09-10',
       patientName: 'Rameshwar Sharma',
       patientPhone: '9876543210',
-    },
-    {
-      id: 'APT-2026-002',
-      facilityId: 'fac_mansa_02',
-      hospital: 'Mansa Community Health Centre',
-      department: 'General Medicine',
-      doctor: 'Dr. Mehta',
-      date: '2026-08-28',
-      time: '11:00 AM',
-      reason: 'Fever and weakness',
-      status: 'COMPLETED',
-      room: 'OPD Room 2',
-      bookingDate: '2026-08-25',
-      patientName: 'Rameshwar Sharma',
-      patientPhone: '9876543210',
-    },
-    {
-      id: 'APT-2026-003',
-      facilityId: 'fac_kalol_03',
-      hospital: 'Kalol Sub-District Hospital',
-      department: 'Orthopedics',
-      doctor: 'Dr. Shah',
-      date: '2026-07-12',
-      time: '02:30 PM',
-      reason: 'Knee pain check-up',
-      status: 'CANCELLED',
-      room: 'OPD Room 5',
-      bookingDate: '2026-07-08',
-      patientName: 'Rameshwar Sharma',
-      patientPhone: '9876543210',
-    },
-  ];
+      tokenNumber: undefined,
+    };
+  });
 
-  const appointment =
-    appointments.find((item) => item.id === id) || appointments[0];
+  // Re-fetch from API if available
+  useEffect(() => {
+    if (!id) return;
+    appointmentApi
+      .getAll()
+      .then((res) => {
+        if (res.data) {
+          const found = res.data.find((a) => a.id === id);
+          if (found) {
+            setAppointment({
+              id: found.id,
+              facilityId: found.facilityId || 'fac_civil_01',
+              hospital: found.facilityName || 'Gandhinagar Civil Hospital & Medical College',
+              department: found.specialty || 'General Medicine',
+              doctor: found.doctorName || 'Dr. Arvind Patel',
+              date: found.date,
+              time: found.timeSlot,
+              reason: found.reasonForVisit || 'Routine Consultation',
+              status: found.status || 'CONFIRMED',
+              room: (found as any).room || 'Room 4',
+              bookingDate: found.createdAt ? found.createdAt.split('T')[0] : '2026-09-12',
+              patientName: found.patientName || 'Rameshwar Sharma',
+              patientPhone: found.patientPhone || '9876543210',
+              tokenNumber: found.tokenNumber,
+            });
+          }
+        }
+      })
+      .catch(() => {});
+  }, [id]);
+
+  const handleCheckIn = async () => {
+    if (!appointment.id) return;
+    setIsCheckingIn(true);
+    try {
+      const res = await appointmentApi.checkIn(appointment.id);
+      if (res.data) {
+        setAppointment((prev: any) => ({
+          ...prev,
+          status: 'CHECKED_IN',
+          tokenNumber: res.data.token.tokenNumber,
+        }));
+      }
+    } catch (err) {
+      console.warn('Check-in failed', err);
+    } finally {
+      setIsCheckingIn(false);
+    }
+  };
 
   const facility = INITIAL_FACILITIES.find(
     (item) => item.id === appointment.facilityId
@@ -85,12 +199,20 @@ export const AppointmentDetails: React.FC = () => {
 
   const getStatus = () => {
     switch (appointment.status) {
-      case 'CONFIRMED':
+      case 'CHECKED_IN':
         return {
-          label: 'Confirmed',
-          text: 'Your appointment is confirmed.',
+          label: 'Active in Hospital',
+          text: `Checked in. OPD Queue Token #${appointment.tokenNumber || 'A-042'} is active.`,
           className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
           icon: CheckCircle2,
+        };
+
+      case 'CONFIRMED':
+        return {
+          label: 'Confirmed (Awaiting Hospital Check-in)',
+          text: 'Your appointment is booked on the hospital schedule. Check in upon arrival to receive your OPD token.',
+          className: 'bg-amber-50 text-amber-800 border-amber-200',
+          icon: Clock,
         };
 
       case 'COMPLETED':
@@ -111,7 +233,7 @@ export const AppointmentDetails: React.FC = () => {
 
       default:
         return {
-          label: 'Appointment',
+          label: 'Scheduled',
           text: 'Appointment details',
           className: 'bg-slate-50 text-slate-700 border-slate-200',
           icon: CalendarDays,
@@ -471,118 +593,130 @@ export const AppointmentDetails: React.FC = () => {
           SIMPLE INSTRUCTIONS
       ========================== */}
 
+      {/* =========================
+          INSTRUCTIONS & STATUS GUIDANCE
+      ========================== */}
+
       {appointment.status === 'CONFIRMED' && (
-
-        <Card className="border-teal-100 bg-teal-50/60">
-
-          <CardContent className="p-4">
-
+        <Card className="border-amber-200 bg-amber-50/70">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex gap-3">
-
-              <CheckCircle2 className="h-5 w-5 text-teal-700 shrink-0 mt-0.5" />
-
-              <div>
-
-                <p className="text-sm font-bold text-teal-900">
-                  What you need to do
+              <Clock className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-amber-950">
+                  Hospital Arrival & OPD Self Check-in
                 </p>
-
-                <ul className="mt-1.5 space-y-1 text-xs text-teal-800">
-
-                  <li>• Reach the hospital before your appointment time.</li>
-
-                  <li>• Carry your health documents if available.</li>
-
-                  <li>• Go to {appointment.room} for your consultation.</li>
-
+                <p className="text-xs text-amber-800">
+                  Your appointment slot is confirmed on the hospital roster. When you arrive at the hospital, click <strong>"Hospital Self Check-in"</strong> below to instantly receive your live OPD queue token without standing in lines.
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-amber-900">
+                  <li>• Arrive 15 minutes before your time slot ({appointment.time}).</li>
+                  <li>• Bring your ABHA card and past prescriptions if available.</li>
+                  <li>• Consultation room: {appointment.room}.</li>
                 </ul>
-
               </div>
-
             </div>
-
           </CardContent>
-
         </Card>
-
       )}
 
+      {appointment.status === 'CHECKED_IN' && (
+        <Card className="border-emerald-200 bg-emerald-50/70">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-700 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-emerald-950">
+                  Active in Hospital OPD Queue
+                </p>
+                <p className="text-xs text-emerald-800">
+                  You are checked in! Live Token <strong>#{appointment.tokenNumber || 'A-042'}</strong> has been issued. Head toward <strong>{appointment.room}</strong>.
+                </p>
+                <p className="text-xs text-emerald-700 font-medium mt-1">
+                  Keep an eye on the waiting area displays or track live wait times using the Live Token tracker.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* =========================
           ACTIONS
       ========================== */}
 
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-2.5">
+        {appointment.status === 'CONFIRMED' && (
+          <Button
+            size="md"
+            onClick={handleCheckIn}
+            isLoading={isCheckingIn}
+            className="flex-1 bg-teal-700 hover:bg-teal-800 text-white font-bold gap-1.5 cursor-pointer shadow-xs"
+          >
+            <Ticket className="h-4 w-4" />
+            Hospital Self Check-in
+          </Button>
+        )}
+
+        {appointment.status === 'CHECKED_IN' && (
+          <Link to="/patient/tokens" className="flex-1">
+            <Button
+              size="md"
+              className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Ticket className="h-4 w-4" />
+              Track Live Queue Token ↗
+            </Button>
+          </Link>
+        )}
 
         {facility && (
-
           <a
             href={`tel:${facility.contactNumber}`}
             className="flex-1"
           >
-
             <Button
               variant="outline"
               size="md"
               className="w-full gap-1.5"
             >
-
               <Phone className="h-4 w-4" />
-
               Call Hospital
-
             </Button>
-
           </a>
-
         )}
 
-
         {facility && (
-
           <a
             href={`https://maps.google.com/?q=${facility.coordinates.lat},${facility.coordinates.lng}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1"
           >
-
             <Button
               variant="outline"
               size="md"
               className="w-full gap-1.5"
             >
-
               <Navigation className="h-4 w-4 text-teal-700" />
-
               Get Directions
-
             </Button>
-
           </a>
-
         )}
-
 
         <Link
           to="/patient/appointments"
           className="flex-1"
         >
-
           <Button
-            variant="primary"
+            variant="outline"
             size="md"
-            className="w-full gap-1.5 bg-teal-700 hover:bg-teal-800"
+            className="w-full gap-1.5 text-slate-700"
           >
-
             <ArrowLeft className="h-4 w-4" />
-
             Back to Appointments
-
           </Button>
-
         </Link>
-
       </div>
 
 
