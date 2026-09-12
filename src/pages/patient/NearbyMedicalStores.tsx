@@ -45,6 +45,7 @@ export const NearbyMedicalStores: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'JAN_AUSHADHI' | '24X7'>('ALL');
   const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('LIST');
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
 
   // Active citizen's prescribed medicines from ABHA vault
   const patientPrescriptions = INITIAL_PRESCRIPTIONS;
@@ -202,82 +203,212 @@ export const NearbyMedicalStores: React.FC = () => {
   // Leaflet Map Reference
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const layerGroupRef = useRef<L.LayerGroup | null>(null);
+  const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
 
+  // Initialize Leaflet Map once
   useEffect(() => {
-    if (viewMode !== 'MAP' || !mapContainerRef.current) return;
+    if (!mapContainerRef.current) return;
 
     if (mapInstanceRef.current) {
       mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
     }
+    if ((mapContainerRef.current as any)._leaflet_id) {
+      delete (mapContainerRef.current as any)._leaflet_id;
+    }
+
+    const tileUrl =
+      import.meta.env.VITE_MAP_TILE_URL ||
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     const map = L.map(mapContainerRef.current, {
       center: [23.2268, 72.6515], // Gandhinagar center
       zoom: 13,
       zoomControl: true,
+      scrollWheelZoom: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer(tileUrl, {
       attribution: '&copy; OpenStreetMap | Sanjeevani Network',
       maxZoom: 18,
     }).addTo(map);
 
+    const layerGroup = L.layerGroup().addTo(map);
+    layerGroupRef.current = layerGroup;
     mapInstanceRef.current = map;
 
-    // Add Markers for Open Stores
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+      layerGroupRef.current = null;
+      markersMapRef.current.clear();
+    };
+  }, []);
+
+  // Update Markers whenever filteredStores or selectedStoreId changes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const layerGroup = layerGroupRef.current;
+    if (!map || !layerGroup) return;
+
+    layerGroup.clearLayers();
+    markersMapRef.current.clear();
+
+    if (filteredStores.length === 0) return;
+
+    const latLngs: [number, number][] = [];
+
     filteredStores.forEach((store) => {
       const isGovt = store.isJanAushadhi;
-      const markerColor = isGovt ? '#0f766e' : '#2563eb';
+      const isSelected = store.id === selectedStoreId;
+      const markerBg = isSelected
+        ? '#0f766e'
+        : isGovt
+        ? '#0d9488'
+        : '#2563eb';
+
+      latLngs.push([store.coordinates.lat, store.coordinates.lng]);
 
       const customIcon = L.divIcon({
         className: 'custom-medical-pin',
         html: `
           <div style="
-            background: ${markerColor};
+            background: ${markerBg};
             color: white;
-            padding: 6px 10px;
-            border-radius: 12px;
+            padding: ${isSelected ? '6px 12px' : '5px 10px'};
+            border-radius: 9999px;
             font-size: 11px;
             font-weight: 800;
             white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            border: 2px solid white;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            border: ${isSelected ? '2.5px solid #f59e0b' : '2px solid white'};
             display: flex;
             align-items: center;
             gap: 4px;
+            transform: ${isSelected ? 'scale(1.12)' : 'scale(1)'};
+            transition: all 0.2s ease;
+            cursor: pointer;
           ">
-            <span>${isGovt ? '🏛 PMBJP' : '💊 Pharmacy'}</span>
+            <span>${isGovt ? '🏛️ PMBJP' : '💊 Pharmacy'}</span>
             <span>(${store.distanceKm}km)</span>
           </div>
         `,
-        iconSize: [110, 30],
-        iconAnchor: [55, 15],
+        iconSize: [115, 30],
+        iconAnchor: [57, 15],
       });
 
       const marker = L.marker([store.coordinates.lat, store.coordinates.lng], {
         icon: customIcon,
-      }).addTo(map);
+      }).addTo(layerGroup);
 
       marker.bindPopup(`
-        <div style="font-family: system-ui, sans-serif; padding: 4px; max-width: 230px;">
-          <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 2px;">${store.name}</strong>
-          <span style="font-size: 11px; color: #64748b;">${store.area} • ${store.distanceKm} km away</span>
-          <p style="font-size: 11px; margin-top: 6px; font-weight: bold; color: #059669">
-            ● Open Now (${store.timings})
+        <div style="font-family: system-ui, -apple-system, sans-serif; padding: 4px; min-width: 220px; max-width: 260px;">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+            <span style="background: ${isGovt ? '#ccfbf1' : '#dbeafe'}; color: ${isGovt ? '#0f766e' : '#1e40af'}; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
+              ${isGovt ? '🏛️ Jan Aushadhi (Govt)' : '💊 Private Pharmacy'}
+            </span>
+            <span style="font-size: 10px; font-weight: 700; color: #059669;">● Open Now</span>
+          </div>
+          <strong style="font-size: 13px; color: #0f172a; display: block; line-height: 1.3; margin-bottom: 2px;">${store.name}</strong>
+          <span style="font-size: 11px; color: #64748b; display: block; margin-bottom: 6px;">📍 ${store.area} • ${store.distanceKm} km away</span>
+          <p style="font-size: 11px; margin: 0 0 8px 0; font-weight: 700; color: #059669;">
+            Timings: ${store.timings}
           </p>
-          <div style="margin-top: 8px;">
-            <a href="tel:${store.phone}" style="display: inline-block; background: #0f766e; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; text-decoration: none; font-weight: bold;">
-              📞 Call Store
+          <div style="display: flex; gap: 6px;">
+            <a href="tel:${store.phone}" style="flex: 1; text-align: center; background: #0f766e; color: white; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700;">
+              📞 Call
+            </a>
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.fullAddress}`)}" target="_blank" rel="noopener noreferrer" style="flex: 1; text-align: center; background: #f1f5f9; color: #334155; padding: 6px 8px; border-radius: 8px; font-size: 11px; text-decoration: none; font-weight: 700; border: 1px solid #cbd5e1;">
+              🗺️ Route
             </a>
           </div>
         </div>
       `);
+
+      marker.on('click', () => {
+        setSelectedStoreId(store.id);
+      });
+
+      markersMapRef.current.set(store.id, marker);
     });
 
-    return () => {
-      map.remove();
-      mapInstanceRef.current = null;
-    };
+    if (latLngs.length > 0 && viewMode === 'MAP') {
+      try {
+        const bounds = L.latLngBounds(latLngs);
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      } catch (err) {
+        // ignore
+      }
+    }
+  }, [filteredStores, selectedStoreId, viewMode]);
+
+  // When switching to MAP view -> invalidate map size and fit bounds
+  useEffect(() => {
+    if (viewMode === 'MAP') {
+      const t1 = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 50);
+
+      const t2 = setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+          if (filteredStores.length > 0) {
+            try {
+              const bounds = L.latLngBounds(
+                filteredStores.map((s) => [s.coordinates.lat, s.coordinates.lng])
+              );
+              mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+            } catch (err) {
+              // ignore
+            }
+          }
+        }
+      }, 200);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
   }, [viewMode, filteredStores]);
+
+  // Window resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      if (viewMode === 'MAP' && mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
+
+  const handleLocateStore = (store: MedicalStore) => {
+    setSelectedStoreId(store.id);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([store.coordinates.lat, store.coordinates.lng], 15, {
+        duration: 0.8,
+      });
+      const marker = markersMapRef.current.get(store.id);
+      if (marker) {
+        marker.openPopup();
+      }
+    }
+  };
+
+  const handleResetMapBounds = () => {
+    if (mapInstanceRef.current && filteredStores.length > 0) {
+      const bounds = L.latLngBounds(
+        filteredStores.map((s) => [s.coordinates.lat, s.coordinates.lng])
+      );
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+  };
 
   // Handle Reservation Submit
   const handleConfirmReservation = (e: React.FormEvent) => {
@@ -485,32 +616,188 @@ export const NearbyMedicalStores: React.FC = () => {
       {/* ================================================== */}
       {/* VIEW MODE 1: MAP VIEW */}
       {/* ================================================== */}
-      {viewMode === 'MAP' && (
-        <Card className="border-slate-200 overflow-hidden shadow-xs">
-          <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800 flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-teal-700" />
-              <span>Map View: Open Medical Stores</span>
-            </span>
-            <div className="flex items-center gap-3 text-[11px]">
-              <span className="flex items-center gap-1 font-bold text-teal-800">
-                <span className="h-2.5 w-2.5 rounded-full bg-teal-700" />
-                Jan Aushadhi (Govt)
-              </span>
-              <span className="flex items-center gap-1 font-bold text-blue-800">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                Private Pharmacy
-              </span>
-            </div>
+      <div className={viewMode === 'MAP' ? 'block space-y-4' : 'hidden'}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Main Map Card */}
+          <div className="lg:col-span-7">
+            <Card className="border-slate-200 overflow-hidden shadow-xs sticky top-4">
+              <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-teal-700" />
+                    <span>Map View: Open Medical Stores</span>
+                  </span>
+                  <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-bold text-teal-800">
+                    {filteredStores.length} stores
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 text-[11px]">
+                  <span className="flex items-center gap-1 font-bold text-teal-800">
+                    <span className="h-2.5 w-2.5 rounded-full bg-teal-700" />
+                    Jan Aushadhi (Govt)
+                  </span>
+                  <span className="flex items-center gap-1 font-bold text-blue-800">
+                    <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                    Private Pharmacy
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetMapBounds}
+                    className="ml-1 text-[11px] font-bold text-teal-700 hover:text-teal-900 underline cursor-pointer"
+                    title="Reset map view to show all stores"
+                  >
+                    Fit All
+                  </button>
+                </div>
+              </div>
+              <div ref={mapContainerRef} className="h-[420px] sm:h-[520px] w-full" />
+            </Card>
           </div>
-          <div ref={mapContainerRef} className="h-[460px] w-full" />
-        </Card>
-      )}
+
+          {/* Interactive Stores Sidebar */}
+          <div className="lg:col-span-5 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Matching Stores ({filteredStores.length})
+              </h3>
+              <span className="text-[11px] text-slate-400">Click a store to locate</span>
+            </div>
+
+            {filteredStores.length === 0 ? (
+              <Card className="p-8 text-center border-slate-200 bg-white">
+                <Search className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-900">No open stores found</p>
+                <p className="text-[11px] text-slate-500 mt-1">Try adjusting your search or filters</p>
+              </Card>
+            ) : (
+              <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+                {filteredStores.map((store) => {
+                  const isSelected = store.id === selectedStoreId;
+                  return (
+                    <Card
+                      key={store.id}
+                      onClick={() => handleLocateStore(store)}
+                      className={`p-3.5 transition-all cursor-pointer border ${
+                        isSelected
+                          ? 'border-teal-500 bg-teal-50/40 ring-2 ring-teal-500/20 shadow-sm'
+                          : store.isJanAushadhi
+                          ? 'border-teal-200 hover:border-teal-400 bg-white shadow-2xs'
+                          : 'border-slate-200 hover:border-slate-300 bg-white shadow-2xs'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                              {store.isJanAushadhi ? (
+                                <span className="inline-flex items-center gap-0.5 rounded bg-teal-800 text-white px-1.5 py-0.5 text-[10px] font-bold">
+                                  <Building2 className="h-3 w-3 text-amber-300" />
+                                  Jan Aushadhi
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center rounded bg-slate-100 text-slate-700 px-1.5 py-0.5 text-[10px] font-bold">
+                                  Private
+                                </span>
+                              )}
+                              <span className="text-[10px] font-bold text-emerald-700">
+                                ● Open Now
+                              </span>
+                            </div>
+                            <h4 className="text-xs font-bold text-slate-900 leading-tight">
+                              {store.name}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+                              <MapPin className="h-3 w-3 text-teal-600 shrink-0" />
+                              {store.distanceKm} km • {store.area}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLocateStore(store);
+                            }}
+                            className="shrink-0 px-2 py-1 rounded-md bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Navigation className="h-3 w-3" />
+                            <span>Locate</span>
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100 text-xs">
+                          <a
+                            href={`tel:${store.phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 text-center py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-bold text-[11px] flex items-center justify-center gap-1 transition-colors"
+                          >
+                            <Phone className="h-3 w-3" />
+                            <span>Call</span>
+                          </a>
+
+                          {store.whatsappPhone && (
+                            <a
+                              href={`https://wa.me/${store.whatsappPhone}?text=${encodeURIComponent(
+                                `Hello! I found your medical store on the Sanjeevani Citizen Portal. Do you have ${
+                                  searchQuery || 'this medicine'
+                                } in stock?`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-[11px] flex items-center gap-1 transition-colors"
+                            >
+                              <MessageCircle className="h-3 w-3 text-emerald-600" />
+                              <span>WhatsApp</span>
+                            </a>
+                          )}
+
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              `${store.name} ${store.fullAddress}`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] flex items-center gap-1 transition-colors"
+                          >
+                            <Navigation className="h-3 w-3 text-slate-500" />
+                            <span>Route</span>
+                          </a>
+
+                          {store.isJanAushadhi && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReservingStore(store);
+                                setReservedMedicine(store.stockCatalog[0] || null);
+                                setReservationConfirmedCode(null);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Hold medicine for 1-hour pickup"
+                            >
+                              <ShoppingBag className="h-3 w-3 text-teal-600" />
+                              <span>Hold</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* ================================================== */}
       {/* VIEW MODE 2: LIST VIEW OF OPEN STORES */}
       {/* ================================================== */}
-      <div className="space-y-3">
+      {viewMode === 'LIST' && (
+        <div className="space-y-3">
         {filteredStores.length === 0 ? (
           <Card className="p-10 text-center border-slate-200 bg-white">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-3">
@@ -770,6 +1057,7 @@ export const NearbyMedicalStores: React.FC = () => {
           </div>
         )}
       </div>
+      )}
 
       {/* ================================================== */}
       {/* SMART PRESCRIPTION STORE MATCHER POP-UP MODAL */}

@@ -126,6 +126,11 @@
   border-radius: 0.5rem;
 }
 
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
 /* Custom scrollbars for data tables and sidebars */
 ::-webkit-scrollbar {
   width: 6px;
