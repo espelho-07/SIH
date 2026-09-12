@@ -94,7 +94,7 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
         </button>
 
         {/* Right Controls: Status, Mobile Location, Language, Role Switcher, Emergency SOS, Profile */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {/* Patient Direct Family Member Switcher (Anywhere in patient portal) */}
           {role === 'PATIENT' && (
             <FamilyMemberSwitcher variant="navbar" />
@@ -104,24 +104,25 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
           <button
             type="button"
             onClick={openLocationModal}
-            className="md:hidden flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 min-h-[38px] cursor-pointer"
+            className="hidden min-[400px]:flex md:hidden items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 min-h-[36px] cursor-pointer shrink-0"
             title={`Current Location: ${selectedDistrict}`}
             aria-label="Change Location"
           >
             <MapPin className="h-3.5 w-3.5 text-teal-700 shrink-0" />
-            <span className="truncate max-w-[65px]">{selectedDistrict}</span>
+            <span className="truncate max-w-[60px]">{selectedDistrict}</span>
           </button>
 
           {/* Language Switcher */}
           <div className="relative">
             <button
               onClick={() => setLangMenuOpen(!langMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs min-h-[38px] cursor-pointer transition-colors"
+              className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 sm:px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs min-h-[36px] cursor-pointer transition-colors"
               aria-label={t('navbar.switchLanguage', 'Switch Language')}
               title={t('navbar.switchLanguage', 'Switch Language')}
             >
-              <Globe className="h-3.5 w-3.5 text-teal-700" />
-              <span className="font-bold text-slate-900">{currentLang.nativeName}</span>
+              <Globe className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+              <span className="font-bold text-slate-900 hidden sm:inline">{currentLang.nativeName}</span>
+              <span className="font-bold text-slate-900 sm:hidden uppercase text-[11px]">{currentLang.code.slice(0, 2)}</span>
               <ChevronDown
                 className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
                   langMenuOpen ? 'rotate-180' : ''

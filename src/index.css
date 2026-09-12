@@ -191,4 +191,54 @@ body {
   pointer-events: none !important;
 }
 
+/* =====================================================
+   MOBILE APPLICATION RESPONSIVE RULES & TOUCH POLISH
+====================================================== */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Safe area insets for notched mobile devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Prevent unwanted blue selection highlights on tap */
+button,
+a,
+nav,
+[role="button"] {
+  -webkit-touch-callout: none;
+}
+
+/* Smooth momentum scrolling for mobile viewports */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent layout breaking images or elements on mobile screens */
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  max-width: 100%;
+  height: auto;
+}
+
+
 

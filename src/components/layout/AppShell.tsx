@@ -46,8 +46,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         {/* Sidebar for Desktop & Tablet */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Content Viewport with pb-20 on mobile for BottomNav */}
-        <main className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-6 pb-24 md:pb-10 max-w-7xl mx-auto w-full">
+        {/* Content Viewport with pb-28 on mobile for bottom navigation and home bar clearance */}
+        <main className="flex-1 overflow-y-auto px-2.5 sm:px-6 lg:px-8 py-3.5 sm:py-6 pb-28 md:pb-10 max-w-7xl mx-auto w-full overscroll-contain">
           {children}
         </main>
       </div>

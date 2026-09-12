@@ -35,9 +35,9 @@ export const MobileBottomNav: React.FC = () => {
         return [
           { to: '/patient', label: 'Home', icon: LayoutDashboard },
           { to: '/patient/facilities', label: 'Hospitals', icon: Building2 },
+          { to: '/patient/appointments', label: 'Appointments', icon: Calendar },
           { to: '/patient/tokens', label: 'Token', icon: Ticket },
           { to: '/patient/records', label: 'Records', icon: FileText },
-          { to: '/patient/referrals', label: 'Referrals', icon: GitBranch },
         ];
 
       case 'ASHA':
@@ -130,10 +130,10 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md md:hidden shadow-lg select-none"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none safe-area-bottom"
       aria-label="Mobile Navigation"
     >
-      <div className="flex h-16 items-center justify-around px-2">
+      <div className="flex h-16 items-center justify-around px-1 max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -143,13 +143,31 @@ export const MobileBottomNav: React.FC = () => {
               end={item.to.split('/').length <= 2}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center justify-center flex-1 h-full min-h-[44px] transition-colors',
-                  isActive ? 'text-teal-800 font-bold' : 'text-slate-500 hover:text-slate-800'
+                  'flex flex-col items-center justify-center flex-1 h-full min-h-[48px] py-1 transition-all relative group cursor-pointer',
+                  isActive ? 'text-teal-700' : 'text-slate-400 hover:text-slate-700'
                 )
               }
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-[10px] mt-0.5 tracking-tight">{t(`navMap.${item.label}`, item.label)}</span>
+              {({ isActive }) => (
+                <>
+                  <div
+                    className={cn(
+                      'flex items-center justify-center h-8 w-12 rounded-full transition-all duration-200',
+                      isActive ? 'bg-teal-50 text-teal-700 shadow-2xs scale-105' : 'text-slate-500'
+                    )}
+                  >
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                  <span
+                    className={cn(
+                      'text-[10px] mt-0.5 tracking-tight leading-none',
+                      isActive ? 'font-bold text-teal-900' : 'font-medium text-slate-500'
+                    )}
+                  >
+                    {t(`navMap.${item.label}`, item.label)}
+                  </span>
+                </>
+              )}
             </NavLink>
           );
         })}
