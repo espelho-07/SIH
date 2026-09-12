@@ -168,11 +168,10 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                           setActiveLang(lang.code);
                           setLangMenuOpen(false);
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium min-h-[38px] transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-teal-50 text-teal-900 font-bold'
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium min-h-[38px] transition-colors cursor-pointer ${isSelected
+                          ? 'bg-teal-50 text-teal-900 font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                          }`}
                       >
                         <span className="text-sm">{lang.nativeName}</span>
                         <span className={`text-[10px] uppercase ${isSelected ? 'text-teal-700 font-bold' : 'text-slate-400'}`}>
@@ -182,101 +181,6 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                     );
                   })}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Role Quick-Switcher Dropdown for SIH Judges / Demonstrators */}
-          <div className="relative">
-            <button
-              onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg bg-teal-50 border border-teal-200 px-2.5 py-1.5 text-xs font-bold text-teal-900 hover:bg-teal-100 min-h-[38px] transition-colors cursor-pointer"
-              title={t('navbar.demoHelp', 'Quick switch role for live demonstration')}
-            >
-              <Sliders className="h-3.5 w-3.5 text-teal-700" />
-              <span className="hidden md:inline">
-                {t('navbar.role', 'Role')}:{' '}
-                {role === 'FACILITY_STAFF' && staffSubType
-                  ? t(`staffSubTypes.${staffSubType}` as any, staffSubType.replace('_', ' '))
-                  : role
-                  ? t(`roles.${role}` as any, role.replace('_', ' '))
-                  : ''}
-              </span>
-              <ChevronDown className="h-3 w-3 text-teal-700" />
-            </button>
-
-            {roleMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white p-2 shadow-2xl border border-slate-200 z-50 animate-in fade-in-50 duration-100 space-y-1">
-                <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                  {t('navbar.demoTitle', 'Select Role to Demonstrate')}
-                </div>
-                <button
-                  onClick={() => handleRoleSwitch('PATIENT')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px] cursor-pointer"
-                >
-                  <Users className="h-4 w-4 text-teal-600" />
-                  <span>{t('navbar.patientCitizen', '1. Patient / Citizen')}</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('ASHA')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px] cursor-pointer"
-                >
-                  <UserCheck className="h-4 w-4 text-emerald-600" />
-                  <span>{t('navbar.ashaWorker', '2. ASHA / ANM / CHO')}</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('DOCTOR')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px] cursor-pointer"
-                >
-                  <Stethoscope className="h-4 w-4 text-sky-600" />
-                  <span>{t('navbar.doctorSpecialist', '3. Doctor / Specialist')}</span>
-                </button>
-                <div className="px-3 pt-2 text-[10px] font-bold uppercase text-slate-400">
-                  {t('navbar.facilityStaffSubtypes', 'Facility Staff Subtypes')}
-                </div>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'REGISTRATION_CLERK')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>{t('navbar.regClerk', '4a. Registration Clerk')}</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'PHARMACIST')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>{t('navbar.pharmacist', '4b. Pharmacist')}</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'LAB_TECHNICIAN')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>{t('navbar.labTech', '4c. Lab Technician')}</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('FACILITY_STAFF', 'FACILITY_OPERATIONS')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer"
-                >
-                  <Building2 className="h-3.5 w-3.5 text-amber-600" />
-                  <span>{t('navbar.facilityOps', '4d. Facility Operations')}</span>
-                </button>
-                <div className="border-t border-slate-100 my-1" />
-                <button
-                  onClick={() => handleRoleSwitch('DISTRICT_ADMIN')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px] cursor-pointer"
-                >
-                  <Shield className="h-4 w-4 text-indigo-600" />
-                  <span>{t('navbar.districtAdmin', '5. District Health Admin')}</span>
-                </button>
-                <button
-                  onClick={() => handleRoleSwitch('SUPER_ADMIN')}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-950 min-h-[40px] cursor-pointer"
-                >
-                  <Shield className="h-4 w-4 text-red-600" />
-                  <span>{t('navbar.superAdmin', '6. Super Admin (Tech)')}</span>
-                </button>
               </div>
             )}
           </div>
@@ -296,8 +200,8 @@ export const TopNavbar: React.FC<{ onToggleSidebar?: () => void; isSidebarOpen?:
                   {role === 'FACILITY_STAFF' && staffSubType
                     ? t(`staffSubTypes.${staffSubType}` as any, staffSubType.replace('_', ' '))
                     : role
-                    ? t(`roles.${role}` as any, role.replace('_', ' '))
-                    : ''}
+                      ? t(`roles.${role}` as any, role.replace('_', ' '))
+                      : ''}
                 </span>
               </div>
             </div>
