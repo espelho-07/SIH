@@ -1475,37 +1475,44 @@ export const UserProfilePage: React.FC = () => {
       {/* ----------------------------------------------------------- */}
       {/* DECLARE LEAVE MODAL DIALOG (Wide max-w-2xl)                 */}
       {/* ----------------------------------------------------------- */}
-      <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal} maxWidth="2xl">
-        <DialogContent
-          className="bg-white rounded-3xl p-0 overflow-hidden shadow-2xl border border-slate-200"
-        >
-          <div className="bg-slate-900 p-5 text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-emerald-400" />
-                </div>
-                <div>
-                  <DialogTitle className="text-base font-bold text-white">
-                    Apply for Leave
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-slate-300 mt-0.5">
-                    Schedule time off and assign a colleague to cover your duties.
-                  </DialogDescription>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowLeaveModal(false)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+      <Dialog
+        open={showLeaveModal}
+        onOpenChange={setShowLeaveModal}
+        maxWidth="2xl"
+        className="p-0"
+        hideCloseButton={true}
+      >
+        {/* Pinned Header */}
+        <div className="bg-slate-900 p-5 sm:p-6 text-white rounded-t-3xl flex items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+              <Calendar className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-bold text-white tracking-tight">
+                Apply for Leave
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-300 mt-0.5">
+                Schedule time off and assign a colleague to cover your duties.
+              </DialogDescription>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowLeaveModal(false)}
+            className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer transition-colors shrink-0"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-          <form onSubmit={handleApplyLeave} className="p-5 space-y-4">
+        {/* Form with Scrollable Body and Pinned Footer */}
+        <form onSubmit={handleApplyLeave} className="flex flex-col flex-1 overflow-hidden min-h-0">
+          {/* Scrollable Form Body */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 bg-white">
             {/* Simple Notice */}
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2.5">
+            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>
                 Your status will show as <strong>On Leave</strong> during this period, and patient visits will be directed to your covering colleague.
@@ -1520,7 +1527,7 @@ export const UserProfilePage: React.FC = () => {
                   required
                   value={leaveStartDate}
                   onChange={(e) => setLeaveStartDate(e.target.value)}
-                  className="h-9 text-xs font-medium"
+                  className="h-9 text-xs font-medium bg-white"
                 />
               </div>
 
@@ -1531,7 +1538,7 @@ export const UserProfilePage: React.FC = () => {
                   required
                   value={leaveEndDate}
                   onChange={(e) => setLeaveEndDate(e.target.value)}
-                  className="h-9 text-xs font-medium"
+                  className="h-9 text-xs font-medium bg-white"
                 />
               </div>
 
@@ -1557,7 +1564,7 @@ export const UserProfilePage: React.FC = () => {
                   onChange={(e) => setHandoverDoctor(e.target.value)}
                   placeholder="e.g. Dr. Meena Parmar"
                   required
-                  className="h-9 text-xs font-medium"
+                  className="h-9 text-xs font-medium bg-white"
                 />
               </div>
 
@@ -1571,7 +1578,7 @@ export const UserProfilePage: React.FC = () => {
                   value={leaveReason}
                   onChange={(e) => setLeaveReason(e.target.value)}
                   placeholder="e.g. Annual leave / Attending medical conference"
-                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:outline-none bg-white"
                 />
               </div>
 
@@ -1581,7 +1588,7 @@ export const UserProfilePage: React.FC = () => {
                   value={emergencyPhone}
                   onChange={(e) => setEmergencyPhone(e.target.value)}
                   placeholder="e.g. +91 98765 43210"
-                  className="h-9 text-xs font-medium"
+                  className="h-9 text-xs font-medium bg-white"
                 />
               </div>
 
@@ -1591,7 +1598,7 @@ export const UserProfilePage: React.FC = () => {
                   value={leaveNotes}
                   onChange={(e) => setLeaveNotes(e.target.value)}
                   placeholder="e.g. Inpatient ICU rounds assigned to Dr. Meena"
-                  className="h-9 text-xs font-medium"
+                  className="h-9 text-xs font-medium bg-white"
                 />
               </div>
             </div>
@@ -1600,7 +1607,7 @@ export const UserProfilePage: React.FC = () => {
             {(leaveStartDate && leaveEndDate) && (
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-600">
-                  <Building2 className="h-4 w-4 text-slate-500" />
+                  <Building2 className="h-4 w-4 text-slate-500 shrink-0" />
                   <span>
                     Dept Coverage: <strong className={leaveImpactPreview.doctorsRemaining === 0 ? 'text-rose-600' : 'text-slate-800'}>
                       {leaveImpactPreview.doctorsRemaining} on duty
@@ -1613,41 +1620,42 @@ export const UserProfilePage: React.FC = () => {
                   </span>
                 </div>
                 {leaveImpactPreview.loading && (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600 shrink-0" />
                 )}
               </div>
             )}
+          </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowLeaveModal(false)}
-                className="text-xs font-semibold h-9 px-3.5 cursor-pointer"
-                disabled={applyingLeave}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={applyingLeave}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 h-9 shadow-xs cursor-pointer gap-1.5"
-              >
-                {applyingLeave ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-3.5 w-3.5" />
-                    Submit Request
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
+          {/* Pinned Action Footer */}
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0 rounded-b-3xl">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowLeaveModal(false)}
+              className="text-xs font-semibold h-9 px-4 cursor-pointer text-slate-700 hover:bg-slate-100"
+              disabled={applyingLeave}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={applyingLeave}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-5 h-9 shadow-xs cursor-pointer gap-1.5 flex items-center"
+            >
+              {applyingLeave ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  Submit Request
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </Dialog>
     </div>
   );
