@@ -123,30 +123,30 @@ export const PatientRegistration: React.FC = () => {
           </div>
 
           {/* Simulated Digital Health Card Preview */}
-          <div className="max-w-sm mx-auto rounded-2xl bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 p-5 text-white text-left shadow-lg border border-teal-700/50 space-y-3 relative overflow-hidden">
+          <div className="max-w-sm mx-auto rounded-2xl bg-white p-5 text-slate-900 text-left shadow-md border border-slate-200/90 space-y-3 relative overflow-hidden">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-extrabold tracking-wider uppercase text-teal-200 flex items-center gap-1.5">
-                <HeartPulse className="h-3.5 w-3.5 text-teal-300" />
+              <span className="font-semibold tracking-wide uppercase text-teal-800 flex items-center gap-1.5">
+                <HeartPulse className="h-3.5 w-3.5 text-teal-700" />
                 HealthConnect ABHA
               </span>
-              <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold">
+              <span className="rounded-full bg-teal-50 border border-teal-200 text-teal-800 px-2 py-0.5 text-[10px] font-semibold">
                 {savedPatient.syncStatus === 'SYNCED' ? 'Cloud Synced' : 'Offline Stored'}
               </span>
             </div>
 
             <div className="pt-2">
-              <p className="text-lg font-black tracking-wide text-white">{savedPatient.name}</p>
-              <p className="text-xs text-teal-100/80">
+              <p className="text-lg font-bold tracking-tight text-slate-900">{savedPatient.name}</p>
+              <p className="text-xs text-slate-500 font-medium">
                 {savedPatient.age} Yrs • {savedPatient.gender === 'F' ? 'Female' : 'Male'} • Blood: {savedPatient.bloodGroup || 'B+'}
               </p>
             </div>
 
-            <div className="pt-1 text-xs border-t border-white/15 flex items-center justify-between">
+            <div className="pt-2 text-xs border-t border-slate-100 flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-teal-300 uppercase block">ABHA Health Address</span>
-                <span className="font-mono font-bold text-xs">{savedPatient.abhaId || '14-8921-3409-7721'}</span>
+                <span className="text-[10px] text-slate-400 font-medium uppercase block">ABHA Health Address</span>
+                <span className="font-mono font-bold text-xs text-slate-800">{savedPatient.abhaId || '14-8921-3409-7721'}</span>
               </div>
-              <span className="rounded-lg bg-teal-600/50 px-2 py-1 text-[10px] font-bold uppercase">
+              <span className="rounded-lg bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 text-[10px] font-semibold uppercase">
                 {savedPatient.village}
               </span>
             </div>

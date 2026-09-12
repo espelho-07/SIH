@@ -404,27 +404,27 @@ export const Login: React.FC = () => {
         {/* =================================================
             1-CLICK INSTANT ROLE LOGIN BAR (DIRECT ACCESS)
         ================================================= */}
-        <div className="rounded-2xl border-2 border-teal-600/30 bg-white p-3.5 sm:p-5 shadow-lg shadow-teal-900/5">
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-5 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-sm">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
                 <Zap className="h-4 w-4 fill-current" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-slate-900 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h2 className="text-sm font-bold text-slate-900 flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span>1-Click Role Direct Login</span>
-                  <span className="rounded-full bg-teal-100 text-teal-800 border border-teal-300 px-2 py-0.5 text-[10px] font-bold">
-                    No Typing Needed
+                  <span className="rounded-full bg-teal-50 text-teal-800 border border-teal-200/80 px-2 py-0.5 text-[10px] font-semibold">
+                    Instant Access
                   </span>
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Click any role card below to instantly authenticate and launch the portal
+                  Select any ecosystem role below to authenticate and enter the workspace
                 </p>
               </div>
             </div>
-            <div className="text-xs text-slate-400 flex items-center gap-1.5 self-start sm:self-auto shrink-0">
-              <Lock className="h-3.5 w-3.5 text-teal-600" />
-              <span>Full Auth Enabled</span>
+            <div className="text-xs text-slate-400 flex items-center gap-1.5 self-start sm:self-auto shrink-0 font-medium">
+              <Lock className="h-3.5 w-3.5 text-teal-700" />
+              <span>Auth Guard Active</span>
             </div>
           </div>
 

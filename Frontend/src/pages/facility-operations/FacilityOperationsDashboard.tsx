@@ -153,25 +153,25 @@ export const FacilityOperationsDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Top Global Facility Operational Header - Clean Green Theme */}
-      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
+      {/* Top Global Facility Operational Header - Clean Healthcare Surface */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="bg-teal-100 text-teal-900 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-300">
+            <span className="bg-teal-50 text-teal-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-teal-200/80">
               Operations Control Center
             </span>
-            <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${statusMeta.bg}`}>
+            <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${statusMeta.bg}`}>
               <span className={`h-2 w-2 rounded-full ${statusMeta.dot}`} />
               <span>{statusMeta.label}</span>
             </div>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-500 font-medium">
               Updated {new Date(summary?.lastStatusUpdate || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by {summary?.updatedBy || 'Operations Desk'}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             {summary?.facilityName || 'Gandhinagar Civil Hospital'}
           </h1>
-          <p className="text-xs text-slate-600 max-w-2xl">
+          <p className="text-xs text-slate-500 font-medium max-w-2xl">
             Live operations matrix: Monitoring capacity freshness, clinical departmental bottlenecks, queue velocity, and emergency referrals.
           </p>
         </div>
@@ -180,7 +180,7 @@ export const FacilityOperationsDashboard: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <Button
             onClick={() => setStatusModalOpen(true)}
-            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer"
+            className="bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
           >
             <SlidersHorizontal className="h-4 w-4 text-teal-200" />
             Update Facility Status
@@ -188,16 +188,16 @@ export const FacilityOperationsDashboard: React.FC = () => {
 
           <Button
             onClick={() => setBroadcastModalOpen(true)}
-            className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-xs gap-2 min-h-[42px] px-4 cursor-pointer shadow-xs"
+            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs gap-2 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
           >
-            <Megaphone className="h-4 w-4 text-teal-400" />
+            <Megaphone className="h-4 w-4 text-teal-600" />
             Broadcast Notice
           </Button>
 
           <Button
             onClick={handleRefresh}
             variant="ghost"
-            className="text-slate-400 hover:text-white hover:bg-slate-800 p-2 h-10 w-10 min-h-[40px] cursor-pointer"
+            className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl p-2 h-10 w-10 min-h-[40px] cursor-pointer"
             title="Refresh live telemetry"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />

@@ -73,27 +73,24 @@ export const DistrictCommandDashboard: React.FC = () => {
         }
       />
 
-      {/* Top Welcome & Operational Status Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-900 to-teal-800 text-white p-4 sm:p-5 rounded-2xl shadow-xs">
-        <div className="space-y-1">
+      {/* Top Welcome & Operational Status Banner - Clean Healthcare Surface */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/90 p-5 sm:p-6 rounded-2xl shadow-xs">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-teal-200">
-              District Health Operations
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-teal-800/80 border border-teal-600 px-2 py-0.5 text-[10px] font-medium text-teal-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Live Telemetry Connected
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 border border-teal-200/80 text-teal-800">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live Telemetry Connected • District Health Operations
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             {selectedDistrict} District Operations
           </h1>
-          <p className="text-xs text-teal-100/90">
-            Administrator: <strong>{user?.name || 'Dr. Meenakshi Sundaram'}</strong> (Chief District Health Officer)
+          <p className="text-xs text-slate-500 font-medium">
+            Administrator: <strong className="text-slate-800 font-semibold">{user?.name || 'Dr. Meenakshi Sundaram'}</strong> (Chief District Health Officer)
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <EmergencyButton />
         </div>
       </div>

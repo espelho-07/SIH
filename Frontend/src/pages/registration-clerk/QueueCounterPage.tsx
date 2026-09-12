@@ -187,28 +187,28 @@ export const QueueCounterPage: React.FC = () => {
 
       {/* Hero Counter Calling Display */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Calling Banner (7 cols) */}
-        <div className="md:col-span-7 rounded-2xl bg-gradient-to-r from-teal-800 to-teal-950 p-6 text-white shadow-sm flex flex-col justify-between">
+        {/* Calling Banner (7 cols) - Clean Healthcare Calling Station */}
+        <div className="md:col-span-7 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="bg-teal-700/80 text-teal-100 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-teal-600/50 flex items-center gap-1.5">
-                <Volume2 className="h-3 w-3 text-teal-200 animate-pulse" />
+              <span className="bg-teal-50 text-teal-800 text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-teal-200/80 flex items-center gap-1.5">
+                <Volume2 className="h-3 w-3 text-teal-700 animate-pulse" />
                 Live OPD Counter 1
               </span>
-              <span className="text-xs text-teal-200 font-mono">Room 4 � Dr. Arvind Patel</span>
+              <span className="text-xs text-slate-500 font-mono">Room 4 • Dr. Arvind Patel</span>
             </div>
 
             <div className="my-5 text-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-teal-200/80 block">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
                 Currently Calling Token
               </span>
-              <div className="text-5xl md:text-6xl font-black text-white font-mono tracking-tight my-1">
-                {currentCalledToken?.tokenNumber || queue?.currentTokenNumber || '�'}
+              <div className="text-5xl md:text-6xl font-black text-slate-900 font-mono tracking-tight my-1">
+                {currentCalledToken?.tokenNumber || queue?.currentTokenNumber || '—'}
               </div>
-              <p className="text-sm font-bold text-teal-100">
+              <p className="text-base font-bold text-teal-800">
                 {currentCalledToken?.patientName || 'Govindbhai Prajapati'}
               </p>
-              <span className="text-xs text-teal-200/80">
+              <span className="text-xs text-slate-500 font-medium">
                 General Medicine OPD Consultation
               </span>
             </div>
@@ -217,9 +217,9 @@ export const QueueCounterPage: React.FC = () => {
           <Button
             onClick={handleCallNext}
             disabled={callingNext || waitingTokens.length === 0}
-            className="w-full bg-white text-teal-950 hover:bg-teal-50 font-black text-xs gap-2 min-h-[44px] cursor-pointer shadow-sm"
+            className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs gap-2 min-h-[44px] rounded-xl cursor-pointer shadow-xs transition-colors"
           >
-            <Volume2 className="h-4 w-4 text-teal-700" />
+            <Volume2 className="h-4 w-4 text-teal-200" />
             {callingNext ? 'Calling Token...' : `Call Next Token (${waitingTokens.length} Waiting)`}
           </Button>
         </div>

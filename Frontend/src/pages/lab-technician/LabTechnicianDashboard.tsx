@@ -84,20 +84,20 @@ export const LabTechnicianDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Station Header - Clean Green Theme */}
-      <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
+      {/* Station Header - Clean Healthcare Theme */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-wider text-teal-800">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 border border-teal-200/80 text-teal-800">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Laboratory Work Desk • {user?.facilityName || 'Gandhinagar Civil Hospital'}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             Central Pathology & Diagnostic Hub
           </h1>
-          <p className="text-xs text-slate-600">
-            Duty Technologist: <strong className="text-slate-900">{user?.name || 'Ramesh Patel, MLT'}</strong> • NABL MC-3091 Calibrated Workstation
+          <p className="text-xs text-slate-500 font-medium">
+            Duty Technologist: <strong className="text-slate-800 font-semibold">{user?.name || 'Ramesh Patel, MLT'}</strong> • NABL MC-3091 Calibrated Workstation
           </p>
         </div>
 
@@ -106,7 +106,7 @@ export const LabTechnicianDashboard: React.FC = () => {
           <Button
             size="sm"
             onClick={() => navigate('/lab-technician/tests')}
-            className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs"
+            className="bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
           >
             <FlaskConical className="h-4 w-4 text-teal-200" />
             <span>All Test Orders</span>
@@ -115,9 +115,9 @@ export const LabTechnicianDashboard: React.FC = () => {
           <Button
             size="sm"
             onClick={() => navigate('/lab-technician/samples')}
-            className="bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-bold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-2xs"
+            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl cursor-pointer shadow-xs transition-colors"
           >
-            <QrCode className="h-4 w-4 text-teal-700" />
+            <QrCode className="h-4 w-4 text-slate-500" />
             <span>Sample Desk</span>
           </Button>
         </div>
@@ -469,22 +469,22 @@ export const LabTechnicianDashboard: React.FC = () => {
           </Card>
 
           {/* Laboratory Quality Standards Card */}
-          <Card className="border-slate-200 bg-gradient-to-br from-teal-900 to-slate-900 text-white p-5 shadow-xs rounded-2xl">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300 block">
+          <Card className="border-slate-200/90 bg-white p-5 shadow-xs rounded-2xl">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-teal-700 block">
               NABL & Quality Assurance
             </span>
-            <h4 className="text-base font-black mt-1">ABDM Health Record Interoperability</h4>
-            <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+            <h4 className="text-base font-bold text-slate-900 mt-1">ABDM Health Record Interoperability</h4>
+            <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
               Every verified report is automatically encrypted and pushed directly to the citizen&apos;s Ayushman Bharat Health Account (ABHA) record.
             </p>
-            <div className="mt-4 pt-3 border-t border-slate-700 grid grid-cols-2 gap-2 text-center text-xs">
+            <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-center text-xs">
               <div>
-                <span className="text-slate-400 text-[10px] block uppercase">Avg Turnaround</span>
-                <span className="text-lg font-black text-white">42 Min</span>
+                <span className="text-slate-400 text-[10px] block uppercase font-medium">Avg Turnaround</span>
+                <span className="text-lg font-bold text-slate-900">42 Min</span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] block uppercase">Rejection Rate</span>
-                <span className="text-lg font-black text-teal-300">1.2%</span>
+                <span className="text-slate-400 text-[10px] block uppercase font-medium">Rejection Rate</span>
+                <span className="text-lg font-bold text-teal-700">1.2%</span>
               </div>
             </div>
           </Card>

@@ -60,22 +60,22 @@ export const PatientDashboard: React.FC = () => {
       {/* CITIZEN HEALTH BAR / ABHA IDENTITY */}
       {/* ================================================== */}
 
-      <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-4 sm:p-5 text-white shadow-xs">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700/80 border border-teal-500/40 text-white shadow-xs">
-              <ShieldCheck className="h-6 w-6 text-teal-200" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 border border-teal-200/80 text-teal-700 shadow-2xs">
+              <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-bold tracking-tight text-white sm:text-base">
+                <span className="text-sm font-bold tracking-tight text-slate-900 sm:text-base">
                   Ayushman Bharat Citizen Health Portal
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-teal-700/80 border border-teal-500/50 px-2 py-0.5 text-[10px] font-semibold text-teal-100">
-                  <CheckCircle2 className="h-3 w-3 text-emerald-400" /> ABHA Verified
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-600" /> ABHA Verified
                 </span>
               </div>
-              <p className="text-xs text-teal-200/90 mt-0.5 font-mono">
+              <p className="text-xs text-slate-500 mt-0.5 font-mono">
                 ABHA ID: {activeMember.abhaId} • Active: {activeMember.name} ({activeMember.relation === 'SELF' ? 'Self' : activeMember.relationLabel})
               </p>
             </div>
@@ -83,12 +83,12 @@ export const PatientDashboard: React.FC = () => {
 
           <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
             <FamilyMemberSwitcher variant="banner" />
-            <div className="flex items-center gap-1.5 rounded-xl bg-teal-800/80 border border-teal-600/40 px-3 py-1.5 text-xs text-teal-100">
+            <div className="flex items-center gap-1.5 rounded-xl bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs text-slate-700">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>OPD Active Today</span>
+              <span className="font-medium">OPD Active Today</span>
             </div>
           </div>
         </div>
@@ -106,21 +106,21 @@ export const PatientDashboard: React.FC = () => {
         {/* MY TOKEN */}
         {/* ================================================== */}
 
-        <Card className="overflow-hidden border-teal-200 bg-white shadow-sm lg:col-span-3">
+        <Card className="overflow-hidden border-slate-200/90 bg-white shadow-xs lg:col-span-3">
 
           {/* Header */}
 
-          <div className="flex items-center justify-between bg-teal-700 px-5 py-3.5 text-white">
+          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-5 py-3.5 text-slate-900">
 
             <div className="flex items-center gap-2">
 
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-600">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-700 border border-teal-200/60">
 
                 <Ticket className="h-4 w-4" />
 
               </div>
 
-              <span className="text-sm font-semibold">
+              <span className="text-sm font-bold text-slate-900">
                 My Token
               </span>
 
@@ -128,7 +128,6 @@ export const PatientDashboard: React.FC = () => {
 
             <StatusBadge
               status="WAITING"
-              className="border-teal-600 bg-teal-800 text-[10px] text-white"
             />
 
           </div>
@@ -373,32 +372,32 @@ export const PatientDashboard: React.FC = () => {
       {/* ================================================== */}
       {/* SANJEEVANI VOICE & HOSPITAL ASSISTANT BANNER */}
       {/* ================================================== */}
-      <div className="relative overflow-hidden rounded-2xl border border-teal-300 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 p-4 sm:p-5 text-white shadow-md">
+      <div className="relative overflow-hidden rounded-2xl border border-teal-200/90 bg-gradient-to-r from-teal-50/50 via-white to-slate-50/60 p-4 sm:p-5 text-slate-900 shadow-xs">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white shadow-sm">
-              <Mic className="h-6 w-6 text-teal-300" />
+            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 border border-teal-200 shadow-xs">
+              <Mic className="h-6 w-6" />
               <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 rounded-md bg-teal-700/80 border border-teal-500/50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-100">
-                  <Sparkles className="h-3 w-3 text-teal-300" /> AI Voice Triage
+                <span className="inline-flex items-center gap-1 rounded-md bg-teal-100/70 border border-teal-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-900">
+                  <Sparkles className="h-3 w-3 text-teal-700" /> AI Voice Triage
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
                   Gujarati • Hindi • English
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-teal-100">
+                <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
                   ● Real-Time Doctor & Bed Match
                 </span>
               </div>
-              <h3 className="mt-1 text-base font-extrabold text-white sm:text-lg tracking-tight">
+              <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg tracking-tight">
                 "Tamare kem hospital javu che?" — Speak with Sanjeevani Assistant
               </h3>
-              <p className="mt-0.5 text-xs text-teal-200/90 max-w-xl">
+              <p className="mt-0.5 text-xs text-slate-600 max-w-xl">
                 Tell your symptom (fracture, fever, chest pain, delivery) in voice or tap. Assistant directly finds the best hospital with on-duty doctors and available beds.
               </p>
             </div>
@@ -412,9 +411,9 @@ export const PatientDashboard: React.FC = () => {
               }}
               variant="primary"
               size="sm"
-              className="w-full sm:w-auto gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm font-extrabold text-xs h-10 px-4 rounded-xl cursor-pointer"
+              className="w-full sm:w-auto gap-2 bg-teal-700 hover:bg-teal-800 text-white shadow-xs font-semibold text-xs h-10 px-4 rounded-xl cursor-pointer"
             >
-              <Mic className="h-4 w-4 text-emerald-100 animate-pulse" />
+              <Mic className="h-4 w-4 text-teal-100" />
               <span>🎙️ Ask Assistant (બોલો)</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
@@ -426,7 +425,7 @@ export const PatientDashboard: React.FC = () => {
               }}
               variant="outline"
               size="sm"
-              className="w-full sm:w-auto gap-1.5 bg-white/15 hover:bg-white/25 text-white border-white/30 font-bold text-xs h-10 px-3.5 rounded-xl cursor-pointer"
+              className="w-full sm:w-auto gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border-slate-300 font-medium text-xs h-10 px-3.5 rounded-xl cursor-pointer shadow-2xs"
             >
               <span>🩺</span>
               <span>Check Symptoms</span>
@@ -439,9 +438,9 @@ export const PatientDashboard: React.FC = () => {
               }}
               variant="outline"
               size="sm"
-              className="w-full sm:w-auto gap-1.5 bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold text-xs h-10 px-3.5 rounded-xl cursor-pointer"
+              className="w-full sm:w-auto gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border-slate-300 font-medium text-xs h-10 px-3.5 rounded-xl cursor-pointer shadow-2xs"
             >
-              <Pill className="h-3.5 w-3.5 text-emerald-300" />
+              <Pill className="h-3.5 w-3.5 text-teal-700" />
               <span>Medical Stores</span>
             </Button>
           </div>

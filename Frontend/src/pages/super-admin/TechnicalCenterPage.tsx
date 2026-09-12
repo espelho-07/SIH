@@ -88,23 +88,23 @@ export const TechnicalCenterPage: React.FC = () => {
         }
       />
 
-      {/* Calm Status Strip (Patient Module Hero Language) */}
-      <div className="rounded-2xl bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 text-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-teal-700/50">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3 py-0.5 text-xs font-semibold text-teal-200 border border-teal-400/30">
-            <Server className="h-3.5 w-3.5" />
+      {/* Clean Status Strip - Healthcare Surface */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-xs font-semibold text-teal-800">
+            <Server className="h-3.5 w-3.5 text-teal-700" />
             <span>Infrastructure Status</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">All Core Systems Operational</h2>
-          <p className="text-xs text-teal-100/80 max-w-xl">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">All Core Systems Operational</h2>
+          <p className="text-xs text-slate-500 font-medium max-w-xl">
             6 microservices active • Real-time socket queues synced with Gandhinagar district hospitals.
           </p>
         </div>
 
-        <div className="rounded-xl bg-white/10 backdrop-blur-md border border-white/15 p-3.5 text-center shrink-0">
-          <span className="text-[10px] uppercase font-bold text-teal-200 block tracking-wider">Overall Uptime</span>
-          <span className="text-emerald-300 font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-center shrink-0">
+          <span className="text-[10px] uppercase font-semibold text-slate-500 block tracking-wider">Overall Uptime</span>
+          <span className="text-emerald-700 font-semibold text-xs flex items-center justify-center gap-1.5 mt-0.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             99.98% Healthy
           </span>
         </div>

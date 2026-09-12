@@ -12,29 +12,30 @@ export const StaffDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Staff Header & Dynamic Subtype Switcher */}
-      <div className="rounded-2xl border border-teal-200/90 bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 text-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-teal-200 flex items-center gap-1.5">
+      {/* Staff Header & Dynamic Subtype Switcher - Clean Healthcare Surface */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 border border-teal-200/80 text-teal-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Hospital Facility Staff Station • {user?.facilityName || 'Gandhinagar Civil Hospital'}
           </span>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight">{user?.name}</h1>
-          <p className="text-xs text-teal-100">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">{user?.name}</h1>
+          <p className="text-xs text-slate-500 font-medium">
             Department:{' '}
-            <strong className="text-white">{activeSubType.replace(/_/g, ' ')}</strong> • Sector 12 Base
+            <strong className="text-slate-800 font-semibold">{activeSubType.replace(/_/g, ' ')}</strong> • Sector 12 Base
           </p>
         </div>
 
         {/* Subtype quick toggle */}
-        <div className="flex flex-wrap items-center gap-1.5 rounded-xl bg-teal-900/60 p-1.5 border border-teal-600/40 backdrop-blur-xs">
+        <div className="flex flex-wrap items-center gap-1.5 rounded-xl bg-slate-100 p-1.5 border border-slate-200">
           {(['REGISTRATION_CLERK', 'PHARMACIST', 'LAB_TECHNICIAN', 'FACILITY_OPERATIONS'] as StaffSubType[]).map((sub) => (
             <button
               key={sub}
               onClick={() => quickSwitchRole('FACILITY_STAFF', sub)}
-              className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                 activeSubType === sub
-                  ? 'bg-white text-teal-950 shadow-xs'
-                  : 'text-teal-100 hover:text-white hover:bg-teal-700/50'
+                  ? 'bg-white text-teal-800 shadow-xs border border-slate-200/80 font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
               {sub === 'REGISTRATION_CLERK' && 'Registration'}

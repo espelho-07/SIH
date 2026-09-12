@@ -65,17 +65,17 @@ export const AssignPhoneModal: React.FC<AssignPhoneModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50 duration-150">
       <div className="relative w-full max-w-md rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-teal-900 to-teal-800 text-white">
+        {/* Header - Clean Healthcare Surface */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/90 bg-white">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-700 text-teal-200 border border-teal-500/30">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 border border-teal-200/80 text-teal-700">
               <Smartphone className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-bold text-slate-900">
                 Assign Dedicated Phone Number
               </h3>
-              <p className="text-[11px] text-teal-200 truncate">
+              <p className="text-[11px] text-slate-500 font-medium truncate">
                 For {member.name} ({member.relationLabel})
               </p>
             </div>
@@ -84,7 +84,7 @@ export const AssignPhoneModal: React.FC<AssignPhoneModalProps> = ({
           <button
             type="button"
             onClick={handleResetAndClose}
-            className="rounded-lg p-1.5 text-teal-200 hover:text-white hover:bg-teal-700/60 transition-colors"
+            className="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>

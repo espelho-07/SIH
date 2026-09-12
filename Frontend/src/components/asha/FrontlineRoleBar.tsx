@@ -62,62 +62,62 @@ export const FrontlineRoleBar: React.FC<FrontlineRoleBarProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Top Banner Aligned with Golden Patient Reference */}
-      <div className="rounded-3xl bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 p-5 sm:p-6 text-white shadow-sm border border-teal-950/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Top Banner Aligned with Calm Healthcare Design Language */}
+      <div className="rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-6 text-slate-900 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-teal-200 border border-teal-400/30">
-              <HeartPulse className="h-3 w-3 text-teal-300" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-teal-800 border border-teal-200/80">
+              <HeartPulse className="h-3.5 w-3.5 text-teal-700" />
               Frontline Healthcare Console
             </span>
-            <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-200">
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700">
               {roleProfiles[activeMode].badge}
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
             {title || `Namaste, ${user?.name || 'Sunita Devi'}`}
           </h1>
 
-          <p className="text-xs text-teal-100/80 max-w-xl">
+          <p className="text-xs text-slate-500 max-w-xl">
             {subtitle || (
               <>
-                Sector: <strong>Pethapur Subcentre Cluster</strong> • Primary PHC: Pethapur PHC • Dist: Gandhinagar
+                Sector: <strong className="text-slate-700">Pethapur Subcentre Cluster</strong> • Primary PHC: Pethapur PHC • Dist: Gandhinagar
               </>
             )}
           </p>
         </div>
 
         {/* Sync & Connectivity Widget */}
-        <div className="flex items-center gap-3 rounded-2xl bg-white/10 backdrop-blur-md p-3.5 border border-white/15 self-start md:self-auto shrink-0 shadow-xs">
+        <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 border border-slate-200/80 self-start md:self-auto shrink-0 shadow-2xs">
           <div
-            className={`rounded-xl p-2.5 ${
+            className={`rounded-lg p-2 ${
               pendingSyncCount > 0
-                ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
-                : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
+                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
             }`}
           >
             {pendingSyncCount > 0 ? (
-              <RefreshCw className="h-5 w-5 animate-spin" />
+              <RefreshCw className="h-4 w-4 animate-spin" />
             ) : isOnline ? (
-              <CheckCircle2 className="h-5 w-5" />
+              <CheckCircle2 className="h-4 w-4" />
             ) : (
-              <WifiOff className="h-5 w-5" />
+              <WifiOff className="h-4 w-4" />
             )}
           </div>
 
           <div className="text-left">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-200">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Data Pipeline
               </span>
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                  isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
                 }`}
               />
             </div>
-            <p className="text-xs sm:text-sm font-bold text-white">
+            <p className="text-xs sm:text-sm font-bold text-slate-900">
               {pendingSyncCount > 0
                 ? `${pendingSyncCount} ${pendingSyncCount === 1 ? 'Record' : 'Records'} Queued`
                 : 'Synced to Grid'}
@@ -126,12 +126,12 @@ export const FrontlineRoleBar: React.FC<FrontlineRoleBarProps> = ({
               <button
                 type="button"
                 onClick={syncOfflineQueue}
-                className="text-[11px] underline text-teal-200 hover:text-white font-bold cursor-pointer transition-colors"
+                className="text-[11px] underline text-teal-700 hover:text-teal-900 font-semibold cursor-pointer transition-colors"
               >
                 Sync Now to Server
               </button>
             ) : (
-              <span className="text-[10px] text-teal-100/70">
+              <span className="text-[10px] text-slate-500">
                 {isOnline ? 'Real-time Connected' : 'Local IndexedDB Active'}
               </span>
             )}

@@ -1801,22 +1801,22 @@ export const PatientProfile: React.FC = () => {
       {viewingRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6 animate-in zoom-in-95 duration-150">
-            {/* Top ABDM Government Header */}
-            <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 px-6 py-4 text-white flex items-center justify-between">
+            {/* Top ABDM Government Header - Clean Healthcare Surface */}
+            <div className="bg-white border-b border-slate-200/90 px-6 py-4 text-slate-900 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-teal-700/80 border border-teal-500/40 flex items-center justify-center text-teal-100 font-bold shrink-0">
-                  <ShieldCheck className="h-6 w-6 text-emerald-400" />
+                <div className="h-10 w-10 rounded-xl bg-teal-50 border border-teal-200/80 flex items-center justify-center text-teal-700 font-bold shrink-0">
+                  <ShieldCheck className="h-6 w-6 text-teal-700" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] uppercase tracking-widest font-extrabold text-teal-200">
+                    <span className="text-[11px] uppercase tracking-wider font-semibold text-teal-800">
                       Ayushman Bharat Digital Mission (ABDM)
                     </span>
-                    <span className="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.2 text-[10px] font-bold text-emerald-300">
+                    <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
                       VERIFIED EHR
                     </span>
                   </div>
-                  <h3 className="text-sm font-bold text-white">
+                  <h3 className="text-sm font-bold text-slate-900">
                     {viewingRecord.facility}
                   </h3>
                 </div>
@@ -1824,7 +1824,7 @@ export const PatientProfile: React.FC = () => {
 
               <button
                 onClick={() => setViewingRecord(null)}
-                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>

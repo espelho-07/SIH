@@ -14,9 +14,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1.5 text-left">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+          <label htmlFor={inputId} className="block text-xs font-medium text-slate-700">
             {label}
-            {props.required && <span className="text-red-600 ml-1">*</span>}
+            {props.required && <span className="text-rose-600 ml-1">*</span>}
           </label>
         )}
         <input
@@ -26,8 +26,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           aria-invalid={!!error}
           aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-desc` : undefined}
           className={cn(
-            'flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-teal-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60 transition-colors',
-            error && 'border-red-500 focus-visible:ring-red-500',
+            'flex min-h-[44px] w-full rounded-lg border border-slate-300/90 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60 transition-colors',
+            error && 'border-rose-500 focus-visible:ring-rose-500/20 focus-visible:border-rose-500',
             className
           )}
           {...props}

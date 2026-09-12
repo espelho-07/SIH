@@ -193,35 +193,35 @@ export const ResourceOperationsPage: React.FC = () => {
       {/* TAB 1: BEDS */}
       {activeTab === 'BEDS' && (
         <div className="space-y-4">
-          {/* Bed Summary Card */}
-          <div className="rounded-2xl bg-gradient-to-r from-teal-900 to-slate-900 p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Bed Summary Card - Clean Healthcare Surface */}
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-bold text-teal-200 uppercase tracking-wider block">
+              <span className="text-xs font-semibold text-teal-800 uppercase tracking-wider block">
                 Total Hospital Inpatient Occupancy
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl font-black">{bedSummary?.totalOccupied || 0}</span>
-                <span className="text-slate-300 text-sm">/ {bedSummary?.totalBeds || 0} beds occupied</span>
-                <span className="text-emerald-400 font-bold text-xs ml-2">
+                <span className="text-3xl font-bold text-slate-900">{bedSummary?.totalOccupied || 0}</span>
+                <span className="text-slate-500 font-medium text-sm">/ {bedSummary?.totalBeds || 0} beds occupied</span>
+                <span className="text-emerald-700 font-semibold text-xs ml-2">
                   ({bedSummary?.totalAvailable || 0} Available)
                 </span>
               </div>
-              <p className="text-xs text-teal-100/70 mt-1">
+              <p className="text-xs text-slate-500 font-medium mt-1">
                 Freshness Contract: Last telemetry broadcast {new Date(bedSummary?.lastUpdated || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Synchronized with EMRI-108
               </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="bg-teal-800/80 p-3 rounded-xl border border-teal-700/50 text-center min-w-[100px]">
-                <span className="text-[10px] font-bold uppercase text-teal-200 block">Critical ICU</span>
-                <span className="text-2xl font-black text-white">{bedSummary?.icuAvailable || 0}</span>
-                <span className="text-[10px] text-teal-300 block">Available</span>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-center min-w-[100px]">
+                <span className="text-[10px] font-semibold uppercase text-slate-500 block">Critical ICU</span>
+                <span className="text-2xl font-bold text-teal-700">{bedSummary?.icuAvailable || 0}</span>
+                <span className="text-[10px] text-slate-500 font-medium block">Available</span>
               </div>
 
-              <div className="bg-teal-800/80 p-3 rounded-xl border border-teal-700/50 text-center min-w-[100px]">
-                <span className="text-[10px] font-bold uppercase text-teal-200 block">Emergency</span>
-                <span className="text-2xl font-black text-white">{bedSummary?.emergencyAvailable || 0}</span>
-                <span className="text-[10px] text-teal-300 block">Available</span>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-center min-w-[100px]">
+                <span className="text-[10px] font-semibold uppercase text-slate-500 block">Emergency</span>
+                <span className="text-2xl font-bold text-rose-700">{bedSummary?.emergencyAvailable || 0}</span>
+                <span className="text-[10px] text-slate-500 font-medium block">Available</span>
               </div>
             </div>
           </div>

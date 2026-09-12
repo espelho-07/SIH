@@ -684,10 +684,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     end={item.to.split('/').length <= 2}
                     className={({ isActive }) =>
                       cn(
-                        `group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-200`,
+                        'group relative flex items-center justify-between rounded-xl px-2.5 py-2 min-h-[44px] text-sm font-medium transition-all duration-150',
                         isActive
-                          ? `bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-800 font-semibold shadow-xs`
-                          : `text-slate-600 hover:bg-slate-50 hover:text-slate-900`
+                          ? 'bg-teal-50/80 text-teal-900 font-semibold border border-teal-100/80 shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       )
                     }
                   >
@@ -695,25 +695,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <>
                       {/* Active Left Indicator */}
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 rounded-r-full bg-gradient-to-b from-teal-500 to-cyan-500" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-teal-700" />
                       )}
 
                       <div className="flex min-w-0 items-center gap-3">
                         {/* ICON */}
                         <div
                           className={cn(
-                            `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200`,
+                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-150',
                             isActive
-                              ? 'bg-white shadow-xs text-teal-600'
-                              : item.color || 'bg-slate-50 text-slate-500'
+                              ? 'bg-white text-teal-700 border border-teal-200/70 shadow-2xs'
+                              : 'bg-slate-50 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700 border border-slate-100'
                           )}
                         >
-                          <Icon
-                            className={cn(
-                              'h-[18px] w-[18px]',
-                              isActive ? 'text-teal-600' : ''
-                            )}
-                          />
+                          <Icon className="h-[18px] w-[18px]" />
                         </div>
 
                         {/* LABEL */}
@@ -722,7 +717,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                       {/* BADGE */}
                       {item.badge !== undefined && (
-                        <span className="ml-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                        <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">
                           {item.badge}
                         </span>
                       )}

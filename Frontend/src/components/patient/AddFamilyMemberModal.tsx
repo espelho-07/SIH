@@ -93,17 +93,17 @@ export const AddFamilyMemberModal: React.FC<AddFamilyMemberModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50 duration-150">
       <div className="relative w-full max-w-lg rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 text-white">
+        {/* Header - Clean Healthcare Surface */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/90 bg-white">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700/80 border border-teal-500/40 text-teal-200">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 border border-teal-200/80 text-teal-700">
               <UserPlus className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-slate-900">
                 Add Family Member
               </h3>
-              <p className="text-xs text-teal-200">
+              <p className="text-xs text-slate-500 font-medium">
                 Link household dependents to your healthcare account
               </p>
             </div>
@@ -112,7 +112,7 @@ export const AddFamilyMemberModal: React.FC<AddFamilyMemberModalProps> = ({
           <button
             type="button"
             onClick={handleDone}
-            className="rounded-lg p-1.5 text-teal-200 hover:text-white hover:bg-teal-700/60 transition-colors"
+            className="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>

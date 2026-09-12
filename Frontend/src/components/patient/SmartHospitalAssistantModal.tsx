@@ -338,23 +338,23 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/65 backdrop-blur-xs p-3 sm:p-5 animate-in fade-in duration-200">
       <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-3xl bg-white shadow-2xl border border-teal-200/80 flex flex-col font-sans">
         {/* ================================================== */}
-        {/* MODAL HEADER */}
+        {/* MODAL HEADER - Clean Healthcare Surface */}
         {/* ================================================== */}
-        <div className="flex items-center justify-between border-b border-teal-100 px-4 sm:px-6 py-3.5 bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 text-white">
+        <div className="flex items-center justify-between border-b border-slate-200/90 px-4 sm:px-6 py-3.5 bg-white">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white shadow-sm">
-              <Sparkles className="h-5 w-5 text-teal-300" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-200/80 text-teal-700 shadow-xs">
+              <Sparkles className="h-5 w-5 text-teal-700" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold tracking-tight text-white">
+                <h3 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
                   Sanjeevani Voice & Hospital Assistant
                 </h3>
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                  <Activity className="h-3 w-3" /> Live Triage
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                  <Activity className="h-3 w-3 text-emerald-600" /> Live Triage
                 </span>
               </div>
-              <p className="text-xs text-teal-200/90 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 Ask in Gujarati, Hindi, or English • Recommends hospitals with verified doctors & beds
               </p>
             </div>
@@ -368,11 +368,11 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
               title={isVoiceMuted ? 'Turn on voice audio' : 'Mute voice audio'}
               className={`rounded-xl p-2 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
                 isVoiceMuted
-                  ? 'bg-white/10 text-slate-300 hover:bg-white/20'
-                  : 'bg-emerald-500/25 border border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/35'
+                  ? 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  : 'bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100'
               }`}
             >
-              {isVoiceMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-emerald-300" />}
+              {isVoiceMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-emerald-700" />}
               <span className="hidden sm:inline">{isVoiceMuted ? 'Muted' : 'Voice On'}</span>
             </button>
 
@@ -380,7 +380,7 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl p-2 text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+              className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>

@@ -69,11 +69,11 @@ export const LandingPage: React.FC = () => {
       </header>
 
       {/* 2. Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-teal-50/60 via-slate-50 to-white py-12 sm:py-24 border-b border-slate-200">
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50/80 via-white to-white py-14 sm:py-24 border-b border-slate-200/80">
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
 
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-100/80 px-3.5 py-1 text-xs font-bold text-teal-900 border border-teal-200 mb-6 max-w-full truncate">
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3.5 py-1 text-xs font-semibold text-slate-800 border border-slate-200 mb-6 max-w-full truncate">
             <ShieldCheck className="h-4 w-4 text-teal-700 shrink-0" />
 
             <span className="truncate">
@@ -81,7 +81,7 @@ export const LandingPage: React.FC = () => {
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 max-w-4xl mx-auto leading-tight">
             Connected healthcare.
             <br />
 
@@ -102,7 +102,7 @@ export const LandingPage: React.FC = () => {
             <Link to="/login" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-bold gap-2 px-6"
+                className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-semibold gap-2 px-6 shadow-xs"
               >
                 <Search className="h-5 w-5" />
                 Find Healthcare Facilities
@@ -122,12 +122,12 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Static Role Information */}
-          <div className="mt-14 max-w-5xl mx-auto rounded-2xl border border-teal-200 bg-white p-5 sm:p-6 shadow-xl shadow-teal-900/5 text-left">
+          <div className="mt-14 max-w-5xl mx-auto rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs text-left">
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
 
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-teal-800">
+                <span className="text-xs font-semibold uppercase tracking-wider text-teal-800">
                   Platform Roles
                 </span>
 

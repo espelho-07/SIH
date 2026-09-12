@@ -29,27 +29,33 @@ export const DoctorDashboard: React.FC = () => {
     <div className="space-y-5">
 
       {/* Welcome Section */}
-      <div className="rounded-2xl bg-gradient-to-r from-teal-900 to-slate-900 p-4 sm:p-5 text-white shadow-sm">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-          <div>
-            <p className="text-xs font-medium text-teal-300 mb-1">
-              Doctor Dashboard
-            </p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-[11px] font-semibold text-teal-800">
+                <Stethoscope className="h-3.5 w-3.5 text-teal-700" />
+                OPD Clinical Specialist
+              </span>
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+                Room 4
+              </span>
+            </div>
 
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
-              Welcome, {user?.name || 'Dr. Arvind Patel'} 👋
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              Welcome, {user?.name || 'Dr. Arvind Patel'}
             </h1>
 
-            <p className="text-xs text-teal-100/80 mt-1.5">
-              General Medicine • Room 4
+            <p className="text-xs text-slate-500">
+              Department of General Medicine • Gandhinagar Civil Hospital
             </p>
           </div>
 
           <Link to="/doctor/queue">
             <Button
               size="md"
-              className="bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-2 shadow-md w-full sm:w-auto"
+              className="bg-teal-700 hover:bg-teal-800 text-white font-semibold gap-2 shadow-xs w-full sm:w-auto"
             >
               <Ticket className="h-4 w-4" />
               View Patient Queue
