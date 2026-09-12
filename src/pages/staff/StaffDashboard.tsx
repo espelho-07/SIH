@@ -7,12 +7,12 @@ import { LabTechnicianDashboard } from '@/pages/lab-technician/LabTechnicianDash
 import { FacilityOperationsDashboard } from '@/pages/facility-operations/FacilityOperationsDashboard';
 
 export const StaffDashboard: React.FC = () => {
-  const { user, staffSubType, quickSwitchRole } = useAuth();
-  const activeSubType: StaffSubType = staffSubType || 'PHARMACIST';
+  const { user, staffSubType } = useAuth();
+  const activeSubType: StaffSubType = staffSubType || 'FACILITY_OPERATIONS';
 
   return (
     <div className="space-y-6">
-      {/* Staff Header & Dynamic Subtype Switcher */}
+      {/* Staff Header */}
       <div className="rounded-2xl border border-teal-200/90 bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 text-white p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <span className="text-xs font-bold uppercase tracking-wider text-teal-200 flex items-center gap-1.5">
@@ -23,26 +23,6 @@ export const StaffDashboard: React.FC = () => {
             Department:{' '}
             <strong className="text-white">{activeSubType.replace(/_/g, ' ')}</strong> • Sector 12 Base
           </p>
-        </div>
-
-        {/* Subtype quick toggle */}
-        <div className="flex flex-wrap items-center gap-1.5 rounded-xl bg-teal-900/60 p-1.5 border border-teal-600/40 backdrop-blur-xs">
-          {(['REGISTRATION_CLERK', 'PHARMACIST', 'LAB_TECHNICIAN', 'FACILITY_OPERATIONS'] as StaffSubType[]).map((sub) => (
-            <button
-              key={sub}
-              onClick={() => quickSwitchRole('FACILITY_STAFF', sub)}
-              className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                activeSubType === sub
-                  ? 'bg-white text-teal-950 shadow-xs'
-                  : 'text-teal-100 hover:text-white hover:bg-teal-700/50'
-              }`}
-            >
-              {sub === 'REGISTRATION_CLERK' && 'Registration'}
-              {sub === 'PHARMACIST' && 'Pharmacy'}
-              {sub === 'LAB_TECHNICIAN' && 'Laboratory'}
-              {sub === 'FACILITY_OPERATIONS' && 'Operations'}
-            </button>
-          ))}
         </div>
       </div>
 
