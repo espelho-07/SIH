@@ -40,7 +40,8 @@
     "systemHealth": "સિસ્ટમ હેલ્થ",
     "settings": "સેટિંગ્સ",
     "logout": "લોગ આઉટ",
-    "login": "સાઇન ઇન"
+    "login": "સાઇન ઇન",
+    "Dashboard": "ડેશબોર્ડ"
   },
   "status": {
     "online": "ઓનલાઇન",
@@ -53,7 +54,8 @@
     "verified": "સરકારી પ્રમાણિત",
     "normal": "સામાન્ય",
     "warning": "ચેતવણી",
-    "critical": "ગંભીર"
+    "critical": "ગંભીર",
+    "offlineNotice": "ઑફલાઇન - ફેરફારો સ્થાનિક રીતે સાચવેલ"
   },
   "common": {
     "search": "શોધો...",
@@ -78,7 +80,9 @@
     "status": "સ્થિતિ",
     "priority": "પ્રાથમિકતા",
     "distance": "અંતર",
-    "all": "બધા"
+    "all": "બધા",
+    "kmAway": "કિમી દૂર",
+    "queued": "લાઇનમાં"
   },
   "roles": {
     "PATIENT": "દર્દી / નાગરિક",
@@ -132,7 +136,8 @@
     "findHospital": "હોસ્પિટલ શોધો",
     "viewHospital": "હોસ્પિટલ જુઓ",
     "beds": "બેડ્સ",
-    "icu": "આઇસીયુ"
+    "icu": "આઇસીયુ",
+    "notFixedYet": "હજી નક્કી નથી"
   },
   "asha": {
     "assignedPatients": "સોંપાયેલા નાગરિકો",
@@ -337,7 +342,9 @@
     "noAppointments": "અગાઉની કોઈ એપોઇન્ટમેન્ટ નથી",
     "room": "રૂમ નંબર",
     "experience": "અનુભવ",
-    "opdDays": "OPD દિવસો"
+    "opdDays": "OPD દિવસો",
+    "myAppointments": "મારી મુલાકાતો",
+    "selectTimeSlot": "સમય સ્લોટ પસંદ કરો"
   },
   "referrals": {
     "title": "મારા રેફરલ્સ",
@@ -356,7 +363,10 @@
     "fromFacility": "રેફર કરનાર કેન્દ્ર",
     "toFacility": "રેફર કરેલ હોસ્પિટલ",
     "viewReferral": "રેફરલ જુઓ",
-    "noReferrals": "કોઈ રેફરલ મળ્યા નથી"
+    "noReferrals": "કોઈ રેફરલ મળ્યા નથી",
+    "department": "વિભાગ",
+    "instructions": "ખાસ સૂચનાઓ",
+    "history": "રેફરલ ઇતિહાસ"
   },
   "records": {
     "title": "મારા હેલ્થ રેકોર્ડ્સ (EHR)",
@@ -389,7 +399,10 @@
     "kmAway": "કિમી દૂર",
     "viewHospital": "હોસ્પિટલ જુઓ",
     "call": "કૉલ કરો",
-    "directions": "દિશા-નિર્દેશો"
+    "directions": "દિશા-નિર્દેશો",
+    "title": "નજીકની હોસ્પિટલો અને આરોગ્ય કેન્દ્રો",
+    "subtitle": "સરકારી હોસ્પિટલો, CHC અને PHC માં લાઇવ બેડ અને સુવિધાઓ શોધો.",
+    "allTypes": "બધા પ્રકારની હોસ્પિટલો"
   },
   "tokens": {
     "title": "લાઇવ લાઇન અને ટોકન સ્થિતિ",
@@ -401,7 +414,9 @@
     "waitTime": "અંદાજિત રાહ સમય",
     "turnNotice": "તમારો વારો નજીક આવી રહ્યો છે",
     "pastTokens": "અગાઉના ટોકન્સ",
-    "liveQueue": "લાઇવ લાઇન"
+    "liveQueue": "લાઇવ લાઇન",
+    "bookNew": "ડિજિટલ ટોકન લો",
+    "history": "લાઇન ઇતિહાસ"
   },
   "assistant": {
     "voiceTriage": "AI વૉઇસ ટ્રાયઝ",
@@ -417,5 +432,30 @@
     "symptomPregnancy": "પ્રસુતિ / ડિલિવરી",
     "symptomAccident": "અકસ્માત / ઈજા",
     "symptomChild": "બાળ રોગ / બાળક બીમાર"
+  },
+  "stores": {
+    "title": "નજીકના મેડિકલ સ્ટોર્સ અને જન ઔષધિ કેન્દ્રો",
+    "subtitle": "નજીકના ખુલ્લા મેડિકલ સ્ટોર્સ શોધો, દવાઓનો સ્ટોક તપાસો અને સીધો સંપર્ક કરો.",
+    "listView": "યાદી જુઓ",
+    "mapView": "નકશો જુઓ",
+    "openStoresOnly": "હાલમાં ખુલ્લા સ્ટોર્સ જ દર્શાવેલ છે",
+    "janAushadhiPriority": "પ્રધાનમંત્રી જન ઔષધિ કેન્દ્રો (૮૦% સુધી ઓછી કિંમત) પ્રથમ દર્શાવેલ છે",
+    "searchPlaceholder": "દવાનું નામ અથવા વિસ્તાર શોધો (દા.ત. પેરાસિટામોલ, પેન્ટોપ્રાઝોલ)...",
+    "popularMedicines": "લોકપ્રિય દવાઓ:",
+    "checkRxButton": "મારી કાપલીની દવાઓ તપાસો",
+    "janAushadhiFilter": "માત્ર જન ઔષધિ",
+    "allStoresFilter": "બધા મેડિકલ સ્ટોર્સ",
+    "emergencyFilter": "૨૪x૭ ખુલ્લા",
+    "reserveMedicine": "સ્ટોર પર દવા રિઝર્વ કરો",
+    "callChemist": "કેમિસ્ટને કૉલ કરો",
+    "getDirections": "દિશા-નિર્દેશો",
+    "genericAvailable": "જેનેરિક વિકલ્પ ઉપલબ્ધ",
+    "savingsUpTo": "{{percent}}% સુધીની બચત",
+    "stockInHand": "સ્ટોક ઉપલબ્ધ",
+    "stockUnits": "{{count}} યુનિટ",
+    "outOfStock": "સ્ટોક ખાલી",
+    "reservationSuccess": "દવા સફળતાપૂર્વક રિઝર્વ થઈ ગઈ!",
+    "reservationCode": "પિકઅપ કોડ: {{code}}",
+    "reservationNotice": "દવા મેળવવા માટે કૃપા કરીને આ કોડ મેડિકલ કાઉન્ટર પર બતાવો."
   }
 }
