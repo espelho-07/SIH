@@ -6,7 +6,9 @@ import { changeAppLanguage, supportedLanguages } from '@/locales/i18n';
 import { mockState } from '@/mock/db';
 import { operationsApi } from '@/api/operationsApi';
 import { directoryApi } from '@/api/directoryApi';
+import { authApi } from '@/api/authApi';
 import { DoctorLeave, DistrictDoctor } from '@/types/admin';
+import { AVAILABLE_HOSPITALS } from '@/contexts/LocationContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -14,7 +16,6 @@ import {
   Dialog,
   DialogTitle,
   DialogDescription,
-  DialogContent,
 } from '@/components/ui/Dialog';
 import {
   UserCheck,
@@ -28,7 +29,6 @@ import {
   MapPin,
   CheckCircle2,
   AlertCircle,
-  AlertTriangle,
   Plus,
   Trash2,
   X,
@@ -44,7 +44,132 @@ import {
   FileEdit,
   XCircle,
   CalendarX,
+  Users,
+  Activity,
+  Pill,
+  Award,
+  Layers,
+  Sparkles,
+  QrCode,
+  Landmark,
+  FileSpreadsheet,
 } from 'lucide-react';
+
+// District Metadata for realistic administrative profiles
+interface DistrictProfileMeta {
+  headquarters: string;
+  talukas: string[];
+  officeAddress: string;
+  population: string;
+  facilitiesCount: number;
+  doctorsCount: number;
+  janAushadhiCount: number;
+  phcCount: number;
+  cadreCode: string;
+}
+
+const DISTRICT_PROFILES: Record<string, DistrictProfileMeta> = {
+  Rajkot: {
+    headquarters: 'Rajkot City',
+    talukas: [
+      'Rajkot City',
+      'Gondal',
+      'Jetpur',
+      'Jasdan',
+      'Dhoraji',
+      'Upleta',
+      'Kotda Sangani',
+      'Lodhika',
+      'Paddhari',
+      'Jamkandorna',
+      'Vinchhiya',
+    ],
+    officeAddress: 'District Health Society, CDHO Office, Jilla Panchayat Bhavan, Race Course Road, Rajkot - 360001',
+    population: '3,842,000',
+    facilitiesCount: 8,
+    doctorsCount: 42,
+    janAushadhiCount: 18,
+    phcCount: 64,
+    cadreCode: 'GJ-CDHO-RJK-01',
+  },
+  Gandhinagar: {
+    headquarters: 'Gandhinagar (Sector 11)',
+    talukas: ['Gandhinagar', 'Kalol', 'Mansa', 'Dehgam', 'Pethapur'],
+    officeAddress: 'District Health Society, Block 1, Jilla Seva Sadan, Sector 11, Gandhinagar - 382011',
+    population: '1,438,000',
+    facilitiesCount: 14,
+    doctorsCount: 86,
+    janAushadhiCount: 24,
+    phcCount: 52,
+    cadreCode: 'GJ-CDHO-GND-01',
+  },
+  Ahmedabad: {
+    headquarters: 'Ahmedabad (Asarwa / Old City)',
+    talukas: ['Ahmedabad City', 'Daskroi', 'Sanand', 'Bavla', 'Dholka', 'Viramgam', 'Mandal', 'Detroj', 'Dhandhuka'],
+    officeAddress: 'Chief District Health Office, Jilla Panchayat Bhavan, Lal Darwaja, Ahmedabad - 380001',
+    population: '8,450,000',
+    facilitiesCount: 28,
+    doctorsCount: 240,
+    janAushadhiCount: 68,
+    phcCount: 120,
+    cadreCode: 'GJ-CDHO-AHD-01',
+  },
+  Surat: {
+    headquarters: 'Surat (Majura Gate)',
+    talukas: ['Surat City', 'Bardoli', 'Choryasi', 'Kamrej', 'Mahuva', 'Mandvi', 'Mangrol', 'Olpad', 'Palsana', 'Umarpada'],
+    officeAddress: 'District Health Society, CDHO Office, Ring Road, Surat - 395002',
+    population: '6,520,000',
+    facilitiesCount: 22,
+    doctorsCount: 180,
+    janAushadhiCount: 45,
+    phcCount: 98,
+    cadreCode: 'GJ-CDHO-SRT-01',
+  },
+  Vadodara: {
+    headquarters: 'Vadodara (Sayajigunj)',
+    talukas: ['Vadodara City', 'Padra', 'Dabhoi', 'Karjan', 'Sinor', 'Savli', 'Vaghodia', 'Desar'],
+    officeAddress: 'Chief District Health Office, Jilla Panchayat, Kothi Compound, Vadodara - 390001',
+    population: '4,210,000',
+    facilitiesCount: 16,
+    doctorsCount: 125,
+    janAushadhiCount: 32,
+    phcCount: 76,
+    cadreCode: 'GJ-CDHO-VDR-01',
+  },
+  Bhavnagar: {
+    headquarters: 'Bhavnagar (Kalanala)',
+    talukas: ['Bhavnagar', 'Sihor', 'Umrala', 'Gadhada', 'Botad', 'Palitana', 'Talaja', 'Mahuva', 'Vallabhipur', 'Jesar'],
+    officeAddress: 'CDHO Office, Jilla Panchayat, Kalanala, Bhavnagar - 364001',
+    population: '2,880,000',
+    facilitiesCount: 10,
+    doctorsCount: 68,
+    janAushadhiCount: 20,
+    phcCount: 58,
+    cadreCode: 'GJ-CDHO-BHV-01',
+  },
+  Jamnagar: {
+    headquarters: 'Jamnagar (GG Hospital Road)',
+    talukas: ['Jamnagar', 'Lalpur', 'Jamjodhpur', 'Jodiya', 'Dhrol', 'Kalavad'],
+    officeAddress: 'District Health Society, Jilla Panchayat, Jamnagar - 361001',
+    population: '2,160,000',
+    facilitiesCount: 9,
+    doctorsCount: 56,
+    janAushadhiCount: 16,
+    phcCount: 48,
+    cadreCode: 'GJ-CDHO-JAM-01',
+  },
+  Junagadh: {
+    headquarters: 'Junagadh (Zanzarda Road)',
+    talukas: ['Junagadh', 'Keshod', 'Mangrol', 'Manavadar', 'Maliya Hatina', 'Mendarda', 'Visavadar', 'Bhesan', 'Vanthali'],
+    officeAddress: 'CDHO Office, Jilla Seva Sadan, Junagadh - 362001',
+    population: '1,980,000',
+    facilitiesCount: 8,
+    doctorsCount: 48,
+    janAushadhiCount: 14,
+    phcCount: 44,
+    cadreCode: 'GJ-CDHO-JND-01',
+  },
+};
 
 export const UserProfilePage: React.FC = () => {
   const { user, role, staffSubType, updateUser } = useAuth();
@@ -52,16 +177,39 @@ export const UserProfilePage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Active Tab: if route is /doctor/roster or ?tab=roster, default to roster tab
   const isDoctor = role === 'DOCTOR';
+  const isDistrictAdmin = role === 'DISTRICT_ADMIN';
+  const isFacilityStaff = role === 'FACILITY_STAFF' || role === 'HOSPITAL_ADMIN';
+  const isSuperAdmin = role === 'SUPER_ADMIN';
+  const isPatient = role === 'PATIENT';
+  const isAsha = role === 'ASHA';
+
+  // Active user's district with fallback
+  const userDistrict = user?.district || 'Rajkot';
+  const districtMeta: DistrictProfileMeta = DISTRICT_PROFILES[userDistrict] || {
+    headquarters: `${userDistrict} City`,
+    talukas: [`${userDistrict} Central`, `${userDistrict} Rural`, `${userDistrict} North`, `${userDistrict} South`],
+    officeAddress: `District Health Society, CDHO Office, Jilla Panchayat Bhavan, ${userDistrict}, Gujarat`,
+    population: '2,500,000',
+    facilitiesCount: 10,
+    doctorsCount: 55,
+    janAushadhiCount: 16,
+    phcCount: 50,
+    cadreCode: `GJ-CDHO-${userDistrict.slice(0, 3).toUpperCase()}-01`,
+  };
+
+  // Facilities in the user's district
+  const districtFacilities = useMemo(() => {
+    return AVAILABLE_HOSPITALS.filter((h) => h.district.toLowerCase() === userDistrict.toLowerCase());
+  }, [userDistrict]);
+
+  // Initial Tab selection
   const initialTab =
     location.pathname.includes('/roster') || searchParams.get('tab') === 'roster'
       ? 'roster'
       : searchParams.get('tab') || 'personal';
 
-  const [activeTab, setActiveTab] = useState<'personal' | 'credentials' | 'roster' | 'security'>(
-    initialTab as any
-  );
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   // Success Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -71,7 +219,7 @@ export const UserProfilePage: React.FC = () => {
   };
 
   // -------------------------------------------------------------
-  // TAB 1: Personal & Contact Form State
+  // FORM STATE: Personal & Demographics
   // -------------------------------------------------------------
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -80,7 +228,10 @@ export const UserProfilePage: React.FC = () => {
   const [gender, setGender] = useState<'M' | 'F' | 'Other'>((user?.gender as any) || 'M');
   const [bloodGroup, setBloodGroup] = useState(user?.bloodGroup || 'B+');
   const [address, setAddress] = useState(
-    user?.address || 'Sector 14, Gandhinagar, Gujarat 382016'
+    user?.address ||
+      (isDistrictAdmin
+        ? districtMeta.officeAddress
+        : `${userDistrict}, Gujarat`)
   );
   const [emergencyContactName, setEmergencyContactName] = useState(
     user?.emergencyContactName || ''
@@ -90,24 +241,59 @@ export const UserProfilePage: React.FC = () => {
   );
   const [bio, setBio] = useState(
     user?.bio ||
-      (isDoctor
+      (isDistrictAdmin
+        ? `Chief District Health Officer (CDHO) leading public health infrastructure, disease surveillance, PM-JAY & ABHA implementation, and emergency response across ${userDistrict} District.`
+        : isDoctor
         ? 'Senior Consultant Medical Officer serving public healthcare with dedication.'
-        : 'Registered public health portal user.')
+        : isFacilityStaff
+        ? `Hospital operations and clinical management officer at ${user?.facilityName || 'District Healthcare Facility'}.`
+        : isSuperAdmin
+        ? 'Apex State Health Command Officer governing the digital healthcare grid across Gujarat.'
+        : 'Registered public health portal citizen user.')
   );
 
   // -------------------------------------------------------------
-  // TAB 2: Professional Credentials State
+  // FORM STATE: Professional Credentials & Governance
   // -------------------------------------------------------------
   const [qualification, setQualification] = useState(
-    user?.qualification || (isDoctor ? 'MBBS, MD (Medicine), DM (Cardiology)' : '')
+    user?.qualification ||
+      (isDistrictAdmin
+        ? 'MBBS, MD (Community Medicine / Public Health), PGDHM'
+        : isDoctor
+        ? 'MBBS, MD (Medicine), DM (Cardiology)'
+        : '')
   );
   const [specialty, setSpecialty] = useState(
-    user?.specialty || (isDoctor ? 'Cardiology & Internal Medicine' : '')
+    user?.specialty ||
+      (isDistrictAdmin
+        ? 'Public Health Administration & Epidemiology'
+        : isDoctor
+        ? 'Cardiology & Internal Medicine'
+        : '')
   );
   const [licenseNumber, setLicenseNumber] = useState(
-    user?.licenseNumber || (isDoctor ? 'GMC-MED-2018-88421' : 'GOV-ID-99214')
+    user?.licenseNumber ||
+      (isDistrictAdmin
+        ? `GMC-PUB-${userDistrict.slice(0, 3).toUpperCase()}-2012-9021`
+        : isDoctor
+        ? 'GMC-MED-2018-88421'
+        : 'GOV-ID-99214')
   );
-  const [employeeId, setEmployeeId] = useState(user?.employeeId || 'GJ-HFW-8491');
+  const [employeeId, setEmployeeId] = useState(
+    user?.employeeId || (isDistrictAdmin ? districtMeta.cadreCode : 'GJ-HFW-8491')
+  );
+  const [designation, setDesignation] = useState(
+    user?.designation ||
+      (isDistrictAdmin
+        ? 'Chief District Health Officer (CDHO)'
+        : isDoctor
+        ? 'Senior Consultant & Medical Officer'
+        : isFacilityStaff
+        ? staffSubType ? staffSubType.replace('_', ' ') : 'Operations Officer'
+        : isSuperAdmin
+        ? 'State Apex Administrator'
+        : 'Registered Citizen')
+  );
   const [opdRoom, setOpdRoom] = useState('Room 104 (Ground Floor OPD)');
   const [teleconsultEnabled, setTeleconsultEnabled] = useState(true);
 
@@ -125,7 +311,6 @@ export const UserProfilePage: React.FC = () => {
     return mockState.getDoctorLeaves(doctorKey);
   });
 
-  // Month Calendar Navigation (Default to Current Month: September 2026)
   const [calendarDate, setCalendarDate] = useState<Date>(new Date(2026, 8, 1)); // September 2026
 
   // Leave Declaration Modal
@@ -142,6 +327,7 @@ export const UserProfilePage: React.FC = () => {
   const [emergencyPhone, setEmergencyPhone] = useState(user?.phone || '9876505678');
   const [leaveNotes, setLeaveNotes] = useState('');
   const [applyingLeave, setApplyingLeave] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
   const [leaveImpactPreview, setLeaveImpactPreview] = useState<{
     loading: boolean;
     affectedAppointmentsCount: number;
@@ -154,13 +340,13 @@ export const UserProfilePage: React.FC = () => {
     doctorsRemaining: 1,
   });
 
-  // Fetch pre-submission impact preview whenever modal opens or dates change
+  // Pre-submission impact preview
   useEffect(() => {
     if (!showLeaveModal || !leaveStartDate || !leaveEndDate) return;
     let isMounted = true;
     setLeaveImpactPreview((prev) => ({ ...prev, loading: true }));
     operationsApi
-      .getLeaveImpact(doctorKey, leaveStartDate, leaveEndDate, 'fac_civil_01')
+      .getLeaveImpact(doctorKey, leaveStartDate, leaveEndDate, user?.facilityId || 'fac_civil_01')
       .then((res) => {
         if (isMounted && res.success && res.data) {
           setLeaveImpactPreview({
@@ -177,7 +363,7 @@ export const UserProfilePage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [showLeaveModal, leaveStartDate, leaveEndDate, doctorKey]);
+  }, [showLeaveModal, leaveStartDate, leaveEndDate, doctorKey, user?.facilityId]);
 
   // Weekly OPD Schedule
   const [weeklySchedule] = useState({
@@ -189,7 +375,7 @@ export const UserProfilePage: React.FC = () => {
     saturday: '09:00 AM – 12:30 PM',
   });
 
-  // Sync user changes when user context updates
+  // Sync user changes when auth context updates
   useEffect(() => {
     if (user) {
       setName(user.name || '');
@@ -202,12 +388,14 @@ export const UserProfilePage: React.FC = () => {
       if (user.specialty) setSpecialty(user.specialty);
       if (user.licenseNumber) setLicenseNumber(user.licenseNumber);
       if (user.employeeId) setEmployeeId(user.employeeId);
+      if (user.designation) setDesignation(user.designation);
       if (user.bio) setBio(user.bio);
       if (user.address) setAddress(user.address);
+      if (user.emergencyContactName) setEmergencyContactName(user.emergencyContactName);
+      if (user.emergencyContactPhone) setEmergencyContactPhone(user.emergencyContactPhone);
     }
   }, [user]);
 
-  // Refresh leaves and status
   const refreshDoctorRoster = () => {
     const activeLeaves = mockState.getDoctorLeaves(doctorKey);
     setLeaves([...activeLeaves]);
@@ -218,9 +406,10 @@ export const UserProfilePage: React.FC = () => {
   // -------------------------------------------------------------
   // SAVE PERSONAL PROFILE HANDLER
   // -------------------------------------------------------------
-  const handleSavePersonal = (e: React.FormEvent) => {
+  const handleSavePersonal = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateUser({
+    setSavingProfile(true);
+    const updates = {
       name,
       phone,
       email,
@@ -231,58 +420,66 @@ export const UserProfilePage: React.FC = () => {
       emergencyContactName,
       emergencyContactPhone,
       bio,
-    });
+      designation,
+    };
 
-    // If doctor, also update in backend DB & mockState
-    if (isDoctor) {
-      directoryApi.updateDoctor(doctorKey, {
-        name,
-        phone,
-        email,
-      }).catch(console.warn);
+    updateUser(updates);
 
-      mockState.updateDoctor(doctorKey, {
-        name,
-        phone,
-        email,
-      });
+    try {
+      await authApi.updateProfile(updates);
+      if (isDoctor) {
+        await directoryApi.updateDoctor(doctorKey, { name, phone, email }).catch(console.warn);
+        mockState.updateDoctor(doctorKey, { name, phone, email });
+      }
+      showToast('Profile information successfully saved & synchronized with health registry.');
+    } catch (err) {
+      console.warn('Backend sync note:', err);
+      showToast('Profile updated locally.');
+    } finally {
+      setSavingProfile(false);
     }
-
-    showToast(t('profile.personalSaved', 'Personal details successfully updated and saved.'));
   };
 
   // -------------------------------------------------------------
   // SAVE CREDENTIALS HANDLER
   // -------------------------------------------------------------
-  const handleSaveCredentials = (e: React.FormEvent) => {
+  const handleSaveCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateUser({
+    setSavingProfile(true);
+    const updates = {
       qualification,
       specialty,
       licenseNumber,
       employeeId,
-    });
+      designation,
+    };
 
-    if (isDoctor) {
-      directoryApi.updateDoctor(doctorKey, {
-        qualification,
-        specialty,
-        teleconsultEnabled,
-      }).catch(console.warn);
+    updateUser(updates);
 
-      mockState.updateDoctor(doctorKey, {
-        qualification,
-        specialty,
-        teleconsultEnabled,
-      });
+    try {
+      await authApi.updateProfile(updates);
+      if (isDoctor) {
+        await directoryApi.updateDoctor(doctorKey, {
+          qualification,
+          specialty,
+          teleconsultEnabled,
+        }).catch(console.warn);
+        mockState.updateDoctor(doctorKey, {
+          qualification,
+          specialty,
+          teleconsultEnabled,
+        });
+      }
+      showToast('Official credentials & governance records updated successfully.');
+    } catch (err) {
+      console.warn('Backend sync note:', err);
+      showToast('Credentials saved locally.');
+    } finally {
+      setSavingProfile(false);
     }
-
-    showToast(t('profile.credentialsSaved', 'Professional credentials and governance details saved.'));
   };
 
-  // -------------------------------------------------------------
-  // DOCTOR QUICK DUTY STATUS TOGGLE
-  // -------------------------------------------------------------
+  // Doctor Quick Duty Status Toggle
   const handleDutyToggle = (newStatus: DistrictDoctor['status']) => {
     setDutyStatus(newStatus);
     directoryApi.updateDoctorStatus(doctorKey, newStatus).catch(console.warn);
@@ -290,9 +487,7 @@ export const UserProfilePage: React.FC = () => {
     showToast(`Duty status updated to: ${newStatus.replace('_', ' ')}`);
   };
 
-  // -------------------------------------------------------------
-  // SUBMIT LEAVE APPLICATION
-  // -------------------------------------------------------------
+  // Leave Submit
   const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!leaveStartDate || !leaveEndDate) {
@@ -309,8 +504,8 @@ export const UserProfilePage: React.FC = () => {
       const res = await operationsApi.applyLeave({
         doctorId: doctorKey,
         doctorName: user?.name || 'Dr. Arvind Patel',
-        facilityId: 'fac_civil_01',
-        facilityName: 'Civil Hospital Gandhinagar',
+        facilityId: user?.facilityId || 'fac_civil_01',
+        facilityName: user?.facilityName || 'Civil Hospital',
         department: user?.specialty || 'Cardiology',
         startDate: leaveStartDate,
         endDate: leaveEndDate,
@@ -327,7 +522,7 @@ export const UserProfilePage: React.FC = () => {
         setLeaveReason('');
         setLeaveNotes('');
         refreshDoctorRoster();
-        showToast('Leave request submitted to Facility Operations for operational review & coverage verification.');
+        showToast('Leave request submitted to Facility Operations for coverage review.');
       } else {
         alert(res.message || 'Failed to submit leave request');
       }
@@ -338,9 +533,7 @@ export const UserProfilePage: React.FC = () => {
     }
   };
 
-  // -------------------------------------------------------------
-  // CANCEL / WITHDRAW LEAVE HANDLER
-  // -------------------------------------------------------------
+  // Cancel Leave
   const handleCancelLeave = async (leaveId: string) => {
     if (window.confirm('Are you sure you want to cancel / withdraw this leave? Your OPD clinical availability will be restored.')) {
       try {
@@ -353,13 +546,11 @@ export const UserProfilePage: React.FC = () => {
     }
   };
 
-  // -------------------------------------------------------------
-  // CALENDAR GENERATION LOGIC
-  // -------------------------------------------------------------
+  // Calendar generation logic
   const year = calendarDate.getFullYear();
   const month = calendarDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayIndex = new Date(year, month, 1).getDay(); // 0 = Sun, 1 = Mon ...
+  const firstDayIndex = new Date(year, month, 1).getDay();
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -370,14 +561,12 @@ export const UserProfilePage: React.FC = () => {
     setCalendarDate(new Date(year, month + offset, 1));
   };
 
-  // Check if a given day in the selected month is on leave
   const getDayLeaveInfo = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const matchingLeave = leaves.find((l) => {
+    return leaves.find((l) => {
       if (l.status === 'CANCELLED') return false;
       return dateStr >= l.startDate && dateStr <= l.endDate;
     });
-    return matchingLeave;
   };
 
   const todayStr = useMemo(() => {
@@ -395,7 +584,7 @@ export const UserProfilePage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      {/* Success Notification Banner */}
+      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-18 right-4 z-50 p-4 rounded-2xl bg-emerald-600 text-white shadow-xl flex items-center gap-3 animate-fadeIn border border-emerald-400">
           <CheckCircle2 className="h-5 w-5 text-emerald-100 shrink-0" />
@@ -410,36 +599,71 @@ export const UserProfilePage: React.FC = () => {
       )}
 
       {/* ----------------------------------------------------------- */}
-      {/* HERO USER PROFILE HEADER                                     */}
+      {/* HERO PROFILE HEADER (Role-Customized Banner)                */}
       {/* ----------------------------------------------------------- */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 p-6 sm:p-8 text-white shadow-lg border border-teal-700/50">
-        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
+      <div
+        className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 text-white shadow-xl border ${
+          isDistrictAdmin
+            ? 'bg-gradient-to-r from-blue-950 via-indigo-900 to-slate-900 border-indigo-700/50'
+            : isDoctor
+            ? 'bg-gradient-to-r from-teal-950 via-teal-900 to-slate-900 border-teal-700/50'
+            : isSuperAdmin
+            ? 'bg-gradient-to-r from-purple-950 via-slate-900 to-slate-950 border-purple-700/50'
+            : isFacilityStaff
+            ? 'bg-gradient-to-r from-amber-950 via-stone-900 to-slate-900 border-amber-700/50'
+            : 'bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 border-emerald-700/50'
+        }`}
+      >
+        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
         <div className="absolute right-32 -bottom-16 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-            {/* Avatar with Initials */}
+            {/* Avatar Initials */}
             <div className="relative">
-              <div className="flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-extrabold text-2xl sm:text-3xl shadow-xl ring-4 ring-white/20">
+              <div
+                className={`flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center rounded-2xl text-white font-extrabold text-2xl sm:text-3xl shadow-xl ring-4 ring-white/20 ${
+                  isDistrictAdmin
+                    ? 'bg-gradient-to-br from-indigo-500 to-blue-600'
+                    : isDoctor
+                    ? 'bg-gradient-to-br from-teal-500 to-emerald-600'
+                    : isSuperAdmin
+                    ? 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                    : isFacilityStaff
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-600'
+                    : 'bg-gradient-to-br from-emerald-500 to-teal-600'
+                }`}
+              >
                 {user?.name ? user.name.slice(0, 2).toUpperCase() : 'HC'}
               </div>
-              <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-400 ring-2 ring-teal-950 flex items-center justify-center">
+              <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-400 ring-2 ring-slate-950 flex items-center justify-center">
                 <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
               </span>
             </div>
 
-            {/* Identity & Role Badges */}
+            {/* Profile Identity & Official Badges */}
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  {user?.name || 'Public Health Officer'}
+                  {user?.name || (isDistrictAdmin ? 'Chief District Health Officer' : 'Public Health User')}
                 </h1>
-                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-teal-500/30 text-teal-200 border border-teal-400/40 uppercase tracking-wide">
-                  <Shield className="h-3 w-3" />
-                  {role === 'FACILITY_STAFF' && staffSubType
+
+                {/* Primary Cadre Badge */}
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-white/15 text-white border border-white/20 uppercase tracking-wide">
+                  <Shield className="h-3 w-3 text-indigo-300" />
+                  {isDistrictAdmin
+                    ? 'Chief District Health Officer (CDHO)'
+                    : isFacilityStaff && staffSubType
                     ? staffSubType.replace('_', ' ')
                     : role?.replace('_', ' ')}
                 </span>
+
+                {/* District Badge */}
+                <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-black bg-indigo-500/30 text-indigo-200 border border-indigo-400/40">
+                  <MapPin className="h-3 w-3 text-indigo-300" />
+                  {userDistrict} District
+                </span>
+
                 {isDoctor && (
                   <span
                     className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
@@ -456,22 +680,29 @@ export const UserProfilePage: React.FC = () => {
                 )}
               </div>
 
-              <p className="text-xs text-teal-200/80 font-medium flex flex-wrap items-center gap-x-4 gap-y-1">
-                {user?.facilityName && (
+              {/* Sub-details line */}
+              <p className="text-xs text-slate-200/90 font-medium flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
+                {isDistrictAdmin ? (
+                  <>
+                    <span className="flex items-center gap-1">
+                      <Landmark className="h-3.5 w-3.5 text-indigo-300" />
+                      Department of Health & Family Welfare, Govt. of Gujarat
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Award className="h-3.5 w-3.5 text-amber-300" />
+                      Cadre ID: {employeeId || districtMeta.cadreCode}
+                    </span>
+                  </>
+                ) : user?.facilityName ? (
                   <span className="flex items-center gap-1">
                     <Building2 className="h-3.5 w-3.5 text-teal-300" />
                     {user.facilityName}
                   </span>
-                )}
-                {user?.district && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5 text-teal-300" />
-                    {user.district} District
-                  </span>
-                )}
+                ) : null}
+
                 {user?.phone && (
                   <span className="flex items-center gap-1">
-                    <Phone className="h-3.5 w-3.5 text-teal-300" />
+                    <Phone className="h-3.5 w-3.5 text-slate-300" />
                     +91 {user.phone}
                   </span>
                 )}
@@ -480,12 +711,33 @@ export const UserProfilePage: React.FC = () => {
               {user?.abhaId && (
                 <div className="pt-1">
                   <span className="inline-flex items-center gap-1 text-[11px] font-mono font-semibold bg-white/10 px-2.5 py-1 rounded-lg text-teal-100 border border-white/10">
+                    <QrCode className="h-3 w-3 text-teal-300" />
                     ABHA ID: {user.abhaId}
                   </span>
                 </div>
               )}
             </div>
           </div>
+
+          {/* District Admin Quick Stat Overview in Hero */}
+          {isDistrictAdmin && (
+            <div className="bg-slate-950/70 p-3.5 rounded-2xl border border-indigo-700/60 backdrop-blur-md self-stretch sm:self-auto min-w-[260px]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300 block mb-1.5 flex items-center justify-between">
+                <span>{userDistrict} Health Command Scope</span>
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="bg-white/5 p-2 rounded-xl border border-white/10">
+                  <span className="text-lg font-black text-white">{districtMeta.facilitiesCount}</span>
+                  <span className="text-[10px] font-medium text-indigo-200 block">Hospitals & CHCs</span>
+                </div>
+                <div className="bg-white/5 p-2 rounded-xl border border-white/10">
+                  <span className="text-lg font-black text-white">{districtMeta.doctorsCount}</span>
+                  <span className="text-[10px] font-medium text-indigo-200 block">Active Clinicians</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Quick Doctor Duty Status Toggle */}
           {isDoctor && (
@@ -497,7 +749,7 @@ export const UserProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleDutyToggle('ON_DUTY')}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     dutyStatus === 'ON_DUTY'
                       ? 'bg-emerald-600 text-white shadow-md'
                       : 'bg-white/10 text-teal-100 hover:bg-white/20'
@@ -508,7 +760,7 @@ export const UserProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleDutyToggle('IN_OPD')}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     dutyStatus === 'IN_OPD'
                       ? 'bg-amber-600 text-white shadow-md'
                       : 'bg-white/10 text-teal-100 hover:bg-white/20'
@@ -519,13 +771,13 @@ export const UserProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleDutyToggle('IN_SURGERY')}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     dutyStatus === 'IN_SURGERY'
                       ? 'bg-indigo-600 text-white shadow-md'
                       : 'bg-white/10 text-teal-100 hover:bg-white/20'
                   }`}
                 >
-                  In OT / Surgery
+                  In Surgery
                 </button>
                 <button
                   type="button"
@@ -533,7 +785,7 @@ export const UserProfilePage: React.FC = () => {
                     handleDutyToggle('ON_LEAVE');
                     setActiveTab('roster');
                   }}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     dutyStatus === 'ON_LEAVE'
                       ? 'bg-rose-600 text-white shadow-md ring-2 ring-rose-300'
                       : 'bg-white/10 text-teal-100 hover:bg-white/20'
@@ -548,6 +800,63 @@ export const UserProfilePage: React.FC = () => {
       </div>
 
       {/* ----------------------------------------------------------- */}
+      {/* DISTRICT TELEMETRY METRIC STRIP (For District Admin)        */}
+      {/* ----------------------------------------------------------- */}
+      {isDistrictAdmin && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+              <Building2 className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-black text-slate-900">{districtMeta.facilitiesCount}</p>
+              <p className="text-[11px] font-semibold text-slate-500">Public Hospitals</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+              <Stethoscope className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-black text-slate-900">{districtMeta.doctorsCount}</p>
+              <p className="text-[11px] font-semibold text-slate-500">Doctors on Duty</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+              <Pill className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-black text-slate-900">{districtMeta.janAushadhiCount}</p>
+              <p className="text-[11px] font-semibold text-slate-500">Jan Aushadhi Depots</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-black text-slate-900">{districtMeta.population}</p>
+              <p className="text-[11px] font-semibold text-slate-500">Citizens Served</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-1">
+            <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center shrink-0">
+              <Layers className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-black text-slate-900">{districtMeta.talukas.length} Talukas</p>
+              <p className="text-[11px] font-semibold text-slate-500">Blocks in {userDistrict}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ----------------------------------------------------------- */}
       {/* NAVIGATION TABS                                              */}
       {/* ----------------------------------------------------------- */}
       <div className="flex border-b border-slate-200 gap-2 sm:gap-4 overflow-x-auto pb-px">
@@ -555,19 +864,33 @@ export const UserProfilePage: React.FC = () => {
           onClick={() => setActiveTab('personal')}
           className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'personal'
-              ? 'border-teal-700 text-teal-900'
+              ? 'border-indigo-700 text-indigo-900'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <UserCheck className="h-4 w-4" />
-          <span>Personal & Contact Info</span>
+          <span>{isDistrictAdmin ? 'Official Identity & Contact' : 'Personal & Contact Info'}</span>
         </button>
+
+        {isDistrictAdmin && (
+          <button
+            onClick={() => setActiveTab('jurisdiction')}
+            className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'jurisdiction'
+                ? 'border-indigo-700 text-indigo-900 bg-indigo-50/60 rounded-t-xl'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <MapPin className="h-4 w-4 text-indigo-600" />
+            <span>{userDistrict} Jurisdiction & Health Network</span>
+          </button>
+        )}
 
         <button
           onClick={() => setActiveTab('credentials')}
           className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'credentials'
-              ? 'border-teal-700 text-teal-900'
+              ? 'border-indigo-700 text-indigo-900'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -598,7 +921,7 @@ export const UserProfilePage: React.FC = () => {
           onClick={() => setActiveTab('security')}
           className={`flex items-center gap-2 pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'security'
-              ? 'border-teal-700 text-teal-900'
+              ? 'border-indigo-700 text-indigo-900'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -614,9 +937,13 @@ export const UserProfilePage: React.FC = () => {
         <Card className="border-slate-200 shadow-sm bg-white">
           <CardHeader className="border-b border-slate-100 pb-4">
             <CardTitle className="text-base font-bold text-slate-900 flex items-center justify-between">
-              <span>Personal Details & Demographics</span>
+              <span>
+                {isDistrictAdmin
+                  ? `Chief District Health Officer — ${userDistrict} District Administrative Profile`
+                  : 'Personal Details & Official Information'}
+              </span>
               <span className="text-xs font-normal text-slate-500">
-                All updates reflect instantly in your session and patient-facing records.
+                Updates sync live with HealthConnect and state directory records.
               </span>
             </CardTitle>
           </CardHeader>
@@ -624,7 +951,7 @@ export const UserProfilePage: React.FC = () => {
             <form onSubmit={handleSavePersonal} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Full Official Name</label>
+                  <label className="text-xs font-bold text-slate-700">Official Full Name</label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -635,7 +962,18 @@ export const UserProfilePage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Mobile Phone (+91)</label>
+                  <label className="text-xs font-bold text-slate-700">Official Cadre / Designation</label>
+                  <Input
+                    value={designation}
+                    onChange={(e) => setDesignation(e.target.value)}
+                    required
+                    placeholder="e.g. Chief District Health Officer"
+                    className="h-10 text-xs font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Official Mobile Phone (+91)</label>
                   <Input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -646,13 +984,13 @@ export const UserProfilePage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Email Address</label>
+                  <label className="text-xs font-bold text-slate-700">Official Government Email</label>
                   <Input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    placeholder="name@domain.gov.in"
+                    placeholder="cdho.rajkot@gujarat.gov.in"
                     className="h-10 text-xs font-medium"
                   />
                 </div>
@@ -699,8 +1037,19 @@ export const UserProfilePage: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Assigned District Health Headquarters</label>
+                  <Input
+                    disabled
+                    value={`${userDistrict} District Health Society (${districtMeta.headquarters})`}
+                    className="h-10 text-xs font-bold bg-slate-50 text-indigo-900"
+                  />
+                </div>
+
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-xs font-bold text-slate-700">Residential / Postal Address</label>
+                  <label className="text-xs font-bold text-slate-700">
+                    {isDistrictAdmin ? 'Official CDHO Headquarters / Office Postal Address' : 'Residential / Postal Address'}
+                  </label>
                   <Input
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
@@ -710,11 +1059,11 @@ export const UserProfilePage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Emergency Contact Person</label>
+                  <label className="text-xs font-bold text-slate-700">Emergency / Deputy Contact Person</label>
                   <Input
                     value={emergencyContactName}
                     onChange={(e) => setEmergencyContactName(e.target.value)}
-                    placeholder="Next of kin / Spouse / Colleague"
+                    placeholder="e.g. Additional District Health Officer / Next of Kin"
                     className="h-10 text-xs font-medium"
                   />
                 </div>
@@ -730,13 +1079,13 @@ export const UserProfilePage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-xs font-bold text-slate-700">Professional Summary / Bio</label>
+                  <label className="text-xs font-bold text-slate-700">Executive Public Health Leadership Summary</label>
                   <textarea
                     rows={3}
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    placeholder="Brief description of clinical experience, background, or public health responsibilities"
-                    className="w-full rounded-xl border border-slate-200 p-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-hidden"
+                    placeholder="Brief description of administrative leadership, clinical experience, or public health responsibilities"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-xs font-medium text-slate-900 focus:border-indigo-600 focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -744,15 +1093,186 @@ export const UserProfilePage: React.FC = () => {
               <div className="flex justify-end pt-4 border-t border-slate-100">
                 <Button
                   type="submit"
-                  className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 px-6 h-10 shadow-sm cursor-pointer"
+                  disabled={savingProfile}
+                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs gap-2 px-6 h-10 shadow-sm cursor-pointer"
                 >
-                  <Save className="h-4 w-4" />
-                  Save Personal Details
+                  {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save Profile Details
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
+      )}
+
+      {/* ----------------------------------------------------------- */}
+      {/* TAB: DISTRICT JURISDICTION & HEALTH NETWORK (District Admin) */}
+      {/* ----------------------------------------------------------- */}
+      {activeTab === 'jurisdiction' && isDistrictAdmin && (
+        <div className="space-y-6">
+          {/* Mandate & Jurisdiction Card */}
+          <Card className="border-indigo-200 shadow-sm bg-gradient-to-br from-indigo-50/60 via-white to-blue-50/40">
+            <CardHeader className="border-b border-indigo-100 pb-4">
+              <CardTitle className="text-base font-bold text-indigo-950 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Landmark className="h-5 w-5 text-indigo-700" />
+                  <span>{userDistrict} District Health Society Jurisdiction Scope</span>
+                </div>
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-xs">
+                  Gazetted Class-I Mandate
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 rounded-2xl bg-white border border-indigo-100 shadow-xs">
+                  <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Governing State Body</p>
+                  <p className="text-sm font-bold text-slate-900 mt-1">Health & Family Welfare Dept, Gujarat</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Commissioner of Health, Sachivalaya, Gandhinagar</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-indigo-100 shadow-xs">
+                  <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">District Headquarters</p>
+                  <p className="text-sm font-bold text-slate-900 mt-1">{districtMeta.headquarters}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{districtMeta.officeAddress}</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-indigo-100 shadow-xs">
+                  <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Officer Cadre Reference</p>
+                  <p className="text-sm font-bold font-mono text-indigo-950 mt-1">{districtMeta.cadreCode}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Appointed Public Health Nodal Officer</p>
+                </div>
+              </div>
+
+              {/* Statutory Health Portfolios */}
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Award className="h-4 w-4 text-indigo-700" />
+                  <span>Statutory Health Portfolios & Executive Delegations</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs">
+                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      NHM District Mission Director
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1">
+                      Autonomous budget allocation for CHCs, maternal care, and sub-centers in {userDistrict}.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs">
+                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      Epidemic Diseases Controller
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1">
+                      Statutory power under Epidemic Diseases Act 1897 & IDSP outbreak rapid-response containment.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs">
+                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      PM-JAY & ABHA Nodal Authority
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1">
+                      Ayushman Bharat digital hospital empanelment, claim approvals, and citizen health ID linkage.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs">
+                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      Clinical Establishments Registrar
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1">
+                      Inspection and licensing of private clinics, pathology labs, and nursing homes in {userDistrict}.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs">
+                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      Jan Aushadhi & Drug Supply
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1">
+                      Supervision of {districtMeta.janAushadhiCount} Jan Aushadhi generic dispensaries and buffer reserves.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs">
+                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      108 Emergency Grid Zonal Lead
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1">
+                      Coordination with Gujarat EMRI 108 ambulance fleet and trauma center bed availability.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Administrative Talukas / Blocks */}
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-indigo-700" />
+                  <span>Administrative Talukas / Blocks under {userDistrict} Health Society</span>
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {districtMeta.talukas.map((taluka, idx) => (
+                    <span
+                      key={taluka}
+                      className="px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs font-bold text-indigo-950 flex items-center gap-1.5"
+                    >
+                      <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                      {taluka}
+                      <span className="text-[10px] font-normal text-indigo-600 ml-1">Block #{idx + 1}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* District Health Facilities Grid */}
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-indigo-700" />
+                  <span>Active Public Healthcare Facilities in {userDistrict}</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {districtFacilities.map((fac) => (
+                    <div
+                      key={fac.id}
+                      className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 transition-all flex items-start justify-between gap-3 shadow-2xs"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-slate-900">{fac.name}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500">{fac.address}</p>
+                        <div className="flex items-center gap-2 pt-1">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+                            {fac.typeBadge}
+                          </span>
+                          {fac.availableBeds !== undefined && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              {fac.availableBeds} Active Beds
+                            </span>
+                          )}
+                          {fac.emergency24x7 && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
+                              24x7 Trauma
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* ----------------------------------------------------------- */}
@@ -763,13 +1283,79 @@ export const UserProfilePage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 pb-4">
             <CardTitle className="text-base font-bold text-slate-900 flex items-center justify-between">
               <span>Professional Credentials & Deployment Governance</span>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-                Role: {role}
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200">
+                Active Role: {role}
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSaveCredentials} className="space-y-6">
+              {/* District Admin Credentials */}
+              {isDistrictAdmin && (
+                <div className="space-y-5">
+                  <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-indigo-700 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-sm text-indigo-950">
+                        Chief District Health Officer (CDHO) Gazetted Cadre Credentials
+                      </p>
+                      <p className="text-indigo-800 mt-1">
+                        Empowered under the Government of Gujarat Health & Family Welfare Department notification to administer all secondary hospitals, CHCs, primary health centres, drug stores, and clinical registries throughout {userDistrict} District.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Gazetted Officer Cadre ID</label>
+                      <Input
+                        value={employeeId}
+                        onChange={(e) => setEmployeeId(e.target.value)}
+                        className="h-10 text-xs font-semibold font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">District Health Jurisdiction</label>
+                      <Input
+                        disabled
+                        value={`${userDistrict} District Health Authority`}
+                        className="h-10 text-xs font-bold bg-slate-50 text-indigo-900"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Medical Council Registration / Officer License</label>
+                      <Input
+                        value={licenseNumber}
+                        onChange={(e) => setLicenseNumber(e.target.value)}
+                        className="h-10 text-xs font-semibold font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Highest Qualifications & Public Health Fellowships</label>
+                      <Input
+                        value={qualification}
+                        onChange={(e) => setQualification(e.target.value)}
+                        placeholder="e.g. MBBS, MD (Community Medicine), PGDHM"
+                        className="h-10 text-xs font-semibold"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-700">Specialization & Health Focus</label>
+                      <Input
+                        value={specialty}
+                        onChange={(e) => setSpecialty(e.target.value)}
+                        placeholder="e.g. Public Health Administration, Epidemiology & Maternal Healthcare"
+                        className="h-10 text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Doctor-Specific Credentials */}
               {isDoctor && (
                 <div className="space-y-5">
@@ -850,83 +1436,15 @@ export const UserProfilePage: React.FC = () => {
                 </div>
               )}
 
-              {/* District Admin Credentials */}
-              {role === 'DISTRICT_ADMIN' && (
-                <div className="space-y-5">
-                  <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 flex items-center gap-3">
-                    <Shield className="h-5 w-5 text-indigo-700 shrink-0" />
-                    <div>
-                      <p className="font-bold">Chief District Health Officer (CDHO) Mandate</p>
-                      <p className="text-indigo-700 mt-0.5">
-                        Gazetted state authority governing public hospitals, CHCs, PHCs, blood centres, and medical personnel across {user?.district || 'Gandhinagar'} District.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Gazetted Officer Cadre ID</label>
-                      <Input
-                        value={employeeId}
-                        onChange={(e) => setEmployeeId(e.target.value)}
-                        className="h-10 text-xs font-semibold font-mono"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">District Jurisdiction</label>
-                      <Input
-                        disabled
-                        value={`${user?.district || 'Gandhinagar'} District Health Authority`}
-                        className="h-10 text-xs font-semibold bg-slate-50"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ASHA Credentials */}
-              {role === 'ASHA' && (
-                <div className="space-y-5">
-                  <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-teal-900 flex items-center gap-3">
-                    <Heart className="h-5 w-5 text-teal-700 shrink-0" />
-                    <div>
-                      <p className="font-bold">National Health Mission (NHM) Accredited Social Health Activist</p>
-                      <p className="text-teal-700 mt-0.5">
-                        Authorized frontline health worker conducting door-to-door screenings, maternal checkups, and referral linkage.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">ASHA Registration Code</label>
-                      <Input
-                        value={employeeId}
-                        onChange={(e) => setEmployeeId(e.target.value)}
-                        className="h-10 text-xs font-semibold font-mono"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Sub-Centre / PHC Affiliation</label>
-                      <Input
-                        value={user?.facilityName || 'Pethapur Primary Health Centre'}
-                        disabled
-                        className="h-10 text-xs font-semibold bg-slate-50"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Facility Staff Credentials */}
-              {role === 'FACILITY_STAFF' && (
+              {isFacilityStaff && (
                 <div className="space-y-5">
                   <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center gap-3">
                     <Building2 className="h-5 w-5 text-amber-700 shrink-0" />
                     <div>
                       <p className="font-bold">Hospital Facility Operational Station</p>
                       <p className="text-amber-700 mt-0.5">
-                        Designated staff role: {staffSubType ? staffSubType.replace('_', ' ') : 'Hospital Staff'} at {user?.facilityName || 'Civil Hospital'}.
+                        Designated role: {staffSubType ? staffSubType.replace('_', ' ') : 'Hospital Staff'} at {user?.facilityName || 'Civil Hospital'} ({userDistrict} District).
                       </p>
                     </div>
                   </div>
@@ -941,7 +1459,7 @@ export const UserProfilePage: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700">Assigned Desk / Counter</label>
+                      <label className="text-xs font-bold text-slate-700">Assigned Desk / Operational Counter</label>
                       <Input
                         value="Counter #02 (Ambulatory OPD Registration & ABHA)"
                         className="h-10 text-xs font-semibold"
@@ -952,14 +1470,14 @@ export const UserProfilePage: React.FC = () => {
               )}
 
               {/* Super Admin Credentials */}
-              {role === 'SUPER_ADMIN' && (
+              {isSuperAdmin && (
                 <div className="space-y-5">
-                  <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-900 flex items-center gap-3">
-                    <Shield className="h-5 w-5 text-red-700 shrink-0" />
+                  <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 text-xs text-purple-900 flex items-center gap-3">
+                    <Shield className="h-5 w-5 text-purple-700 shrink-0" />
                     <div>
                       <p className="font-bold">HealthConnect Apex State Super Administrator</p>
-                      <p className="text-red-700 mt-0.5">
-                        Root privileges across all districts, doctor registries, database audit trails, and high-availability health grids.
+                      <p className="text-purple-700 mt-0.5">
+                        Root privileges across all 33 Gujarat districts, doctor registries, database audit trails, and high-availability health grids.
                       </p>
                     </div>
                   </div>
@@ -967,14 +1485,29 @@ export const UserProfilePage: React.FC = () => {
               )}
 
               {/* Patient Credentials */}
-              {role === 'PATIENT' && (
+              {isPatient && (
                 <div className="space-y-5">
                   <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-teal-900 flex items-center gap-3">
                     <FileText className="h-5 w-5 text-teal-700 shrink-0" />
                     <div>
                       <p className="font-bold">Ayushman Bharat Digital Health Account (ABHA)</p>
                       <p className="text-teal-700 mt-0.5">
-                        Linked to your 14-digit national health identity: {user?.abhaId || '14-8921-3409-7721'}. Your health records are encrypted and patient-consented.
+                        Linked to your 14-digit national health identity: {user?.abhaId || '14-8921-3409-7721'}. Health records are encrypted and patient-consented.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ASHA Credentials */}
+              {isAsha && (
+                <div className="space-y-5">
+                  <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-teal-900 flex items-center gap-3">
+                    <Heart className="h-5 w-5 text-teal-700 shrink-0" />
+                    <div>
+                      <p className="font-bold">National Health Mission (NHM) Accredited Social Health Activist</p>
+                      <p className="text-teal-700 mt-0.5">
+                        Authorized frontline health worker conducting door-to-door screenings, maternal checkups, and referral linkage in {userDistrict}.
                       </p>
                     </div>
                   </div>
@@ -984,9 +1517,10 @@ export const UserProfilePage: React.FC = () => {
               <div className="flex justify-end pt-4 border-t border-slate-100">
                 <Button
                   type="submit"
-                  className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs gap-2 px-6 h-10 shadow-sm cursor-pointer"
+                  disabled={savingProfile}
+                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs gap-2 px-6 h-10 shadow-sm cursor-pointer"
                 >
-                  <Save className="h-4 w-4" />
+                  {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save Credentials
                 </Button>
               </div>
@@ -1000,7 +1534,6 @@ export const UserProfilePage: React.FC = () => {
       {/* ----------------------------------------------------------- */}
       {activeTab === 'roster' && isDoctor && (
         <div className="space-y-6">
-          {/* Active Leave Notice Banner */}
           {dutyStatus === 'ON_LEAVE' && (
             <div className="rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start sm:items-center gap-3.5">
@@ -1019,8 +1552,7 @@ export const UserProfilePage: React.FC = () => {
                       'Scheduled leave period active.'}
                   </p>
                   <p className="text-xs text-rose-100 mt-0.5">
-                    District Health Directory and OPD counters show your status as{' '}
-                    <span className="font-bold underline">"ON LEAVE (Not Available)"</span>.
+                    District Health Directory and OPD counters show status as <span className="font-bold underline">"ON LEAVE"</span>.
                   </p>
                 </div>
               </div>
@@ -1035,7 +1567,6 @@ export const UserProfilePage: React.FC = () => {
             </div>
           )}
 
-          {/* Month Roster Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
@@ -1043,7 +1574,7 @@ export const UserProfilePage: React.FC = () => {
                 <span>Monthly Clinical Roster & Availability Planner</span>
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Plan your leave days, academic summits, or emergency handovers so patients and district administrators know your schedule in advance.
+                Plan leave days or summits so patients and {userDistrict} administrators know your schedule.
               </p>
             </div>
 
@@ -1056,9 +1587,7 @@ export const UserProfilePage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Calendar Grid & OPD Shifts View */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Interactive Monthly Calendar (2 cols) */}
             <Card className="lg:col-span-2 border-slate-200 shadow-sm bg-white overflow-hidden">
               <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1099,7 +1628,6 @@ export const UserProfilePage: React.FC = () => {
               </div>
 
               <div className="p-4">
-                {/* Weekday headers */}
                 <div className="grid grid-cols-7 text-center text-xs font-bold text-slate-400 mb-2">
                   <span>Sun</span>
                   <span>Mon</span>
@@ -1110,14 +1638,11 @@ export const UserProfilePage: React.FC = () => {
                   <span>Sat</span>
                 </div>
 
-                {/* Calendar Days */}
                 <div className="grid grid-cols-7 gap-2">
-                  {/* Empty padding days */}
                   {Array.from({ length: firstDayIndex }).map((_, i) => (
                     <div key={`empty-${i}`} className="h-20 rounded-xl bg-slate-50/50 border border-transparent" />
                   ))}
 
-                  {/* Month Days */}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const dayNumber = i + 1;
                     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
@@ -1134,20 +1659,13 @@ export const UserProfilePage: React.FC = () => {
                             handleCalendarDateClick(dateStr);
                           }
                         }}
-                        title={
-                          isFuture
-                            ? `Click to declare leave starting ${dateStr}`
-                            : isToday
-                            ? `Today (${dateStr})`
-                            : `Past date (${dateStr})`
-                        }
                         className={`h-20 p-1.5 rounded-xl border transition-all flex flex-col justify-between text-left select-none ${
                           dayLeave
                             ? 'bg-rose-50/90 border-rose-300 ring-1 ring-rose-200 cursor-pointer hover:border-rose-400'
                             : isToday
                             ? 'bg-teal-50/90 border-teal-400 ring-2 ring-teal-200'
                             : isFuture
-                            ? 'bg-white border-slate-200 hover:border-teal-500 hover:ring-2 hover:ring-teal-200 hover:bg-teal-50/50 hover:shadow-xs cursor-pointer group'
+                            ? 'bg-white border-slate-200 hover:border-teal-500 hover:ring-2 hover:ring-teal-200 hover:bg-teal-50/50 cursor-pointer group'
                             : isSunday
                             ? 'bg-slate-50 border-slate-200 text-slate-400 opacity-70'
                             : 'bg-slate-50/60 border-slate-200 text-slate-400 opacity-60'
@@ -1206,7 +1724,6 @@ export const UserProfilePage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Weekly Shift Hours & Stats (1 col) */}
             <div className="space-y-4">
               <Card className="border-slate-200 shadow-sm bg-white p-5">
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -1229,20 +1746,19 @@ export const UserProfilePage: React.FC = () => {
                 </div>
 
                 <p className="text-[11px] text-slate-500 mt-3 italic">
-                  * Shifts automatically coordinate with token dispatch and patient arrival scheduling.
+                  * Shifts coordinate with token dispatch and patient arrival in {userDistrict}.
                 </p>
               </Card>
 
-              {/* Quick Summary Card */}
               <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-teal-50 to-emerald-50 p-5">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold">
                     {leaves.filter((l) => l.status === 'APPROVED').length}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-900">Registered Leave Periods</p>
+                    <p className="text-xs font-bold text-slate-900">Approved Leaves</p>
                     <p className="text-[11px] text-teal-800">
-                      Synchronized across Gandhinagar District Health Network
+                      Synchronized across {userDistrict} Health Network
                     </p>
                   </div>
                 </div>
@@ -1250,9 +1766,7 @@ export const UserProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* --------------------------------------------------------- */}
-          {/* REGISTERED LEAVES LIST                                     */}
-          {/* --------------------------------------------------------- */}
+          {/* Leaves List */}
           <Card className="border-slate-200 shadow-sm bg-white">
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-900 flex items-center justify-between">
@@ -1268,7 +1782,7 @@ export const UserProfilePage: React.FC = () => {
             <CardContent className="p-6">
               {leaves.length === 0 ? (
                 <div className="text-center py-8 text-slate-400 text-xs">
-                  No scheduled leaves found. Click <strong>"Plan / Declare Leave"</strong> above to plan your upcoming time off.
+                  No scheduled leaves found. Click <strong>"Plan / Declare Leave"</strong> above to plan upcoming time off.
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1305,33 +1819,16 @@ export const UserProfilePage: React.FC = () => {
                                 PENDING OPERATIONS REVIEW
                               </span>
                             )}
-                            {leave.status === 'CHANGES_REQUIRED' && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 inline-flex items-center gap-1">
-                                <FileEdit className="w-3 h-3" />
-                                CHANGES REQUESTED
-                              </span>
-                            )}
                             {leave.status === 'APPROVED' && (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
                                 <CheckCircle2 className="w-3 h-3" />
                                 APPROVED & ACTIVE
                               </span>
                             )}
-                            {leave.status === 'REJECTED' && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 inline-flex items-center gap-1">
-                                <XCircle className="w-3 h-3" />
-                                REJECTED
-                              </span>
-                            )}
                             {leave.status === 'CANCELLED' && (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1">
                                 <CalendarX className="w-3 h-3" />
                                 CANCELLED / WITHDRAWN
-                              </span>
-                            )}
-                            {leave.affectedAppointmentsCount !== undefined && leave.affectedAppointmentsCount > 0 && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                                {leave.affectedAppointmentsCount} Appts Impacted
                               </span>
                             )}
                             <span className="text-xs font-semibold text-slate-600">
@@ -1346,42 +1843,15 @@ export const UserProfilePage: React.FC = () => {
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
                             {leave.handoverDoctorName && (
                               <span>
-                                🤝 Handover Covering OPD:{' '}
-                                <strong className="text-slate-700">{leave.handoverDoctorName}</strong>
+                                🤝 Handover Covering OPD: <strong className="text-slate-700">{leave.handoverDoctorName}</strong>
                               </span>
                             )}
                             {leave.emergencyContact && (
                               <span>
-                                📞 Emergency Contact:{' '}
-                                <strong className="text-slate-700">{leave.emergencyContact}</strong>
-                              </span>
-                            )}
-                            {leave.notes && (
-                              <span className="italic text-slate-600">
-                                📝 Note: {leave.notes}
+                                📞 Emergency Contact: <strong className="text-slate-700">{leave.emergencyContact}</strong>
                               </span>
                             )}
                           </div>
-
-                          {leave.changesRequestedNote && (
-                            <div className="mt-2 p-2.5 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900">
-                              <span className="font-bold flex items-center gap-1 text-purple-800">
-                                <FileEdit className="w-3.5 h-3.5 text-purple-600" />
-                                Operations Coordinator Requested Clarification:
-                              </span>
-                              <p className="mt-1 font-medium">{leave.changesRequestedNote}</p>
-                            </div>
-                          )}
-
-                          {leave.rejectionReason && (
-                            <div className="mt-2 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900">
-                              <span className="font-bold flex items-center gap-1 text-rose-800">
-                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                Rejection Justification:
-                              </span>
-                              <p className="mt-1 font-medium">{leave.rejectionReason}</p>
-                            </div>
-                          )}
                         </div>
 
                         {leave.status !== 'CANCELLED' && (
@@ -1416,7 +1886,7 @@ export const UserProfilePage: React.FC = () => {
           <Card className="border-slate-200 shadow-sm bg-white">
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Globe className="h-4 w-4 text-teal-700" />
+                <Globe className="h-4 w-4 text-indigo-700" />
                 <span>Application Language Preference</span>
               </CardTitle>
             </CardHeader>
@@ -1430,11 +1900,11 @@ export const UserProfilePage: React.FC = () => {
                       type="button"
                       onClick={() => {
                         changeAppLanguage(lang.code);
-                        showToast(`Application language updated to: ${lang.nativeName} (${lang.name})`);
+                        showToast(`Language updated to: ${lang.nativeName} (${lang.name})`);
                       }}
                       className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                         isSelected
-                          ? 'bg-teal-50 border-teal-600 ring-2 ring-teal-200'
+                          ? 'bg-indigo-50 border-indigo-600 ring-2 ring-indigo-200'
                           : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
@@ -1442,7 +1912,7 @@ export const UserProfilePage: React.FC = () => {
                         <p className="text-xs font-bold text-slate-900">{lang.nativeName}</p>
                         <p className="text-[11px] text-slate-500">{lang.name}</p>
                       </div>
-                      {isSelected && <Check className="h-4 w-4 text-teal-700" />}
+                      {isSelected && <Check className="h-4 w-4 text-indigo-700" />}
                     </button>
                   );
                 })}
@@ -1453,7 +1923,7 @@ export const UserProfilePage: React.FC = () => {
           <Card className="border-slate-200 shadow-sm bg-white">
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Lock className="h-4 w-4 text-teal-700" />
+                <Lock className="h-4 w-4 text-indigo-700" />
                 <span>Security & Consent Architecture</span>
               </CardTitle>
             </CardHeader>
@@ -1474,10 +1944,10 @@ export const UserProfilePage: React.FC = () => {
                 <div>
                   <p className="text-xs font-bold text-slate-900">Role-Based Session Tokens & Cryptographic Signatures</p>
                   <p className="text-[11px] text-slate-500">
-                    All audit trails, OPD token creations, and referral orders are tamper-proof logged.
+                    All audit trails, OPD token creations, and referral orders are tamper-proof logged for {userDistrict}.
                   </p>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
                   ENFORCED
                 </span>
               </div>
@@ -1487,7 +1957,7 @@ export const UserProfilePage: React.FC = () => {
       )}
 
       {/* ----------------------------------------------------------- */}
-      {/* DECLARE LEAVE MODAL DIALOG (Wide max-w-2xl)                 */}
+      {/* DECLARE LEAVE MODAL DIALOG                                  */}
       {/* ----------------------------------------------------------- */}
       <Dialog
         open={showLeaveModal}
@@ -1496,7 +1966,6 @@ export const UserProfilePage: React.FC = () => {
         className="p-0"
         hideCloseButton={true}
       >
-        {/* Pinned Header */}
         <div className="bg-slate-900 p-5 sm:p-6 text-white rounded-t-3xl flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
@@ -1521,11 +1990,8 @@ export const UserProfilePage: React.FC = () => {
           </button>
         </div>
 
-        {/* Form with Scrollable Body and Pinned Footer */}
         <form onSubmit={handleApplyLeave} className="flex flex-col flex-1 overflow-hidden min-h-0">
-          {/* Scrollable Form Body */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 bg-white">
-            {/* Simple Notice */}
             <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>
@@ -1583,9 +2049,7 @@ export const UserProfilePage: React.FC = () => {
               </div>
 
               <div className="space-y-1 sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-700">
-                  Reason for Leave *
-                </label>
+                <label className="text-xs font-semibold text-slate-700">Reason for Leave *</label>
                 <textarea
                   rows={2}
                   required
@@ -1617,7 +2081,6 @@ export const UserProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Coverage Check */}
             {(leaveStartDate && leaveEndDate) && (
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-600">
@@ -1640,7 +2103,6 @@ export const UserProfilePage: React.FC = () => {
             )}
           </div>
 
-          {/* Pinned Action Footer */}
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0 rounded-b-3xl">
             <Button
               type="button"
