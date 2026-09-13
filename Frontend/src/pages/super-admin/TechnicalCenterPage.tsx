@@ -338,7 +338,7 @@ export const TechnicalCenterPage: React.FC = () => {
             <Card className="p-5 border-slate-200 hover:border-teal-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 group-hover:scale-105 transition-transform">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-700 group-hover:scale-105 transition-transform">
                     <Users className="h-5 w-5" />
                   </div>
                   <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
@@ -356,68 +356,24 @@ export const TechnicalCenterPage: React.FC = () => {
             </Card>
           </Link>
 
-          <Link to="/super-admin/roles" className="group">
-            <Card className="p-5 border-slate-200 hover:border-teal-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 group-hover:scale-105 transition-transform">
-                    <KeyRound className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                    6 Roles
-                  </span>
-                </div>
-                <h4 className="font-bold text-sm text-slate-900">Roles & Permissions</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Inspect and audit read, write, and create permissions across clinical and frontline roles.
-                </p>
-              </div>
-              <span className="text-xs font-semibold text-teal-700 flex items-center gap-1 mt-4 group-hover:translate-x-0.5 transition-transform">
-                Review Permissions <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </Card>
-          </Link>
-
-          <Link to="/super-admin/ai-models" className="group">
-            <Card className="p-5 border-slate-200 hover:border-teal-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 group-hover:scale-105 transition-transform">
-                    <BrainCircuit className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    {models.filter((m) => m.status === 'ACTIVE').length} Active
-                  </span>
-                </div>
-                <h4 className="font-bold text-sm text-slate-900">AI Model Registry</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Verified clinical assistance models for bed forecasting, outbreak detection, and referral routing.
-                </p>
-              </div>
-              <span className="text-xs font-semibold text-teal-700 flex items-center gap-1 mt-4 group-hover:translate-x-0.5 transition-transform">
-                Inspect Models <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </Card>
-          </Link>
-
-          <Link to="/super-admin/audit" className="group">
+          <Link to="/super-admin/settings" className="group">
             <Card className="p-5 border-slate-200 hover:border-teal-500 hover:shadow-md transition-all h-full flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:scale-105 transition-transform">
-                    <ShieldCheck className="h-5 w-5" />
+                    <Sliders className="h-5 w-5" />
                   </div>
                   <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                    {recentLogs.length} Events
+                    Platform
                   </span>
                 </div>
-                <h4 className="font-bold text-sm text-slate-900">Audit Logs</h4>
+                <h4 className="font-bold text-sm text-slate-900">Platform Settings</h4>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Immutable security audit trail tracking staff logins, resource updates, and configuration changes.
+                  Security policies, session timeouts, emergency mode overrides, and system telemetry controls.
                 </p>
               </div>
               <span className="text-xs font-semibold text-teal-700 flex items-center gap-1 mt-4 group-hover:translate-x-0.5 transition-transform">
-                View Audit Trail <ArrowRight className="h-3.5 w-3.5" />
+                Platform Governance <ArrowRight className="h-3.5 w-3.5" />
               </span>
             </Card>
           </Link>

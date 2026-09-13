@@ -130,50 +130,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ];
 
       // ==================================================
-      // ASHA / FRONTLINE HEALTH WORKER
-      // ==================================================
-      case 'ASHA':
-        return [
-          {
-            to: '/asha',
-            label: 'Home',
-            icon: LayoutDashboard,
-            color: 'text-teal-600 bg-teal-50',
-          },
-          {
-            to: '/asha/checkups',
-            label: "Today's Checkup",
-            icon: CalendarCheck2,
-            color: 'text-emerald-700 bg-emerald-50',
-          },
-          {
-            to: '/asha/patients',
-            label: 'Village Citizens',
-            icon: Users,
-            color: 'text-teal-700 bg-teal-50',
-          },
-          {
-            to: '/asha/vitals',
-            label: 'Vitals & Screening',
-            icon: Activity,
-            color: 'text-red-600 bg-red-50',
-          },
-          {
-            to: '/asha/high-risk',
-            label: 'High-Risk & Referrals',
-            icon: AlertOctagon,
-            color: 'text-rose-600 bg-rose-50',
-          },
-          {
-            to: '/asha/sync',
-            label: 'Sync Data',
-            icon: RefreshCw,
-            badge: pendingSyncCount > 0 ? pendingSyncCount : undefined,
-            color: 'text-cyan-600 bg-cyan-50',
-          },
-        ];
-
-      // ==================================================
       // DOCTOR
       // ==================================================
       case 'DOCTOR':
@@ -282,42 +238,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               label: 'OPD Token Counter',
               icon: Ticket,
               color: 'text-orange-600 bg-orange-50',
-            },
-          ];
-        }
-
-        // Lab Technician
-        if (staffSubType === 'LAB_TECHNICIAN') {
-          return [
-            {
-              to: '/lab-technician',
-              label: 'Lab Work Desk',
-              icon: LayoutDashboard,
-              color: 'text-blue-600 bg-blue-50',
-            },
-            {
-              to: '/lab-technician/tests',
-              label: 'Test Orders Queue',
-              icon: Clock,
-              color: 'text-orange-600 bg-orange-50',
-            },
-            {
-              to: '/lab-technician/samples',
-              label: 'Sample Desk',
-              icon: QrCode,
-              color: 'text-cyan-600 bg-cyan-50',
-            },
-            {
-              to: '/lab-technician/results',
-              label: 'Result Entry',
-              icon: FlaskConical,
-              color: 'text-purple-600 bg-purple-50',
-            },
-            {
-              to: '/lab-technician/history',
-              label: 'Lab History & Reports',
-              icon: FileCheck,
-              color: 'text-emerald-600 bg-emerald-50',
             },
           ];
         }
@@ -552,24 +472,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             label: 'Users',
             icon: Users,
             color: 'text-purple-600 bg-purple-50',
-          },
-          {
-            to: '/super-admin/roles',
-            label: 'Permissions',
-            icon: KeyRound,
-            color: 'text-amber-600 bg-amber-50',
-          },
-          {
-            to: '/super-admin/ai-models',
-            label: 'AI Models',
-            icon: BrainCircuit,
-            color: 'text-violet-600 bg-violet-50',
-          },
-          {
-            to: '/super-admin/audit',
-            label: 'Audit Logs',
-            icon: ShieldCheck,
-            color: 'text-rose-600 bg-rose-50',
           },
           {
             to: '/super-admin/settings',

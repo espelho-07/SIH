@@ -174,7 +174,7 @@ export const AuditLogsPage: React.FC = () => {
             <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
-          <Button size="xs" variant="outline" onClick={() => fetchLogs(true)}>Retry</Button>
+          <Button size="sm" variant="outline" onClick={() => fetchLogs(true)}>Retry</Button>
         </div>
       )}
 

@@ -64,6 +64,12 @@ export const pharmacyApi = {
     apiRequest<MedicineInventoryItem>('/medicines', 'POST', payload),
 
   /**
+   * Update an existing medicine formulation details
+   */
+  updateMedicine: (medicineId: string, payload: Partial<MedicineInventoryItem>) =>
+    apiRequest<MedicineInventoryItem>(`/medicines/${medicineId}`, 'PUT', payload),
+
+  /**
    * Delete a medicine from hospital inventory
    */
   deleteMedicine: (medicineId: string) =>

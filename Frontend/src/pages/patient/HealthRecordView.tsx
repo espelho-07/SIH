@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -356,7 +356,14 @@ export const HealthRecordView: React.FC = () => {
           className="space-y-3 pt-3"
         >
 
-          {INITIAL_PRESCRIPTIONS.map((rx) => (
+          {prescriptions.length === 0 ? (
+            <Card className="border-slate-200 bg-white p-8 text-center">
+              <Pill className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-slate-600">No Prescriptions on File</p>
+              <p className="text-xs text-slate-400 mt-1">Prescriptions issued by doctors will appear here automatically.</p>
+            </Card>
+          ) : (
+            prescriptions.map((rx) => (
 
             <Card
               key={rx.id}
@@ -423,10 +430,10 @@ export const HealthRecordView: React.FC = () => {
 
                 <div className="mt-3 space-y-1.5">
 
-                  {rx.items.map((item) => (
+                  {(rx.items || []).map((item, idx) => (
 
                     <div
-                      key={item.id}
+                      key={item.id || idx}
                       className="grid grid-cols-1 sm:grid-cols-4 gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5"
                     >
 
@@ -482,7 +489,7 @@ export const HealthRecordView: React.FC = () => {
                           </span>
 
                           <StatusBadge
-                            status={item.dispensedStatus}
+                            status={item.dispensedStatus || 'PENDING'}
                           />
 
                         </div>
@@ -499,7 +506,7 @@ export const HealthRecordView: React.FC = () => {
 
             </Card>
 
-          ))}
+          )))}
 
         </TabsContent>
 
@@ -513,7 +520,14 @@ export const HealthRecordView: React.FC = () => {
           className="space-y-2.5 pt-3"
         >
 
-          {INITIAL_DIAGNOSTIC_ORDERS.map((order) => (
+          {diagnostics.length === 0 ? (
+            <Card className="border-slate-200 bg-white p-8 text-center">
+              <FlaskConical className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-slate-600">No Diagnostic Reports on File</p>
+              <p className="text-xs text-slate-400 mt-1">Laboratory and diagnostic test results will appear here.</p>
+            </Card>
+          ) : (
+            diagnostics.map((order) => (
 
             <Card
               key={order.id}
@@ -607,7 +621,7 @@ export const HealthRecordView: React.FC = () => {
 
             </Card>
 
-          ))}
+          )))}
 
         </TabsContent>
 

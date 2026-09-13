@@ -31,6 +31,8 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
 
   // Add user form state
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('Staff@123');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<UserRole>('DOCTOR');
   const [staffSubType, setStaffSubType] = useState<StaffSubType>('REGISTRATION_CLERK');
@@ -52,6 +54,10 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
     e.preventDefault();
     if (!name || !phone) return;
 
+    const sanitized = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const finalUsername = username.trim() || `${role.toLowerCase()}_${sanitized}`;
+    const finalPassword = password.trim() || 'Staff@123';
+
     if (onAddUser) {
       onAddUser({
         name,
@@ -59,11 +65,14 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
         role,
         staffSubType: role === 'FACILITY_STAFF' ? staffSubType : undefined,
         facilityName,
+        ...({ username: finalUsername, password: finalPassword } as any),
       });
     }
 
     setShowAddModal(false);
     setName('');
+    setUsername('');
+    setPassword('Staff@123');
     setPhone('');
   };
 
@@ -228,7 +237,6 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
                     className="flex min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer"
                   >
                     <option value="DOCTOR">Doctor</option>
-                    <option value="ASHA">ASHA Worker</option>
                     <option value="FACILITY_STAFF">Facility Staff</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
@@ -244,11 +252,29 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onAddUser }) => {
                     >
                       <option value="REGISTRATION_CLERK">Registration Clerk</option>
                       <option value="PHARMACIST">Pharmacist</option>
-                      <option value="LAB_TECHNICIAN">Lab Technician</option>
                       <option value="FACILITY_OPERATIONS">Operations Manager</option>
                     </select>
                   </div>
                 )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Login Username</label>
+                  <Input
+                    placeholder={name ? `${role.toLowerCase()}_${name.toLowerCase().replace(/[^a-z0-9]/g, '')}` : 'e.g. doc_priya'}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Login Password</label>
+                  <Input
+                    placeholder="Staff@123"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="space-y-1">

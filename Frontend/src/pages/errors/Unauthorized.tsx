@@ -9,7 +9,6 @@ export const Unauthorized: React.FC = () => {
 
   const getHomeLink = () => {
     switch (role) {
-      case 'ASHA': return '/asha';
       case 'DOCTOR': return '/doctor';
       case 'FACILITY_STAFF': return '/staff';
       case 'DISTRICT_ADMIN': return '/district';

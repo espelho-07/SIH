@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { changeAppLanguage, supportedLanguages } from '@/locales/i18n';
 import { mockState } from '@/mock/db';
 import { operationsApi } from '@/api/operationsApi';
+import { directoryApi } from '@/api/directoryApi';
 import { DoctorLeave, DistrictDoctor } from '@/types/admin';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -232,8 +233,14 @@ export const UserProfilePage: React.FC = () => {
       bio,
     });
 
-    // If doctor, also update in mockState.doctors
+    // If doctor, also update in backend DB & mockState
     if (isDoctor) {
+      directoryApi.updateDoctor(doctorKey, {
+        name,
+        phone,
+        email,
+      }).catch(console.warn);
+
       mockState.updateDoctor(doctorKey, {
         name,
         phone,
@@ -257,6 +264,12 @@ export const UserProfilePage: React.FC = () => {
     });
 
     if (isDoctor) {
+      directoryApi.updateDoctor(doctorKey, {
+        qualification,
+        specialty,
+        teleconsultEnabled,
+      }).catch(console.warn);
+
       mockState.updateDoctor(doctorKey, {
         qualification,
         specialty,
@@ -272,6 +285,7 @@ export const UserProfilePage: React.FC = () => {
   // -------------------------------------------------------------
   const handleDutyToggle = (newStatus: DistrictDoctor['status']) => {
     setDutyStatus(newStatus);
+    directoryApi.updateDoctorStatus(doctorKey, newStatus).catch(console.warn);
     mockState.updateDoctorStatus(doctorKey, newStatus);
     showToast(`Duty status updated to: ${newStatus.replace('_', ' ')}`);
   };

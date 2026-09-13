@@ -90,6 +90,8 @@ export const DistrictAdminsTab: React.FC<DistrictAdminsTabProps> = ({
 
   // Appoint Form State
   const [officerName, setOfficerName] = useState('');
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('Admin@123');
   const [designation, setDesignation] = useState('Chief District Health Officer (CDHO)');
   const [district, setDistrict] = useState('Morbi');
   const [email, setEmail] = useState('');
@@ -110,13 +112,31 @@ export const DistrictAdminsTab: React.FC<DistrictAdminsTabProps> = ({
 
   const handleAppointSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!officerName.trim() || !district) return;
+    if (!officerName.trim() || !district) {
+      alert('Officer Name and District are required.');
+      return;
+    }
 
-    const newAdminData: Partial<DistrictAdminProfile> = {
+    const trimmedUsername = adminUsername.trim();
+    const trimmedPassword = adminPassword.trim();
+
+    if (!trimmedUsername) {
+      alert('District Admin Login Username / ID is strictly COMPULSORY.');
+      return;
+    }
+
+    if (!trimmedPassword || trimmedPassword.length < 4) {
+      alert('District Admin Login Password is strictly COMPULSORY (minimum 4 characters).');
+      return;
+    }
+
+    const newAdminData: any = {
       name: officerName.trim(),
+      username: trimmedUsername,
+      password: trimmedPassword,
       designation: designation.trim() || 'Chief District Health Officer (CDHO)',
       district,
-      email: email.trim() || `cdho.${district.toLowerCase()}@gujarat.health.gov.in`,
+      email: email.trim() || `${trimmedUsername}@gujarat.health.gov.in`,
       phone: phone.trim() || '9876500000',
       status: 'ACTIVE',
       appointedAt: new Date().toISOString().slice(0, 10),
@@ -153,11 +173,13 @@ export const DistrictAdminsTab: React.FC<DistrictAdminsTabProps> = ({
 
     // Reset Form
     setOfficerName('');
+    setAdminUsername('');
+    setAdminPassword('');
     setEmail('');
     setPhone('');
 
-    setSuccessToast(`Successfully issued official state appointment for ${created.name} as ${created.designation} of ${created.district} District.`);
-    setTimeout(() => setSuccessToast(null), 6000);
+    setSuccessToast(`Successfully issued official state appointment for ${created.name} (${created.district}). Login Username: "${trimmedUsername}" | Password: "${trimmedPassword}"`);
+    setTimeout(() => setSuccessToast(null), 10000);
   };
 
   const handleToggleStatus = async (adminId: string, currentStatus: DistrictAdminProfile['status']) => {
@@ -540,7 +562,42 @@ export const DistrictAdminsTab: React.FC<DistrictAdminsTabProps> = ({
                 </div>
               </div>
 
-              {/* Row 4: Privileges Granted */}
+              {/* Row 4: District Health Authority Login Credentials */}
+              <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                    🔐 District Admin Portal Login Credentials <span className="text-rose-600 font-extrabold">* (Compulsory)</span>
+                  </span>
+                  <span className="text-[10px] text-indigo-700 font-medium">Used to sign in to District Command Dashboard</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      Official Username / ID <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      placeholder={officerName.trim() ? `admin_${officerName.toLowerCase().replace(/[^a-z0-9]/g, '')}` : 'e.g. admin_morbi'}
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      Initial Password <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      type="text"
+                      placeholder="Admin@123"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 5: Privileges Granted */}
               <div className="space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <span className="font-bold text-slate-800 block">Jurisdictional Privileges Granted</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

@@ -7,21 +7,33 @@ export async function getDiagnosticOrders(req: Request, res: Response): Promise<
   const params = { ...req.query, ...req.body };
   const { status, category, priority, search, patientId } = params;
 
-  const filter: any = {};
-  if (status && status !== 'ALL') filter.status = status;
-  if (category && category !== 'ALL') filter.testCategory = category;
-  if (priority && priority !== 'ALL') filter.priority = priority;
-  if (patientId) filter.patientId = patientId;
+  const andConditions: any[] = [];
+
+  if (status && status !== 'ALL') andConditions.push({ status });
+  if (category && category !== 'ALL') andConditions.push({ testCategory: category });
+  if (priority && priority !== 'ALL') andConditions.push({ priority });
+  if (patientId) {
+    andConditions.push({
+      $or: [
+        { patientId },
+        { patientPhone: patientId },
+      ],
+    });
+  }
 
   if (search && typeof search === 'string' && search.trim()) {
     const s = search.trim();
-    filter.$or = [
-      { testName: { $regex: s, $options: 'i' } },
-      { patientName: { $regex: s, $options: 'i' } },
-      { barcodeNumber: { $regex: s, $options: 'i' } },
-      { sampleId: { $regex: s, $options: 'i' } },
-    ];
+    andConditions.push({
+      $or: [
+        { testName: { $regex: s, $options: 'i' } },
+        { patientName: { $regex: s, $options: 'i' } },
+        { barcodeNumber: { $regex: s, $options: 'i' } },
+        { sampleId: { $regex: s, $options: 'i' } },
+      ],
+    });
   }
+
+  const filter = andConditions.length > 0 ? { $and: andConditions } : {};
 
   const orders = await DiagnosticOrderModel.find(filter).sort({ createdAt: -1 });
   sendSuccess(res, `Found ${orders.length} diagnostic orders`, orders.map((o) => o.toJSON()));

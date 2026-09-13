@@ -104,29 +104,29 @@ export const Login: React.FC = () => {
     setLoginError('');
 
     try {
-      await login({
+      const loggedUser = await login({
         identifier,
         password,
         role: staffRole,
         staffSubType: staffRole === 'FACILITY_STAFF' ? staffSubType : undefined,
       });
 
+      const actualRole = (loggedUser as any)?.role || staffRole;
+      const actualSubType = (loggedUser as any)?.staffSubType || staffSubType;
+
       // -----------------------------------------------
       // ROLE BASED NAVIGATION
       // -----------------------------------------------
-      if (staffRole === 'ASHA') {
-        navigate('/asha');
-      } else if (staffRole === 'DOCTOR') {
+      if (actualRole === 'DOCTOR') {
         navigate('/doctor');
-      } else if (staffRole === 'FACILITY_STAFF') {
-        if (staffSubType === 'PHARMACIST') navigate('/pharmacist');
-        else if (staffSubType === 'REGISTRATION_CLERK') navigate('/registration-clerk');
-        else if (staffSubType === 'LAB_TECHNICIAN') navigate('/lab-technician');
-        else if (staffSubType === 'FACILITY_OPERATIONS') navigate('/facility-operations');
+      } else if (actualRole === 'FACILITY_STAFF') {
+        if (actualSubType === 'PHARMACIST') navigate('/pharmacist');
+        else if (actualSubType === 'REGISTRATION_CLERK') navigate('/registration-clerk');
+        else if (actualSubType === 'FACILITY_OPERATIONS') navigate('/facility-operations');
         else navigate('/staff');
-      } else if (staffRole === 'DISTRICT_ADMIN') {
+      } else if (actualRole === 'DISTRICT_ADMIN') {
         navigate('/district');
-      } else if (staffRole === 'SUPER_ADMIN') {
+      } else if (actualRole === 'SUPER_ADMIN') {
         navigate('/super-admin');
       } else {
         navigate('/patient');
@@ -149,22 +149,18 @@ export const Login: React.FC = () => {
     }
     setLoginError('');
 
-    if (role === 'ASHA') {
-      setIdentifier('sunita.asha@gujarat.health.gov.in');
-    } else if (role === 'DOCTOR') {
+    if (role === 'DOCTOR') {
       setIdentifier('dr.arvind.patel@gujarat.gov.in');
     } else if (role === 'FACILITY_STAFF') {
       if (subType === 'PHARMACIST') {
         setIdentifier('priya.pharma@civilhospital.in');
-      } else if (subType === 'LAB_TECHNICIAN') {
-        setIdentifier('amit.lab@civilhospital.in');
       } else if (subType === 'FACILITY_OPERATIONS') {
         setIdentifier('vikram.ops@civilhospital.in');
       } else {
         setIdentifier('rajesh.reg@civilhospital.in');
       }
     } else if (role === 'DISTRICT_ADMIN') {
-      setIdentifier('cdho.gandhinagar@gujarat.gov.in');
+      setIdentifier('meet');
     } else if (role === 'SUPER_ADMIN') {
       setIdentifier('alok.systems@nic.in');
     }
@@ -319,9 +315,8 @@ export const Login: React.FC = () => {
                       }
                     }}
                     options={[
-                      { value: 'ASHA', label: 'ASHA / ANM / CHO (Frontline)', sublabel: 'Community field surveys and maternal care' },
                       { value: 'DOCTOR', label: 'Doctor / Medical Specialist', sublabel: 'OPD consultations, triage, and e-prescriptions' },
-                      { value: 'FACILITY_STAFF', label: 'Hospital Facility Staff', sublabel: 'Registration, pharmacy dispensary, and lab' },
+                      { value: 'FACILITY_STAFF', label: 'Hospital Facility Staff', sublabel: 'Registration, pharmacy dispensary, and operations' },
                       { value: 'DISTRICT_ADMIN', label: 'District Health Admin', sublabel: 'District monitoring, shortages, and leaves' },
                       { value: 'SUPER_ADMIN', label: 'Super Admin (Technical Center)', sublabel: 'Platform config and system audit logs' },
                     ]}
@@ -342,7 +337,6 @@ export const Login: React.FC = () => {
                       options={[
                         { value: 'REGISTRATION_CLERK', label: 'Registration Clerk (Counter & Tokens)', sublabel: 'Patient registration & OPD token issuance' },
                         { value: 'PHARMACIST', label: 'Pharmacist (Dispensing & Stock)', sublabel: 'Prescription fulfillment & dispensary stock' },
-                        { value: 'LAB_TECHNICIAN', label: 'Lab Technician (Diagnostics)', sublabel: 'Lab test queue, sample processing & reports' },
                         { value: 'FACILITY_OPERATIONS', label: 'Facility Operations (Beds & Fleet)', sublabel: 'Bed capacity, ambulance dispatch & staff leaves' },
                       ]}
                     />
@@ -351,7 +345,8 @@ export const Login: React.FC = () => {
 
                 {/* IDENTIFIER */}
                 <Input
-                  label="Official Email / Government ID"
+                  label="Official Username / Email / Government ID"
+                  placeholder="e.g. username (doc_priya, clerk_civil), email, or mobile"
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
@@ -399,7 +394,7 @@ export const Login: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {/* DOCTOR */}
                     <button
                       type="button"
@@ -412,21 +407,6 @@ export const Login: React.FC = () => {
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">Doctor</p>
                         <p className="text-[10px] text-slate-400 truncate">Medical</p>
-                      </div>
-                    </button>
-
-                    {/* ASHA */}
-                    <button
-                      type="button"
-                      onClick={() => setDemoCredentials('ASHA')}
-                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-[#2B6CB0] hover:bg-[#E8F2FA] hover:shadow-sm"
-                    >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E1EFFA] text-[#2B6CB0] group-hover:bg-[#2B6CB0] group-hover:text-white transition-colors">
-                        <UsersRound className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 group-hover:text-[#1D6394] truncate">ASHA</p>
-                        <p className="text-[10px] text-slate-400 truncate">Frontline</p>
                       </div>
                     </button>
 
@@ -457,21 +437,6 @@ export const Login: React.FC = () => {
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-slate-800 group-hover:text-violet-700 truncate">Register</p>
                         <p className="text-[10px] text-slate-400 truncate">Counter</p>
-                      </div>
-                    </button>
-
-                    {/* LAB TECHNICIAN */}
-                    <button
-                      type="button"
-                      onClick={() => setDemoCredentials('FACILITY_STAFF', 'LAB_TECHNICIAN')}
-                      className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-left transition-all hover:-translate-y-0.5 hover:border-purple-300 hover:bg-purple-50 hover:shadow-sm"
-                    >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-200 transition-colors">
-                        <FlaskConical className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 group-hover:text-purple-700 truncate">Lab Tech</p>
-                        <p className="text-[10px] text-slate-400 truncate">Diagnostics</p>
                       </div>
                     </button>
 

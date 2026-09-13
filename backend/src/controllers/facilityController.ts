@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { FacilityModel, IFacility } from '../models/Facility';
+import { UserModel } from '../models/User';
 import { sendSuccess, sendError } from '../utils/response';
 
 // Calculate distance in KM using Haversine formula
@@ -21,6 +22,7 @@ export async function getAllFacilities(req: Request, res: Response): Promise<voi
   // Support params in query or body
   const queryParams = { ...req.query, ...req.body };
   const {
+    district,
     search,
     facilityType,
     specialty,
@@ -34,6 +36,10 @@ export async function getAllFacilities(req: Request, res: Response): Promise<voi
   } = queryParams;
 
   const filter: any = {};
+
+  if (district && district !== 'ALL') {
+    filter.district = { $regex: new RegExp(`^${district}$`, 'i') };
+  }
 
   if (facilityType && facilityType !== 'ALL') {
     filter.type = facilityType;
@@ -108,13 +114,98 @@ export async function createFacility(req: Request, res: Response): Promise<void>
   try {
     const data = req.body;
     const id = data.id || `fac_${Date.now()}`;
-    const facility = new FacilityModel({ ...data, id });
+
+    // Extract and strictly validate login credentials
+    const username = data.username ? String(data.username).trim() : '';
+    const password = data.password ? String(data.password).trim() : '';
+
+    if (!username || !password) {
+      sendError(
+        res,
+        'Hospital Registration Counter Login Username / ID and Password credentials are strictly mandatory and required to register a healthcare facility.',
+        400
+      );
+      return;
+    }
+
+    if (password.length < 4) {
+      sendError(res, 'Counter Password must be at least 4 characters long.', 400);
+      return;
+    }
+
+    // Check if username is already registered in MongoDB by another account
+    const existingUser = await UserModel.findOne({
+      username: { $regex: new RegExp(`^${username}$`, 'i') },
+      id: { $ne: `usr_clerk_${id}` },
+    });
+    if (existingUser) {
+      sendError(res, `The Counter Username "${username}" is already in use. Please specify a unique username / ID.`, 400);
+      return;
+    }
+
+    // Extract & parse precise latitude and longitude
+    let lat = 23.2156;
+    let lng = 72.6369;
+
+    if (data.coordinates && data.coordinates.lat !== undefined && data.coordinates.lng !== undefined) {
+      lat = parseFloat(data.coordinates.lat);
+      lng = parseFloat(data.coordinates.lng);
+    } else if (data.lat !== undefined && data.lng !== undefined) {
+      lat = parseFloat(data.lat);
+      lng = parseFloat(data.lng);
+    }
+
+    const facilityData = {
+      ...data,
+      id,
+      registrationClerkUsername: username,
+      registrationClerkUserId: `usr_clerk_${id}`,
+      coordinates: { lat, lng },
+      location: {
+        type: 'Point',
+        coordinates: [lng, lat],
+      },
+    };
+
+    const facility = new FacilityModel(facilityData);
     await facility.save();
+
+    // Create / Sync UserModel login credentials in MongoDB for Hospital Registration Clerk
+    const clerkPhone = data.clerkPhone || data.contactNumber || data.phone || `98${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const email = data.email || `${username}@gujarat.health.gov.in`;
+
+    let user = await UserModel.findOne({ $or: [{ id: `usr_clerk_${id}` }, { username }] });
+    if (!user) {
+      user = new UserModel({
+        id: `usr_clerk_${id}`,
+        name: `${facility.name} Desk Clerk`,
+        username,
+        email,
+        phone: clerkPhone,
+        password,
+        role: 'FACILITY_STAFF',
+        staffSubType: 'REGISTRATION_CLERK',
+        facilityId: facility.id,
+        facilityName: facility.name,
+        district: facility.district,
+        designation: 'Senior Registration & OPD Counter Clerk',
+      });
+      await user.save();
+    } else {
+      user.facilityId = facility.id;
+      user.facilityName = facility.name;
+      user.username = username;
+      user.password = password;
+      await user.save();
+    }
 
     sendSuccess(
       res,
-      `Government facility ${facility.name} registered successfully in ${facility.district}`,
-      facility.toJSON(),
+      `Government facility ${facility.name} registered successfully with exact coordinates [${lat}, ${lng}] in ${facility.district}`,
+      {
+        ...facility.toJSON(),
+        credentials: { username, password },
+      },
       201
     );
   } catch (err: any) {
@@ -132,15 +223,17 @@ export async function getNearbyFacilities(req: Request, res: Response): Promise<
   const nearby = facilities
     .map((f) => {
       const obj = f.toJSON() as any;
-      if (f.coordinates) {
+      if (f.coordinates && typeof f.coordinates.lat === 'number' && typeof f.coordinates.lng === 'number') {
         obj.distanceKm = calculateDistance(lat, lng, f.coordinates.lat, f.coordinates.lng);
+      } else {
+        obj.distanceKm = 10;
       }
       return obj;
     })
     .filter((f) => f.distanceKm <= radiusKm)
     .sort((a, b) => a.distanceKm - b.distanceKm);
 
-  sendSuccess(res, 'Nearby facilities retrieved', nearby);
+  sendSuccess(res, 'Nearby facilities retrieved with exact distances', nearby);
 }
 
 export async function searchFacilities(req: Request, res: Response): Promise<void> {
@@ -218,10 +311,22 @@ export async function matchFacilities(req: Request, res: Response): Promise<void
 
 export async function updateFacility(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.params;
-    const updateData = req.body;
+    const id = String(req.params.id);
+    const updateData = { ...req.body };
 
-    const isMongoId = id && /^[0-9a-fA-F]{24}$/.test(id);
+    if (updateData.coordinates && updateData.coordinates.lat !== undefined && updateData.coordinates.lng !== undefined) {
+      const lat = parseFloat(updateData.coordinates.lat);
+      const lng = parseFloat(updateData.coordinates.lng);
+      updateData.coordinates = { lat, lng };
+      updateData.location = { type: 'Point', coordinates: [lng, lat] };
+    } else if (updateData.lat !== undefined && updateData.lng !== undefined) {
+      const lat = parseFloat(updateData.lat);
+      const lng = parseFloat(updateData.lng);
+      updateData.coordinates = { lat, lng };
+      updateData.location = { type: 'Point', coordinates: [lng, lat] };
+    }
+
+    const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
     const filter = isMongoId ? { $or: [{ id }, { _id: id }] } : { id };
 
     const facility = await FacilityModel.findOneAndUpdate(
@@ -243,9 +348,9 @@ export async function updateFacility(req: Request, res: Response): Promise<void>
 
 export async function deleteFacility(req: Request, res: Response): Promise<void> {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
 
-    const isMongoId = id && /^[0-9a-fA-F]{24}$/.test(id);
+    const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
     const filter = isMongoId ? { $or: [{ id }, { _id: id }] } : { id };
 
     const facility = await FacilityModel.findOneAndDelete(filter);

@@ -9,7 +9,7 @@ interface AuthContextType {
   staffSubType: StaffSubType | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User | void>;
   verifyOtp: (credentials: VerifyOtpRequest) => Promise<void>;
   logout: () => Promise<void>;
   quickSwitchRole: (role: UserRole, staffSubType?: StaffSubType) => void;
@@ -50,13 +50,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => window.removeEventListener('auth:expired', handleAuthExpired);
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<User> => {
     setIsLoading(true);
     try {
       const res = await authApi.login(credentials);
       setUser(res.data.user);
       localStorage.setItem('healthconnect_user', JSON.stringify(res.data.user));
       localStorage.setItem('healthconnect_token', res.data.tokens.accessToken);
+      return res.data.user;
     } finally {
       setIsLoading(false);
     }
@@ -89,11 +90,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const quickSwitchRole = (newRole: UserRole, newStaffSubType?: StaffSubType) => {
     let targetUser = DEMO_USERS.patient;
-    if (newRole === 'ASHA') targetUser = DEMO_USERS.asha;
-    else if (newRole === 'DOCTOR') targetUser = DEMO_USERS.doctor;
+    if (newRole === 'DOCTOR') targetUser = DEMO_USERS.doctor;
     else if (newRole === 'FACILITY_STAFF') {
       if (newStaffSubType === 'PHARMACIST') targetUser = DEMO_USERS.pharmacist;
-      else if (newStaffSubType === 'LAB_TECHNICIAN') targetUser = DEMO_USERS.labTech;
       else if (newStaffSubType === 'FACILITY_OPERATIONS') targetUser = DEMO_USERS.operations;
       else targetUser = DEMO_USERS.registrationClerk;
     } else if (newRole === 'DISTRICT_ADMIN') targetUser = DEMO_USERS.districtAdmin;

@@ -13,6 +13,7 @@ import operationsRoutes from './routes/operationsRoutes';
 import intelligenceRoutes from './routes/intelligenceRoutes';
 import adminRoutes from './routes/adminRoutes';
 import assistantRoutes from './routes/assistantRoutes';
+import medicalStoreRoutes from './routes/medicalStoreRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app: Application = express();
@@ -46,6 +47,7 @@ const apiV1 = express.Router();
 
 apiV1.use('/auth', authRoutes);
 apiV1.use('/', facilityRoutes);
+apiV1.use('/directory', facilityRoutes);
 apiV1.use('/', clinicalRoutes);
 apiV1.use('/diagnostics', labRoutes);
 apiV1.use('/', pharmacyRoutes);
@@ -55,7 +57,10 @@ apiV1.use('/', queueRoutes);
 apiV1.use('/', operationsRoutes);
 apiV1.use('/', intelligenceRoutes);
 apiV1.use('/', adminRoutes);
+apiV1.use('/admin', adminRoutes);
 apiV1.use('/', assistantRoutes);
+apiV1.use('/assistant', assistantRoutes);
+apiV1.use('/medical-stores', medicalStoreRoutes);
 
 // Mount /api/v1
 app.use('/api/v1', apiV1);

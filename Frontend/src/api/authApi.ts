@@ -14,6 +14,12 @@ export const authApi = {
   getCurrentUser: () =>
     apiRequest<User>('/auth/me', 'GET'),
 
+  updateProfile: (data: Partial<User>) =>
+    apiRequest<User>('/auth/profile', 'PUT', data),
+
+  updatePatient: (id: string, data: Partial<User>) =>
+    apiRequest<User>(`/auth/patients/${id}`, 'PUT', data),
+
   logout: () =>
     apiRequest<{ message: string }>('/auth/logout', 'POST'),
 };

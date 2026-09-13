@@ -4,6 +4,7 @@ import { User, UserRole, StaffSubType } from '@/types/auth';
 import { FacilityMatchRequest } from '@/types/facility';
 import { CreateReferralRequest } from '@/types/referral';
 import { AshaPatient, AshaVisit, ScreeningSession, FollowUpTask, FrontlineReferral } from '@/types/asha';
+import { MedicalStore } from '@/types/medicalStore';
 import { IntelligenceService } from '@/services/intelligenceService';
 
 // Intercepts mock requests and returns structured ApiResponse format
@@ -1118,6 +1119,79 @@ export async function handleMockRequest(url: string, method: string = 'GET', dat
       success: true,
       message: 'Medicine inventory retrieved',
       data: mockState.medicines,
+    };
+  }
+
+  if (cleanUrl.includes('/medical-stores')) {
+    if (method === 'POST') {
+      const payload = (data || {}) as Partial<MedicalStore>;
+      const newStore: MedicalStore = {
+        id: payload.id || `store_${Date.now()}`,
+        name: payload.name || 'Pradhan Mantri Jan Aushadhi Kendra',
+        type: payload.type || 'JAN_AUSHADHI',
+        isJanAushadhi: payload.type === 'JAN_AUSHADHI' || !!payload.isJanAushadhi,
+        hasLiveApi: true,
+        licenseNumber: payload.licenseNumber || 'GJ-GNR-PMBJP-0101',
+        fullAddress: payload.fullAddress || 'Sector 21 Market, Gandhinagar',
+        area: payload.area || 'Sector 21',
+        pincode: payload.pincode || '382021',
+        district: payload.district || 'Gandhinagar',
+        state: payload.state || 'Gujarat',
+        phone: payload.phone || '9825012345',
+        whatsappPhone: payload.whatsappPhone,
+        timings: payload.timings || '8:00 AM - 10:00 PM (All 7 Days)',
+        isOpenNow: true,
+        rating: 4.8,
+        reviewCount: 45,
+        discountPercentage: payload.discountPercentage || 75,
+        coordinates: {
+          lat: payload.coordinates?.lat || 23.2268,
+          lng: payload.coordinates?.lng || 72.6515,
+        },
+        stockCatalog: payload.stockCatalog || [],
+      };
+      mockState.medicalStores.unshift(newStore);
+      return {
+        success: true,
+        message: 'Medical store created successfully',
+        data: newStore,
+      };
+    }
+
+    const storeSingleMatch = cleanUrl.match(/\/medical-stores\/([a-zA-Z0-9_-]+)$/);
+    if (storeSingleMatch) {
+      const storeId = storeSingleMatch[1];
+      if (method === 'DELETE') {
+        mockState.medicalStores = mockState.medicalStores.filter((s) => s.id !== storeId);
+        return {
+          success: true,
+          message: 'Medical store deleted successfully',
+          data: { id: storeId },
+        };
+      }
+      if (method === 'PUT') {
+        const storeIdx = mockState.medicalStores.findIndex((s) => s.id === storeId);
+        if (storeIdx !== -1) {
+          mockState.medicalStores[storeIdx] = { ...mockState.medicalStores[storeIdx], ...(data as Partial<MedicalStore>) };
+          return {
+            success: true,
+            message: 'Medical store updated successfully',
+            data: mockState.medicalStores[storeIdx],
+          };
+        }
+      }
+      const store = mockState.medicalStores.find((s) => s.id === storeId);
+      return {
+        success: !!store,
+        message: store ? 'Medical store retrieved' : 'Medical store not found',
+        data: store || null,
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Medical stores retrieved successfully',
+      data: mockState.medicalStores,
     };
   }
 

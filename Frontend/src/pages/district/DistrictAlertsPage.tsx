@@ -107,7 +107,7 @@ export const DistrictAlertsPage: React.FC = () => {
     Promise.allSettled([operationsApi.getIssues(), aiApi.getDashboard()]).then(([issuesRes, aiRes]) => {
       let combinedAlerts = [...INITIAL_DISTRICT_ALERTS];
       if (issuesRes.status === 'fulfilled' && issuesRes.value.data && issuesRes.value.data.length > 0) {
-        const liveIssues: DistrictAlert[] = issuesRes.value.data.map((iss) => ({
+        const liveIssues: DistrictAlert[] = issuesRes.value.data.map((iss: any) => ({
           id: iss.id,
           title: iss.title,
           category: (iss.category as any) || 'STOCK',

@@ -16,3 +16,4 @@ export * from './Asha';
 export * from './Queue';
 export * from './Operations';
 export * from './Admin';
+export * from './MedicalStore';

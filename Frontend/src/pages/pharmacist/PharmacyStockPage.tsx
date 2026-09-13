@@ -156,11 +156,11 @@ export const PharmacyStockPage: React.FC = () => {
         availableQuantity: Number(newQuantity) || 0,
         minimumStockThreshold: Number(newThreshold) || 50,
         unit: newUnit,
-        expiryDate: newExpiryDate,
+        expiryDate: newExpiryDate || '2027-12-31',
       });
 
-      if (res.success && res.data) {
-        setMedicines((prev) => [res.data, ...prev]);
+      if (res && res.data) {
+        setMedicines((prev) => [res.data, ...prev.filter((m) => m.id !== res.data.id)]);
         setIsAddModalOpen(false);
         // Reset form
         setNewMedName('');
@@ -172,14 +172,19 @@ export const PharmacyStockPage: React.FC = () => {
         setNewThreshold(100);
         setToastMessage({
           type: 'success',
-          text: `${res.data.medicineName} added successfully to dispensary inventory!`,
+          text: `${res.data.medicineName} added successfully to dispensary inventory and medical network!`,
         });
+
+        // Re-fetch to ensure complete sync
+        pharmacyApi.getMedicines().then((fresh) => {
+          if (fresh.data && fresh.data.length > 0) setMedicines(fresh.data);
+        }).catch(console.warn);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to add medicine', err);
       setToastMessage({
         type: 'error',
-        text: 'Failed to add medicine. Please try again.',
+        text: err?.message || 'Failed to add medicine. Please try again.',
       });
     } finally {
       setSubmittingNewMed(false);

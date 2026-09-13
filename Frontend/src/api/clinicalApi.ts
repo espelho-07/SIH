@@ -34,4 +34,7 @@ export const clinicalApi = {
 
   createEncounter: (data: Partial<Encounter>) =>
     apiRequest<Encounter>('/encounters', 'POST', data),
+
+  createPrescription: (data: Partial<Prescription>) =>
+    apiRequest<Prescription>('/prescriptions', 'POST', data),
 };

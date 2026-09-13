@@ -2,6 +2,7 @@ export type TokenStatus =
   | 'WAITING'
   | 'CALLED'
   | 'IN_CONSULTATION'
+  | 'HOLD'
   | 'COMPLETED'
   | 'SKIPPED'
   | 'NO_SHOW'
@@ -73,6 +74,7 @@ export interface Appointment {
   checkedInAt?: string;
   referralId?: string;
   referralCode?: string;
+  createToken?: boolean;
 }
 
 export interface RegisteredPatient {

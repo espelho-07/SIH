@@ -3,7 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StaffSubType } from '@/types/auth';
 import { PharmacistDashboard } from '@/pages/pharmacist/PharmacistDashboard';
 import { RegistrationClerkDashboard } from '@/pages/registration-clerk/RegistrationClerkDashboard';
-import { LabTechnicianDashboard } from '@/pages/lab-technician/LabTechnicianDashboard';
 import { FacilityOperationsDashboard } from '@/pages/facility-operations/FacilityOperationsDashboard';
 
 export const StaffDashboard: React.FC = () => {
@@ -41,14 +40,7 @@ export const StaffDashboard: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. LAB TECHNICIAN EXPERIENCE */}
-      {/* ========================================================================= */}
-      {activeSubType === 'LAB_TECHNICIAN' && (
-        <LabTechnicianDashboard />
-      )}
-
-      {/* ========================================================================= */}
-      {/* 4. FACILITY OPERATIONS (Live Control Center) */}
+      {/* 3. FACILITY OPERATIONS (Live Control Center) */}
       {/* ========================================================================= */}
       {activeSubType === 'FACILITY_OPERATIONS' && (
         <FacilityOperationsDashboard />

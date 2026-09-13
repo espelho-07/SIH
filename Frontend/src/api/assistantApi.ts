@@ -8,6 +8,33 @@ export interface AssistantActionChip {
   type?: string;
 }
 
+export interface RecommendedHospital {
+  id: string;
+  name: string;
+  type: string;
+  matchedSpecialty?: string;
+  distanceKm: number;
+  driveTimeMinutes?: number;
+  address: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  emergencyNumber?: string;
+  contactNumber?: string;
+  availableBeds?: number;
+  icuBedsAvailable?: number;
+  emergencyAvailable?: boolean;
+  doctorOnDuty?: {
+    name: string;
+    specialty: string;
+    qualification?: string;
+    opdRoom?: string;
+    status?: string;
+  };
+  opdSchedule?: string;
+}
+
 export interface AssistantResponse {
   answer: string;
   intent: string;
@@ -24,6 +51,7 @@ export interface AssistantResponse {
     availableBeds?: number;
     icuBeds?: number;
   } | null;
+  recommendedHospitals?: RecommendedHospital[];
   actionChips?: AssistantActionChip[];
   sources?: string[];
   latency_ms?: number;
@@ -33,19 +61,31 @@ export interface AssistantResponse {
 export const assistantApi = {
   sendMessage: async (payload: {
     message: string;
+    image?: string;
     userId?: string;
     sessionId?: string;
     history?: { role: string; content: string }[];
     latitude?: number;
     longitude?: number;
   }): Promise<{ success: boolean; data?: AssistantResponse; error?: string }> => {
-    // 1. Try Python Model endpoint directly first
+    // 1. Send to Node.js backend which connects directly with MongoDB live facilities & doctors
+    try {
+      const res = await apiRequest<AssistantResponse>('/chat', 'POST', payload);
+      if (res.data) {
+        return { success: true, data: res.data };
+      }
+    } catch (e: any) {
+      console.warn('[assistantApi] Primary /api/v1/chat request failed, trying Python model endpoint:', e?.message || e);
+    }
+
+    // 2. Fallback to Python Model endpoint if Node backend unavailable
     try {
       const response = await fetch('/pyapi/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: payload.message,
+          image: payload.image,
           userId: payload.userId || 'PAT-1001',
           sessionId: payload.sessionId || 'sess_portal_patient',
           history: payload.history || [],
@@ -69,16 +109,10 @@ export const assistantApi = {
         };
       }
     } catch (err) {
-      console.warn('[assistantApi] Direct /pyapi/chat failed, falling back to /api/v1/chat proxy:', err);
+      console.warn('[assistantApi] Fallback /pyapi/chat also failed:', err);
     }
 
-    // 2. Fallback to Node.js backend proxy
-    try {
-      const res = await apiRequest<AssistantResponse>('/chat', 'POST', payload);
-      return { success: true, data: res.data };
-    } catch (e: any) {
-      return { success: false, error: e?.message || 'Chat service unavailable' };
-    }
+    return { success: false, error: 'Medical chat service temporarily unavailable' };
   },
 
   resetSession: async (sessionId: string) => {

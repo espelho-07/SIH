@@ -55,6 +55,48 @@ export async function authenticate(req: AuthRequest, res: Response, next: NextFu
   }
 }
 
+export async function optionalAuthenticate(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  // 1. Check for development / quick-switch role mock tokens
+  if (token.startsWith('mock_jwt_') || token.startsWith('mock_refresh_')) {
+    const roleKey = token.replace('mock_jwt_', '').replace('mock_refresh_', '').toUpperCase();
+    let query: any = {};
+    if (roleKey.includes('PATIENT')) query = { role: 'PATIENT' };
+    else if (roleKey.includes('ASHA')) query = { role: 'ASHA' };
+    else if (roleKey.includes('DOCTOR')) query = { role: 'DOCTOR' };
+    else if (roleKey.includes('PHARMACIST')) query = { role: 'FACILITY_STAFF', staffSubType: 'PHARMACIST' };
+    else if (roleKey.includes('LAB')) query = { role: 'FACILITY_STAFF', staffSubType: 'LAB_TECHNICIAN' };
+    else if (roleKey.includes('OPS') || roleKey.includes('OPERATIONS')) query = { role: 'FACILITY_STAFF', staffSubType: 'FACILITY_OPERATIONS' };
+    else if (roleKey.includes('REG') || roleKey.includes('CLERK')) query = { role: 'FACILITY_STAFF', staffSubType: 'REGISTRATION_CLERK' };
+    else if (roleKey.includes('DISTRICT')) query = { role: 'DISTRICT_ADMIN' };
+    else if (roleKey.includes('SUPER')) query = { role: 'SUPER_ADMIN' };
+    else query = { role: 'PATIENT' };
+
+    const devUser = await UserModel.findOne(query);
+    if (devUser) {
+      req.user = devUser;
+    }
+    return next();
+  }
+
+  // 2. Standard JWT verification
+  try {
+    const decoded = jwt.verify(token, ENV.JWT_ACCESS_SECRET) as { id: string; role: UserRole };
+    const user = await UserModel.findOne({ id: decoded.id });
+    if (user) {
+      req.user = user;
+    }
+  } catch {}
+
+  next();
+}
+
 export function authorize(roles: UserRole[] = [], staffSubTypes: StaffSubType[] = []) {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {

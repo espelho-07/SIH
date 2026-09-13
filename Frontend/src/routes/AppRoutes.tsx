@@ -25,20 +25,6 @@ import Teleconsultation from '@/pages/patient/Teleconsultation';
 import { PatientProfile } from '@/pages/patient/PatientProfile';
 import { NearbyMedicalStores } from '@/pages/patient/NearbyMedicalStores';
 
-// ASHA Pages
-import { AshaDashboard } from '@/pages/asha/AshaDashboard';
-import { CitizenList } from '@/pages/asha/CitizenList';
-import { PatientRegistration } from '@/pages/asha/PatientRegistration';
-import { VitalsRecording } from '@/pages/asha/VitalsRecording';
-import { ScreeningWizard } from '@/pages/asha/ScreeningWizard';
-import { HighRiskPatients } from '@/pages/asha/HighRiskPatients';
-import { SyncCenter } from '@/pages/asha/SyncCenter';
-import { HomeVisitsPage } from '@/pages/asha/HomeVisitsPage';
-import { TodaysCheckupPage } from '@/pages/asha/TodaysCheckupPage';
-import { FollowUpsPage } from '@/pages/asha/FollowUpsPage';
-import { FrontlineReferralsPage } from '@/pages/asha/FrontlineReferralsPage';
-import { FrontlineFacilitiesPage } from '@/pages/asha/FrontlineFacilitiesPage';
-
 // Doctor Pages
 import { DoctorDashboard } from '@/pages/doctor/DoctorDashboard';
 import { PatientClinicalWorkspace } from '@/pages/doctor/PatientClinicalWorkspace';
@@ -64,14 +50,6 @@ import { PrescriptionDetailPage } from '@/pages/pharmacist/PrescriptionDetailPag
 import { PharmacyStockPage } from '@/pages/pharmacist/PharmacyStockPage';
 import { ExpiryManagementPage } from '@/pages/pharmacist/ExpiryManagementPage';
 import { DispensingHistoryPage } from '@/pages/pharmacist/DispensingHistoryPage';
-
-// Lab Technician Pages
-import { LabTechnicianDashboard } from '@/pages/lab-technician/LabTechnicianDashboard';
-import { TestQueuePage } from '@/pages/lab-technician/TestQueuePage';
-import { SampleDeskPage } from '@/pages/lab-technician/SampleDeskPage';
-import { ResultEntryPage } from '@/pages/lab-technician/ResultEntryPage';
-import { TestOrderDetailPage } from '@/pages/lab-technician/TestOrderDetailPage';
-import { LabHistoryPage } from '@/pages/lab-technician/LabHistoryPage';
 
 // Facility Operations Pages
 import { FacilityOperationsDashboard } from '@/pages/facility-operations/FacilityOperationsDashboard';
@@ -125,7 +103,7 @@ export const AppRoutes: React.FC = () => {
       <Route
         path="/profile"
         element={
-          <ProtectedRoute allowedRoles={['PATIENT', 'ASHA', 'DOCTOR', 'FACILITY_STAFF', 'DISTRICT_ADMIN', 'SUPER_ADMIN']}>
+          <ProtectedRoute allowedRoles={['PATIENT', 'DOCTOR', 'FACILITY_STAFF', 'DISTRICT_ADMIN', 'SUPER_ADMIN']}>
             <AppShell>
               <UserProfilePage />
             </AppShell>
@@ -325,127 +303,9 @@ export const AppRoutes: React.FC = () => {
         element={<Navigate to="/patient/medical-stores" replace />}
       />
 
-      {/* 2. ASHA / ANM / CHO ROUTES */}
-      <Route
-        path="/asha"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <AshaDashboard />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/patients"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <CitizenList />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/patients/new"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <PatientRegistration />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/vitals"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <VitalsRecording />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/screening"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <VitalsRecording initialTab="SCREENING" />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/high-risk"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <HighRiskPatients />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/sync"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <SyncCenter />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/checkups"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <TodaysCheckupPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/visits"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <TodaysCheckupPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/follow-ups"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <FollowUpsPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/referrals"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <FrontlineReferralsPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asha/facilities"
-        element={
-          <ProtectedRoute allowedRoles={['ASHA']}>
-            <AppShell>
-              <FrontlineFacilitiesPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
+      {/* 2. DISABLED ASHA ROLE ROUTES (Redirect to Home) */}
+      <Route path="/asha" element={<Navigate to="/" replace />} />
+      <Route path="/asha/*" element={<Navigate to="/" replace />} />
 
       {/* 3. DOCTOR / MEDICAL OFFICER ROUTES */}
       <Route
@@ -570,13 +430,7 @@ export const AppRoutes: React.FC = () => {
       />
       <Route
         path="/staff/lab"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <LabTechnicianDashboard />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/staff" replace />}
       />
       <Route
         path="/staff/registration"
@@ -737,67 +591,9 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* DEDICATED LAB TECHNICIAN ROUTES */}
-      <Route
-        path="/lab-technician"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <LabTechnicianDashboard />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/lab-technician/tests"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <TestQueuePage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/lab-technician/tests/:id"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <TestOrderDetailPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/lab-technician/tests/:id/result"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <ResultEntryPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/lab-technician/samples"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <SampleDeskPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/lab-technician/history"
-        element={
-          <ProtectedRoute allowedRoles={['FACILITY_STAFF']}>
-            <AppShell>
-              <LabHistoryPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
+      {/* DISABLED LAB TECHNICIAN ROUTES (Redirect to Home) */}
+      <Route path="/lab-technician" element={<Navigate to="/" replace />} />
+      <Route path="/lab-technician/*" element={<Navigate to="/" replace />} />
 
       {/* DEDICATED FACILITY OPERATIONS ROUTES */}
       <Route
@@ -1113,33 +909,15 @@ export const AppRoutes: React.FC = () => {
       />
       <Route
         path="/super-admin/roles"
-        element={
-          <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
-            <AppShell>
-              <RolesPermissionsPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/super-admin/users" replace />}
       />
       <Route
         path="/super-admin/ai-models"
-        element={
-          <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
-            <AppShell>
-              <AiModelRegistryPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/super-admin" replace />}
       />
       <Route
         path="/super-admin/audit"
-        element={
-          <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
-            <AppShell>
-              <AuditLogsPage />
-            </AppShell>
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/super-admin" replace />}
       />
       <Route
         path="/super-admin/settings"

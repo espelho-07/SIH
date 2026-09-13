@@ -28,6 +28,10 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
 
   // New facility form state
   const [newFacName, setNewFacName] = useState('');
+  const [newFacUsername, setNewFacUsername] = useState('');
+  const [newFacPassword, setNewFacPassword] = useState('Clerk@123');
+  const [newFacPhone, setNewFacPhone] = useState('9876543210');
+  const [newFacAddress, setNewFacAddress] = useState('Main Civil Road');
   const [newFacType, setNewFacType] = useState('CHC');
   const [newFacDistrict, setNewFacDistrict] = useState('Gandhinagar');
   const [newFacBeds, setNewFacBeds] = useState('30');
@@ -54,19 +58,28 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
     e.preventDefault();
     if (!newFacName) return;
 
+    const sanitized = newFacName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const finalUsername = newFacUsername.trim() || `clerk_${sanitized}`;
+    const finalPassword = newFacPassword.trim() || 'Clerk@123';
+
     if (onAddFacility) {
       onAddFacility({
         name: newFacName,
         type: newFacType as Facility['type'],
         district: newFacDistrict,
+        address: newFacAddress,
+        contactNumber: newFacPhone,
         totalBeds: parseInt(newFacBeds, 10) || 20,
         availableBeds: parseInt(newFacBeds, 10) || 15,
         emergencyAvailable: newFacEmergency,
+        ...({ username: finalUsername, password: finalPassword } as any),
       });
     }
 
     setShowAddModal(false);
     setNewFacName('');
+    setNewFacUsername('');
+    setNewFacPassword('Clerk@123');
   };
 
   return (
@@ -337,6 +350,68 @@ export const FacilitiesTab: React.FC<FacilitiesTabProps> = ({ facilities, onAddF
                   value={newFacBeds}
                   onChange={(e) => setNewFacBeds(e.target.value)}
                 />
+              </div>
+
+              {/* Hospital Registration Clerk & Counter Login Credentials */}
+              <div className="p-3 bg-teal-50/70 rounded-xl border border-teal-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-teal-950 text-[11px] flex items-center gap-1">
+                    🔐 Hospital Registration Clerk Login <span className="text-rose-600 font-extrabold">* (Compulsory)</span>
+                  </span>
+                  <span className="text-[10px] text-teal-700">Required for Hospital OPD Login</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-700">
+                      Login Username / ID <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      placeholder={newFacName ? `clerk_${newFacName.toLowerCase().replace(/[^a-z0-9]/g, '')}` : 'e.g. clerk_kalol'}
+                      value={newFacUsername}
+                      onChange={(e) => setNewFacUsername(e.target.value)}
+                      className="text-xs h-8 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-700">
+                      Login Password <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      placeholder="Clerk@123"
+                      value={newFacPassword}
+                      onChange={(e) => setNewFacPassword(e.target.value)}
+                      className="text-xs h-8 bg-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-700">
+                      Contact Phone <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      placeholder="9876543210"
+                      value={newFacPhone}
+                      onChange={(e) => setNewFacPhone(e.target.value)}
+                      className="text-xs h-8 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-700">
+                      Hospital Address <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      placeholder="Main Civil Road"
+                      value={newFacAddress}
+                      onChange={(e) => setNewFacAddress(e.target.value)}
+                      className="text-xs h-8 bg-white"
+                    />
+                  </div>
+                </div>
               </div>
 
               <label className="flex items-center gap-2 pt-2 cursor-pointer font-semibold text-slate-700">

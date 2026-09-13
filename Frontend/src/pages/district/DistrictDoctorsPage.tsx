@@ -76,6 +76,8 @@ export const DistrictDoctorsPage: React.FC = () => {
 
   // Add Form State
   const [docName, setDocName] = useState('');
+  const [docUsername, setDocUsername] = useState('');
+  const [docPassword, setDocPassword] = useState('Doctor@123');
   const [qualification, setQualification] = useState('');
   const [specialty, setSpecialty] = useState('General Medicine');
   const [facilityId, setFacilityId] = useState(INITIAL_FACILITIES[0]?.id || 'fac_civil_01');
@@ -114,22 +116,41 @@ export const DistrictDoctorsPage: React.FC = () => {
 
   const handleAddDoctorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!docName.trim()) return;
+    if (!docName.trim()) {
+      alert('Doctor full name is required.');
+      return;
+    }
+
+    const trimmedUsername = docUsername.trim();
+    const trimmedPassword = docPassword.trim();
+
+    if (!trimmedUsername) {
+      alert('Doctor Login Username / ID is strictly COMPULSORY. Please enter a login username for the doctor.');
+      return;
+    }
+
+    if (!trimmedPassword || trimmedPassword.length < 4) {
+      alert('Doctor Login Password is strictly COMPULSORY (minimum 4 characters). Please enter a password for the doctor.');
+      return;
+    }
 
     const matchedFac = facilitiesInDistrict.find((f) => f.id === facilityId) || facilitiesInDistrict[0];
 
-    const newDoctorData: Partial<DistrictDoctor> = {
+    const newDoctorData: any = {
       name: docName.trim(),
+      username: trimmedUsername,
+      password: trimmedPassword,
       qualification: qualification.trim() || 'MBBS',
       specialty,
       facilityId: matchedFac?.id || 'fac_civil_01',
       facilityName: matchedFac?.name || `${selectedDistrict} Civil Hospital`,
       status: dutyStatus,
       phone: phone.trim() || '9876500000',
-      email: email.trim() || `${docName.toLowerCase().replace(/[^a-z]/g, '')}@gujarat.health.gov.in`,
+      email: email.trim() || `${trimmedUsername}@gujarat.health.gov.in`,
       opdSchedule: opdSchedule.trim() || '09:00 AM – 02:00 PM (Mon-Sat)',
       patientsToday: 0,
       teleconsultEnabled,
+      district: selectedDistrict || 'Gandhinagar',
     };
 
     let created: DistrictDoctor;
@@ -160,12 +181,14 @@ export const DistrictDoctorsPage: React.FC = () => {
 
     // Reset Form
     setDocName('');
+    setDocUsername('');
+    setDocPassword('');
     setQualification('');
     setPhone('');
     setEmail('');
 
-    setSuccessToast(`Successfully posted ${created.name} (${created.specialty}) to ${created.facilityName}.`);
-    setTimeout(() => setSuccessToast(null), 5000);
+    setSuccessToast(`Successfully posted ${created.name} (${created.specialty}) to ${created.facilityName}. Login Username: "${trimmedUsername}" | Password: "${trimmedPassword}"`);
+    setTimeout(() => setSuccessToast(null), 8000);
   };
 
   const handleStatusChange = async (docId: string, newStatus: DistrictDoctor['status']) => {
@@ -251,8 +274,8 @@ export const DistrictDoctorsPage: React.FC = () => {
     try {
       await directoryApi.deleteDoctor(deletingDoctor.id);
       setDoctorsList((prev) => prev.filter((d) => d.id !== deletingDoctor.id));
-      if (mockState && typeof mockState.deleteDoctor === 'function') {
-        mockState.deleteDoctor(deletingDoctor.id);
+      if (mockState && typeof (mockState as any).deleteDoctor === 'function') {
+        (mockState as any).deleteDoctor(deletingDoctor.id);
       }
       setShowDeleteDialog(false);
       setSuccessToast(`Doctor ${deletingDoctor.name} (${deletingDoctor.specialty}) has been deleted.`);
@@ -741,7 +764,42 @@ export const DistrictDoctorsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Row 5: Teleconsultation toggle */}
+              {/* Row 5: Login Credentials for Doctor OPD Portal */}
+              <div className="p-3 bg-teal-50/80 rounded-xl border border-teal-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+                    🔐 Doctor Portal Login Credentials <span className="text-rose-600 font-extrabold">* (Compulsory)</span>
+                  </span>
+                  <span className="text-[10px] text-teal-700 font-medium">Mandatory for Doctor OPD Portal sign in</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      Account Username / ID <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      placeholder={docName.trim() ? `doc_${docName.toLowerCase().replace(/[^a-z0-9]/g, '')}` : 'e.g. doc_priya'}
+                      value={docUsername}
+                      onChange={(e) => setDocUsername(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      Account Password <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      type="text"
+                      placeholder="Doctor@123"
+                      value={docPassword}
+                      onChange={(e) => setDocPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 6: Teleconsultation toggle */}
               <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
                 <input
                   type="checkbox"

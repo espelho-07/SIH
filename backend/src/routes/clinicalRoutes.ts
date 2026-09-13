@@ -6,13 +6,14 @@ import {
   getEncounterById,
   createEncounter,
   saveVitals,
+  createPrescription,
 } from '../controllers/clinicalController';
 import {
   getPrescriptions,
   getPrescriptionById,
   dispensePrescription,
 } from '../controllers/pharmacyController';
-import { authenticate } from '../middleware/auth';
+import { authenticate, optionalAuthenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -21,12 +22,13 @@ router.get('/patients/:patientId/health-record', getPatientHealthRecord);
 router.get('/patients/:patientId/timeline', getTimeline);
 router.get('/encounters', getEncounters);
 router.get('/encounters/:encounterId', getEncounterById);
-router.post('/encounters', authenticate, createEncounter);
-router.post('/encounters/:encounterId/vitals', authenticate, saveVitals);
+router.post('/encounters', optionalAuthenticate, createEncounter);
+router.post('/encounters/:encounterId/vitals', optionalAuthenticate, saveVitals);
 
 // Prescriptions
 router.get('/prescriptions', getPrescriptions);
 router.get('/prescriptions/:prescriptionId', getPrescriptionById);
-router.patch('/prescriptions/:prescriptionId/dispense', authenticate, dispensePrescription);
+router.post('/prescriptions', optionalAuthenticate, createPrescription);
+router.patch('/prescriptions/:prescriptionId/dispense', optionalAuthenticate, dispensePrescription);
 
 export default router;

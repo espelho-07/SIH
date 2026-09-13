@@ -28,6 +28,7 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
+  Navigation,
 } from 'lucide-react';
 
 const COMMON_SPECIALTIES = [
@@ -43,6 +44,28 @@ const COMMON_SPECIALTIES = [
   'AYUSH',
   'Pathology & Lab',
 ];
+
+export const GUJARAT_COORDINATE_PRESETS = [
+  { name: 'Gandhinagar Sector 12 (Apex Civil)', district: 'Gandhinagar', lat: 23.2156, lng: 72.6369 },
+  { name: 'Kalol Sub-District Hospital', district: 'Gandhinagar', lat: 23.2435, lng: 72.4965 },
+  { name: 'Mansa Community Health Centre', district: 'Gandhinagar', lat: 23.4283, lng: 72.6611 },
+  { name: 'Pethapur Primary Health Centre', district: 'Gandhinagar', lat: 23.2750, lng: 72.6580 },
+  { name: 'Dehgam Community Health Centre', district: 'Gandhinagar', lat: 23.1670, lng: 72.8120 },
+  { name: 'Ahmedabad Asarwa Civil Hospital', district: 'Ahmedabad', lat: 23.0525, lng: 72.5950 },
+  { name: 'Ahmedabad Sola GMERS Hospital', district: 'Ahmedabad', lat: 23.0805, lng: 72.5245 },
+  { name: 'Ahmedabad LG Municipal Hospital', district: 'Ahmedabad', lat: 22.9985, lng: 72.6025 },
+  { name: 'Ahmedabad Sanand CHC', district: 'Ahmedabad', lat: 22.9868, lng: 72.3812 },
+  { name: 'Surat New Civil Hospital (Majura)', district: 'Surat', lat: 21.1702, lng: 72.8311 },
+  { name: 'Surat SMIMER Hospital', district: 'Surat', lat: 21.1960, lng: 72.8420 },
+  { name: 'Vadodara SSG Hospital', district: 'Vadodara', lat: 22.3072, lng: 73.1812 },
+  { name: 'Rajkot PDU Civil Hospital', district: 'Rajkot', lat: 22.3039, lng: 70.8022 },
+  { name: 'Bhavnagar Sir T Civil Hospital', district: 'Bhavnagar', lat: 21.7645, lng: 72.1519 },
+  { name: 'Jamnagar GG Hospital', district: 'Jamnagar', lat: 22.4707, lng: 70.0577 },
+  { name: 'Junagadh Civil Hospital', district: 'Junagadh', lat: 21.5222, lng: 70.4579 },
+];
+
+import { geocodeLocationQuery } from '@/services/geocodingService';
+import { LocationPickerMap } from '@/components/map/LocationPickerMap';
 
 export const DistrictFacilitiesPage: React.FC = () => {
   const { selectedDistrict } = useLocationContext();
@@ -77,10 +100,18 @@ export const DistrictFacilitiesPage: React.FC = () => {
 
   // Form State (used for Add and Edit)
   const [facName, setFacName] = useState('');
+  const [clerkUsername, setClerkUsername] = useState('');
+  const [clerkPassword, setClerkPassword] = useState('Clerk@123');
   const [facType, setFacType] = useState<Facility['type']>('CHC');
   const [blockName, setBlockName] = useState('');
   const [address, setAddress] = useState('');
   const [pincode, setPincode] = useState('382010');
+  const [facLat, setFacLat] = useState('23.2156');
+  const [facLng, setFacLng] = useState('72.6369');
+  const [isLocatingGps, setIsLocatingGps] = useState(false);
+  const [isAutoGeocoding, setIsAutoGeocoding] = useState(false);
+  const [geocodeMatchMsg, setGeocodeMatchMsg] = useState<string | null>(null);
+  const [showInteractiveMap, setShowInteractiveMap] = useState(false);
   const [contactPhone, setContactPhone] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('108');
   const [totalBeds, setTotalBeds] = useState('50');
@@ -102,6 +133,56 @@ export const DistrictFacilitiesPage: React.FC = () => {
     );
   };
 
+  const handleAutoGeocodeAddress = async (customQuery?: string) => {
+    const q = customQuery || `${address} ${facName} ${pincode} ${selectedDistrict}`;
+    if (!q.trim()) return;
+
+    setIsAutoGeocoding(true);
+    setGeocodeMatchMsg(null);
+    try {
+      const res = await geocodeLocationQuery(q, selectedDistrict);
+      if (res) {
+        setFacLat(res.lat.toFixed(6));
+        setFacLng(res.lng.toFixed(6));
+        setGeocodeMatchMsg(`🎯 Matched Location: ${res.displayName}`);
+      }
+    } catch (err) {
+      console.warn('Geocoding error:', err);
+    } finally {
+      setIsAutoGeocoding(false);
+    }
+  };
+
+  const handleDetectGpsForFacility = () => {
+    if (!navigator.geolocation) {
+      alert('GPS Geolocation is not supported by your browser.');
+      return;
+    }
+    setIsLocatingGps(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFacLat(pos.coords.latitude.toFixed(6));
+        setFacLng(pos.coords.longitude.toFixed(6));
+        setGeocodeMatchMsg(`📍 Device GPS Fix (Accuracy: ±${Math.round(pos.coords.accuracy)}m)`);
+        setIsLocatingGps(false);
+      },
+      (err) => {
+        alert('Could not retrieve GPS coordinates: ' + err.message);
+        setIsLocatingGps(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
+
+  const handleApplyCoordinatePreset = (presetName: string) => {
+    const matched = GUJARAT_COORDINATE_PRESETS.find((p) => p.name === presetName);
+    if (matched) {
+      setFacLat(matched.lat.toFixed(6));
+      setFacLng(matched.lng.toFixed(6));
+      setGeocodeMatchMsg(`📌 Selected Preset: ${matched.name}`);
+    }
+  };
+
   // Open Edit Modal with pre-filled facility data
   const handleOpenEdit = (fac: Facility) => {
     setEditingFacility(fac);
@@ -109,6 +190,8 @@ export const DistrictFacilitiesPage: React.FC = () => {
     setFacType(fac.type || 'CHC');
     setAddress(fac.address || '');
     setPincode(fac.pincode || '382010');
+    setFacLat(String(fac.coordinates?.lat ?? 23.2156));
+    setFacLng(String(fac.coordinates?.lng ?? 72.6369));
     setContactPhone(fac.contactNumber || '');
     setEmergencyPhone(fac.emergencyNumber || '108');
     setTotalBeds(String(fac.totalBeds || 50));
@@ -133,12 +216,15 @@ export const DistrictFacilitiesPage: React.FC = () => {
     const aBeds = Math.min(parseInt(availableBeds, 10) || 10, tBeds);
     const icuTotal = parseInt(icuBedsTotal, 10) || 4;
     const icuAvail = Math.min(parseInt(icuBedsAvailable, 10) || 2, icuTotal);
+    const latNum = parseFloat(facLat) || 23.2156;
+    const lngNum = parseFloat(facLng) || 72.6369;
 
     const updatedData: Partial<Facility> = {
       name: facName.trim(),
       type: facType,
       address: address.trim(),
       pincode: pincode.trim(),
+      coordinates: { lat: latNum, lng: lngNum },
       contactNumber: contactPhone.trim(),
       emergencyNumber: emergencyPhone.trim(),
       totalBeds: tBeds,
@@ -161,7 +247,7 @@ export const DistrictFacilitiesPage: React.FC = () => {
       );
       setShowEditModal(false);
       setEditingFacility(null);
-      setSuccessToast(`Successfully updated details for ${updated.name}.`);
+      setSuccessToast(`Successfully updated details & exact location coordinates for ${updated.name}.`);
       setTimeout(() => setSuccessToast(null), 5000);
     } catch (err: any) {
       // Fallback local update
@@ -205,21 +291,42 @@ export const DistrictFacilitiesPage: React.FC = () => {
   // Submit Add Facility
   const handleAddFacilitySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!facName.trim()) return;
+    if (!facName.trim()) {
+      alert('Hospital / Facility Name is compulsory.');
+      return;
+    }
+
+    const trimmedUsername = clerkUsername.trim();
+    const trimmedPassword = clerkPassword.trim();
+
+    if (!trimmedUsername) {
+      alert('Registration Counter Clerk Username / ID is strictly COMPULSORY. You must provide a login username for the counter desk.');
+      return;
+    }
+
+    if (!trimmedPassword || trimmedPassword.length < 4) {
+      alert('Registration Counter Clerk Password is strictly COMPULSORY (minimum 4 characters). You must provide a password for the counter desk.');
+      return;
+    }
 
     setIsSaving(true);
     const tBeds = parseInt(totalBeds, 10) || 30;
     const aBeds = Math.min(parseInt(availableBeds, 10) || 10, tBeds);
     const icuTotal = parseInt(icuBedsTotal, 10) || 4;
     const icuAvail = Math.min(parseInt(icuBedsAvailable, 10) || 2, icuTotal);
+    const latNum = parseFloat(facLat) || 23.2156;
+    const lngNum = parseFloat(facLng) || 72.6369;
 
-    const newFacData: Partial<Facility> = {
+    const newFacData: any = {
       name: facName.trim(),
+      username: trimmedUsername,
+      password: trimmedPassword,
       type: facType,
       district: selectedDistrict,
       state: 'Gujarat',
       address: address.trim() || `${blockName ? blockName + ' Block, ' : ''}${selectedDistrict}`,
       pincode: pincode.trim() || '382000',
+      coordinates: { lat: latNum, lng: lngNum },
       contactNumber: contactPhone.trim() || '+91 79 2320 0000',
       emergencyNumber: emergencyPhone.trim() || '108',
       totalBeds: tBeds,
@@ -233,7 +340,6 @@ export const DistrictFacilitiesPage: React.FC = () => {
       isOpen: true,
       isVerified: true,
       currentWaitTimeMinutes: 15,
-      coordinates: { lat: 23.2156, lng: 72.6369 },
       departments: selectedSpecialties.map((spec, idx) => ({
         id: `d_${idx}`,
         name: spec,
@@ -276,13 +382,17 @@ export const DistrictFacilitiesPage: React.FC = () => {
 
     // Reset Form
     setFacName('');
+    setClerkUsername('');
+    setClerkPassword('');
     setBlockName('');
     setAddress('');
     setContactPhone('');
+    setFacLat('23.2156');
+    setFacLng('72.6369');
 
     // Feedback
-    setSuccessToast(`Successfully registered ${created.name} into the ${selectedDistrict} District Healthcare Network.`);
-    setTimeout(() => setSuccessToast(null), 5000);
+    setSuccessToast(`Successfully registered ${created.name} into ${selectedDistrict} District. Counter Clerk Login Username: "${trimmedUsername}" | Password: "${trimmedPassword}"`);
+    setTimeout(() => setSuccessToast(null), 10000);
   };
 
   // Filter facilities based on search, type, and availability
@@ -623,7 +733,13 @@ export const DistrictFacilitiesPage: React.FC = () => {
                     required
                     placeholder="e.g. Sub-District Hospital Kalol"
                     value={facName}
-                    onChange={(e) => setFacName(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFacName(val);
+                      if (!clerkUsername || clerkUsername.startsWith('clerk_')) {
+                        setClerkUsername(val.trim() ? `clerk_${val.toLowerCase().replace(/[^a-z0-9]/g, '')}` : '');
+                      }
+                    }}
                     className="text-xs"
                   />
                 </div>
@@ -648,11 +764,28 @@ export const DistrictFacilitiesPage: React.FC = () => {
               {/* Row 2: Location & Address */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="font-semibold text-slate-700">Full Physical Address</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-slate-700">Full Physical Address *</label>
+                    <button
+                      type="button"
+                      onClick={() => handleAutoGeocodeAddress()}
+                      disabled={isAutoGeocoding || !address.trim()}
+                      className="text-[10px] font-bold text-teal-800 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2 py-0.5 rounded cursor-pointer flex items-center gap-1"
+                    >
+                      <Search className="h-2.5 w-2.5" />
+                      <span>{isAutoGeocoding ? 'Matching...' : 'Auto-Match Address GPS'}</span>
+                    </button>
+                  </div>
                   <Input
-                    placeholder="e.g. Near Bus Station, Sector 12"
+                    required
+                    placeholder="e.g. Near Bus Station, Sector 12, Gandhinagar"
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                    }}
+                    onBlur={() => {
+                      if (address.trim() && !facLat) handleAutoGeocodeAddress();
+                    }}
                     className="text-xs"
                   />
                 </div>
@@ -663,8 +796,121 @@ export const DistrictFacilitiesPage: React.FC = () => {
                     placeholder="382010"
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
+                    onBlur={() => {
+                      if (pincode.trim().length === 6) handleAutoGeocodeAddress(`${pincode} ${address}`);
+                    }}
                     className="text-xs"
                   />
+                </div>
+              </div>
+
+              {/* Row 2.5: Exact Geo-Coordinates & Location Pin */}
+              <div className="p-3.5 bg-gradient-to-r from-teal-50/90 to-sky-50/90 rounded-xl border border-teal-200 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs">
+                    <MapPin className="h-4 w-4 text-teal-700 shrink-0" />
+                    <span>Exact Geo-Location Coordinates (for Patient Distance & Directions)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowInteractiveMap(!showInteractiveMap)}
+                      className="h-7 text-[11px] font-bold gap-1 bg-white border-teal-300 text-teal-800 hover:bg-teal-50 cursor-pointer shadow-2xs px-2"
+                    >
+                      <Map className="h-3 w-3 text-teal-700" />
+                      <span>{showInteractiveMap ? 'Hide Map' : '🗺️ Pin on Map'}</span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDetectGpsForFacility}
+                      disabled={isLocatingGps}
+                      className="h-7 text-[11px] font-bold gap-1 bg-white border-teal-300 text-teal-800 hover:bg-teal-50 cursor-pointer shadow-2xs px-2"
+                    >
+                      <Navigation className={`h-3 w-3 ${isLocatingGps ? 'animate-spin' : ''}`} />
+                      <span>{isLocatingGps ? 'Locating...' : '📍 Use GPS'}</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {geocodeMatchMsg && (
+                  <div className="p-2 rounded-lg bg-white border border-teal-200 text-[11px] font-semibold text-teal-900 flex items-center gap-1.5 shadow-2xs">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+                    <span className="truncate">{geocodeMatchMsg}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-600">Latitude (°N) *</label>
+                    <Input
+                      required
+                      type="number"
+                      step="any"
+                      placeholder="23.2156"
+                      value={facLat}
+                      onChange={(e) => setFacLat(e.target.value)}
+                      className="text-xs bg-white h-8 font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-600">Longitude (°E) *</label>
+                    <Input
+                      required
+                      type="number"
+                      step="any"
+                      placeholder="72.6369"
+                      value={facLng}
+                      onChange={(e) => setFacLng(e.target.value)}
+                      className="text-xs bg-white h-8 font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-600">Quick Presets</label>
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) handleApplyCoordinatePreset(e.target.value);
+                      }}
+                      className="w-full h-8 rounded-lg border border-teal-200 bg-white px-2 text-[11px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium cursor-pointer"
+                    >
+                      <option value="">-- Choose Known Locality --</option>
+                      {GUJARAT_COORDINATE_PRESETS.map((p) => (
+                        <option key={p.name} value={p.name}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Interactive Map Pin Selector */}
+                {showInteractiveMap && (
+                  <div className="pt-2">
+                    <LocationPickerMap
+                      lat={parseFloat(facLat) || 23.2156}
+                      lng={parseFloat(facLng) || 72.6369}
+                      onChangeLocation={(newLat, newLng) => {
+                        setFacLat(newLat.toFixed(6));
+                        setFacLng(newLng.toFixed(6));
+                        setGeocodeMatchMsg(`📍 Pin Moved: [${newLat.toFixed(4)}°N, ${newLng.toFixed(4)}°E]`);
+                      }}
+                      title="Click on the exact hospital building/gate to set location"
+                      height="180px"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between text-[10px] text-teal-800/90 pt-0.5 gap-1">
+                  <span>🛰️ Exact location is used to calculate KM distance and Google Maps directions for citizens.</span>
+                  <span className="font-mono font-bold bg-teal-100/90 px-2 py-0.5 rounded text-teal-950">
+                    Coords: [{Number(facLat).toFixed(4)}°N, {Number(facLng).toFixed(4)}°E]
+                  </span>
                 </div>
               </div>
 
@@ -805,6 +1051,40 @@ export const DistrictFacilitiesPage: React.FC = () => {
                   })}
                 </div>
               </div>
+              {/* Row 7: Registration Counter & Desk Clerk Login Credentials */}
+              <div className="p-3 bg-teal-50/80 rounded-xl border border-teal-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+                    🔐 Hospital Registration Counter & Clerk Login <span className="text-rose-600 font-extrabold">* (Compulsory)</span>
+                  </span>
+                  <span className="text-[10px] text-teal-700 font-medium">Mandatory for counter clerk login & OPD queue management</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      Counter Username / ID <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      placeholder={facName.trim() ? `clerk_${facName.toLowerCase().replace(/[^a-z0-9]/g, '')}` : 'e.g. clerk_civil'}
+                      value={clerkUsername}
+                      onChange={(e) => setClerkUsername(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">
+                      Counter Password <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      type="text"
+                      placeholder="Clerk@123"
+                      value={clerkPassword}
+                      onChange={(e) => setClerkPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
             </DialogContent>
 
             <DialogFooter>
@@ -885,7 +1165,18 @@ export const DistrictFacilitiesPage: React.FC = () => {
               {/* Row 2: Location & Address */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="font-semibold text-slate-700">Full Physical Address</label>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-slate-700">Full Physical Address</label>
+                    <button
+                      type="button"
+                      onClick={() => handleAutoGeocodeAddress()}
+                      disabled={isAutoGeocoding || !address.trim()}
+                      className="text-[10px] font-bold text-teal-800 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2 py-0.5 rounded cursor-pointer flex items-center gap-1"
+                    >
+                      <Search className="h-2.5 w-2.5" />
+                      <span>{isAutoGeocoding ? 'Matching...' : 'Auto-Match Address GPS'}</span>
+                    </button>
+                  </div>
                   <Input
                     placeholder="Address"
                     value={address}
@@ -902,6 +1193,116 @@ export const DistrictFacilitiesPage: React.FC = () => {
                     onChange={(e) => setPincode(e.target.value)}
                     className="text-xs"
                   />
+                </div>
+              </div>
+
+              {/* Row 2.5: Exact Geo-Coordinates & Location Pin */}
+              <div className="p-3.5 bg-gradient-to-r from-teal-50/90 to-sky-50/90 rounded-xl border border-teal-200 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs">
+                    <MapPin className="h-4 w-4 text-teal-700 shrink-0" />
+                    <span>Exact Geo-Location Coordinates (for Patient Distance & Directions)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowInteractiveMap(!showInteractiveMap)}
+                      className="h-7 text-[11px] font-bold gap-1 bg-white border-teal-300 text-teal-800 hover:bg-teal-50 cursor-pointer shadow-2xs px-2"
+                    >
+                      <Map className="h-3 w-3 text-teal-700" />
+                      <span>{showInteractiveMap ? 'Hide Map' : '🗺️ Pin on Map'}</span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDetectGpsForFacility}
+                      disabled={isLocatingGps}
+                      className="h-7 text-[11px] font-bold gap-1 bg-white border-teal-300 text-teal-800 hover:bg-teal-50 cursor-pointer shadow-2xs px-2"
+                    >
+                      <Navigation className={`h-3 w-3 ${isLocatingGps ? 'animate-spin' : ''}`} />
+                      <span>{isLocatingGps ? 'Locating...' : '📍 Use GPS'}</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {geocodeMatchMsg && (
+                  <div className="p-2 rounded-lg bg-white border border-teal-200 text-[11px] font-semibold text-teal-900 flex items-center gap-1.5 shadow-2xs">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+                    <span className="truncate">{geocodeMatchMsg}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-600">Latitude (°N) *</label>
+                    <Input
+                      required
+                      type="number"
+                      step="any"
+                      placeholder="23.2156"
+                      value={facLat}
+                      onChange={(e) => setFacLat(e.target.value)}
+                      className="text-xs bg-white h-8 font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-600">Longitude (°E) *</label>
+                    <Input
+                      required
+                      type="number"
+                      step="any"
+                      placeholder="72.6369"
+                      value={facLng}
+                      onChange={(e) => setFacLng(e.target.value)}
+                      className="text-xs bg-white h-8 font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-600">Quick Presets</label>
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) handleApplyCoordinatePreset(e.target.value);
+                      }}
+                      className="w-full h-8 rounded-lg border border-teal-200 bg-white px-2 text-[11px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium cursor-pointer"
+                    >
+                      <option value="">-- Choose Known Locality --</option>
+                      {GUJARAT_COORDINATE_PRESETS.map((p) => (
+                        <option key={p.name} value={p.name}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Interactive Map Pin Selector */}
+                {showInteractiveMap && (
+                  <div className="pt-2">
+                    <LocationPickerMap
+                      lat={parseFloat(facLat) || 23.2156}
+                      lng={parseFloat(facLng) || 72.6369}
+                      onChangeLocation={(newLat, newLng) => {
+                        setFacLat(newLat.toFixed(6));
+                        setFacLng(newLng.toFixed(6));
+                        setGeocodeMatchMsg(`📍 Pin Moved: [${newLat.toFixed(4)}°N, ${newLng.toFixed(4)}°E]`);
+                      }}
+                      title="Click on the exact hospital building/gate to set location"
+                      height="180px"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between text-[10px] text-teal-800/90 pt-0.5 gap-1">
+                  <span>🛰️ Real-time Haversine distance in KM will update accurately for patients.</span>
+                  <span className="font-mono font-bold bg-teal-100/90 px-2 py-0.5 rounded text-teal-950">
+                    Coords: [{Number(facLat).toFixed(4)}°N, {Number(facLng).toFixed(4)}°E]
+                  </span>
                 </div>
               </div>
 

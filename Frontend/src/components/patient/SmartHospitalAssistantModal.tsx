@@ -29,6 +29,7 @@ import { INITIAL_MEDICAL_STORES } from '@/mock/medicalStoresData';
 import { facilityApi } from '@/api/facilityApi';
 import { Facility } from '@/types';
 import { DigitalTriageFlow } from '@/components/patient/DigitalTriageFlow';
+import { calculateHaversineDistanceKm } from '@/services/geocodingService';
 
 // Web Speech API Types
 interface SpeechRecognitionEvent {
@@ -356,12 +357,27 @@ export const SmartHospitalAssistantModal: React.FC<Props> = ({
   const activeDoctorCount = matchedDepartment?.activeDoctors || (selectedSymptom === 'FRACTURE' ? 3 : 4);
   const waitMinutes = matchedDepartment?.currentWaitMinutes || bestFacility.currentWaitTimeMinutes || 25;
 
-  // Filtered Medical Stores
-  const filteredStores = INITIAL_MEDICAL_STORES.filter((s) => s.isOpenNow).filter((s) => {
-    if (!storeSearch.trim()) return true;
-    const q = storeSearch.toLowerCase();
-    return s.name.toLowerCase().includes(q) || s.area.toLowerCase().includes(q);
-  });
+  // Filtered Medical Stores with Dynamic Distance
+  const userLat = 23.2156;
+  const userLng = 72.6369;
+
+  const filteredStores = INITIAL_MEDICAL_STORES.filter((s) => s.isOpenNow)
+    .map((s) => {
+      const dist = s.coordinates?.lat && s.coordinates?.lng
+        ? calculateHaversineDistanceKm(userLat, userLng, s.coordinates.lat, s.coordinates.lng)
+        : s.distanceKm || 1.5;
+      return { ...s, distanceKm: dist };
+    })
+    .filter((s) => {
+      if (!storeSearch.trim()) return true;
+      const q = storeSearch.toLowerCase();
+      return s.name.toLowerCase().includes(q) || s.area.toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      if (a.isJanAushadhi && !b.isJanAushadhi) return -1;
+      if (!a.isJanAushadhi && b.isJanAushadhi) return 1;
+      return a.distanceKm - b.distanceKm;
+    });
 
   if (!isOpen) return null;
 

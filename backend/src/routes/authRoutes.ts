@@ -4,6 +4,8 @@ import {
   verifyPatientOtp,
   login,
   getCurrentUser,
+  updateProfile,
+  updatePatientById,
   refresh,
   logout,
 } from '../controllers/authController';
@@ -15,6 +17,10 @@ router.post('/patient/send-otp', sendPatientOtp);
 router.post('/patient/verify-otp', verifyPatientOtp);
 router.post('/login', login);
 router.get('/me', authenticate, getCurrentUser);
+router.put('/profile', authenticate, updateProfile);
+router.patch('/profile', authenticate, updateProfile);
+router.put('/patients/:id', updatePatientById);
+router.patch('/patients/:id', updatePatientById);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 

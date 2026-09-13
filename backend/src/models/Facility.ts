@@ -27,6 +27,8 @@ export interface IFacility extends Document {
   pincode: string;
   contactNumber: string;
   emergencyNumber: string;
+  registrationClerkUsername?: string;
+  registrationClerkUserId?: string;
   coordinates: {
     lat: number;
     lng: number;
@@ -74,6 +76,8 @@ const FacilitySchema = new Schema<IFacility>(
     pincode: { type: String, default: '382010' },
     contactNumber: { type: String, default: '079-2322-0000' },
     emergencyNumber: { type: String, default: '108' },
+    registrationClerkUsername: { type: String, index: true },
+    registrationClerkUserId: { type: String, index: true },
     coordinates: {
       lat: { type: Number, default: 23.2156 },
       lng: { type: Number, default: 72.6369 },

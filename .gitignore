@@ -34,3 +34,9 @@ pnpm-debug.log*
 temp_*
 *.tsbuildinfo
 *.zip
+*.csv
+__pycache__/
+*.pyc
+M/archive/
+archive/
+

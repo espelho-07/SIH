@@ -94,6 +94,7 @@ export const DistrictBloodPage: React.FC = () => {
       currentStock: parseInt(currentStock, 10) || 50,
       phone: centerPhone.trim() || '079-2322-0000',
       location: location.trim() || `${selectedDistrict} District Headquarters`,
+      district: selectedDistrict || 'Gandhinagar',
       componentSeparation,
     };
 

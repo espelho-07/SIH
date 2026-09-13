@@ -2,6 +2,9 @@ import { Router } from 'express';
 import {
   getMedicines,
   getMedicineById,
+  createMedicine,
+  updateMedicine,
+  deleteMedicine,
   quarantineBatch,
   adjustMedicineStock,
   getDispensingHistory,
@@ -20,9 +23,13 @@ router.get('/pharmacy/history', getDispensingHistory);
 
 // Medicines Inventory
 router.get('/medicines', getMedicines);
+router.post('/medicines', createMedicine);
 router.get('/medicines/:medicineId', getMedicineById);
-router.patch('/medicines/:medicineId/quarantine', authenticate, quarantineBatch);
-router.patch('/medicines/:medicineId/stock', authenticate, adjustMedicineStock);
+router.put('/medicines/:medicineId', updateMedicine);
+router.patch('/medicines/:medicineId', updateMedicine);
+router.delete('/medicines/:medicineId', deleteMedicine);
+router.patch('/medicines/:medicineId/quarantine', quarantineBatch);
+router.patch('/medicines/:medicineId/stock', adjustMedicineStock);
 
 // Resources
 router.get('/blood/inventory', getBloodInventory);

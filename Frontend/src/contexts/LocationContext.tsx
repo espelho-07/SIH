@@ -263,6 +263,7 @@ interface LocationContextType {
   setLocation: (district: string, facilityName: string, facilityId?: string) => void;
   setUserCoords: (coords: { lat: number; lng: number } | null) => void;
   detectGpsLocation: () => Promise<{ success: boolean; message: string; coords?: { lat: number; lng: number } }>;
+  setExactCustomLocation: (lat: number, lng: number, label?: string) => void;
   startLiveTracking: () => void;
   stopLiveTracking: () => void;
   toggleLiveTracking: () => void;
@@ -323,6 +324,27 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const setExactCustomLocation = (lat: number, lng: number, label?: string) => {
+    const coords = { lat, lng };
+    updateUserCoords(coords);
+    setGpsAccuracy(5); // high manual accuracy
+    setLastLocationUpdate(new Date());
+
+    // Find closest district
+    let closestDistrict = 'Gandhinagar';
+    let minDistance = Infinity;
+    Object.entries(DISTRICT_COORDINATES).forEach(([districtName, info]) => {
+      const dist = calculateDistanceKm(lat, lng, info.lat, info.lng);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestDistrict = districtName;
+      }
+    });
+
+    setSelectedDistrict(closestDistrict);
+    localStorage.setItem('healthconnect_district', closestDistrict);
+  };
+
   const detectGpsLocation = async (): Promise<{ success: boolean; message: string; coords?: { lat: number; lng: number } }> => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
@@ -340,8 +362,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
           // Find closest district mathematically
           let closestDistrict = 'Gandhinagar';
-          let closestHospital = 'Gandhinagar Civil Hospital & Medical College';
-          let closestId = 'fac_civil_01';
           let minDistance = Infinity;
 
           Object.entries(DISTRICT_COORDINATES).forEach(([districtName, info]) => {
@@ -349,25 +369,25 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             if (dist < minDistance) {
               minDistance = dist;
               closestDistrict = districtName;
-              closestHospital = info.hospital;
-              closestId = info.id;
             }
           });
 
-          setLocation(closestDistrict, closestHospital, closestId);
+          setSelectedDistrict(closestDistrict);
+          localStorage.setItem('healthconnect_district', closestDistrict);
+
           resolve({
             success: true,
-            message: `📍 Located! Closest Apex Center: ${closestHospital} (~${minDistance} km away)`,
+            message: `📍 GPS Fixed at [${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E] (Accuracy ±${Math.round(accuracy)}m)`,
             coords,
           });
         },
         (error) => {
           resolve({
             success: false,
-            message: error.message || 'Unable to access your GPS position. Please select manually.',
+            message: error.message || 'Unable to access your GPS position. Please enter address or drop pin on map.',
           });
         },
-        { timeout: 10000, enableHighAccuracy: true }
+        { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
       );
     });
   };
@@ -463,6 +483,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setLocation,
         setUserCoords: updateUserCoords,
         detectGpsLocation,
+        setExactCustomLocation,
         startLiveTracking,
         stopLiveTracking,
         toggleLiveTracking,

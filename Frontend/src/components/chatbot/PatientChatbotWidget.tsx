@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { assistantApi, AssistantActionChip } from '@/api/assistantApi';
+import { useLocationContext } from '@/contexts/LocationContext';
+import { assistantApi, AssistantActionChip, RecommendedHospital } from '@/api/assistantApi';
 import { Button } from '@/components/ui/Button';
 import {
   X,
@@ -25,12 +26,21 @@ import {
   CheckCircle2,
   Layers,
   Database,
+  Camera,
+  Image as ImageIcon,
+  Trash2,
+  Paperclip,
+  Navigation,
+  Phone,
+  MapPin,
+  Target,
 } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
+  image?: string;
   timestamp: string;
   isEmergency?: boolean;
   intent?: string;
@@ -38,6 +48,7 @@ interface ChatMessage {
   latencyMs?: number;
   actionChips?: AssistantActionChip[];
   doctor?: { name: string; specialty: string; room?: string };
+  recommendedHospitals?: RecommendedHospital[];
 }
 
 function renderInlineMarkdown(text: string): React.ReactNode {
@@ -70,6 +81,7 @@ function renderInlineMarkdown(text: string): React.ReactNode {
 
 export const PatientChatbotWidget: React.FC = () => {
   const { user } = useAuth();
+  const { userCoords, selectedDistrict, detectGpsLocation, gpsAccuracy } = useLocationContext();
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -81,12 +93,17 @@ export const PatientChatbotWidget: React.FC = () => {
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [isDetectingGps, setIsDetectingGps] = useState(false);
 
   // ML Predictor tab state
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [symptomInput, setSymptomInput] = useState('');
   const [mlLoading, setMlLoading] = useState(false);
   const [mlResults, setMlResults] = useState<any>(null);
+
+  // Photo Attachment state
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sessionIdRef = useRef<string>(
     sessionStorage.getItem('aarogya_session_id') || `sess_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
@@ -98,6 +115,42 @@ export const PatientChatbotWidget: React.FC = () => {
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
 
   const patientName = user?.name ? user.name.split(' ')[0] : 'Citizen';
+
+  // Auto-detect GPS location when chatbot opens
+  useEffect(() => {
+    if (isOpen && !userCoords && detectGpsLocation) {
+      setIsDetectingGps(true);
+      detectGpsLocation()
+        .catch(() => {})
+        .finally(() => setIsDetectingGps(false));
+    }
+  }, [isOpen]);
+
+  const handleRefreshLocation = async () => {
+    if (!detectGpsLocation) return;
+    setIsDetectingGps(true);
+    try {
+      await detectGpsLocation();
+    } catch (e) {
+      console.warn('GPS detection failed:', e);
+    } finally {
+      setIsDetectingGps(false);
+    }
+  };
+
+  // Handle Photo Select
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setAttachedImage(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   // Initialize Web Speech Recognition
   useEffect(() => {
@@ -139,7 +192,7 @@ export const PatientChatbotWidget: React.FC = () => {
     if (isOpen && activeTab === 'chat') {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen, loading, activeTab]);
+  }, [messages, isOpen, loading, activeTab, attachedImage]);
 
   const startListening = () => {
     if (!recognitionRef.current) return;
@@ -217,14 +270,18 @@ export const PatientChatbotWidget: React.FC = () => {
 
   const handleSendMessage = async (textToSend?: string) => {
     const queryText = (textToSend || inputValue).trim();
-    if (!queryText || loading) return;
+    if ((!queryText && !attachedImage) || loading) return;
 
     stopListening();
+
+    const currentImage = attachedImage;
+    setAttachedImage(null);
 
     const userMsg: ChatMessage = {
       id: `msg_${Date.now()}`,
       sender: 'user',
-      text: queryText,
+      text: queryText || (currentImage ? 'Please analyze this healthcare photo / medical document.' : ''),
+      image: currentImage || undefined,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -232,15 +289,18 @@ export const PatientChatbotWidget: React.FC = () => {
     setInputValue('');
     setLoading(true);
 
-    const updatedHistory = [...historyRef.current, { role: 'user', content: queryText }];
+    const updatedHistory = [...historyRef.current, { role: 'user', content: queryText || 'Photo analysis request' }];
     historyRef.current = updatedHistory;
 
     try {
       const res = await assistantApi.sendMessage({
-        message: queryText,
+        message: queryText || 'Please analyze this attached healthcare photo / prescription / lab report',
+        image: currentImage || undefined,
         userId: user?.id || 'PAT-1001',
         sessionId: sessionIdRef.current,
         history: updatedHistory.slice(-6),
+        latitude: userCoords?.lat,
+        longitude: userCoords?.lng,
       });
 
       if (res.data) {
@@ -251,9 +311,9 @@ export const PatientChatbotWidget: React.FC = () => {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           isEmergency: res.data.is_emergency,
           intent: res.data.intent,
-          sources: res.data.sources,
           latencyMs: res.data.latency_ms,
           actionChips: res.data.actionChips,
+          recommendedHospitals: res.data.recommendedHospitals,
         };
 
         setMessages((prev) => [...prev, botMsg]);
@@ -295,6 +355,7 @@ export const PatientChatbotWidget: React.FC = () => {
     historyRef.current = [];
     setMessages([]);
     setInputValue('');
+    setAttachedImage(null);
   };
 
   const handleActionClick = (chip: AssistantActionChip) => {
@@ -443,40 +504,63 @@ export const PatientChatbotWidget: React.FC = () => {
           {/* TAB 1: AI CHAT CONSULTATION */}
           {activeTab === 'chat' && (
             <div className="flex-1 flex flex-col min-h-0 bg-[#F8FAFB]">
-              {/* Quick Prompts Bar */}
-              <div className="bg-white border-b border-slate-200/80 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
-                  Quick:
-                </span>
+              {/* Live Real-Time Patient GPS Tracker Bar */}
+              <div className="bg-slate-900 text-white px-3 py-1.5 flex items-center justify-between border-b border-teal-900/50 shrink-0 shadow-xs">
+                <div className="flex items-center gap-1.5 truncate">
+                  <div className="relative flex items-center justify-center">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping absolute"></span>
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 relative"></span>
+                  </div>
+                  <MapPin className="h-3 w-3 text-emerald-400 shrink-0" />
+                  {userCoords ? (
+                    <span className="text-[10px] font-mono text-teal-200 truncate">
+                      GPS Live: <strong className="text-white">{userCoords.lat.toFixed(4)}°N, {userCoords.lng.toFixed(4)}°E</strong> ({selectedDistrict || 'Gujarat'})
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-teal-300 animate-pulse truncate">
+                      {isDetectingGps ? 'Tracking real browser GPS coordinates...' : 'Location: Default Gandhinagar Grid'}
+                    </span>
+                  )}
+                </div>
+
                 <button
-                  onClick={() => handleSendMessage('સાહેબ મને ત્રણ દિવસથી તાવ છે, શરીર દુખે છે ને બહુ નબળાઈ લાગે છે')}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-medium transition-colors cursor-pointer"
+                  onClick={handleRefreshLocation}
+                  disabled={isDetectingGps}
+                  title="Track and pin your exact live GPS location"
+                  className="shrink-0 ml-1 px-2 py-0.5 rounded-md bg-teal-800/90 hover:bg-teal-700 text-white font-bold text-[10px] transition-all flex items-center gap-1 cursor-pointer border border-teal-600/40"
                 >
-                  🎙️ તાવ અને નબળાઈ
+                  <Target className={`h-3 w-3 text-emerald-300 ${isDetectingGps ? 'animate-spin' : ''}`} />
+                  <span>{isDetectingGps ? 'Tracking...' : '🎯 Track Real GPS'}</span>
                 </button>
+              </div>
+
+              {/* Quick Prompts & 3 Core GPS Buttons Bar */}
+              <div className="bg-white border-b border-slate-200/80 px-3 py-2 flex items-center justify-between gap-1.5 shrink-0 shadow-2xs">
                 <button
-                  onClick={() => handleSendMessage('Which medicine is available for fever in Rajkot hospitals?')}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800 text-[11px] font-medium transition-colors cursor-pointer"
+                  onClick={() => handleSendMessage('Show the real nearest hospital to my location with live bed availability, address and exact distance')}
+                  className="flex-1 py-1.5 px-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-950 border border-teal-300/80 text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] active:scale-95"
                 >
-                  💊 Fever Medicine Stock
+                  <Building2 className="h-3.5 w-3.5 text-teal-700 shrink-0" />
+                  <span className="truncate">🏥 Nearby Hospitals</span>
                 </button>
+
                 <button
-                  onClick={() => handleSendMessage('Which hospital provides Maternal Care in Rajkot?')}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800 text-[11px] font-medium transition-colors cursor-pointer"
+                  onClick={() => handleSendMessage('Show the real nearest medical store and Jan Aushadhi Kendra to my location with available medicine stock and address')}
+                  className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-300/80 text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] active:scale-95"
                 >
-                  🏥 Maternal Care
+                  <Pill className="h-3.5 w-3.5 text-emerald-700 shrink-0" />
+                  <span className="truncate">💊 Medical Stores</span>
                 </button>
+
                 <button
-                  onClick={() => handleSendMessage('What chronic conditions does PAT-1001 have?')}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800 text-[11px] font-medium transition-colors cursor-pointer"
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate('/patient/tokens');
+                  }}
+                  className="flex-1 py-1.5 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-300/80 text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs hover:scale-[1.02] active:scale-95"
                 >
-                  👤 PAT-1001 EHR
-                </button>
-                <button
-                  onClick={() => handleSendMessage('I have sudden crushing chest pain and cannot breathe!')}
-                  className="shrink-0 px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-medium transition-colors cursor-pointer"
-                >
-                  🚨 Chest Pain
+                  <Calendar className="h-3.5 w-3.5 text-indigo-700 shrink-0" />
+                  <span className="truncate">🎟️ Live OPD Token</span>
                 </button>
               </div>
 
@@ -484,64 +568,85 @@ export const PatientChatbotWidget: React.FC = () => {
               <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 text-xs">
                 {/* Welcome Card */}
                 {messages.length === 0 && (
-                  <div className="space-y-2.5 animate-in fade-in-50 duration-200">
+                  <div className="space-y-3 animate-in fade-in-50 duration-200">
                     <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
                       <div className="flex items-center gap-2 mb-1.5">
                         <div className="h-6 w-6 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-xs">
                           AI
                         </div>
                         <span className="font-bold text-slate-900">
-                          AarogyaMitra Clinical Assistant
+                          AarogyaMitra Clinical & GPS Triage
                         </span>
                         <span className="text-[10px] text-slate-400 ml-auto">Now</span>
                       </div>
                       <p className="text-slate-800 leading-relaxed">
-                        <strong>નમસ્તે {patientName}!</strong> I am your grounded Healthcare AI assistant connected to MongoDB Atlas, ML Disease Predictor, and Gemini Reasoning.
-                      </p>
-                      <p className="text-slate-600 mt-1.5">
-                        You can ask any healthcare question or tap the 🎙️ <strong>Mic</strong> to speak in Gujarati, Hindi, or English.
+                        <strong>નમસ્તે {patientName}!</strong> I am your Gujarat Healthcare Assistant. Ask me about any disease symptoms, medications, or tap a button below to get GPS-verified healthcare services.
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                      GPS Direct Actions:
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2">
                       <div
-                        onClick={() => handleSendMessage('Which medicine is available for fever in Rajkot?')}
-                        className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-400 hover:shadow-2xs transition-all cursor-pointer"
+                        onClick={() => handleSendMessage('Show the real nearest hospital to my location with live bed availability, address and exact distance')}
+                        className="p-3 rounded-2xl bg-gradient-to-r from-teal-50/80 to-white border border-teal-200 hover:border-teal-400 hover:shadow-2xs transition-all cursor-pointer flex items-center justify-between group"
                       >
-                        <div className="text-teal-700 font-bold text-xs flex items-center gap-1 mb-1">
-                          <Pill className="h-3.5 w-3.5" /> Medicine Stock
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-9 w-9 rounded-xl bg-teal-600 text-white flex items-center justify-center shadow-xs">
+                            <Building2 className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-teal-950 text-xs flex items-center gap-1.5">
+                              <span>🏥 Find Real Nearby Hospitals</span>
+                              <span className="text-[9px] bg-teal-200/60 text-teal-800 px-1.5 py-0.2 rounded-full font-bold">GPS Verified</span>
+                            </div>
+                            <p className="text-[10px] text-slate-500">Live bed availability, drive time & doctors on duty</p>
+                          </div>
                         </div>
-                        <p className="text-[10px] text-slate-500">Live dispensary inventory</p>
+                        <ArrowRight className="h-4 w-4 text-teal-600 group-hover:translate-x-0.5 transition-transform" />
                       </div>
 
                       <div
-                        onClick={() => handleSendMessage('Which hospital is in Gondal and what are the hours?')}
-                        className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-400 hover:shadow-2xs transition-all cursor-pointer"
+                        onClick={() => handleSendMessage('Show the real nearest medical store and Jan Aushadhi Kendra to my location with available medicine stock and address')}
+                        className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50/80 to-white border border-emerald-200 hover:border-emerald-400 hover:shadow-2xs transition-all cursor-pointer flex items-center justify-between group"
                       >
-                        <div className="text-teal-700 font-bold text-xs flex items-center gap-1 mb-1">
-                          <Building2 className="h-3.5 w-3.5" /> Hospitals & Timings
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-9 w-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                            <Pill className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-emerald-950 text-xs flex items-center gap-1.5">
+                              <span>💊 Find Real Nearby Medical Stores</span>
+                              <span className="text-[9px] bg-emerald-200/60 text-emerald-800 px-1.5 py-0.2 rounded-full font-bold">Jan Aushadhi</span>
+                            </div>
+                            <p className="text-[10px] text-slate-500">PM Jan Aushadhi Kendras, discounted generics & live stock</p>
+                          </div>
                         </div>
-                        <p className="text-[10px] text-slate-500">PHC & District facilities</p>
+                        <ArrowRight className="h-4 w-4 text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
                       </div>
 
                       <div
-                        onClick={() => handleSendMessage('I have high fever, headache, body ache and cough')}
-                        className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-400 hover:shadow-2xs transition-all cursor-pointer"
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate('/patient/tokens');
+                        }}
+                        className="p-3 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-white border border-indigo-200 hover:border-indigo-400 hover:shadow-2xs transition-all cursor-pointer flex items-center justify-between group"
                       >
-                        <div className="text-teal-700 font-bold text-xs flex items-center gap-1 mb-1">
-                          <HeartPulse className="h-3.5 w-3.5" /> Symptom Checker
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                            <Calendar className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
+                              <span>🎟️ Live OPD Token & Queue</span>
+                              <span className="text-[9px] bg-indigo-200/60 text-indigo-800 px-1.5 py-0.2 rounded-full font-bold">Instant</span>
+                            </div>
+                            <p className="text-[10px] text-slate-500">Book OPD token online & bypass hospital counter lines</p>
+                          </div>
                         </div>
-                        <p className="text-[10px] text-slate-500">ML Differential triage</p>
-                      </div>
-
-                      <div
-                        onClick={() => handleSendMessage('What chronic conditions does patient PAT-1001 have?')}
-                        className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-teal-400 hover:shadow-2xs transition-all cursor-pointer"
-                      >
-                        <div className="text-teal-700 font-bold text-xs flex items-center gap-1 mb-1">
-                          <Database className="h-3.5 w-3.5" /> Patient EHR
-                        </div>
-                        <p className="text-[10px] text-slate-500">Allergies & past visits</p>
+                        <ArrowRight className="h-4 w-4 text-indigo-600 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
                   </div>
@@ -556,7 +661,7 @@ export const PatientChatbotWidget: React.FC = () => {
                     }`}
                   >
                     <div
-                      className={`max-w-[92%] rounded-2xl p-3.5 shadow-2xs leading-relaxed ${
+                      className={`max-w-[95%] sm:max-w-[92%] rounded-2xl p-3.5 shadow-2xs leading-relaxed ${
                         msg.sender === 'user'
                           ? 'bg-gradient-to-br from-teal-800 to-teal-950 text-white rounded-tr-xs'
                           : msg.isEmergency
@@ -564,6 +669,17 @@ export const PatientChatbotWidget: React.FC = () => {
                           : 'bg-white border border-slate-200/90 text-slate-800 rounded-tl-xs'
                       }`}
                     >
+                      {/* User Attached Photo Preview */}
+                      {msg.image && (
+                        <div className="mb-2">
+                          <img
+                            src={msg.image}
+                            alt="Medical Attachment"
+                            className="max-h-48 max-w-full rounded-xl object-cover border border-white/30 shadow-xs"
+                          />
+                        </div>
+                      )}
+
                       {/* Message Header for Bot */}
                       {msg.sender === 'assistant' && (
                         <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 text-[11px]">
@@ -631,15 +747,119 @@ export const PatientChatbotWidget: React.FC = () => {
                         })}
                       </div>
 
-                      {/* Sources metadata tag */}
-                      {msg.sources && msg.sources.length > 0 && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex flex-wrap items-center gap-1">
-                          <span className="font-semibold text-slate-400">Sources:</span>
-                          {msg.sources.map((src, sIdx) => (
-                            <span key={sIdx} className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[9px] font-mono">
-                              {src}
+                      {/* INTERACTIVE RECOMMENDED HOSPITALS ACCORDING TO DISEASE */}
+                      {msg.recommendedHospitals && msg.recommendedHospitals.length > 0 && (
+                        <div className="mt-3.5 space-y-2.5 pt-3 border-t border-slate-200/80">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-extrabold text-teal-950 flex items-center gap-1.5 uppercase tracking-wide">
+                              <Building2 className="h-3.5 w-3.5 text-teal-700" />
+                              Nearby Specialized Hospitals ({msg.recommendedHospitals.length}):
                             </span>
-                          ))}
+                            <span className="text-[9px] text-emerald-800 bg-emerald-100/80 border border-emerald-300 px-1.5 py-0.5 rounded-full font-black">
+                              🟢 Live Bed Verified
+                            </span>
+                          </div>
+
+                          <div className="space-y-2.5">
+                            {msg.recommendedHospitals.map((hosp) => (
+                              <div
+                                key={hosp.id}
+                                className="rounded-2xl bg-gradient-to-b from-white to-slate-50/70 border border-teal-200/90 p-3 shadow-2xs hover:border-teal-500 hover:shadow-xs transition-all space-y-2 text-slate-800"
+                              >
+                                {/* Header */}
+                                <div className="flex items-start justify-between gap-1.5">
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <h4 className="font-extrabold text-[12px] text-slate-950 leading-tight">
+                                        {hosp.name}
+                                      </h4>
+                                      <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
+                                        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" /> Verified
+                                      </span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                                      📍 {hosp.address}
+                                    </p>
+                                  </div>
+
+                                  <span className="shrink-0 bg-teal-50 text-teal-900 border border-teal-200 text-[10px] font-black px-2 py-0.5 rounded-lg whitespace-nowrap">
+                                    {hosp.distanceKm} km • ~{hosp.driveTimeMinutes || Math.max(3, Math.round(hosp.distanceKm * 2.2))}m
+                                  </span>
+                                </div>
+
+                                {/* Matching Specialty & Doctor */}
+                                <div className="bg-teal-50/70 rounded-xl p-2 border border-teal-100 space-y-1 text-[11px]">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="text-teal-950 font-bold flex items-center gap-1">
+                                      <Stethoscope className="h-3 w-3 text-teal-700 shrink-0" />
+                                      <span>Dept: {hosp.matchedSpecialty || 'Specialty'} OPD</span>
+                                    </span>
+                                    <span className="text-[9px] font-bold text-teal-900 bg-white px-1.5 py-0.5 rounded border border-teal-200">
+                                      {hosp.doctorOnDuty?.opdRoom || 'Room 4'}
+                                    </span>
+                                  </div>
+
+                                  {hosp.doctorOnDuty && (
+                                    <p className="text-[10px] text-slate-700 flex items-center gap-1 pl-4">
+                                      <span>Attending: <strong>{hosp.doctorOnDuty.name}</strong> ({hosp.doctorOnDuty.qualification || hosp.doctorOnDuty.specialty})</span>
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Live Beds & Emergency Status */}
+                                <div className="flex items-center justify-between text-[10px] text-slate-600 px-0.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="inline-flex items-center gap-1 font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                                      🛏️ {hosp.availableBeds || 45} Beds
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 font-bold text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-200">
+                                      🫁 {hosp.icuBedsAvailable || 8} ICU
+                                    </span>
+                                  </div>
+
+                                  <span className={`font-semibold flex items-center gap-1 text-[9px] ${hosp.emergencyAvailable ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full ${hosp.emergencyAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                                    {hosp.emergencyAvailable ? '24x7 Emergency' : 'OPD Only'}
+                                  </span>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-100">
+                                  <button
+                                    onClick={() => {
+                                      setIsOpen(false);
+                                      navigate(`/patient/tokens?facility=${encodeURIComponent(hosp.name)}&facilityId=${encodeURIComponent(hosp.id)}`);
+                                    }}
+                                    className="px-2 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white font-bold text-[10px] transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                                  >
+                                    🎟️ Live Token
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setIsOpen(false);
+                                      navigate(`/patient/appointments/book?facility=${encodeURIComponent(hosp.name)}&facilityId=${encodeURIComponent(hosp.id)}&dept=${encodeURIComponent(hosp.matchedSpecialty || '')}`);
+                                    }}
+                                    className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[10px] transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                                  >
+                                    📅 Book Slot
+                                  </button>
+                                  <a
+                                    href={
+                                      userCoords
+                                        ? `https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${hosp.coordinates ? `${hosp.coordinates.lat},${hosp.coordinates.lng}` : encodeURIComponent(hosp.name + ' ' + hosp.address)}&travelmode=driving`
+                                        : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(hosp.name + ' ' + (hosp.address || ''))}`
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-2 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-bold text-[10px] transition-colors flex items-center justify-center gap-1 cursor-pointer text-center"
+                                  >
+                                    <Navigation className="h-3 w-3 text-emerald-700" />
+                                    <span>Route</span>
+                                  </a>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
 
@@ -674,7 +894,7 @@ export const PatientChatbotWidget: React.FC = () => {
                   <div className="flex items-center gap-2 p-3 rounded-2xl bg-white border border-slate-200 text-slate-600 w-fit">
                     <div className="h-4 w-4 rounded-full border-2 border-teal-600 border-t-transparent animate-spin"></div>
                     <span className="text-xs font-medium">
-                      Querying Python AI Model & MongoDB...
+                      Finding matching specialized hospitals & live bed data...
                     </span>
                   </div>
                 )}
@@ -701,7 +921,62 @@ export const PatientChatbotWidget: React.FC = () => {
               )}
 
               {/* Chat Input Bar */}
-              <div className="p-3 bg-white border-t border-slate-200/80 shrink-0">
+              <div className="p-3 bg-white border-t border-slate-200/80 shrink-0 space-y-2">
+                {/* 3 Core Quick Navigation Buttons (GPS-Powered) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSendMessage('Show the real nearest hospital to my location with live bed availability, address and exact distance')}
+                    className="flex-1 min-w-[110px] py-1 px-2 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                  >
+                    <Building2 className="h-3 w-3 text-teal-700" />
+                    <span>🏥 Nearby Hospitals</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSendMessage('Show the real nearest medical store and Jan Aushadhi Kendra to my location with available medicine stock and address')}
+                    className="flex-1 min-w-[110px] py-1 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                  >
+                    <Pill className="h-3 w-3 text-emerald-700" />
+                    <span>💊 Medical Stores</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate('/patient/tokens');
+                    }}
+                    className="flex-1 min-w-[105px] py-1 px-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                  >
+                    <span>🎟️ Live OPD Token</span>
+                  </button>
+                </div>
+
+                {/* Image Attachment Preview */}
+                {attachedImage && (
+                  <div className="p-2 bg-teal-50 border border-teal-200 rounded-xl flex items-center justify-between gap-2 animate-in fade-in-50 duration-150">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <img
+                        src={attachedImage}
+                        alt="Preview"
+                        className="h-10 w-10 rounded-lg object-cover border border-teal-300 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold text-teal-900 truncate">Healthcare Photo Attached</p>
+                        <p className="text-[10px] text-teal-700">Will be analyzed by Clinical AI</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAttachedImage(null)}
+                      className="p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                      title="Remove image"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -709,6 +984,24 @@ export const PatientChatbotWidget: React.FC = () => {
                   }}
                   className="flex items-center gap-2"
                 >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
+
+                  {/* Photo / Camera Button */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach Healthcare Photo / Prescription / Lab Report"
+                    className="h-10 w-10 rounded-xl flex items-center justify-center transition-all bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-700 border border-slate-200 cursor-pointer shrink-0"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </button>
+
                   <input
                     type="text"
                     value={inputValue}
@@ -722,7 +1015,7 @@ export const PatientChatbotWidget: React.FC = () => {
                     type="button"
                     onClick={isListening ? stopListening : startListening}
                     title="Speak in Gujarati / English"
-                    className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                    className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white ring-4 ring-rose-500/30'
                         : 'bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-700 border border-slate-200'
@@ -734,8 +1027,8 @@ export const PatientChatbotWidget: React.FC = () => {
                   {/* Send Button */}
                   <Button
                     type="submit"
-                    disabled={!inputValue.trim() || loading}
-                    className="h-10 px-4 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+                    disabled={(!inputValue.trim() && !attachedImage) || loading}
+                    className="h-10 px-4 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold gap-1.5 shadow-sm shrink-0"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>Send</span>

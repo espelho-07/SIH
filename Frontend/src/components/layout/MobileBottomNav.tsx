@@ -40,15 +40,6 @@ export const MobileBottomNav: React.FC = () => {
           { to: '/patient/referrals', label: 'Referrals', icon: GitBranch },
         ];
 
-      case 'ASHA':
-        return [
-          { to: '/asha', label: 'Today', icon: LayoutDashboard },
-          { to: '/asha/visits', label: 'Visits', icon: Calendar },
-          { to: '/asha/patients', label: 'Citizens', icon: Users },
-          { to: '/asha/vitals', label: 'Vitals', icon: Activity },
-          { to: '/asha/sync', label: 'Sync', icon: RefreshCw },
-        ];
-
       case 'DOCTOR':
         return [
           { to: '/doctor', label: 'Home', icon: LayoutDashboard },
@@ -73,14 +64,6 @@ export const MobileBottomNav: React.FC = () => {
             { to: '/registration-clerk/register', label: 'Register', icon: UserPlus },
             { to: '/registration-clerk/appointments', label: 'Check-In', icon: CalendarCheck2 },
             { to: '/registration-clerk/queue', label: 'Counter', icon: Ticket },
-          ];
-        }
-        if (staffSubType === 'LAB_TECHNICIAN') {
-          return [
-            { to: '/lab-technician', label: 'Desk', icon: LayoutDashboard },
-            { to: '/lab-technician/tests', label: 'Orders', icon: FlaskConical },
-            { to: '/lab-technician/samples', label: 'Samples', icon: QrCode },
-            { to: '/lab-technician/history', label: 'Archive', icon: FileCheck },
           ];
         }
         if (staffSubType === 'FACILITY_OPERATIONS') {

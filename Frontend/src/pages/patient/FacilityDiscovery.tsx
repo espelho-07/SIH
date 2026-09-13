@@ -34,9 +34,12 @@ import {
   Radio,
 } from 'lucide-react';
 
+import { geocodeLocationQuery } from '@/services/geocodingService';
+import { LocationPickerMap } from '@/components/map/LocationPickerMap';
+
 // Haversine formula
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
+  const R = 6371; // Radius of the Earth in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -57,6 +60,7 @@ export const FacilityDiscovery: React.FC = () => {
     userCoords,
     selectedDistrict: ctxDistrict,
     detectGpsLocation,
+    setExactCustomLocation,
     setUserCoords,
     isLiveTracking,
     toggleLiveTracking,
@@ -81,9 +85,13 @@ export const FacilityDiscovery: React.FC = () => {
   const [nearestHospitalInfo, setNearestHospitalInfo] = useState<{ facility: Facility; distanceKm: number } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // GPS state
+  // GPS & Custom Locality state
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [gpsStatusMsg, setGpsStatusMsg] = useState<string | null>(null);
+  const [patientLocInput, setPatientLocInput] = useState('');
+  const [isSearchingLoc, setIsSearchingLoc] = useState(false);
+  const [showPatientMapPin, setShowPatientMapPin] = useState(false);
+  const [locationLabel, setLocationLabel] = useState<string | null>(null);
 
   // Load facilities from backend API on mount
   useEffect(() => {
@@ -103,6 +111,7 @@ export const FacilityDiscovery: React.FC = () => {
     try {
       const result = await detectGpsLocation();
       setGpsStatusMsg(result.message);
+      setLocationLabel('Live Device GPS');
       setSortBy('DISTANCE');
     } catch {
       setGpsStatusMsg('Unable to retrieve GPS coordinates.');
@@ -111,11 +120,34 @@ export const FacilityDiscovery: React.FC = () => {
     }
   };
 
+  const handleSearchPatientLocality = async (customQuery?: string) => {
+    const q = customQuery || patientLocInput;
+    if (!q.trim()) return;
+
+    setIsSearchingLoc(true);
+    try {
+      const res = await geocodeLocationQuery(q);
+      if (res) {
+        setExactCustomLocation(res.lat, res.lng, res.displayName);
+        setLocationLabel(res.displayName);
+        setGpsStatusMsg(`📍 Location set: ${res.displayName}`);
+        setSortBy('DISTANCE');
+        setPatientLocInput('');
+      }
+    } catch (err) {
+      console.warn('Locality search error:', err);
+    } finally {
+      setIsSearchingLoc(false);
+    }
+  };
+
   const handleClearGps = () => {
     setUserCoords(null);
     setGpsStatusMsg(null);
+    setLocationLabel(null);
     setSelectedMaxDistance(null);
     setShowNearestOnlyOnMap(false);
+    setShowPatientMapPin(false);
   };
 
   /* =====================================================
@@ -351,12 +383,217 @@ export const FacilityDiscovery: React.FC = () => {
           <span className="text-slate-600 font-medium">Hospitals</span>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-          Find a Hospital
-        </h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Find a hospital or health centre near you.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              Find a Hospital
+            </h1>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Find nearest public hospitals, CHCs, and PHCs with live distances and GPS navigation.
+            </p>
+          </div>
+
+          {/* Location Quick Fix Button */}
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            {userCoords ? (
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleDetectGps}
+                disabled={isDetectingGps}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold gap-1.5 rounded-xl cursor-pointer shadow-xs"
+              >
+                <Navigation className={`h-3.5 w-3.5 ${isDetectingGps ? 'animate-spin' : ''}`} />
+                <span>{isDetectingGps ? 'Fixing GPS...' : '📍 Refresh Live Location'}</span>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleDetectGps}
+                disabled={isDetectingGps}
+                className="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold gap-1.5 rounded-xl cursor-pointer shadow-xs animate-pulse"
+              >
+                <Navigation className={`h-3.5 w-3.5 ${isDetectingGps ? 'animate-spin' : ''}`} />
+                <span>{isDetectingGps ? 'Detecting Location...' : '📍 Use My Live Location (GPS)'}</span>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          1.5. PATIENT GPS LIVE LOCATION BANNER & RADIUS FILTERS
+      ====================================================== */}
+      <div className="rounded-2xl border border-teal-200/80 bg-gradient-to-r from-teal-50/90 via-sky-50/80 to-emerald-50/90 p-4 shadow-2xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
+              <Navigation className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs sm:text-sm font-bold text-slate-900">
+                  {userCoords
+                    ? `📍 Your Current Coordinates: ${userCoords.lat.toFixed(4)}°N, ${userCoords.lng.toFixed(4)}°E`
+                    : '📍 Patient Live Location'}
+                </span>
+                {isLiveTracking ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 text-[10px] font-extrabold animate-pulse">
+                    <Radio className="h-3 w-3 text-emerald-600 animate-ping" />
+                    LIVE GPS STREAM ACTIVE
+                  </span>
+                ) : userCoords ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                    GPS Fixed {gpsAccuracy ? `(±${gpsAccuracy}m)` : ''}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">
+                    Location not fixed yet
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {userCoords
+                  ? 'Distances to all public hospitals are computed in real-time using Haversine GPS formula.'
+                  : 'Click "Use My Live Location" to sort hospitals nearest first and view exact KM distance.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Live Tracking, Pin Map, and Clear buttons */}
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto flex-wrap">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setShowPatientMapPin(!showPatientMapPin)}
+              className="h-8 text-xs font-bold gap-1 bg-white hover:bg-slate-50 text-slate-700 border-slate-300 rounded-xl cursor-pointer shadow-2xs"
+            >
+              <MapIcon className="h-3.5 w-3.5 text-teal-700" />
+              <span>{showPatientMapPin ? 'Hide Map Pin' : '🗺️ Pin My Location'}</span>
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={toggleLiveTracking}
+              className={`h-8 text-xs font-bold gap-1.5 rounded-xl cursor-pointer shadow-2xs ${
+                isLiveTracking
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+              }`}
+            >
+              <Radio className={`h-3.5 w-3.5 ${isLiveTracking ? 'animate-pulse text-white' : 'text-slate-500'}`} />
+              <span>{isLiveTracking ? 'Tracking Live GPS' : '🛰️ Live Stream'}</span>
+            </Button>
+
+            {userCoords && (
+              <button
+                type="button"
+                onClick={handleClearGps}
+                className="h-8 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-xs font-semibold cursor-pointer transition-colors"
+                title="Clear GPS Location"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Locality / Area Search Bar for Patient */}
+        <div className="p-3 bg-white/90 rounded-xl border border-teal-100 space-y-2">
+          <div className="flex flex-col sm:flex-row gap-2 items-center">
+            <div className="relative flex-1 w-full">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-700" />
+              <input
+                type="text"
+                placeholder="Or type your exact area/town (e.g. Kalol, Sector 21 Gandhinagar, Sola, Vastrapur, Mansa, Sanand)..."
+                value={patientLocInput}
+                onChange={(e) => setPatientLocInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearchPatientLocality();
+                }}
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+              />
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => handleSearchPatientLocality()}
+              disabled={isSearchingLoc || !patientLocInput.trim()}
+              className="h-8 text-xs font-bold bg-teal-700 hover:bg-teal-800 text-white px-3 rounded-lg cursor-pointer shrink-0 w-full sm:w-auto"
+            >
+              {isSearchingLoc ? 'Matching...' : 'Set Location'}
+            </Button>
+          </div>
+
+          {/* Quick Locality Suggestions */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[10px] font-bold text-slate-500">Quick Locations:</span>
+            {['Gandhinagar Sector 12', 'Kalol', 'Mansa', 'Pethapur', 'Sola Ahmedabad', 'Asarwa Civil', 'Sanand', 'Kudasan', 'Vastrapur'].map((loc) => (
+              <button
+                key={loc}
+                type="button"
+                onClick={() => handleSearchPatientLocality(loc)}
+                className="text-[10px] font-semibold bg-slate-100 hover:bg-teal-100 hover:text-teal-900 text-slate-700 px-2 py-0.5 rounded-md cursor-pointer transition-colors border border-slate-200/60"
+              >
+                {loc}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Interactive Location Picker Map for Patient */}
+        {showPatientMapPin && (
+          <div className="p-3 bg-white rounded-xl border border-teal-200 space-y-2">
+            <LocationPickerMap
+              lat={userCoords?.lat || 23.2156}
+              lng={userCoords?.lng || 72.6369}
+              onChangeLocation={(newLat, newLng) => {
+                setExactCustomLocation(newLat, newLng);
+                setLocationLabel(`Pin: [${newLat.toFixed(4)}°N, ${newLng.toFixed(4)}°E]`);
+                setGpsStatusMsg(`📍 Location pin placed at [${newLat.toFixed(4)}°N, ${newLng.toFixed(4)}°E]`);
+                setSortBy('DISTANCE');
+              }}
+              title="Click or drag pin to your exact current location/home"
+              markerLabel="Your Current Location Pin"
+              height="200px"
+            />
+          </div>
+        )}
+
+        {/* Distance Range Filter Chips */}
+        <div className="pt-2 border-t border-teal-100 flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-bold text-slate-700 flex items-center gap-1 text-[11px]">
+            <MapPin className="h-3 w-3 text-teal-700" /> Distance Radius:
+          </span>
+          {[
+            { label: 'All Distances', value: null },
+            { label: '< 5 km', value: 5 },
+            { label: '< 10 km', value: 10 },
+            { label: '< 25 km', value: 25 },
+            { label: '< 50 km', value: 50 },
+          ].map((item) => {
+            const isSelected = selectedMaxDistance === item.value;
+            return (
+              <button
+                type="button"
+                key={item.label}
+                onClick={() => setSelectedMaxDistance(item.value)}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-teal-50 hover:border-teal-300'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* =====================================================
@@ -650,20 +887,46 @@ export const FacilityDiscovery: React.FC = () => {
                     </div>
 
                     {/* Facility Type • District (Distance) */}
-                    <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 font-normal">
-                      <span>{getFacilityType(facility.type)}</span>
+                    <div className="mt-1.5 flex items-center gap-2 text-xs text-slate-500 font-normal flex-wrap">
+                      <span className="font-semibold text-slate-700">{getFacilityType(facility.type)}</span>
                       <span className="text-slate-300">•</span>
-                      <span className="inline-flex items-center gap-1 text-slate-500">
+                      <span className="inline-flex items-center gap-1 text-slate-600">
                         <MapPin className="h-3 w-3 text-sky-600 shrink-0" />
                         {facility.district}
-                        {facility.distanceKm !== undefined ? ` (${facility.distanceKm} km away)` : ''}
                       </span>
+                      {facility.distanceKm !== undefined && (
+                        <>
+                          <span className="text-slate-300">•</span>
+                          <span className="inline-flex items-center gap-1 font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full text-[11px]">
+                            <MapPin className="h-3 w-3 text-emerald-600 shrink-0" />
+                            {facility.distanceKm} km away (~{Math.max(2, Math.round(facility.distanceKm * 2.2))} min)
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Right Section: Buttons */}
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                {/* Right Section: Action Buttons */}
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center flex-wrap">
+                  {facility.coordinates && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${facility.coordinates.lat},${facility.coordinates.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block"
+                      title="Navigate to hospital in Google Maps"
+                    >
+                      <button
+                        type="button"
+                        className="h-9 px-3 rounded-lg border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold shadow-2xs cursor-pointer transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                      >
+                        <Navigation className="h-3.5 w-3.5 text-teal-700" />
+                        <span>Directions</span>
+                      </button>
+                    </a>
+                  )}
+
                   <Link
                     to={`/patient/facilities/${facility.id}`}
                     className="inline-block"

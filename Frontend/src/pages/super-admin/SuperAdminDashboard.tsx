@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
@@ -35,12 +35,9 @@ import { SystemHealthTab } from './views/SystemHealthTab';
 import { FacilitiesTab } from './views/FacilitiesTab';
 import { DistrictAdminsTab } from './views/DistrictAdminsTab';
 import { UsersTab } from './views/UsersTab';
-import { RolesTab } from './views/RolesTab';
-import { AiModelsTab } from './views/AiModelsTab';
-import { AuditLogsTab } from './views/AuditLogsTab';
 import { SettingsTab } from './views/SettingsTab';
 
-type TabKey = 'OVERVIEW' | 'HEALTH' | 'FACILITIES' | 'DISTRICT_ADMINS' | 'USERS' | 'ROLES' | 'MODELS' | 'AUDIT' | 'SETTINGS';
+type TabKey = 'OVERVIEW' | 'HEALTH' | 'FACILITIES' | 'DISTRICT_ADMINS' | 'USERS' | 'SETTINGS';
 
 const TAB_URL_MAP: Record<TabKey, string> = {
   OVERVIEW: '',
@@ -48,9 +45,6 @@ const TAB_URL_MAP: Record<TabKey, string> = {
   FACILITIES: 'facilities',
   DISTRICT_ADMINS: 'district-admins',
   USERS: 'users',
-  ROLES: 'roles',
-  MODELS: 'ai-models',
-  AUDIT: 'audit',
   SETTINGS: 'settings',
 };
 
@@ -64,11 +58,11 @@ const URL_TAB_MAP: Record<string, TabKey> = {
   'district-admin': 'DISTRICT_ADMINS',
   cdho: 'DISTRICT_ADMINS',
   users: 'USERS',
-  roles: 'ROLES',
-  permissions: 'ROLES',
-  'ai-models': 'MODELS',
-  models: 'MODELS',
-  audit: 'AUDIT',
+  roles: 'USERS',
+  permissions: 'USERS',
+  'ai-models': 'OVERVIEW',
+  models: 'OVERVIEW',
+  audit: 'OVERVIEW',
   settings: 'SETTINGS',
 };
 
@@ -348,9 +342,9 @@ export const SuperAdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs (9 Modules) */}
+      {/* Navigation Tabs (6 Modules) */}
       <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as TabKey)}>
-        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 max-w-full">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 max-w-full">
           <TabsTrigger value="OVERVIEW" icon={<LayoutDashboard className="h-4 w-4" />}>
             Overview
           </TabsTrigger>
@@ -365,15 +359,6 @@ export const SuperAdminDashboard: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="USERS" icon={<Users className="h-4 w-4" />}>
             Users
-          </TabsTrigger>
-          <TabsTrigger value="ROLES" icon={<KeyRound className="h-4 w-4" />}>
-            Permissions
-          </TabsTrigger>
-          <TabsTrigger value="MODELS" icon={<BrainCircuit className="h-4 w-4" />}>
-            AI Models
-          </TabsTrigger>
-          <TabsTrigger value="AUDIT" icon={<ShieldCheck className="h-4 w-4" />}>
-            Audit Logs
           </TabsTrigger>
           <TabsTrigger value="SETTINGS" icon={<Settings className="h-4 w-4" />}>
             Settings
@@ -431,27 +416,7 @@ export const SuperAdminDashboard: React.FC = () => {
           />
         </TabsContent>
 
-        {/* 6. PERMISSIONS */}
-        <TabsContent value="ROLES" className="pt-2">
-          <RolesTab permissions={permissions} />
-        </TabsContent>
-
-        {/* 6. AI MODELS */}
-        <TabsContent value="MODELS" className="pt-2">
-          <AiModelsTab
-            models={models}
-            onDeployModel={handleDeployModel}
-            onRollbackModel={handleRollbackModel}
-            isDeploying={isDeploying}
-          />
-        </TabsContent>
-
-        {/* 7. AUDIT LOGS */}
-        <TabsContent value="AUDIT" className="pt-2">
-          <AuditLogsTab logs={auditLogs} />
-        </TabsContent>
-
-        {/* 8. SETTINGS */}
+        {/* 6. SETTINGS */}
         <TabsContent value="SETTINGS" className="pt-2">
           <SettingsTab />
         </TabsContent>

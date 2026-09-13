@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { MedicineModel } from '../models/Medicine';
+import { MedicalStoreModel } from '../models/MedicalStore';
 import { DispensingRecordModel } from '../models/DispensingRecord';
 import { PrescriptionModel } from '../models/Prescription';
 import { sendSuccess, sendError } from '../utils/response';
@@ -76,7 +78,12 @@ export async function getDispensingHistory(_req: Request, res: Response): Promis
 export async function getPrescriptions(req: Request, res: Response): Promise<void> {
   const patientId = req.query.patientId || req.body.patientId;
   const filter: any = {};
-  if (patientId) filter.patientId = patientId;
+  if (patientId) {
+    filter.$or = [
+      { patientId },
+      { patientPhone: patientId },
+    ];
+  }
 
   const prescriptions = await PrescriptionModel.find(filter).sort({ issuedAt: -1 });
   sendSuccess(res, 'Prescriptions retrieved', prescriptions.map((p) => p.toJSON()));
@@ -167,4 +174,131 @@ export async function dispensePrescription(req: AuthRequest, res: Response): Pro
   await record.save();
 
   sendSuccess(res, `Prescription ${rx.id} dispensed successfully`, rx.toJSON());
+}
+
+export async function createMedicine(req: Request, res: Response): Promise<void> {
+  try {
+    const data = req.body;
+    const id = data.id || `med_${Date.now()}`;
+    const facilityId = data.facilityId || 'fac_civil_01';
+    const medicineName = data.medicineName || data.name || 'New Medicine';
+    const genericName = data.genericName || medicineName;
+    const category = data.category || 'General';
+    const batchNumber = data.batchNumber || `BT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+    const availableQuantity = Number(data.availableQuantity !== undefined ? data.availableQuantity : 100);
+    const minimumStockThreshold = Number(data.minimumStockThreshold || 20);
+    const unit = data.unit || 'Tablets';
+    const expiryDate = data.expiryDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const status =
+      availableQuantity === 0
+        ? 'OUT_OF_STOCK'
+        : availableQuantity <= minimumStockThreshold
+        ? 'LOW_STOCK'
+        : 'IN_STOCK';
+
+    const newMed = new MedicineModel({
+      id,
+      facilityId,
+      medicineName,
+      genericName,
+      category,
+      batchNumber,
+      availableQuantity,
+      minimumStockThreshold,
+      unit,
+      expiryDate,
+      status,
+      lastUpdated: new Date().toISOString(),
+    });
+
+    await newMed.save();
+
+    // Also sync to MedicalStoreModel stock catalog so patient side can instantly find it!
+    const storeItem = {
+      id: newMed.id,
+      name: newMed.medicineName,
+      genericName: newMed.genericName,
+      category: newMed.category,
+      dosage: data.dosage || '500mg',
+      status: (availableQuantity === 0 ? 'OUT_OF_STOCK' : availableQuantity <= minimumStockThreshold ? 'LOW_STOCK' : 'IN_STOCK') as any,
+      quantityAvailable: availableQuantity,
+      genericPrice: Number(data.genericPrice || 12),
+      brandPrice: Number(data.brandPrice || 45),
+      unit: newMed.unit,
+    };
+
+    // Update all medical stores in this district/facility
+    await MedicalStoreModel.updateMany(
+      {},
+      {
+        $push: {
+          stockCatalog: storeItem,
+        },
+      }
+    );
+
+    sendSuccess(res, 'Medicine created successfully and synchronized with pharmacy stock and medical stores', newMed.toJSON(), 201);
+  } catch (err: any) {
+    sendError(res, err.message || 'Failed to create medicine', 500);
+  }
+}
+
+export async function updateMedicine(req: Request, res: Response): Promise<void> {
+  try {
+    const medicineId = String(req.params.medicineId);
+    const updateData = { ...req.body, lastUpdated: new Date().toISOString() };
+
+    if (updateData.availableQuantity !== undefined) {
+      const qty = Number(updateData.availableQuantity);
+      const threshold = Number(updateData.minimumStockThreshold || 20);
+      updateData.status = qty === 0 ? 'OUT_OF_STOCK' : qty <= threshold ? 'LOW_STOCK' : 'IN_STOCK';
+    }
+
+    const isObjectId = mongoose.Types.ObjectId.isValid(medicineId);
+    const query = isObjectId ? { $or: [{ id: medicineId }, { _id: medicineId }] } : { id: medicineId };
+
+    const med = await MedicineModel.findOneAndUpdate(
+      query,
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!med) {
+      sendError(res, `Medicine ${medicineId} not found`, 404);
+      return;
+    }
+
+    sendSuccess(res, 'Medicine updated successfully', med.toJSON());
+  } catch (err: any) {
+    sendError(res, err.message || 'Failed to update medicine', 500);
+  }
+}
+
+export async function deleteMedicine(req: Request, res: Response): Promise<void> {
+  try {
+    const medicineId = String(req.params.medicineId);
+    const isObjectId = mongoose.Types.ObjectId.isValid(medicineId);
+    const query = isObjectId ? { $or: [{ id: medicineId }, { _id: medicineId }] } : { id: medicineId };
+    const result = await MedicineModel.findOneAndDelete(query);
+
+    if (!result) {
+      sendError(res, `Medicine ${medicineId} not found`, 404);
+      return;
+    }
+
+    // Also remove from MedicalStoreModel catalogs
+    await MedicalStoreModel.updateMany(
+      {},
+      {
+        $pull: {
+          stockCatalog: { id: medicineId },
+        },
+      }
+    );
+
+    sendSuccess(res, 'Medicine deleted successfully', { id: medicineId });
+  } catch (err: any) {
+    sendError(res, err.message || 'Failed to delete medicine', 500);
+  }
 }

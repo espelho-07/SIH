@@ -80,13 +80,13 @@ export const AiModelRegistryPage: React.FC = () => {
             m.id === model.id ? { ...m, status: 'ACTIVE', deployedAt: new Date().toISOString().slice(0, 10) } : m
           )
         );
-        setSuccessToast(`Model "${model.name}" (${model.version}) deployed to active production cluster.`);
+        setSuccessToast(`Model "${(model as any).name || model.modelName}" (${model.version}) deployed to active production cluster.`);
       } else {
         await adminApi.rollbackModel(model.id);
         setModels((prev) =>
           prev.map((m) => (m.id === model.id ? { ...m, status: 'STAGING' } : m))
         );
-        setSuccessToast(`Model "${model.name}" (${model.version}) rolled back to previous checkpoint.`);
+        setSuccessToast(`Model "${(model as any).name || model.modelName}" (${model.version}) rolled back to previous checkpoint.`);
       }
       setTimeout(() => setSuccessToast(null), 5000);
     } catch (err: any) {
@@ -133,7 +133,7 @@ export const AiModelRegistryPage: React.FC = () => {
             <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
-          <Button size="xs" variant="outline" onClick={() => fetchModels(true)}>Retry</Button>
+          <Button size="sm" variant="outline" onClick={() => fetchModels(true)}>Retry</Button>
         </div>
       )}
 

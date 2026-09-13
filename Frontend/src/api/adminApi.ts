@@ -2,15 +2,35 @@ import { apiRequest } from './client';
 import { SystemHealthOverview, PermissionMatrixItem, AiModelRegistryItem, AuditLog } from '@/types/admin';
 import { User } from '@/types/auth';
 
+export interface RoleItem {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  level: 'STATE' | 'DISTRICT' | 'FACILITY' | 'COMMUNITY' | 'CITIZEN';
+  permissions: string[];
+  isSystem: boolean;
+  isActive: boolean;
+}
+
 export const adminApi = {
   getSystemHealth: () =>
     apiRequest<SystemHealthOverview>('/super-admin/system-health', 'GET'),
 
-  getUsers: () =>
-    apiRequest<User[]>('/super-admin/users', 'GET'),
+  getRoles: () =>
+    apiRequest<RoleItem[]>('/roles', 'GET'),
 
-  createUser: (data: Partial<User>) =>
-    apiRequest<User>('/super-admin/users', 'POST', data),
+  getUsers: (params?: { district?: string; facilityId?: string; role?: string; status?: string; search?: string }) =>
+    apiRequest<User[]>('/users', 'GET', params),
+
+  createUser: (data: Partial<User> & { password?: string }) =>
+    apiRequest<User>('/users', 'POST', data),
+
+  updateUser: (id: string, data: Partial<User>) =>
+    apiRequest<User>(`/users/${id}`, 'PUT', data),
+
+  deleteUser: (id: string) =>
+    apiRequest<{ id: string; status: string }>(`/users/${id}`, 'DELETE'),
 
   getPermissions: () =>
     apiRequest<PermissionMatrixItem[]>('/super-admin/roles', 'GET'),

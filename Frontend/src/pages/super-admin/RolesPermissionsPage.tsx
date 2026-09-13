@@ -109,8 +109,9 @@ export const RolesPermissionsPage: React.FC = () => {
     { role: 'ASHA', name: 'ASHA Worker', desc: 'Community citizen registration, vitals telemetry, offline sync' },
     { role: 'DOCTOR', name: 'Doctor / Specialist', desc: 'Clinical queue management, EHR prescriptions, and diagnostic orders' },
     { role: 'FACILITY_STAFF', name: 'Facility Staff', desc: 'Hospital registration, bed tracking, pharmacy stock, and labs' },
+    { role: 'HOSPITAL_ADMIN', name: 'Hospital Admin', desc: 'Facility superintendent, bed allocation, and specialist rostering' },
     { role: 'DISTRICT_ADMIN', name: 'District Admin', desc: 'District resource intelligence, referral monitor, and disease alerts' },
-    { role: 'SUPER_ADMIN', name: 'Super Admin', desc: 'Platform operations, system health, and model registry' },
+    { role: 'SUPER_ADMIN', name: 'Super Admin', desc: 'Platform operations, system health, and cross-district governance' },
   ];
 
   return (
@@ -153,7 +154,7 @@ export const RolesPermissionsPage: React.FC = () => {
             <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
-          <Button size="xs" variant="outline" onClick={() => fetchPermissions(true)}>Retry</Button>
+          <Button size="sm" variant="outline" onClick={() => fetchPermissions(true)}>Retry</Button>
         </div>
       )}
 

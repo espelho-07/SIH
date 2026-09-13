@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { ReferralModel, IReferral } from '../models/Referral';
 import { NotificationModel } from '../models/Admin';
 import { sendSuccess, sendError } from '../utils/response';
@@ -18,16 +19,26 @@ export async function getReferrals(req: Request, res: Response): Promise<void> {
     limit = 50,
   } = params;
 
-  const filter: any = {};
+  const andConditions: any[] = [];
+
   if (facilityId) {
-    filter.$or = [{ toFacilityId: facilityId }, { fromFacilityId: facilityId }];
+    andConditions.push({ $or: [{ toFacilityId: facilityId }, { fromFacilityId: facilityId }] });
   }
-  if (toFacilityId) filter.toFacilityId = toFacilityId;
-  if (fromFacilityId) filter.fromFacilityId = fromFacilityId;
-  if (fromDoctorId) filter.fromDoctorId = fromDoctorId;
-  if (patientId) filter.patientId = patientId;
-  if (status) filter.status = status;
-  if (priority) filter.priority = priority;
+  if (toFacilityId) andConditions.push({ toFacilityId });
+  if (fromFacilityId) andConditions.push({ fromFacilityId });
+  if (fromDoctorId) andConditions.push({ fromDoctorId });
+  if (patientId) {
+    andConditions.push({
+      $or: [
+        { patientId },
+        { patientPhone: patientId },
+      ],
+    });
+  }
+  if (status) andConditions.push({ status });
+  if (priority) andConditions.push({ priority });
+
+  const filter = andConditions.length > 0 ? { $and: andConditions } : {};
 
   const referrals = await ReferralModel.find(filter).sort({ createdAt: -1 });
 
@@ -39,8 +50,11 @@ export async function getReferrals(req: Request, res: Response): Promise<void> {
 }
 
 export async function getReferralById(req: Request, res: Response): Promise<void> {
-  const { id } = req.params;
-  const ref = await ReferralModel.findOne({ id });
+  const id = String(req.params.id);
+  const isMongoId = mongoose.Types.ObjectId.isValid(id);
+  const ref = await ReferralModel.findOne(
+    isMongoId ? { $or: [{ id }, { referralCode: id }, { _id: id }] } : { $or: [{ id }, { referralCode: id }] }
+  );
 
   if (!ref) {
     sendError(res, `Referral with ID ${id} not found`, 404);

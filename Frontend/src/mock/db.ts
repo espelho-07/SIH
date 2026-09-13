@@ -31,7 +31,9 @@ import {
   INITIAL_DISTRICT_DOCTORS,
   INITIAL_BLOOD_CENTRES,
 } from './mockData';
+import { INITIAL_MEDICAL_STORES } from './medicalStoresData';
 import { Facility, FacilityMatchRequest, FacilityMatchResult } from '@/types/facility';
+import { MedicalStore } from '@/types/medicalStore';
 import { Token, LiveQueueState, Appointment, RegisteredPatient } from '@/types/queue';
 import { Referral, CreateReferralRequest } from '@/types/referral';
 import { HealthNotification } from '@/types/notification';
@@ -156,6 +158,7 @@ class MockHealthcareState {
   bloodInventory: BloodInventory = JSON.parse(JSON.stringify(INITIAL_BLOOD_INVENTORY));
   ambulances: Ambulance[] = JSON.parse(JSON.stringify(INITIAL_AMBULANCES));
   medicines: MedicineInventoryItem[] = JSON.parse(JSON.stringify(INITIAL_MEDICINES));
+  medicalStores: MedicalStore[] = JSON.parse(JSON.stringify(INITIAL_MEDICAL_STORES));
   dispensingHistory: DispensingRecord[] = JSON.parse(JSON.stringify(INITIAL_DISPENSING_HISTORY));
   equipment: EquipmentItem[] = JSON.parse(JSON.stringify(INITIAL_EQUIPMENT));
   ashaPatients: AshaPatient[] = JSON.parse(JSON.stringify(INITIAL_ASHA_PATIENTS));

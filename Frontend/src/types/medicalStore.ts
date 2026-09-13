@@ -30,9 +30,12 @@ export interface MedicalStore {
   isJanAushadhi: boolean;      // Top Priority
   hasLiveApi: boolean;         // True: Real-time stock stream; False: Traditional local store
   licenseNumber: string;       // e.g. "GMC/DL/2022/9482"
-  distanceKm: number;          // Distance from active citizen's location
+  distanceKm?: number;         // Distance from active citizen's location
   area: string;                // e.g. "Sector 21 Market"
   fullAddress: string;
+  pincode?: string;
+  district?: string;
+  state?: string;
   phone: string;
   whatsappPhone?: string;
   timings: string;             // e.g. "8:00 AM - 10:30 PM" or "Open 24x7"

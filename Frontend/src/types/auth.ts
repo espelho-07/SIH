@@ -3,6 +3,7 @@ export type UserRole =
   | 'ASHA'
   | 'DOCTOR'
   | 'FACILITY_STAFF'
+  | 'HOSPITAL_ADMIN'
   | 'DISTRICT_ADMIN'
   | 'SUPER_ADMIN';
 
@@ -10,7 +11,8 @@ export type StaffSubType =
   | 'REGISTRATION_CLERK'
   | 'PHARMACIST'
   | 'LAB_TECHNICIAN'
-  | 'FACILITY_OPERATIONS';
+  | 'FACILITY_OPERATIONS'
+  | 'NURSE';
 
 export interface User {
   id: string;

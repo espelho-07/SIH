@@ -9,6 +9,7 @@ import { directoryApi } from '@/api/directoryApi';
 import { Facility } from '@/types/facility';
 import { DistrictDoctor } from '@/types/admin';
 import { useFamily } from '@/contexts/FamilyContext';
+import { useLocationContext } from '@/contexts/LocationContext';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   CalendarDays,
@@ -33,6 +34,7 @@ import {
   Phone,
   Calendar,
   AlertCircle,
+  MapPin,
 } from 'lucide-react';
 
 export interface AppointmentRecord {
@@ -134,10 +136,25 @@ const QUICK_DISEASE_CHIPS = [
 
 const TIME_SLOTS = ['09:30 AM', '10:30 AM', '11:30 AM', '02:30 PM', '04:00 PM'];
 
+function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
 export const AppointmentBooking: React.FC = () => {
   const { i18n } = useTranslation();
   const currentLang = i18n.language || 'en';
   const { activeMember } = useFamily();
+  const { userCoords } = useLocationContext();
   const [searchParams] = useSearchParams();
 
   // Active View Tab: 'LIST' (Table view of all appointments) vs 'BOOK' (Voice + 5-field form)
@@ -174,6 +191,22 @@ export const AppointmentBooking: React.FC = () => {
   const [date, setDate] = useState('2026-09-14');
   const [timeSlot, setTimeSlot] = useState('10:30 AM');
 
+  // Facilities sorted by distance from user location
+  const sortedFacilities = React.useMemo(() => {
+    return facilities.map((fac) => {
+      if (userCoords && fac.coordinates) {
+        const dist = calculateDistanceKm(userCoords.lat, userCoords.lng, fac.coordinates.lat, fac.coordinates.lng);
+        return { ...fac, distanceKm: dist };
+      }
+      return fac;
+    }).sort((a, b) => {
+      if (a.distanceKm !== undefined && b.distanceKm !== undefined) {
+        return a.distanceKm - b.distanceKm;
+      }
+      return 0;
+    });
+  }, [facilities, userCoords]);
+
   // Load live facilities and doctors from MongoDB
   useEffect(() => {
     facilityApi.getAll().then((res) => {
@@ -209,7 +242,7 @@ export const AppointmentBooking: React.FC = () => {
   // Available doctors for the chosen hospital
   const availableDoctors = doctors.filter((d) => {
     if (!selectedFacilityId || selectedFacilityId === 'ALL') return true;
-    return d.facilityId === selectedFacilityId || d.hospital?.toLowerCase().includes(hospitalName.toLowerCase().slice(0, 8));
+    return d.facilityId === selectedFacilityId || (d as any).hospital?.toLowerCase().includes(hospitalName.toLowerCase().slice(0, 8));
   });
 
   useEffect(() => {
@@ -484,7 +517,7 @@ export const AppointmentBooking: React.FC = () => {
         doctorId: chosenDoctor?.id,
         doctorName: chosenDoctor?.name,
         specialty: chosenDoctor?.specialty || 'General Medicine',
-        roomNumber: chosenDoctor?.roomNumber || 'Room 4 (1st Floor)',
+        roomNumber: (chosenDoctor as any)?.roomNumber || (chosenDoctor as any)?.opdRoom || 'Room 4 (1st Floor)',
         departmentName: chosenDoctor?.specialty || 'General Medicine OPD',
         date,
         timeSlot,
@@ -502,7 +535,7 @@ export const AppointmentBooking: React.FC = () => {
         tokenNumber: newTokenNumber,
         hospitalName: serverApt?.facilityName || chosenFacility.name,
         department: serverApt?.departmentName || serverApt?.specialty || chosenDoctor?.specialty || 'General Medicine',
-        room: serverApt?.roomNumber || chosenDoctor?.roomNumber || 'Room 4 (1st Floor)',
+        room: serverApt?.roomNumber || (chosenDoctor as any)?.roomNumber || (chosenDoctor as any)?.opdRoom || 'Room 4 (1st Floor)',
         doctorName: serverApt?.doctorName || chosenDoctor?.name || 'Dr. Arvind Patel (MD Medicine)',
         patientName: serverApt?.patientName || patientName,
         patientPhone: serverApt?.patientPhone || activeMember?.phone || '9825011122',
@@ -1210,9 +1243,9 @@ export const AppointmentBooking: React.FC = () => {
                         }}
                         className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white font-bold text-slate-900"
                       >
-                        {facilities.map((fac) => (
+                        {sortedFacilities.map((fac) => (
                           <option key={fac.id} value={fac.id}>
-                            {fac.name} ({fac.type?.replace('_', ' ') || 'Hospital'})
+                            {fac.name} {fac.distanceKm !== undefined ? `• [${fac.distanceKm} km away]` : `(${fac.type?.replace('_', ' ') || 'Hospital'})`}
                           </option>
                         ))}
                       </select>
@@ -1239,7 +1272,7 @@ export const AppointmentBooking: React.FC = () => {
                         </option>
                         {availableDoctors.map((doc) => (
                           <option key={doc.id} value={doc.id}>
-                            {doc.name} • {doc.specialty} ({doc.roomNumber || 'Room 4'})
+                            {doc.name} • {doc.specialty} ({(doc as any).roomNumber || (doc as any).opdRoom || 'Room 4'})
                           </option>
                         ))}
                       </select>

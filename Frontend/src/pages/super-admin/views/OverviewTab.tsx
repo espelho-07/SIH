@@ -86,8 +86,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </Card>
       </div>
 
-      {/* Quick Access Grid (matching Patient Module quick actions) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {/* Quick Access Grid (Core Super Admin Operational Modules) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <button
           onClick={() => onNavigateTab('HEALTH')}
           className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-teal-500 hover:shadow-md transition-all text-left group cursor-pointer"
@@ -107,43 +107,34 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </button>
 
         <button
-          onClick={() => onNavigateTab('USERS')}
+          onClick={() => onNavigateTab('DISTRICT_ADMINS')}
           className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-teal-500 hover:shadow-md transition-all text-left group cursor-pointer"
         >
           <Users className="h-5 w-5 text-indigo-700 mb-2 group-hover:scale-110 transition-transform" />
-          <span className="text-xs font-bold text-slate-900 block">Users</span>
-          <span className="text-[10px] text-slate-500">{userCount} Staff Accounts</span>
+          <span className="text-xs font-bold text-slate-900 block">District Admins</span>
+          <span className="text-[10px] text-slate-500">CDHO Governance</span>
         </button>
 
         <button
-          onClick={() => onNavigateTab('ROLES')}
+          onClick={() => onNavigateTab('USERS')}
           className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-teal-500 hover:shadow-md transition-all text-left group cursor-pointer"
         >
-          <KeyRound className="h-5 w-5 text-amber-700 mb-2 group-hover:scale-110 transition-transform" />
-          <span className="text-xs font-bold text-slate-900 block">Permissions</span>
-          <span className="text-[10px] text-slate-500">Role Capabilities</span>
+          <Users className="h-5 w-5 text-purple-700 mb-2 group-hover:scale-110 transition-transform" />
+          <span className="text-xs font-bold text-slate-900 block">User Registry</span>
+          <span className="text-[10px] text-slate-500">{userCount} Staff & Doctors</span>
         </button>
 
         <button
-          onClick={() => onNavigateTab('MODELS')}
+          onClick={() => onNavigateTab('SETTINGS')}
           className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-teal-500 hover:shadow-md transition-all text-left group cursor-pointer"
         >
-          <BrainCircuit className="h-5 w-5 text-emerald-700 mb-2 group-hover:scale-110 transition-transform" />
-          <span className="text-xs font-bold text-slate-900 block">AI Models</span>
-          <span className="text-[10px] text-slate-500">{modelCount} Active Models</span>
-        </button>
-
-        <button
-          onClick={() => onNavigateTab('AUDIT')}
-          className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-teal-500 hover:shadow-md transition-all text-left group cursor-pointer"
-        >
-          <ShieldCheck className="h-5 w-5 text-slate-700 mb-2 group-hover:scale-110 transition-transform" />
-          <span className="text-xs font-bold text-slate-900 block">Audit Logs</span>
-          <span className="text-[10px] text-slate-500">Security & Activity</span>
+          <Activity className="h-5 w-5 text-slate-700 mb-2 group-hover:scale-110 transition-transform" />
+          <span className="text-xs font-bold text-slate-900 block">Settings</span>
+          <span className="text-[10px] text-slate-500">Platform Governance</span>
         </button>
       </div>
 
-      {/* Services Status & Recent Audit Logs */}
+      {/* Services Status & State Governance Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Core Services Overview */}
         <Card className="lg:col-span-2 border-slate-200 shadow-sm">
@@ -197,37 +188,46 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </CardContent>
         </Card>
 
-        {/* Recent Audit Activities */}
+        {/* State Governance Quick Summary */}
         <Card className="border-slate-200 shadow-sm flex flex-col justify-between">
           <div>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold text-slate-900">Recent Activity</CardTitle>
-              <p className="text-xs text-slate-500 mt-0.5">Latest administrative actions</p>
+              <CardTitle className="text-base font-bold text-slate-900">Statewide Governance</CardTitle>
+              <p className="text-xs text-slate-500 mt-0.5">Apex jurisdiction overview</p>
             </CardHeader>
-            <CardContent className="p-5 pt-0 space-y-3">
-              {recentLogs.slice(0, 4).map((log) => (
-                <div key={log.id} className="pb-2.5 border-b border-slate-100 last:border-0 last:pb-0 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800">{log.action}</span>
-                    <span className="text-[10px] text-slate-400">{log.timestamp.split(' ')[1] || log.timestamp}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-600 truncate">
-                    {log.actorName} ({log.actorRole}) • {log.resourceType}
-                  </p>
-                </div>
-              ))}
+            <CardContent className="p-5 pt-0 space-y-3 text-xs">
+              <div className="p-3 bg-teal-50/80 rounded-xl border border-teal-200 space-y-1">
+                <span className="font-bold text-teal-950 block">🏛️ 33 District Health Circles</span>
+                <p className="text-teal-800 text-[11px] leading-relaxed">
+                  Full commissioning authority to appoint and regulate Chief District Health Officers.
+                </p>
+              </div>
+
+              <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-200 space-y-1">
+                <span className="font-bold text-indigo-950 block">🏥 {facilityCount} Network Facilities</span>
+                <p className="text-indigo-800 text-[11px] leading-relaxed">
+                  District Hospitals, CHCs, and PHCs across Gujarat connected to live OPD & bed feeds.
+                </p>
+              </div>
+
+              <div className="p-3 bg-purple-50/80 rounded-xl border border-purple-200 space-y-1">
+                <span className="font-bold text-purple-950 block">👥 {userCount} Provisioned Personnel</span>
+                <p className="text-purple-800 text-[11px] leading-relaxed">
+                  Doctors, Superintendents, auxiliary staff, and ASHA community workers.
+                </p>
+              </div>
             </CardContent>
           </div>
 
           <div className="p-4 pt-2 border-t border-slate-100">
             <Button
-              onClick={() => onNavigateTab('AUDIT')}
+              onClick={() => onNavigateTab('USERS')}
               variant="outline"
               size="sm"
               className="w-full text-xs gap-1.5 justify-center cursor-pointer"
             >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              View Complete Audit Logs
+              <Users className="h-3.5 w-3.5" />
+              Manage User Registry
             </Button>
           </div>
         </Card>
