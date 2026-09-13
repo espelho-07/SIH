@@ -3,6 +3,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IDistrictAdmin extends Document {
   id: string;
   name: string;
+  username?: string;
+  password?: string;
   designation: string;
   district: string;
   state: string;
@@ -20,6 +22,8 @@ const DistrictAdminSchema = new Schema<IDistrictAdmin>(
   {
     id: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
+    username: { type: String, index: true },
+    password: { type: String },
     designation: { type: String, default: 'Chief District Health Officer (CDHO)' },
     district: { type: String, required: true, index: true },
     state: { type: String, default: 'Gujarat' },

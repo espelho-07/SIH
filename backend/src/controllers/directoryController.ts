@@ -203,7 +203,39 @@ export async function getDistrictAdmins(req: Request, res: Response): Promise<vo
     if (district) filter.district = district;
 
     const admins = await DistrictAdminModel.find(filter);
-    sendSuccess(res, 'District admins retrieved successfully', admins.map((a) => a.toJSON()));
+    const users = await UserModel.find({ role: 'DISTRICT_ADMIN', ...(district ? { district } : {}) });
+
+    // Map and consolidate by district or username
+    const map = new Map<string, any>();
+    
+    // Add seed / model records
+    for (const a of admins) {
+      const key = (a.district || a.username || a.id).toLowerCase();
+      map.set(key, a.toJSON());
+    }
+
+    // Add user records
+    for (const u of users) {
+      const key = (u.district || u.username || u.id).toLowerCase();
+      const existing = map.get(key) || {};
+      map.set(key, {
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        email: u.email,
+        phone: u.phone,
+        district: u.district || 'Gandhinagar',
+        designation: u.designation || 'Chief District Health Officer (CDHO)',
+        status: u.status || 'ACTIVE',
+        appointedAt: existing.appointedAt || (u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)),
+        appointedBy: existing.appointedBy || 'State Health Authority',
+        jurisdictionFacilitiesCount: existing.jurisdictionFacilitiesCount || 14,
+        privileges: existing.privileges || ['FACILITY_MANAGEMENT', 'DOCTOR_POSTINGS', 'AI_RESOURCE_INTELLIGENCE'],
+      });
+    }
+
+    const consolidated = Array.from(map.values());
+    sendSuccess(res, 'District admins retrieved successfully', consolidated);
   } catch (err: any) {
     sendError(res, err.message || 'Failed to retrieve district admins', 500);
   }
@@ -212,11 +244,10 @@ export async function getDistrictAdmins(req: Request, res: Response): Promise<vo
 export async function createDistrictAdmin(req: Request, res: Response): Promise<void> {
   try {
     const data = req.body;
-    const id = data.id || `usr_dist_${Date.now()}`;
-    const district = data.district || 'Gandhinagar';
-
-    const username = data.username ? String(data.username).trim() : '';
-    const password = data.password ? String(data.password).trim() : '';
+    const district = String(data.district || 'Gandhinagar').trim();
+    const username = data.username ? String(data.username).trim() : `cdho_${district.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    const password = data.password ? String(data.password).trim() : 'Health@123';
+    const id = data.id || `usr_dist_${district.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
 
     if (!username || !password) {
       sendError(
@@ -232,22 +263,32 @@ export async function createDistrictAdmin(req: Request, res: Response): Promise<
       return;
     }
 
-    const existingUser = await UserModel.findOne({
-      username: { $regex: new RegExp(`^${username}$`, 'i') },
-      id: { $ne: id },
-    });
-    if (existingUser) {
-      sendError(res, `The District Admin Username "${username}" is already taken. Please choose a unique username / ID.`, 400);
-      return;
-    }
-
-    const admin = new DistrictAdminModel({ ...data, id, district });
-    await admin.save();
-
-    // Create / Sync UserModel login credentials in MongoDB
     const adminPhone = data.phone || `98${Math.floor(10000000 + Math.random() * 90000000)}`;
     const email = data.email || `${username}@gujarat.health.gov.in`;
 
+    const admin = await DistrictAdminModel.findOneAndUpdate(
+      { $or: [{ id }, { district }, { username }] },
+      {
+        $set: {
+          id,
+          name: data.name,
+          username,
+          password,
+          district,
+          email,
+          phone: adminPhone,
+          designation: data.designation || 'Chief District Health Officer (CDHO)',
+          status: 'ACTIVE',
+          appointedAt: new Date().toISOString().slice(0, 10),
+          appointedBy: data.appointedBy || 'State Health Authority',
+          jurisdictionFacilitiesCount: parseInt(String(data.jurisdictionFacilitiesCount || '14'), 10),
+          privileges: data.privileges || ['FACILITY_MANAGEMENT', 'DOCTOR_POSTINGS', 'AI_RESOURCE_INTELLIGENCE'],
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    // Create / Sync UserModel login credentials in MongoDB
     let user = await UserModel.findOne({ $or: [{ id }, { username }] });
     if (!user) {
       user = new UserModel({
@@ -259,13 +300,20 @@ export async function createDistrictAdmin(req: Request, res: Response): Promise<
         password,
         role: 'DISTRICT_ADMIN',
         district,
-        designation: data.designation || 'Chief District Medical Officer (CDMO)',
+        designation: data.designation || 'Chief District Health Officer (CDHO)',
+        status: 'ACTIVE',
       });
       await user.save();
     } else {
       user.name = data.name;
       user.username = username;
+      user.email = email;
+      user.phone = adminPhone;
       user.password = password;
+      user.role = 'DISTRICT_ADMIN';
+      user.district = district;
+      user.designation = data.designation || 'Chief District Health Officer (CDHO)';
+      user.status = 'ACTIVE';
       await user.save();
     }
 

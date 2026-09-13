@@ -4,6 +4,7 @@ import { UserModel } from '../models/User';
 import { RoleModel } from '../models/Role';
 import { FacilityModel } from '../models/Facility';
 import { DoctorModel } from '../models/Doctor';
+import { DistrictAdminModel } from '../models/DistrictAdmin';
 import { AiModelModel, AuditLogModel } from '../models/Admin';
 import { sendSuccess, sendError } from '../utils/response';
 import { getOpenSocketConnections } from '../sockets/socketHandler';
@@ -248,6 +249,32 @@ export async function createAdminUser(req: Request, res: Response): Promise<void
           isAvailable: true,
           status: 'ON_DUTY',
           teleconsultEnabled: true,
+        },
+      },
+      { upsert: true, new: true }
+    );
+  }
+
+  // If role is DISTRICT_ADMIN, automatically sync in DistrictAdminModel
+  if (role === 'DISTRICT_ADMIN') {
+    const daId = `usr_dist_${targetDistrict.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    await DistrictAdminModel.findOneAndUpdate(
+      { $or: [{ username: finalUsername }, { district: targetDistrict }] },
+      {
+        $set: {
+          id: daId,
+          name,
+          username: finalUsername,
+          password: finalPassword,
+          email: email || `${finalUsername}@gujarat.health.gov.in`,
+          phone: String(phone).trim(),
+          district: targetDistrict,
+          designation: designation || 'Chief District Health Officer (CDHO)',
+          status: 'ACTIVE',
+          appointedAt: new Date().toISOString().slice(0, 10),
+          appointedBy: caller?.name || 'State Health Authority',
+          jurisdictionFacilitiesCount: 14,
+          privileges: ['FACILITY_MANAGEMENT', 'DOCTOR_POSTINGS', 'AI_RESOURCE_INTELLIGENCE'],
         },
       },
       { upsert: true, new: true }
