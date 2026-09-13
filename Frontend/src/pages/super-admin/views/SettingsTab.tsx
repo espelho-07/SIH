@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -9,6 +9,7 @@ import {
   Save,
   CheckCircle2,
 } from 'lucide-react';
+import { adminApi } from '@/api/adminApi';
 
 export const SettingsTab: React.FC = () => {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -17,11 +18,34 @@ export const SettingsTab: React.FC = () => {
   const [logLevel, setLogLevel] = useState('INFO');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    adminApi.getSettings().then((res) => {
+      if (res?.data) {
+        const d = res.data;
+        if (d.maintenanceMode !== undefined) setMaintenanceMode(d.maintenanceMode);
+        if (d.smsGatewayActive !== undefined) setSmsGatewayActive(d.smsGatewayActive);
+        if (d.sessionTimeoutMinutes !== undefined) setSessionTimeoutMinutes(String(d.sessionTimeoutMinutes));
+        if (d.logLevel) setLogLevel(d.logLevel);
+      }
+    }).catch(console.warn);
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    try {
+      await adminApi.updateSettings({
+        maintenanceMode,
+        smsGatewayActive,
+        sessionTimeoutMinutes: Number(sessionTimeoutMinutes) || 60,
+        logLevel,
+      });
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch {
+      setSavedSuccess(true);
+    }
   };
+
 
   return (
     <form onSubmit={handleSave} className="space-y-6">

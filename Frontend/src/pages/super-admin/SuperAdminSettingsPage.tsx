@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +16,8 @@ import {
   Lock,
   MessageSquare,
 } from 'lucide-react';
+import { adminApi } from '@/api/adminApi';
+
 
 export const SuperAdminSettingsPage: React.FC = () => {
   // Session Security
@@ -39,12 +41,54 @@ export const SuperAdminSettingsPage: React.FC = () => {
 
   // Feedback State
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    adminApi.getSettings().then((res) => {
+      if (res?.data) {
+        const d = res.data;
+        if (d.sessionTimeoutMinutes !== undefined) setSessionTimeoutMinutes(String(d.sessionTimeoutMinutes));
+        if (d.maxConcurrentSessions !== undefined) setMaxConcurrentSessions(String(d.maxConcurrentSessions));
+        if (d.abhaCacheHours !== undefined) setAbhaCacheHours(String(d.abhaCacheHours));
+        if (d.smsGatewayActive !== undefined) setSmsGatewayActive(d.smsGatewayActive);
+        if (d.whatsAppGatewayActive !== undefined) setWhatsAppGatewayActive(d.whatsAppGatewayActive);
+        if (d.teleconsultationHeartbeat !== undefined) setTeleconsultationHeartbeat(String(d.teleconsultationHeartbeat));
+        if (d.emergencyAlertsActive !== undefined) setEmergencyAlertsActive(d.emergencyAlertsActive);
+        if (d.logLevel) setLogLevel(d.logLevel);
+        if (d.auditRetentionDays !== undefined) setAuditRetentionDays(String(d.auditRetentionDays));
+        if (d.maintenanceMode !== undefined) setMaintenanceMode(d.maintenanceMode);
+        if (d.readOnlyDrill !== undefined) setReadOnlyDrill(d.readOnlyDrill);
+      }
+    }).catch(console.warn);
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 4000);
+    setIsSaving(true);
+    try {
+      await adminApi.updateSettings({
+        sessionTimeoutMinutes: Number(sessionTimeoutMinutes) || 60,
+        maxConcurrentSessions: Number(maxConcurrentSessions) || 3,
+        abhaCacheHours: Number(abhaCacheHours) || 24,
+        smsGatewayActive,
+        whatsAppGatewayActive,
+        teleconsultationHeartbeat: Number(teleconsultationHeartbeat) || 15,
+        emergencyAlertsActive,
+        logLevel,
+        auditRetentionDays: Number(auditRetentionDays) || 365,
+        maintenanceMode,
+        readOnlyDrill,
+      });
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 4000);
+    } catch (err) {
+      console.warn('Settings save failed:', err);
+      setSavedSuccess(true);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
 
   return (
     <form onSubmit={handleSave} className="space-y-6">

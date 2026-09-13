@@ -46,4 +46,11 @@ export const adminApi = {
 
   getAuditLogs: (params?: { action?: string; role?: string }) =>
     apiRequest<AuditLog[]>('/super-admin/audit', 'GET', params),
+
+  getSettings: () =>
+    apiRequest<any>('/super-admin/settings', 'GET'),
+
+  updateSettings: (data: any) =>
+    apiRequest<any>('/super-admin/settings', 'PUT', data),
 };
+
