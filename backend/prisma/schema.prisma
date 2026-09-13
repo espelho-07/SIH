@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  HOSPITAL_STAFF
+}
+
+enum HospitalType {
+  PHC
+  CHC
+  DISTRICT_HOSPITAL
+  GOVERNMENT_HOSPITAL
+  SUB_CENTER
+  OTHER
+}
+
+enum DoctorAvailabilityStatus {
+  AVAILABLE
+  UNAVAILABLE
+  ON_LEAVE
+  UNKNOWN
+}
+
+enum MedicineAvailabilityStatus {
+  AVAILABLE
+  LIMITED
+  OUT_OF_STOCK
+  UNKNOWN
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Hospital {
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  type               HospitalType
+  address            String
+  district           String
+  state              String
+  pincode            String
+  latitude           Float
+  longitude          Float
+  phone              String
+  email              String?
+  openingTime        String             @default("08:00 AM")
+  closingTime        String             @default("08:00 PM")
+  emergencyAvailable Boolean            @default(true)
+  isActive           Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  doctors            Doctor[]
+  medicines          HospitalMedicine[]
+  services           HospitalService[]
+
+  @@map("hospitals")
+}
+
+model Doctor {
+  id                 String                   @id @default(auto()) @map("_id") @db.ObjectId
+  hospitalId         String                   @db.ObjectId
+  hospital           Hospital                 @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  name               String
+  specialization     String
+  qualification      String
+  phone              String
+  consultationStart  String                   @default("09:00 AM")
+  consultationEnd    String                   @default("05:00 PM")
+  availabilityStatus DoctorAvailabilityStatus @default(AVAILABLE)
+  isActive           Boolean                  @default(true)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@map("doctors")
+}
+
+model Medicine {
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  genericName       String
+  category          String
+  unit              String             @default("Tablet")
+  description       String?
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  hospitalMedicines HospitalMedicine[]
+
+  @@map("medicines")
+}
+
+model HospitalMedicine {
+  id                 String                     @id @default(auto()) @map("_id") @db.ObjectId
+  hospitalId         String                     @db.ObjectId
+  hospital           Hospital                   @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  medicineId         String                     @db.ObjectId
+  medicine           Medicine                   @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  quantity           Int                        @default(0)
+  availabilityStatus MedicineAvailabilityStatus @default(AVAILABLE)
+  lastUpdated        DateTime                   @default(now())
+
+  @@unique([hospitalId, medicineId])
+  @@map("hospital_medicines")
+}
+
+model HospitalService {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  hospitalId  String   @db.ObjectId
+  hospital    Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  serviceName String
+  isAvailable Boolean  @default(true)
+  description String?
+
+  @@map("hospital_services")
+}
